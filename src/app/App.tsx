@@ -8,8 +8,8 @@ import Frame219 from "@/imports/Frame1000007317/index";
  *   child 3  → left-12860  Step 6  Book Appointment
  *   child 4  → left-11325  Step 5  Book Appointment
  *   child 5  → left-9790   FrameForUx  Guide / Chat
- *   child 6  → left-8255   Product Specs modal
- *   child 7  → left-6880   Step 4  Hire Equipment
+ *   child 6  → left-8255   Locations lightbox (scrim + card)
+ *   child 7  → left-6880   Step 4  Hire Equipment / Book Appointment Step 1
  *   child 8  → left-5345   Deal Details
  *   child 9  → left-3810   Vaccination Listing
  *   child 10 → left-1535   Account Overview
@@ -21,7 +21,7 @@ const SCREENS = [
   { label: "PLP. Vaccinations",         childIndex: 9  },
   { label: "PDP. Vaccine Details Page", childIndex: 8  },
   { label: "Book Appointment. Step 1",  childIndex: 7  },
-  // childIndex 6 = Product Specs — shown as lightbox, not in nav
+  // childIndex 6 = Locations lightbox — not in nav
   { label: "Guide / Chat",              childIndex: 5  },
   { label: "Book Appointment – Step 5", childIndex: 4  },
   { label: "Book Appointment – Step 6", childIndex: 3  },
@@ -96,16 +96,13 @@ export default function App() {
   }, []);
 
   // Screen 5 (Book Appointment Step 1, child 7): clicking the search field opens the
-  // Product Specs lightbox. We wire to the whole "chosen location" row so the user
-  // doesn't have to hit the tiny icon precisely.
+  // Locations lightbox (child 6). Wire the whole input field so the click target is usable.
   useEffect(() => {
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
     if (!screen) return;
 
-    // "chosen location" wraps both the text field and GPS button on this screen.
-    // component.input.field wraps Label + TextField3 — prefer that as the click area.
     const searchField =
       screen.querySelector<HTMLElement>("[data-name='component.input.field']") ??
       screen.querySelector<HTMLElement>("[data-name='Text Field']") ??
@@ -115,18 +112,82 @@ export default function App() {
 
     searchField.style.cursor = "pointer";
 
-    // Use a ref-stable setter via functional update so the closure stays fresh.
     const open = () => setLightboxOpen(true);
     searchField.addEventListener("click", open);
     return () => searchField.removeEventListener("click", open);
   }, []);
 
-  // Escape key closes the lightbox
+  // Locations lightbox (child 6): wire Figma close icon, Choose Location CTAs, and
+  // scrim clicks. Child 6 is already a dimmed overlay + 608px card in the export —
+  // we only show/hide it; we do not re-skin it as a second modal.
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const overlay = document.querySelector(
+      ".proto-viewport > div > div:nth-child(6)"
+    ) as HTMLElement | null;
+    if (!overlay) return;
+
+    const card = overlay.querySelector<HTMLElement>(
+      "[data-name='module.product.specifications.table']"
+    );
+    const closeIcon = overlay.querySelector<HTMLElement>(
+      "[data-name='icon / gse / close']"
+    );
+    const chooseBtns = Array.from(
+      overlay.querySelectorAll<HTMLElement>("[data-name='component.input.button']")
+    ).filter((btn) => /choose location/i.test(btn.textContent ?? ""));
+
+    const close = () => setLightboxOpen(false);
+
+    if (closeIcon) {
+      closeIcon.style.cursor = "pointer";
+      closeIcon.style.pointerEvents = "auto";
+      // Enlarge hit area — the Figma icon is only 16px.
+      Object.assign(closeIcon.style, {
+        width: "32px",
+        height: "32px",
+        right: "0px",
+        top: "0px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      });
+      closeIcon.addEventListener("click", close);
+    }
+
+    chooseBtns.forEach((btn) => {
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", close);
+    });
+
+    const onScrim = (e: MouseEvent) => {
+      if (card && card.contains(e.target as Node)) return;
+      close();
+    };
+    overlay.addEventListener("click", onScrim);
+
+    return () => {
+      closeIcon?.removeEventListener("click", close);
+      chooseBtns.forEach((btn) => btn.removeEventListener("click", close));
+      overlay.removeEventListener("click", onScrim);
+    };
+  }, [lightboxOpen]);
+
+  // Escape closes the lightbox; lock page scroll while open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightboxOpen(false); };
     window.addEventListener("keydown", onKey);
+    if (lightboxOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        window.removeEventListener("keydown", onKey);
+        document.body.style.overflow = prev;
+      };
+    }
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [lightboxOpen]);
 
   // Screen 4 (Deal Details, child 8): wire up the Myself / Someone else toggle.
   // We tag each tab with data-toggle-index so CSS can apply the correct 3-sided
@@ -361,29 +422,48 @@ export default function App() {
     }
 
     /*
-     * Lightbox: when .proto-lb-open is on the root, pull child 6 out of the hidden
-     * flow and pin it as a fixed centered modal. The backdrop is a sibling div.
-     * Specificity (.proto-lb-open + 3 combinators) beats the plain hide rule above.
+     * Locations lightbox (child 6): the Figma export is already a full-bleed scrim
+     * (rgba overlay) wrapping a 608px card. Show it as a fixed viewport overlay —
+     * do NOT re-card the outer node (that was squashing the scrim into a modal).
      */
     .proto-lb-open .proto-viewport > div > div:nth-child(6) {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
+      justify-content: center !important;
       position: fixed !important;
       z-index: 10000 !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      width: min(90vw, 1100px) !important;
-      max-height: 88vh !important;
+      inset: 0 !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      padding: 24px !important;
+      overflow: auto !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      transform: none !important;
+      background: rgba(33, 43, 65, 0.55) !important;
+      animation: proto-lb-fade 0.2s ease !important;
+    }
+
+    /* Inner Locations card — keep Figma 608px width, allow height to flex */
+    .proto-lb-open .proto-viewport > div > div:nth-child(6) > [data-name="module.product.specifications.table"] {
+      width: min(608px, 100%) !important;
+      max-width: 608px !important;
+      height: auto !important;
+      max-height: min(777px, calc(100vh - 48px)) !important;
       overflow-y: auto !important;
-      overflow-x: hidden !important;
-      border-radius: 16px !important;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.45) !important;
-      max-width: unset !important;
-      min-width: unset !important;
-      min-height: unset !important;
-      animation: lightbox-slide 0.28s cubic-bezier(0.22,1,0.36,1) !important;
+      flex-shrink: 0 !important;
+      animation: proto-lb-slide 0.28s cubic-bezier(0.22,1,0.36,1) !important;
+    }
+
+    /* Hide the decorative Figma scrollbar glyph inside the Locations card */
+    .proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="module.scrollbar"] {
+      display: none !important;
     }
 
     /* Search field on screen 5 gets a hover ring so the click affordance is clear */
@@ -403,9 +483,14 @@ export default function App() {
       to   { opacity: 1; }
     }
 
-    @keyframes lightbox-slide {
-      from { opacity: 0; transform: translate(-50%, calc(-50% + 20px)); }
-      to   { opacity: 1; transform: translate(-50%, -50%); }
+    @keyframes proto-lb-fade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes proto-lb-slide {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   `;
 
@@ -488,32 +573,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* Lightbox backdrop — child 6 is lifted to fixed via CSS when .proto-lb-open is set */}
-      {lightboxOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0"
-            style={{ zIndex: 9998, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)" }}
-            onClick={() => setLightboxOpen(false)}
-          />
-          {/* Close button — sits above child 6 which is at z-index 10000 */}
-          <button
-            onClick={() => setLightboxOpen(false)}
-            className="fixed flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-lg hover:bg-gray-50 transition-all"
-            style={{
-              zIndex: 10001,
-              top: "calc(50% - 44vh - 16px)",
-              right: "calc(50% - min(45vw, 550px) - 16px)",
-              color: "#012169",
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </>
-      )}
+      {/* Lightbox: child 6 (Locations scrim + card) is shown via .proto-lb-open CSS.
+          Close is handled by the Figma X, Choose Location CTAs, scrim click, and Escape. */}
 
     </div>
   );
