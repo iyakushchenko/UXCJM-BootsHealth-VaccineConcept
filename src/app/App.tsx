@@ -117,9 +117,8 @@ export default function App() {
     return () => searchField.removeEventListener("click", open);
   }, []);
 
-  // Locations lightbox (child 6): wire Figma close icon, Choose Location CTAs, and
-  // scrim clicks. Child 6 is already a dimmed overlay + 608px card in the export —
-  // we only show/hide it; we do not re-skin it as a second modal.
+  // Locations lightbox (child 6): Choose Location CTAs close it. The in-card Figma X
+  // is hidden — only the floating popup close button (rendered below) is used.
   useEffect(() => {
     if (!lightboxOpen) return;
 
@@ -128,49 +127,19 @@ export default function App() {
     ) as HTMLElement | null;
     if (!overlay) return;
 
-    const card = overlay.querySelector<HTMLElement>(
-      "[data-name='module.product.specifications.table']"
-    );
-    const closeIcon = overlay.querySelector<HTMLElement>(
-      "[data-name='icon / gse / close']"
-    );
     const chooseBtns = Array.from(
       overlay.querySelectorAll<HTMLElement>("[data-name='component.input.button']")
     ).filter((btn) => /choose location/i.test(btn.textContent ?? ""));
 
     const close = () => setLightboxOpen(false);
 
-    if (closeIcon) {
-      closeIcon.style.cursor = "pointer";
-      closeIcon.style.pointerEvents = "auto";
-      // Enlarge hit area — the Figma icon is only 16px.
-      Object.assign(closeIcon.style, {
-        width: "32px",
-        height: "32px",
-        right: "0px",
-        top: "0px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      });
-      closeIcon.addEventListener("click", close);
-    }
-
     chooseBtns.forEach((btn) => {
       btn.style.cursor = "pointer";
       btn.addEventListener("click", close);
     });
 
-    const onScrim = (e: MouseEvent) => {
-      if (card && card.contains(e.target as Node)) return;
-      close();
-    };
-    overlay.addEventListener("click", onScrim);
-
     return () => {
-      closeIcon?.removeEventListener("click", close);
       chooseBtns.forEach((btn) => btn.removeEventListener("click", close));
-      overlay.removeEventListener("click", onScrim);
     };
   }, [lightboxOpen]);
 
@@ -422,15 +391,14 @@ export default function App() {
     }
 
     /*
-     * Locations lightbox (child 6): the Figma export is already a full-bleed scrim
-     * (rgba overlay) wrapping a 608px card. Show it as a fixed viewport overlay —
-     * do NOT re-card the outer node (that was squashing the scrim into a modal).
+     * Locations lightbox (child 6): full-viewport scrim; Locations panel fills X+Y.
+     * In-card Figma X is hidden — only the floating popup close button is shown.
      */
     .proto-lb-open .proto-viewport > div > div:nth-child(6) {
       display: flex !important;
       flex-direction: column !important;
-      align-items: center !important;
-      justify-content: center !important;
+      align-items: stretch !important;
+      justify-content: stretch !important;
       position: fixed !important;
       z-index: 10000 !important;
       inset: 0 !important;
@@ -441,8 +409,8 @@ export default function App() {
       max-width: none !important;
       min-width: 0 !important;
       min-height: 0 !important;
-      padding: 24px !important;
-      overflow: auto !important;
+      padding: 0 !important;
+      overflow: hidden !important;
       border-radius: 0 !important;
       box-shadow: none !important;
       transform: none !important;
@@ -450,15 +418,32 @@ export default function App() {
       animation: proto-lb-fade 0.2s ease !important;
     }
 
-    /* Inner Locations card — keep Figma 608px width, allow height to flex */
+    /* Locations panel — fill the viewport (X and Y) */
     .proto-lb-open .proto-viewport > div > div:nth-child(6) > [data-name="module.product.specifications.table"] {
-      width: min(608px, 100%) !important;
-      max-width: 608px !important;
-      height: auto !important;
-      max-height: min(777px, calc(100vh - 48px)) !important;
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      flex: 1 1 auto !important;
+      border-radius: 0 !important;
       overflow-y: auto !important;
-      flex-shrink: 0 !important;
+      overflow-x: hidden !important;
       animation: proto-lb-slide 0.28s cubic-bezier(0.22,1,0.36,1) !important;
+    }
+
+    .proto-lb-open .proto-viewport > div > div:nth-child(6) > [data-name="module.product.specifications.table"] > [data-name="content"] {
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      flex: 1 1 auto !important;
+    }
+
+    /* Hide the in-card Figma close — popup X is rendered separately */
+    .proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="icon / gse / close"] {
+      display: none !important;
     }
 
     /* Hide the decorative Figma scrollbar glyph inside the Locations card */
@@ -573,8 +558,25 @@ export default function App() {
         </div>
       </div>
 
-      {/* Lightbox: child 6 (Locations scrim + card) is shown via .proto-lb-open CSS.
-          Close is handled by the Figma X, Choose Location CTAs, scrim click, and Escape. */}
+      {/* Popup close — only X for the lightbox (in-card Figma X is hidden via CSS) */}
+      {lightboxOpen && (
+        <button
+          type="button"
+          aria-label="Close locations"
+          onClick={() => setLightboxOpen(false)}
+          className="fixed flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-lg hover:bg-gray-50 transition-all"
+          style={{
+            zIndex: 10001,
+            top: 16,
+            right: 16,
+            color: "#012169",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
 
     </div>
   );
