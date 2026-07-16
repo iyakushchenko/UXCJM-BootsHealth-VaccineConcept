@@ -1,6 +1,22 @@
+/* Prototype nav tab strip — scrollable, scrollbar hidden */
+.proto-nav-tabs {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.proto-nav-tabs::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Megamenu item chevrons were misaligned bottom due to items-end on the flex row */
 [data-name="component.mega.menu.item"] {
   align-items: center !important;
+}
+
+/* Boots Pharmacy logo → navigates to Agentic home (wired in App) */
+.proto-viewport [data-name="boots-pharmacy"] {
+  cursor: pointer !important;
 }
 
 /* ── Global CTA hover effects ───────────────────────────────────────────────────
@@ -9,16 +25,72 @@
  * Applied globally so every screen gets consistent button behaviour.
  */
 
-/* ── Icon buttons (heart + share, h-[32px] pill) ─────────────────────────────── */
+/* ── h-[32px] buttons ─────────────────────────────────────────────────────────
+ * Icon-only (heart / share): circular hover wash
+ * Tertiary text+icon (“See what’s available…”, “Change location”): NO hover bg
+ * Primary navy pills (chat bubbles, etc. bg-[#012169]) keep the primary CTA class —
+ * exclude them from the transparent tertiary overrides below.
+ */
 
 .proto-viewport [data-name="component.input.button"][class*="h-[32px]"] {
   cursor: pointer !important;
   user-select: none !important;
   position: relative !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]) {
   background: transparent !important;
 }
-/* Perfect circle hover via pseudo-element — doesn't affect button layout */
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]::before {
+
+/* Tertiary CTAs with a text label — no circle/wash; icon→primary navy, text→black */
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]),
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]):hover,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]):active,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"],
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"])::before,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]::before {
+  content: none !important;
+  display: none !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) p,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) span,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] p,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] span {
+  transition: color 0.18s ease !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) svg path,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] svg path {
+  transition: fill 0.18s ease !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover p,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover span,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover p,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover span {
+  color: #000000 !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover svg path {
+  fill: #012169 !important;
+}
+
+/* Icon-only h-[32px] — circular hover via pseudo-element */
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p))::before {
   content: "" !important;
   position: absolute !important;
   width: 32px !important;
@@ -32,19 +104,19 @@
   z-index: 0 !important;
   pointer-events: none !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:hover::before {
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover::before {
   background: #eef8f7 !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:active::before {
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):active::before {
   background: #c6e5e1 !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:hover svg path {
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover svg path {
   fill: #01318f !important;
   transition: fill 0.18s ease !important;
 }
 
 /* Heart hover when favourited — deepen fuchsia */
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path {
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path {
   fill: #c2186e !important;
 }
 
@@ -56,35 +128,110 @@
   user-select: none !important;
 }
 
-/* Primary CTA — darken slightly, lift with shadow */
-.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"] {
+/* Global toggles — inactive label regular; active label semibold
+ * (Myself/Someone else, List/Map, and any future [data-toggle-index] pair) */
+.proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) p,
+.proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) span,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) p,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) span {
+  font-weight: 400 !important;
+  font-family: "Open Sans", sans-serif !important;
+}
+.proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] p,
+.proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] span,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] p,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] span {
+  font-weight: 600 !important;
+  font-family: "Open Sans", sans-serif !important;
+}
+
+/* Primary CTA — darken slightly, lift with shadow.
+ * Also covers Agentic send (Figma #003fcc) → same Boots navy as PDP. */
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"],
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"] {
   cursor: pointer !important;
+  background: #012169 !important;
   transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:hover {
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:hover,
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:hover {
   background: #01318f !important;
   box-shadow: 0 4px 12px rgba(1,33,105,0.35) !important;
   transform: translateY(-1px) !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:active {
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:active,
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:active {
   background: #011a5c !important;
   transform: translateY(0) !important;
   box-shadow: none !important;
 }
 
+/* Chat “demo hover” primaries (Figma #003fcb) — locked in primary hover look;
+ * keep the Figma .utility / cursor affordance visible beside them. */
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"] {
+  cursor: pointer !important;
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
+  transform: translateY(-1px) !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"]:hover {
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"]:active {
+  background: #011a5c !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+/* Cursor demo graphic sits above the lifted CTA */
+.proto-viewport [data-name=".utility / cursor"] {
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] {
+  overflow: visible !important;
+}
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] > div {
+  overflow: visible !important;
+}
+
 /* Secondary CTA — the border-[#afccca] is on an inner aria-hidden child,
    so use :has() to target the button by its child */
-.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]) {
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]),
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) {
   cursor: pointer !important;
   transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+/* Secondary icons — visible at rest (#5c5c5c), navy on hover */
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]) svg path,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) svg path {
+  fill: #5c5c5c !important;
+}
+.proto-secondary-cta-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]) :is([data-name*="icon"], [data-name="glyph"]) img,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) :is([data-name*="icon"], [data-name="glyph"]) img {
+  filter: brightness(0) saturate(100%) invert(37%) sepia(5%) saturate(635%) hue-rotate(169deg) brightness(94%) contrast(86%);
 }
 .proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover {
   background: #c6e5e1 !important;
   box-shadow: 0 4px 12px rgba(175,204,202,0.4) !important;
   transform: translateY(-1px) !important;
 }
-.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover svg path {
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover svg path,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path {
   fill: #01318f !important;
+}
+.proto-avail-btn-secondary:hover .proto-secondary-cta-icon,
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover :is([data-name*="icon"], [data-name="glyph"]) img,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover :is([data-name*="icon"], [data-name="glyph"]) img {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%) hue-rotate(205deg) brightness(0.85);
 }
 .proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover * {
   color: #01318f !important;
@@ -95,12 +242,25 @@
   box-shadow: none !important;
 }
 
+/* Search fields — inset hover/focus ring (no outer glow clipped by overflow) */
+.proto-viewport [data-name="component.input.field"]:hover [data-name="Text Field"],
+.proto-viewport [data-name="component.input.field"]:focus-within [data-name="Text Field"] {
+  box-shadow: inset 0 0 0 2px #012169 !important;
+}
+
 /* ── Sticky headers ─────────────────────────────────────────────────────────
- * Sticky works because the scroll container (.proto-viewport's parent) is
- * overflow-y:auto and no intermediate ancestor has overflow:hidden/clip.
- * The prototype nav bar lives outside that scroll container so top:0 here
- * means "top of the scrollable area", not the top of the window.
+ * Scrollport is .proto-scroll (flex-1 min-h-0 overflow-y:auto), NOT the
+ * document — so the prototype chrome stays put while pages scroll.
+ * Ancestors between header and scrollport must stay overflow:visible.
  */
+
+.proto-viewport,
+.proto-viewport > div {
+  overflow: visible !important;
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+}
 
 /* Main navy header — sticky on every screen.
  * On screen 2 the JS sticky-group wrapper overrides this, but the rule is
@@ -109,10 +269,84 @@
   position: sticky !important;
   top: 0 !important;
   z-index: 50 !important;
+  background: #012169 !important;
+  flex-shrink: 0 !important;
+  align-self: stretch !important;
 }
 
 /* Frame337 (Site Pilot bar, screen 2) — sticky wrapper injected by JS handles
  * this; no individual sticky rule needed here. */
+
+/* Page 2 Site Pilot secondary header — Figma hardcodes w-[1312px]; keep the
+ * same optical column as the main nav, fluid across viewport widths. */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] {
+  width: 100% !important;
+  max-width: none !important;
+  align-self: stretch !important;
+  background: #fff;
+}
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2),
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding-left: 64px !important;
+  padding-right: 64px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+/* Frame338 row inside Site Pilot bar */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2) > div,
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) > div {
+  width: 100% !important;
+  max-width: 1312px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  flex-wrap: wrap !important;
+  gap: 12px 16px !important;
+  box-sizing: border-box !important;
+}
+
+/*
+ * Chat body column centering (Chrome):
+ * Figma artboard uses drop-shadow(20px …) + fixed 864px column — the filter and
+ * flex stretch make the thread look left-shifted. Kill the artboard shadow and
+ * pin the chat column to the horizontal center.
+ */
+.proto-viewport > div > div:nth-child(10) {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] {
+  width: 100% !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] > div,
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] > div > div {
+  width: 100% !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.appointment.summary"] {
+  width: min(864px, 100%) !important;
+  max-width: 864px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  align-self: center !important;
+}
+/* Left cluster (logo + Contact Support) — allow shrink */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2) > div > :first-child,
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) > div > :first-child {
+  width: auto !important;
+  max-width: 100% !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  flex-wrap: wrap !important;
+}
 
 /* Breadcrumb bar — sticky below the header (or header+microheader on screen 2).
  * --sticky-top is measured in JS after every screen switch so it always matches
@@ -133,6 +367,104 @@
   width: 100% !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+/* ── Account pages: Order Details (child 1) + Order History (child 2) ─────── */
+/* Match header/breadcrumb grid: 1440px outer, 1312px content inside 64px pad. */
+
+.proto-viewport > div > div:nth-child(1) > [data-name="body"],
+.proto-viewport > div > div:nth-child(2) > [data-name="body"] {
+  width: 100% !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+
+/* Order Details — centre shell */
+.proto-viewport > div > div:nth-child(1) > [data-name="body"] > div {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  justify-content: center !important;
+}
+
+/* Order Details — padded content row */
+.proto-viewport > div > div:nth-child(1) > [data-name="body"] > div > div {
+  width: 100% !important;
+  max-width: 1440px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Order History — padded row is a direct child of body (no extra wrapper) */
+.proto-viewport > div > div:nth-child(2) > [data-name="body"] > div {
+  width: 100% !important;
+  max-width: 1440px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Cloned PLP footer on account pages */
+.proto-viewport > div > div:nth-child(1) > .proto-plp-footer,
+.proto-viewport > div > div:nth-child(2) > .proto-plp-footer {
+  width: 100% !important;
+  align-self: stretch !important;
+}
+
+.proto-viewport > div > div:nth-child(1) > .proto-plp-footer [data-name="boots.phm.module.footer.copyright"],
+.proto-viewport > div > div:nth-child(2) > .proto-plp-footer [data-name="boots.phm.module.footer.copyright"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Sidebar — fixed 304px */
+.proto-viewport > div > div:nth-child(1) [data-name="module.ma.navigation"],
+.proto-viewport > div > div:nth-child(2) [data-name="module.ma.navigation"] {
+  flex: 0 0 304px !important;
+  width: 304px !important;
+  min-width: 304px !important;
+  max-width: 304px !important;
+}
+
+/* Main content column */
+.proto-viewport > div > div:nth-child(1) [data-name="Content"],
+.proto-viewport > div > div:nth-child(2) [data-name="Content"],
+.proto-viewport > div > div:nth-child(1) [data-name="Right Column"],
+.proto-viewport > div > div:nth-child(2) [data-name="Right Column"],
+.proto-viewport > div > div:nth-child(2) [data-name="Left"] {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  width: auto !important;
+  align-items: stretch !important;
+}
+
+.proto-viewport > div > div:nth-child(2) [data-name="2 Columns"] {
+  width: 100% !important;
+}
+
+/* Order cards — Figma hardcodes w-[976px]; fill the remaining column */
+.proto-viewport > div > div:nth-child(1) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"],
+.proto-viewport > div > div:nth-child(2) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+
+/* Load more — keep centred narrow block */
+.proto-viewport > div > div:nth-child(2) [data-name="b2b.component.gse.load.more"] {
+  width: 100% !important;
+  max-width: 376px !important;
+  align-self: center !important;
+}
+
+/* Order summary + contact/payment blocks */
+.proto-viewport > div > div:nth-child(1) [data-name="component.co.buyer.info.static"],
+.proto-viewport > div > div:nth-child(1) [data-name="component.co.product.in.this.order"],
+.proto-viewport > div > div:nth-child(1) [data-name="Info Blocks / Order Summary/NO"] {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 /* ── Screen 3: Vaccination Listing ─────────────────────────────────────────── */
@@ -220,6 +552,781 @@
 /* Hover: lighten inactive toggle tab slightly */
 .proto-viewport > div > div:nth-child(8) [data-name="units"][data-toggle-index]:not([data-toggle-active]):hover {
   background: #eef8f7 !important;
+}
+
+/* Locations popup close (X) — same as Availability Tool `.proto-popup-close` */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="icon / gse / close"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #afafaf;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="icon / gse / close"]:hover {
+  background: rgba(1, 33, 105, 0.06);
+  color: #012169;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="icon / gse / close"]:hover path {
+  fill: #012169 !important;
+}
+
+/* Locations popup — keep store rows from clipping the Choose Location CTA */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="module.product.specifications.table"] {
+  overflow-x: hidden;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-lb-list-scroll > [data-name="boots-pharmacy.store"] {
+  overflow: visible !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-store-main-row {
+  min-width: 0 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-store-info-col {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-store-side-col {
+  flex-shrink: 0 !important;
+}
+
+/* Locations popup store cards — selection driven only by data-proto-selected.
+ * Unselected must look like default “Choose Location” (kill Figma’s baked Chosen). */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="boots-pharmacy.store"][aria-hidden="true"] {
+  display: none !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="boots-pharmacy.store"]:not([data-proto-selected="true"]) {
+  background: #ffffff !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="boots-pharmacy.store"][data-proto-selected="true"] {
+  background: #edf6f5 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="choose"] {
+  background: #012169 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="choose"] p,
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="choose"] span,
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="choose"] * {
+  color: #ffffff !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="chosen"] {
+  background: #c6e5e1 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="chosen"] p,
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="chosen"] span {
+  color: #3a3a3a !important;
+}
+/* Chosen Location checkmark — Boots primary navy */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="component.input.button"][data-proto-loc-cta="chosen"] path {
+  fill: #012169 !important;
+}
+
+/* ── Global text links — match Locations popup “Show on map” ───────────────
+ * No underline; Boots primary navy (#012169); hover #01318f.
+ * Covers <a>, Figma underline spans/ps, and anything tagged .proto-link.
+ */
+.proto-viewport a,
+.proto-viewport .proto-link,
+.proto-viewport p.underline,
+.proto-viewport p[class*="underline"],
+.proto-viewport span.underline,
+.proto-viewport span[class*="underline"],
+.proto-viewport p[class*="decoration-"],
+.proto-viewport span[class*="decoration-"] {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  cursor: pointer !important;
+  color: #012169 !important;
+  user-select: none;
+}
+.proto-viewport a:hover,
+.proto-viewport .proto-link:hover,
+.proto-viewport p.underline:hover,
+.proto-viewport p[class*="underline"]:hover,
+.proto-viewport span.underline:hover,
+.proto-viewport span[class*="underline"]:hover,
+.proto-viewport p[class*="decoration-"]:hover,
+.proto-viewport span[class*="decoration-"]:hover {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  color: #01318f !important;
+}
+/* Don’t restyle CTA button labels that happen to inherit decoration classes */
+.proto-viewport [data-name="component.input.button"] a,
+.proto-viewport [data-name="component.input.button"] p.underline,
+.proto-viewport [data-name="component.input.button"] p[class*="underline"],
+.proto-viewport [data-name="component.input.button"] span.underline,
+.proto-viewport [data-name="component.input.button"] span[class*="underline"] {
+  color: inherit !important;
+  cursor: inherit !important;
+  user-select: inherit;
+}
+.proto-viewport [data-name="component.input.button"] a:hover,
+.proto-viewport [data-name="component.input.button"] p.underline:hover,
+.proto-viewport [data-name="component.input.button"] p[class*="underline"]:hover,
+.proto-viewport [data-name="component.input.button"] span.underline:hover,
+.proto-viewport [data-name="component.input.button"] span[class*="underline"]:hover {
+  color: inherit !important;
+}
+
+/* Locations popup search — show full near-me label (no ellipsis) */
+.proto-lb-open .proto-viewport > div > div:nth-child(6)
+  [data-name="component.input.field"][data-proto-search-near="true"] p {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+/* Locations popup — shared search chrome (X + search icon) with Availability Tool */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-lb-search-field {
+  cursor: pointer;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-lb-search-field:hover
+  [data-name="Text Field"] > [aria-hidden],
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-lb-search-field:focus-within
+  [data-name="Text Field"] > [aria-hidden] {
+  border-color: #012169 !important;
+  box-shadow: inset 0 0 0 2px #012169 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) .proto-avail-found-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ── Locations popup: List / Map toggle (same dynamics as PDP Myself/Someone else) ─ */
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index]:not([data-toggle-active]) {
+  background: white !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index] > [aria-hidden] {
+  display: none !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index][data-toggle-active] {
+  background: #c6e5e1 !important;
+  box-shadow: none !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index="0"]:not([data-toggle-active]) {
+  box-shadow:
+    inset 0 1px 0 #d6d6d6,
+    inset 0 -1px 0 #d6d6d6,
+    inset 1px 0 0 #d6d6d6 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index="1"]:not([data-toggle-active]) {
+  box-shadow:
+    inset 0 1px 0 #d6d6d6,
+    inset 0 -1px 0 #d6d6d6,
+    inset -1px 0 0 #d6d6d6 !important;
+}
+.proto-lb-open .proto-viewport > div > div:nth-child(6) [data-name="units"][data-toggle-index]:not([data-toggle-active]):hover {
+  background: #eef8f7 !important;
+}
+
+/* Map view — draggable map bg + navy pin SVGs */
+.proto-lb-map-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #dceae8;
+  display: none;
+  overflow: hidden;
+  padding: 0;
+  box-sizing: border-box;
+  background: #e8e4dc;
+}
+.proto-lb-open[data-proto-lb-view="map"] .proto-lb-map-view {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.proto-lb-open[data-proto-lb-view="map"] .proto-lb-list-shell {
+  display: none !important;
+}
+.proto-lb-open[data-proto-lb-view="list"] .proto-lb-map-view {
+  display: none !important;
+}
+
+.proto-lb-map-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 280px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.proto-lb-map-viewport.proto-lb-map-dragging {
+  cursor: grabbing;
+}
+
+.proto-lb-map-surface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 140%;
+  height: 140%;
+  will-change: transform;
+}
+
+.proto-lb-map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.proto-lb-map-pins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.proto-lb-map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 2px 4px rgba(1, 33, 105, 0.35));
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.proto-lb-map-pin:hover {
+  filter: drop-shadow(0 3px 6px rgba(1, 33, 105, 0.5));
+}
+.proto-lb-map-pin[data-proto-near-pin="true"] {
+  display: none;
+}
+.proto-lb-map-view[data-proto-map-near="true"] .proto-lb-map-pin[data-proto-near-pin="true"] {
+  display: block;
+  animation: proto-lb-pin-pop 0.28s ease;
+}
+
+@keyframes proto-lb-pin-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+/* Chosen-location page — map + store card as one tile */
+.proto-chosen-slot {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+}
+.proto-chosen-slot > .proto-chosen-tile {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+.proto-chosen-slot > .proto-chosen-tile .proto-chosen-map,
+.proto-chosen-slot > .proto-chosen-tile [data-name="image 61"] {
+  border-radius: 0 !important;
+  overflow: hidden;
+}
+.proto-chosen-slot > .proto-chosen-tile .proto-chosen-map-bg,
+.proto-chosen-slot > .proto-chosen-tile [data-name="image 61"] img {
+  border-radius: 0 !important;
+}
+.proto-chosen-slot > .proto-chosen-tile .proto-chosen-store-card {
+  margin: 0 !important;
+  width: 100%;
+  background: #ffffff !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Kill the store card’s own border so it doesn’t split the tile */
+.proto-chosen-slot > .proto-chosen-tile .proto-chosen-store-card > [aria-hidden] {
+  display: none !important;
+}
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"],
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"]:hover,
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"]:active {
+  cursor: pointer;
+  background: transparent !important;
+  height: 32px !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"] p,
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"] span {
+  color: #5c5c5c !important;
+  font-size: 12px !important;
+}
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"]:hover p,
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"]:hover span {
+  color: #000000 !important;
+}
+.proto-chosen-slot .proto-chosen-store-card [data-proto-change-loc="true"]:hover svg path {
+  fill: #012169 !important;
+}
+/* Hide any leftover Choose/Chosen CTAs on the page card */
+.proto-chosen-slot .proto-chosen-store-card [data-name="component.input.button"]:not([data-proto-change-loc="true"]) {
+  display: none !important;
+}
+/* Map is embedded above — no “Show on map” on the page card */
+.proto-chosen-slot .proto-chosen-store-card [data-proto-hide-show-on-map="true"] {
+  display: none !important;
+}
+
+/* Store card columns: address+hours (left) | From you+CTA (right, top-aligned) */
+.proto-store-main-row {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.proto-store-info-col {
+  flex: 1 1 auto !important;
+  min-width: 240px !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+}
+/* Prevent Figma word-break from stacking letters when width is tight */
+.proto-store-info-col,
+.proto-store-info-col p,
+.proto-store-info-col span {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+}
+.proto-store-info-col [data-proto-hours-list="true"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.proto-store-side-col {
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: center !important;
+  gap: 24px !important;
+  min-width: max-content !important;
+}
+
+/* Book Appointment — hide Figma cursor affordance on location search */
+.proto-viewport > div > div:nth-child(7) [data-name=".utility / cursor"] {
+  display: none !important;
+}
+
+/* Agentic home — hide Figma cursor affordance on send CTA */
+.proto-viewport > div > div:nth-child(11) [data-name=".utility / cursor"] {
+  display: none !important;
+}
+
+/* Agentic home — multiline query input (replaces static prompt text).
+ * Fixed 5-line height; scroll after that (no resize handle, no auto-grow).
+ * Mic + send stay top-aligned with the field. */
+.proto-viewport > div > div:nth-child(11) [data-name="Subtotal"] {
+  align-items: flex-start !important;
+}
+.proto-viewport > div > div:nth-child(11) textarea.proto-agentic-query {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  /* Hug content: 1 line empty → grow to max 5 lines, then scroll */
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 120px !important; /* 5 × 24px */
+  resize: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-family: "Open Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 24px !important;
+  color: #3a3a3a !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  field-sizing: fixed !important;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* legacy Edge */
+}
+.proto-viewport > div > div:nth-child(11) textarea.proto-agentic-query::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.proto-viewport > div > div:nth-child(11) textarea.proto-agentic-query::placeholder {
+  color: #7a7d87 !important;
+}
+.proto-viewport > div > div:nth-child(11) textarea.proto-agentic-query:focus {
+  outline: none !important;
+}
+
+/* Agentic (home + chat) — mic icon button (Vector) — teal wash hover */
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]),
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) {
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: background 0.18s ease, border-color 0.18s ease !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) > [aria-hidden],
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) > [aria-hidden] {
+  transition: border-color 0.18s ease !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover {
+  background: #eef8f7 !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover > [aria-hidden],
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover > [aria-hidden] {
+  border-color: #afccca !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover svg path,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover svg path {
+  fill: #012169 !important;
+  transition: fill 0.18s ease !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):active,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):active {
+  background: #c6e5e1 !important;
+}
+
+/* Agentic chat composer — send = primary navy CTA (same dynamics as home send) */
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) {
+  background: #012169 !important;
+  cursor: pointer !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) > [aria-hidden] {
+  border-color: transparent !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) svg path {
+  fill: #ffffff !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):hover {
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):active {
+  background: #011a5c !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Agentic dialog option chips (home “Suggested…” + chat “Next…”) */
+.proto-viewport > div > div:nth-child(11)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"],
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"] {
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"]:hover,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"]:hover {
+  background: rgba(175, 204, 202, 0.55) !important;
+  box-shadow: 0 2px 8px rgba(1, 33, 105, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport > div > div:nth-child(11)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"]:active,
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="component.gse.system.message"]:active {
+  background: rgba(175, 204, 202, 0.85) !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Agentic chat composer — hug empty line; mic/send vertically centred */
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.co.order.summary"]
+  [data-name="Subtotal"] {
+  align-items: center !important;
+}
+.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  /* Empty state hugs one line; grows to max 5 lines */
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 120px !important;
+  resize: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-family: "Open Sans", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 24px !important;
+  color: #3a3a3a !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  field-sizing: fixed !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query::placeholder {
+  color: #7a7d87 !important;
+}
+.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query:focus {
+  outline: none !important;
+}
+
+/* Book Appointment progress — Step 1 column is back-nav on Steps 2–3 */
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"],
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] {
+  cursor: pointer;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] > div:last-child,
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] > div:last-child {
+  transition: background 0.15s ease;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover > div:last-child,
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover > div:last-child,
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible > div:last-child,
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible > div:last-child {
+  background: #012169 !important;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover span,
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover span {
+  color: #012169;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus:not(:focus-visible),
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible,
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
+}
+
+/* Book Appointment — booster checkbox (single instance; no row hover wash) */
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox,
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox *:not([data-name="box"]) {
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"] {
+  cursor: pointer !important;
+  background: transparent !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"]:hover {
+  background: transparent !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="Label"] p,
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="Label"] span {
+  font-weight: 700 !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"] {
+  background: #c6e5e1 !important;
+  border-color: #c6e5e1 !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"] {
+  background: white !important;
+  border-color: #9e9e9e !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="element. gse. checkbox. check mark"] {
+  opacity: 0 !important;
+}
+/* Remove any leftover cloned duplicates under the location tile */
+.proto-chosen-slot > .proto-chosen-checkbox {
+  display: none !important;
+}
+
+/* Chosen-location page map — Covent Garden asset + SVG pin + drag */
+.proto-chosen-slot .proto-chosen-map {
+  position: relative !important;
+  overflow: hidden;
+}
+.proto-chosen-map-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  border-radius: inherit;
+}
+.proto-chosen-map-viewport.proto-chosen-map-dragging {
+  cursor: grabbing;
+}
+.proto-chosen-map-surface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 140%;
+  height: 140%;
+  will-change: transform;
+}
+.proto-chosen-map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.proto-chosen-slot .proto-page-map-pin {
+  position: absolute;
+  left: 52%;
+  top: 46%;
+  transform: translate(-50%, -100%);
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 5px rgba(1, 33, 105, 0.4));
+}
+.proto-chosen-slot .proto-page-map-pin:hover {
+  filter: drop-shadow(0 3px 7px rgba(1, 33, 105, 0.55));
+}
+.proto-chosen-slot .proto-page-map-pin svg {
+  display: block;
+  width: 40px;
+  height: 55px;
+  pointer-events: none;
+}
+
+/* Fake map controls (compass / + / −) — bottom-right, visual only */
+.proto-map-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  width: 40px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(60, 64, 67, 0.3),
+    0 2px 6px rgba(60, 64, 67, 0.15);
+  overflow: hidden;
+  pointer-events: auto;
+}
+.proto-map-controls__btn {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  cursor: default;
+  color: #3c4043;
+}
+.proto-map-controls__btn + .proto-map-controls__btn {
+  border-top: 1px solid #e8eaed;
+}
+.proto-map-controls__btn:hover {
+  background: #f8f9fa;
+}
+.proto-map-controls__btn:active {
+  background: #e8f0fe;
+}
+.proto-map-controls__btn svg {
+  display: block;
+  pointer-events: none;
 }
 
 /* ── Screen 4: Deal Details layout ──────────────────────────────────────────── */
@@ -350,8 +1457,12 @@
   height: 100% !important;
   transform: none !important;
   translate: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none !important;
 }
-[data-name="light-neutral-olive-shiny-glowing-effects-abstract-background-design 1"] img {
+[data-name="light-neutral-olive-shiny-glowing-effects-abstract-background-design 1"] img,
+[data-name="image 52"] img {
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
@@ -359,5 +1470,1164 @@
   max-width: none !important;
   object-fit: cover !important;
   object-position: center !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-user-drag: none !important;
+  pointer-events: none !important;
+}
+
+/* Agentic body decorative images — never selectable / draggable */
+.proto-viewport > div > div:nth-child(11) > [data-name="body"] img {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-user-drag: none !important;
+  pointer-events: none !important;
+}
+
+/* ── Availability Checker Tool (Figma multi-step lightbox) ───────────────── */
+.proto-avail-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(33, 43, 65, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: proto-avail-fade 0.2s ease;
+}
+.proto-avail-card {
+  width: min(608px, calc(100vw - 48px));
+  height: min(777px, calc(100vh - 48px));
+  max-height: min(777px, calc(100vh - 48px));
+  background: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 5px 13.1px 2px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px;
+  box-sizing: border-box;
+  animation: proto-avail-slide 0.22s ease;
+  font-family: "Open Sans", sans-serif;
+}
+.proto-avail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  position: relative;
+}
+.proto-avail-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+/* Shared popup close (X) — Availability Tool header + search clear */
+.proto-popup-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: #afafaf;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.proto-popup-close:hover {
+  background: rgba(1, 33, 105, 0.06);
+  color: #012169;
+}
+.proto-popup-close:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-popup-close:active:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-popup-close:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
+}
+.proto-popup-close svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.proto-avail-header .proto-popup-close {
+  margin: -4px -4px 0 0;
+}
+.proto-avail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+.proto-avail-body--panel {
+  justify-content: stretch;
+}
+.proto-avail-body--stack {
+  overflow: hidden;
+}
+.proto-avail-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0;
+}
+.proto-avail-panel {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 19.5px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  box-sizing: border-box;
+}
+.proto-avail-panel--center {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  min-height: 0;
+  width: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+.proto-avail-panel--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+.proto-avail-panel--grow {
+  flex: 1 1 auto;
+}
+.proto-avail-accent {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 360px;
+  background: #ffe351;
+  overflow: hidden;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+.proto-avail-accent__ellipse,
+.proto-avail-accent__face {
+  position: absolute;
+  pointer-events: none;
+}
+.proto-avail-accent__ellipse {
+  inset: 3.08% 3.03% 3.08% 3.13%;
+  object-fit: contain;
+  z-index: 0;
+}
+.proto-avail-accent__face {
+  inset: -5.96% -6.32% -5.96% -6.23%;
+  object-fit: cover;
+  object-position: bottom;
+  z-index: 1;
+}
+.proto-avail-accent__glyph-slot {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+.proto-avail-accent__glyph-slot .proto-avail-accent__glyph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+/* Map pin — upper third per Figma */
+.proto-avail-accent__glyph-slot--map {
+  left: 26.56%;
+  right: 26.56%;
+  top: 18.5px;
+  bottom: auto;
+  aspect-ratio: 1 / 1;
+  height: auto;
+}
+/* Circle + check badge */
+.proto-avail-accent__glyph-slot--check {
+  inset: 26.53% 26.52% 26.53% 26.54%;
+}
+/* Magnifying glass — no-slots / search */
+.proto-avail-accent__glyph-slot--search {
+  inset: 29.15% 29.1% 29.15% 29.2%;
+}
+.proto-avail-check-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.proto-avail-heading {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+  text-align: center;
+  width: 100%;
+}
+.proto-avail-copy {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3a3a3a;
+  text-align: center;
+  width: 100%;
+}
+.proto-avail-field-wrap,
+.proto-avail-search-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  flex-shrink: 0;
+}
+.proto-avail-field-wrap {
+  margin-top: 40px;
+}
+/* Start screen — near-me link sits below the search field */
+.proto-avail-field-wrap--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  align-self: stretch;
+}
+.proto-avail-field-wrap--stack .proto-avail-tertiary {
+  align-self: center;
+}
+.proto-avail-field-wrap:not(.proto-avail-field-wrap--stack) .proto-avail-field,
+.proto-avail-search-row .proto-avail-field {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+.proto-avail-field-wrap--stack .proto-avail-field {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+}
+.proto-avail-field-wrap .proto-avail-tertiary,
+.proto-avail-search-row .proto-avail-tertiary {
+  flex-shrink: 0;
+}
+.proto-avail-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background: #fff;
+  border: 1px solid #c3c3c3;
+  border-radius: 360px;
+  box-sizing: border-box;
+  cursor: text;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+/* Inset ring — stays inside rounded field (no clip from overflow parents) */
+.proto-avail-field:hover,
+.proto-avail-field:focus-within {
+  border-color: #012169;
+  box-shadow: inset 0 0 0 2px #012169;
+}
+.proto-avail-field--flex {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.proto-avail-field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+  letter-spacing: 0.1px;
+}
+.proto-avail-field input::placeholder {
+  color: #7a7d87;
+}
+.proto-avail-field__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.proto-avail-field__icon {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.proto-avail-field__icon:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-avail-field__icon:active:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-avail-field__icon img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+.proto-avail-tertiary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 360px;
+  background: transparent;
+  color: #5c5c5c;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.36px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.proto-avail-tertiary:hover {
+  color: #012169;
+}
+.proto-avail-tertiary:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-avail-tertiary:active:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-avail-tertiary img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.proto-avail-list-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.proto-avail-found-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.proto-avail-found {
+  margin: 0;
+  flex: 0 1 auto;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+.proto-avail-found-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #012169;
+  flex-shrink: 0;
+}
+.proto-avail-found-dot[hidden] {
+  display: none !important;
+}
+.proto-avail-found-dot.proto-avail-found-dot--flash {
+  animation: proto-avail-found-dot-flash 0.9s ease;
+}
+@keyframes proto-avail-found-dot-flash {
+  0% {
+    transform: scale(1.4);
+    box-shadow: 0 0 0 6px rgba(1, 33, 105, 0.28);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(1, 33, 105, 0);
+  }
+}
+.proto-avail-toggle {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+.proto-avail-toggle__tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #d6d6d6;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3a3a3a;
+  cursor: pointer;
+  transition: background 0.15s ease, font-weight 0.15s ease;
+}
+.proto-avail-toggle__tab:first-child {
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+.proto-avail-toggle__tab:last-child {
+  border-radius: 0 8px 8px 0;
+}
+.proto-avail-toggle__tab--active {
+  background: #c6e5e1;
+  border-color: #c6e5e1;
+  font-weight: 600;
+}
+.proto-avail-toggle__tab:not(.proto-avail-toggle__tab--active):hover {
+  background: #eef8f7;
+}
+.proto-avail-store-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 4px;
+}
+.proto-avail-store {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+}
+.proto-avail-store--chosen {
+  background: #edf6f5;
+  border-color: #dceae8;
+}
+.proto-avail-store__main {
+  flex: 1 1 239px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.proto-avail-store__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #3a3a3a;
+}
+.proto-avail-store__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-size: 13px;
+  line-height: 24px;
+}
+.proto-avail-store__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  align-items: flex-start;
+}
+.proto-avail-store__row > span:first-child {
+  width: 108px;
+  max-width: 118px;
+  flex-shrink: 0;
+  color: #7a7d87;
+}
+.proto-avail-store__row > span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #3a3a3a;
+}
+.proto-avail-store__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.proto-avail-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  color: #012169;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.proto-avail-link:hover {
+  color: #01318f;
+}
+.proto-avail-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 24px;
+}
+.proto-avail-store__aside {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+.proto-avail-store__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: nowrap;
+}
+.proto-avail-store__from {
+  font-size: 10px;
+  line-height: 12px;
+  color: #3a3a3a;
+}
+.proto-avail-store__miles {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #3a3a3a;
+}
+.proto-avail-store__access {
+  font-size: 10px;
+  line-height: 12px;
+  color: #459827;
+}
+/* Availability Tool — same map engine as Locations popup (protoMap.ts) */
+.proto-avail-map-host.proto-lb-map-view {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+.proto-avail-field--near input::placeholder {
+  color: #5c5c5c;
+  font-weight: 400;
+}
+.proto-avail-notify {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.proto-avail-notify__row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+}
+/* PLP / PDP promo pill — reused for availability notify confirmation */
+.proto-promo-pill {
+  width: 100%;
+  background: #c6e5e1;
+  border-radius: 16px;
+  position: relative;
+  box-sizing: border-box;
+}
+.proto-promo-pill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.proto-promo-pill p {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #2e2e2e;
+  text-align: center;
+  word-break: break-word;
+}
+.proto-promo-pill__email {
+  font-weight: 600;
+  color: #012169;
+}
+.proto-promo-pill--amber {
+  background: #ffe351;
+  flex-shrink: 0;
+}
+.proto-avail-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  flex-shrink: 0;
+  padding: 0 24px;
+}
+.proto-avail-hero .proto-avail-accent {
+  margin-bottom: 8px;
+}
+.proto-avail-calendars {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: flex-start;
+}
+.proto-avail-month {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid #f2f2f2;
+  border-radius: 24px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.proto-avail-month__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+.proto-avail-month__weekdays {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-family: Inter, sans-serif;
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 16px;
+  color: #7c7c7c;
+  text-align: center;
+}
+.proto-avail-month__weekdays span {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.proto-avail-month__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.proto-avail-month__row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 32px;
+}
+.proto-avail-cal-cell {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: "Open Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3a3a3a;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, box-shadow 0.15s ease, font-weight 0.15s ease;
+  user-select: none;
+}
+.proto-avail-cal-cell--time {
+  width: 65px;
+  min-width: 65px;
+  flex: 0 0 65px;
+}
+.proto-avail-cal-cell--disabled {
+  color: #c3c3c3;
+  cursor: default;
+  pointer-events: none;
+}
+.proto-avail-cal-cell--today:not(.proto-avail-cal-cell--selected) {
+  background: #f5f5f5;
+  box-shadow: inset 0 0 0 1px #afafaf;
+}
+.proto-avail-cal-cell--today.proto-avail-cal-cell--disabled {
+  pointer-events: auto;
+  cursor: default;
+}
+.proto-avail-cal-cell:not(.proto-avail-cal-cell--disabled):not(
+    .proto-avail-cal-cell--selected
+  ):hover {
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.13),
+    inset 0 0 0 1px #afafaf;
+}
+.proto-avail-cal-cell--selected {
+  background: #c6e5e1 !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+}
+.proto-avail-date-heading {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+  text-align: center;
+  flex-shrink: 0;
+}
+.proto-avail-times {
+  overflow-y: auto;
+}
+.proto-avail-time-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.proto-avail-time-section__label {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 16px;
+  color: #7c7c7c;
+  text-align: center;
+}
+.proto-avail-time-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  width: 100%;
+}
+.proto-avail-rule {
+  border: none;
+  border-top: 1px solid #f1f1f1;
+  margin: 8px 0;
+  width: 100%;
+}
+.proto-avail-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: #c4dde3;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+  text-align: left;
+  box-sizing: border-box;
+}
+.proto-avail-banner__icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  display: block;
+}
+.proto-avail-banner p {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.proto-avail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  padding-top: 16px;
+  margin-top: auto;
+}
+.proto-avail-btn-primary,
+.proto-avail-btn-secondary,
+.proto-avail-btn-chosen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 12px 24px;
+  border-radius: 360px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.28px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+.proto-avail-btn-primary--sm,
+.proto-avail-btn-chosen {
+  height: 40px;
+  padding: 8px 16px;
+  font-size: 13px;
+  letter-spacing: -0.39px;
+}
+.proto-avail-btn-primary {
+  border: none;
+  background: #012169;
+  color: #fff;
+}
+.proto-avail-btn-primary:hover {
+  background: #01318f;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35);
+  transform: translateY(-1px);
+}
+.proto-avail-btn-primary:active {
+  background: #011a5c;
+  box-shadow: none;
+  transform: translateY(0);
+}
+.proto-avail-btn-primary img,
+.proto-avail-btn-chosen img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.proto-avail-btn-secondary {
+  background: #fff;
+  border: 1px solid #afccca;
+  color: #5c5c5c;
+}
+.proto-avail-btn-secondary:hover {
+  background: #c6e5e1;
+  color: #01318f;
+}
+.proto-avail-btn-secondary img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.proto-avail-btn-secondary .proto-secondary-cta-icon {
+  filter: none;
+}
+.proto-avail-btn-secondary:hover .proto-secondary-cta-icon {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%) hue-rotate(205deg) brightness(0.85);
+}
+.proto-avail-btn-chosen {
+  border: none;
+  background: #c6e5e1;
+  color: #3a3a3a;
+  cursor: default;
+}
+.proto-avail-icon-flip {
+  transform: scaleX(-1);
+}
+
+/* ── Vaccine picker popup (PLP-style simple listing) ─────────────────────── */
+.proto-vaccine-picker-card .proto-avail-body--stack {
+  min-height: 0;
+}
+.proto-vaccine-picker-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(92, 92, 92, 0.45) transparent;
+}
+.proto-vaccine-picker-list::-webkit-scrollbar {
+  width: 4px;
+}
+.proto-vaccine-picker-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(92, 92, 92, 0.45);
+}
+.proto-vaccine-tile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+  transition: background 0.15s ease;
+}
+.proto-vaccine-tile--chosen {
+  background: #edf6f5;
+}
+.proto-vaccine-tile__main {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.proto-vaccine-tile__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+.proto-vaccine-tile__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 38px;
+  color: #3a3a3a;
+}
+.proto-vaccine-tile__subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #7a7d87;
+}
+.proto-vaccine-tile__desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+.proto-vaccine-tile__aside {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+/* Popup listing — price left, Select pinned right on its own row */
+.proto-vaccine-picker-list .proto-vaccine-tile {
+  flex-direction: column;
+  align-items: stretch;
+}
+.proto-vaccine-picker-list .proto-vaccine-tile__aside {
+  width: 100%;
+  margin-left: 0;
+  justify-content: flex-end;
+}
+.proto-vaccine-picker-list .proto-vaccine-tile__price {
+  margin-right: auto;
+}
+.proto-vaccine-tile__price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  white-space: nowrap;
+}
+.proto-vaccine-tile__price-label {
+  font-size: 10px;
+  line-height: 12px;
+  color: #3a3a3a;
+}
+.proto-vaccine-tile__price-value {
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+.proto-vaccine-tile__booster {
+  font-size: 10px;
+  line-height: 12px;
+  color: #459827;
+}
+
+/* ── Recipient picker popup (PDP Myself / Someone else toggle) ───────────── */
+.proto-recipient-picker-card {
+  width: min(440px, calc(100vw - 48px));
+  height: auto;
+  max-height: min(520px, calc(100vh - 48px));
+  padding: 20px 24px 24px;
+}
+.proto-recipient-picker-card .proto-avail-header {
+  margin-bottom: 4px;
+}
+.proto-recipient-picker-card .proto-avail-body--stack {
+  min-height: 0;
+  flex: 0 1 auto;
+}
+.proto-recipient-picker__row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+}
+.proto-recipient-picker__toggle-row {
+  width: 100%;
+  padding: 24px 0;
+}
+.proto-recipient-picker__disclaimer {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+.proto-recipient-picker__disclaimer p {
+  margin: 0;
+}
+.proto-recipient-picker__disclaimer .proto-recipient-picker__context {
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+.proto-recipient-picker__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.proto-recipient-picker__link {
+  color: #012169;
+  text-decoration: underline;
+  cursor: default;
+}
+.proto-recipient-picker__or {
+  color: #7a7d87;
+}
+.proto-recipient-picker__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-top: 20px;
+  padding-top: 0;
+}
+
+@keyframes proto-avail-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes proto-avail-slide {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Book Step 2 — calendar date + time slot hover / selection */
+.proto-viewport > div > div:nth-child(4) [data-name="calendar. date. cell"][data-proto-cal-available] {
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-today]:not([data-proto-cal-selected]) {
+  background: #f5f5f5 !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 0 1px #afafaf !important;
+}
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-today][data-proto-cal-unavailable] {
+  pointer-events: auto !important;
+  cursor: default;
+}
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-available]:not([data-proto-cal-selected]):hover {
+  background: #ffffff !important;
+  border-radius: 4px !important;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.13),
+    inset 0 0 0 1px #afafaf !important;
+}
+/* Non-selected available cells — kill stale Figma bold on former defaults (e.g. 24) */
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-available]:not([data-proto-cal-selected]) > div,
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-available]:not([data-proto-cal-selected]) p {
+  font-family: "Open Sans", sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+  line-height: 24px !important;
+}
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-selected] {
+  background: #c6e5e1 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+/* Active selected date/time — teal + bold */
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-selected] > div,
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-selected] p {
+  font-family: "Open Sans", sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  line-height: 24px !important;
+}
+.proto-viewport > div > div:nth-child(4)
+  [data-name="calendar. date. cell"][data-proto-cal-unavailable] {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Chat — brief flash on “Find available slots for today” user bubble only */
+.proto-viewport > div > div:nth-child(10)
+  [data-name="query"]
+  [data-name="component.co.order.summary"].proto-chat-highlight {
+  animation: proto-chat-flash 0.9s ease;
+}
+@keyframes proto-chat-flash {
+  0% {
+    outline: 2px solid rgba(1, 33, 105, 0.85);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 8px rgba(1, 33, 105, 0.22);
+  }
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
