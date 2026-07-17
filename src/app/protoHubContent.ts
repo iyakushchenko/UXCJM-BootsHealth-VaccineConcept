@@ -105,9 +105,9 @@ export const PROTO_HUB_SCREEN_GUIDE: HubScreenGuide[] = [
   },
   {
     tab: 3,
-    headline: "Vaccinations listing",
+    headline: "Vaccinations listing (PLP)",
     detail:
-      "Traditional browse. Compare services, pricing signals, and book now entry on the PLP.",
+      "Filter jabs or travel bundles, compare realistic pack copy and price, then open PDP from tile titles or Book now.",
   },
   {
     tab: 4,
@@ -149,11 +149,11 @@ export const PROTO_HUB_SCREEN_GUIDE: HubScreenGuide[] = [
 export const PROTO_HUB = {
   title: "Boots Health Vaccine Appointment Prototype",
   lead: [
-    "This interactive prototype shows how Boots Health can guide customers from first intent to a confirmed vaccination appointment, using either an agentic conversation or a familiar browse path.",
-    "It is designed for stakeholder review: each numbered tab in the nav opens a live screen. Use this page as your map, then click any tab link below to jump straight into the experience.",
+    "This prototype shows how Boots Health can take Sarah from travel-vaccine intent to a confirmed appointment — through conversation or through browse — without breaking trust at checkout.",
+    "Read this page like presenter notes, then open any numbered tab to inspect the live UI. The story below is the demo; the tabs are the proof.",
   ],
   tourIntro:
-    "Recommended walkthrough: tab 1 home → tab 2 chat (see conversation diagram) → tabs 5 to 7 for booking.",
+    "All nine screens at a glance. For a guided review, follow the demo script: persona → tab 2 chat → tab 3 bundles → tabs 5–7 booking.",
   sections: [
     {
       id: "persona",
@@ -163,9 +163,9 @@ export const PROTO_HUB = {
         "Sarah Jenkins represents a busy, health conscious B2C customer. She expects Boots to make eligibility, pricing, and booking feel straightforward in one coherent journey.",
       ],
       highlights: [
-        "Primary job: book the right vaccination with confidence.",
-        "Secondary job: schedule a booster dose for a later date.",
-        "Success looks like: clear restrictions, visible pricing, and no dead ends between discovery and checkout.",
+        "Primary job: book the right travel vaccination with confidence.",
+        "Scenario in this concept: three-week Indonesia trip, wants a bundle, needs pricing and timing upfront.",
+        "Success looks like: no dead ends between discovery, comparison, and checkout.",
       ],
       figure: {
         src: personaJourneyMap,
@@ -175,16 +175,48 @@ export const PROTO_HUB = {
       },
     },
     {
+      id: "walkthrough",
+      title: "Suggested demo script",
+      paragraphs: [
+        "Use this sequence in a live session — or read it in the same order on your own. Each step maps to a tab so stakeholders see UX value, not just static screens.",
+      ],
+      steps: [
+        {
+          title: "1. Set the scene",
+          detail:
+            "Sarah Jenkins (persona above) is planning a three-week Southeast Asia trip centred on Indonesia. She wants a travel vaccine bundle, clear pricing, and a path to book without re-explaining her trip at every step.",
+        },
+        {
+          title: "2. Show the agentic shortcut",
+          detail:
+            "Tab 1 → tab 2. SitePilot responds with a recommended travel pack, booking timeline urgency, and explicit CTAs into catalogue, product detail, or book now — without trapping her in chat.",
+          protoTab: 2,
+        },
+        {
+          title: "3. Prove comparison on the listing",
+          detail:
+            "Tab 3. Switch to Bundles, filter by region or disease, read what each pack covers, remove a filter chip or Reset Filters, then click a bundle title into PDP — the same destination as Book now.",
+          protoTab: 3,
+        },
+        {
+          title: "4. Close on one booking funnel",
+          detail:
+            "Tabs 5–7. Whether Sarah arrived via chat or browse, she uses the same Availability Tool, date/time pick, and confirmation — protecting operational consistency and trust.",
+          protoTab: 5,
+        },
+      ],
+    },
+    {
       id: "user-flow",
       title: "Two ways in, one booking funnel",
       paragraphs: [
-        "The strategic question this prototype explores is not agentic or traditional in isolation. It is whether Boots can offer a faster, intent led path while keeping the same trusted transactional UI for checkout.",
-        "Scroll to the interactive flow diagram directly below (before the persona card image). It shows how both paths converge. Tab badges open the live prototype screen.",
+        "The strategic question is not agentic versus traditional in isolation. It is whether Boots can shorten early discovery while keeping the same transactional UI at checkout.",
+        "The diagram below shows how both paths converge. Tab badges jump straight into the live screen.",
       ],
       highlights: [
-        "Agentic path reduces early friction: fewer screens before book now.",
-        "Traditional path preserves full comparison on listing and product detail.",
-        "Shared funnel from recipient choice onward protects consistency and trust.",
+        "Agentic path: intent captured in one query, routed into familiar Boots UI.",
+        "Traditional path: full PLP comparison before commit — now wired with bundles and filters.",
+        "Shared funnel from recipient choice onward: one checkout experience.",
       ],
       figure: {
         src: personaPath,
@@ -237,7 +269,8 @@ export const PROTO_HUB = {
               },
               {
                 label: "Vaccination listing (PLP)",
-                detail: "Compare services and choose a vaccine to book.",
+                detail:
+                  "Filter by age, disease, region, and country. Compare individual jabs or region-specific travel packs before PDP.",
                 protoTab: 3,
               },
               {
@@ -295,7 +328,6 @@ export const PROTO_HUB = {
         },
         notes: [
           "Click a tab badge in the diagram to jump directly to that prototype screen.",
-          "Agentic shortens discovery without replacing Boots transactional UI at checkout.",
           "The Guiding UX board below is the design source of truth for this logic.",
         ],
         referenceFigure: {
@@ -314,9 +346,9 @@ export const PROTO_HUB = {
         "The diagram below walks through every chat turn on tab 2: what Sarah asks, what SitePilot returns, and exactly what each button or chip does in the clickable prototype.",
       ],
       highlights: [
-        "Turn 1 recommends a bundle with inline product links and book now CTAs.",
-        "Turns 2 to 4 move from explaining availability to opening the Availability Tool on a real date.",
-        "Composer chips pre fill the next question or open a tool step directly.",
+        "Turn 1 recommends a travel pack and surfaces booking timeline pressure.",
+        "Turns 2–4 hand off into the real Availability Tool — not a chat-only simulation.",
+        "Composer chips pre-fill the next question or open a tool step directly.",
       ],
       chatDiagram: {
         title: "SitePilot chat conversation map",
@@ -338,14 +370,15 @@ export const PROTO_HUB = {
             turn: 1,
             user: "Travel vaccinations for Southeast Asia, book as a bundle.",
             assistantSummary:
-              "SitePilot recommends the Southeast Asia Vaccine Bundle (£245) with coverage, eligibility, Yellow Fever note, and a critical booking timeline (book by July 23).",
+              "SitePilot recommends the Southeast Asia Travel Vaccination Pack (£245) with jab coverage, eligibility notes, Yellow Fever guidance, and a critical booking timeline (book by July 23).",
             assistantDetails: [
-              "Inline links: Southeast Asia Vaccine Bundle, Hepatitis A, Typhoid, Tetanus Booster, Yellow Fever Vaccine → open tab 4 (PDP).",
+              "Inline links: Southeast Asia Travel Vaccination Pack, Hepatitis A, Typhoid, Tetanus Booster, Yellow Fever Vaccine → open tab 4 (PDP).",
+              "Go to vaccines catalog → tab 3 (PLP) to compare bundles side by side with live filters.",
               "Boots Account sign in is surfaced before checkout.",
             ],
             actions: [
               {
-                label: "Book Southeast Asia Vaccine Bundle – £245",
+                label: "Book Southeast Asia Travel Vaccination Pack – £245",
                 outcome: "Opens tab 4 (PDP) for bundle booking.",
                 protoTab: 4,
                 variant: "cta",
@@ -471,29 +504,17 @@ export const PROTO_HUB = {
       screenLinks: [1, 2],
     },
     {
-      id: "overview",
-      title: "Full design board",
-      paragraphs: [
-        "For teams who want the complete picture in one view, this board mirrors the Figma journey map. Pair it with the interactive tabs above to move from strategy to clickable UI.",
-      ],
-      figure: {
-        src: hubOverview,
-        alt: "Vaccine appointment UI guiding UX user flow overview board",
-        caption:
-          "End to end board: agentic pilot, vaccinations listing, vaccine PDP, book steps, and appointment history.",
-      },
-    },
-    {
       id: "browse",
-      title: "Browse and product detail",
+      title: "Browse: listing and product detail",
       paragraphs: [
-        "The traditional path remains essential for customers who want to compare services side by side, read restrictions, and build confidence before they commit.",
-        "Listing and detail pages carry book now entry points, recipient choice, and dosing context so the handoff into booking feels continuous rather than a separate product.",
+        "Sarah's comparison path lives on tab 3. Even when chat recommends a pack, she still needs to validate coverage, price, and trip fit before she commits.",
+        "The listing is interactive in this prototype: filters narrow results, bundle cards use realistic UK travel-clinic pack naming and disease-level copy, and tile titles route to the same PDP as Book now.",
       ],
       highlights: [
-        "PLP supports comparison led decision making.",
-        "PDP makes eligibility, recipient, and dosing visible before checkout.",
-        "Open tabs 3 and 4 to walk this path.",
+        "Tab 3 → Bundles → filter South-East Asia or Indonesia to mirror Sarah's trip.",
+        "Cards explain which jabs are included, who the pack is for, and when to book (e.g. Indonesia & Bali Explorer Pack for island-hopping).",
+        "Active filters appear as removable chips; Reset Filters clears the set in one action.",
+        "Tab 4 (PDP) carries recipient choice, dosing, and book now into the shared funnel.",
       ],
       screenLinks: [3, 4],
     },
@@ -501,8 +522,8 @@ export const PROTO_HUB = {
       id: "book",
       title: "Book appointment",
       paragraphs: [
-        "The booking funnel is deliberately shared across both discovery modes. Pharmacy operations, slot logic, and confirmation copy stay consistent regardless of how Sarah arrived.",
-        "Three live steps in the prototype. Each step keeps summary context visible so the customer never loses track of vaccine, recipient, or store.",
+        "Pharmacy operations, slot logic, and confirmation copy stay consistent regardless of how Sarah arrived — agentic, PLP, or PDP.",
+        "Three live steps keep summary context visible so she never loses track of vaccine, recipient, or store.",
       ],
       highlights: [
         "Availability Tool replaces a static store list with search, near me, and map.",

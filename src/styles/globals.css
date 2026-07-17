@@ -177,7 +177,9 @@
 }
 .proto-hub-page__tour-cta {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 12px;
   margin-top: 24px;
 }
 .proto-hub-page__tour-cta-btn {
@@ -206,6 +208,15 @@
 }
 .proto-hub-page__tour-cta-btn:active {
   transform: translateY(0);
+}
+.proto-hub-page__tour-cta-btn--secondary {
+  background: transparent;
+  color: var(--hub-primary);
+  box-shadow: inset 0 0 0 1px var(--hub-primary);
+}
+.proto-hub-page__tour-cta-btn--secondary:hover {
+  background: rgba(54, 86, 93, 0.08);
+  box-shadow: inset 0 0 0 1px var(--hub-primary);
 }
 .proto-hub-page__tour-card.proto-hub-tab-link,
 .proto-hub-page__tour-card {

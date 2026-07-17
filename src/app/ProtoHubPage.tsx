@@ -337,6 +337,13 @@ export default function ProtoHubPage({ onGoToTab }: Props) {
               <button
                 type="button"
                 className="proto-hub-page__tour-cta-btn"
+                onClick={() => scrollToTarget("walkthrough-heading", "walkthrough")}
+              >
+                Jump to demo script
+              </button>
+              <button
+                type="button"
+                className="proto-hub-page__tour-cta-btn proto-hub-page__tour-cta-btn--secondary"
                 onClick={() => scrollToTarget("user-flow-diagram", "user-flow")}
               >
                 Jump to flow diagram
