@@ -7,27 +7,27 @@ import AvailabilityTool, {
   type AvailOpenIntent,
   type ChosenBookingSlot,
 } from "@/app/AvailabilityTool";
-import VaccinePickerPopup from "@/app/VaccinePickerPopup";
+import VaccinePickerPopup from "@/app/popups/VaccinePickerPopup";
 import RecipientPickerPopup, {
   recipientModeLabel,
   type RecipientMode,
-} from "@/app/RecipientPickerPopup";
-import LoginPopup from "@/app/LoginPopup";
-import QuickViewPopup from "@/app/QuickViewPopup";
-import ProtoNavPanel from "@/app/ProtoNavPanel";
-import ProtoHubViewport from "@/app/ProtoHubViewport";
-import { PROTO_HUB_LABEL, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/protoScreens";
+} from "@/app/popups/RecipientPickerPopup";
+import LoginPopup from "@/app/popups/LoginPopup";
+import QuickViewPopup from "@/app/popups/QuickViewPopup";
+import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
+import ProtoHubViewport from "@/app/hub/ProtoHubViewport";
+import { PROTO_HUB_LABEL, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
-import type { VaccineItem } from "@/app/protoVaccineList";
+import type { VaccineItem } from "@/app/proto/protoVaccineList";
 import {
   setupChosenPageMap,
-} from "@/app/protoMap";
-import { ensurePlpTileTitleLinks, syncPlpListingFilters } from "@/app/protoPlpListing";
-import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/app/protoLocationSearch";
-import { setupProtoFooters } from "@/app/protoFooterMount";
-import { setupProtoHeader, syncProtoHeaderLogin, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist, applyWishlistHeartVisual, syncChickenpoxWishlistHearts, PROTO_PDP_WISHLIST_ID } from "@/app/protoHeaderMount";
-import { wireProtoIconHits } from "@/app/protoIconHitWire";
-import { useProtoScrollFill } from "@/app/useProtoScrollFill";
+} from "@/app/proto/protoMap";
+import { ensurePlpTileTitleLinks, syncPlpListingFilters } from "@/app/proto/protoPlpListing";
+import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/app/proto/protoLocationSearch";
+import { setupProtoFooters } from "@/app/chrome/protoFooterMount";
+import { setupProtoHeader, syncProtoHeaderLogin, syncMaAccountAvatars, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist, applyWishlistHeartVisual, syncChickenpoxWishlistHearts, PROTO_PDP_WISHLIST_ID } from "@/app/chrome/protoHeaderMount";
+import { wireProtoIconHits } from "@/app/proto/protoIconHitWire";
+import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
 import {
   boosterDoseSummaryLabel,
   PDP_CHECKBOX_LABEL,
@@ -35,13 +35,13 @@ import {
   PDP_PRICE_WITHOUT_BOOSTER,
   syncAccountOrderSummary,
   syncConfirmationOrderSummary,
-} from "@/app/protoOrderPricing";
+} from "@/app/proto/protoOrderPricing";
 import {
   ensureCheckboxRow,
   handleProtoInputClick,
   initProtoInputControls,
   markBoosterCheckboxRow,
-} from "@/app/protoInputControls";
+} from "@/app/proto/protoInputControls";
 
 /**
  * DOM child order inside Frame219's root div (JSX order = DOM order):
@@ -968,6 +968,15 @@ export default function App() {
     // Sync login state: account/booking pages force logged-in
     syncProtoHeaderLogin(SCREENS[current]?.childIndex ?? 11);
     setLoggedInFlag(isProtoHeaderLoggedIn());
+
+    const runMaAvatars = () => syncMaAccountAvatars(scrollEl);
+    runMaAvatars();
+    const raf = requestAnimationFrame(runMaAvatars);
+    const t = window.setTimeout(runMaAvatars, 0);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
   }, [current]);
 
   // Mark active progress step on booking pages

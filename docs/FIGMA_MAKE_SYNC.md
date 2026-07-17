@@ -1,27 +1,32 @@
-# Sync local hub work into Figma Make (cloud)
+# Sync local work into Figma Make (cloud)
 
-Use this when stakeholders need the **Figma Make share link**, not just local `npm run dev`.
+Step-by-step. Say **next** in Cursor after each step is done.
 
-## Fastest path (one prompt + one zip)
+---
 
-### Step 1 — Build the sync package (local)
+## Step 1 — Build the sync package (local)
 
-From the repo root in PowerShell:
+From repo root in PowerShell:
 
 ```powershell
 .\scripts\export-figma-make-sync.ps1
 ```
 
-This creates **`figma-make-sync.zip`** in the repo root.
+Confirm this file exists:
 
-### Step 2 — Open your Figma Make file
+`figma-make-sync.zip` (repo root, 65 files)
 
-Open the existing Make file:  
+---
+
+## Step 2 — Open your Figma Make file
+
 https://www.figma.com/design/doliUpuE3J5sa5M3e1I0GP/-UX--CJM---Boots-Health---Vaccine--Concept-
 
-### Step 3 — Paste ONE prompt in Make chat
+---
 
-Attach **`figma-make-sync.zip`** to the prompt (drag into chat), then paste:
+## Step 3 — Upload zip + paste prompt in Make chat
+
+Attach **`figma-make-sync.zip`** (drag into chat), then paste:
 
 ```
 Sync this Make project with the attached figma-make-sync.zip.
@@ -32,60 +37,52 @@ Sync this Make project with the attached figma-make-sync.zip.
 4. Keep @/ path aliases as they are.
 
 After applying files, fix any import errors and confirm the preview runs.
-
-Sanity check:
-- Click the nav logo → Hub wiki opens (tab 0)
-- Hub has sticky "On this page" nav, tour tiles, "Jump to flow diagram" CTA (#36565d)
-- Sidebar has "Open UX Concept" → tab 1
-- Primary hub color is #36565d (UX dept), not Boots navy #012169
 ```
 
-### Step 4 — Share with team / Boots
+---
 
-- **Figma Make**: Share → invite viewers (stakeholders open the live preview in browser)
-- Optional backup: push this repo to GitHub so engineering has the same code
+## Step 4 — Fix build (only if preview fails)
+
+Ask Make:
+
+```
+Run npm install if needed, then fix all build/import errors until the preview runs.
+```
 
 ---
 
-## Files included in the zip
+## Step 5 — Sanity check in Make preview
 
-| Path | Action |
+- Logo → Hub (tab 0) opens
+- Hub: reading order, **Open UX Concept**, Persona Deck + Visual Flow Deck links, credits below CTA
+- Tab 3: Bundles, filters, Reset Filters trash icon, bundle descriptions
+- Tab 1–2: agentic home + chat still load
+- Tabs 5–7: booking funnel still loads
+
+---
+
+## What is in the zip (65 files)
+
+| Area | Paths |
 |------|--------|
-| `src/app/App.tsx` | Replace |
-| `src/app/ProtoHubPage.tsx` | **New** |
-| `src/app/ProtoHubViewport.tsx` | **New** |
-| `src/app/ProtoHubTabLink.tsx` | **New** |
-| `src/app/ProtoHubImageLightbox.tsx` | **New** |
-| `src/app/ProtoHubExperienceDiagram.tsx` | **New** |
-| `src/app/ProtoHubChatDiagram.tsx` | **New** |
-| `src/app/ProtoNavChrome.tsx` | **New** |
-| `src/app/ProtoNavLogo.tsx` | **New** |
-| `src/app/protoScreens.ts` | **New** |
-| `src/app/protoHubContent.ts` | **New** |
-| `src/styles/globals.css` | Replace |
-| `src/assets/hub/*.jpg` (3 images) | **New** folder |
-| `src/assets/ux-dpt-logo.svg` | **New** |
+| App shell | `App.tsx`, `useProtoScrollFill.ts` |
+| Hub | `ProtoHub*.tsx`, `protoHubContent.ts`, `protoScreens.ts`, `src/assets/hub/*.jpg` |
+| Nav | `ProtoNavChrome.tsx`, `ProtoNavLogo.tsx`, `ProtoNavPanel.tsx`, `protoNavPanel.css`, `protoNavZoom.ts` |
+| Header / footer / auth | `protoHeaderMount.tsx`, `LoginPopup.tsx`, `protoFooter*`, `ProtoTertiaryCta.tsx`, `ProtoIconHit.tsx`, `protoIconHitWire.ts`, `ProtoSocialIcons.tsx`, `BootsPharmacyLogo.tsx`, `ProtoCloseIcon.tsx` |
+| PLP | `protoPlpListing.ts`, `protoInputControls.ts`, `protoLocationSearch.ts`, `proto-trash-icon.svg` |
+| Popups / booking | `QuickViewPopup.tsx`, `AvailabilityTool.tsx`, pickers, `protoPdpRtb.ts`, `protoOrderPricing.ts`, `protoMap.ts`, `protoVaccineList.ts` |
+| Styles | `globals.css` |
+| Assets | `ux-dpt-logo.svg`, `user-avatar.jpg`, maps, avail icons, hub images |
+
+**Do not sync:** `src/imports/`, `src/app/components/`, `package.json`, `vite.config.ts`, `main.tsx` (unless build breaks).
 
 ---
 
-## GitHub path (recommended alongside Make)
+## GitHub (optional second source of truth)
 
-Repo: https://github.com/iyakushchenko/UXCJM-BootsHealth-VaccineConcept
+https://github.com/iyakushchenko/UXCJM-BootsHealth-VaccineConcept
 
-Commit and push hub changes so your team has a second source of truth.  
-**Note:** Figma’s “Push to GitHub” from Make is **one-way (Make → GitHub)**. Your Cursor repo should be the master; update Make via the zip prompt above.
-
----
-
-## Future: no zip (Figma Beta desktop, Mac)
-
-If you get **Make in your local codebase** beta access:
-
-1. Open **Figma Beta desktop (Mac)**
-2. Make → **Open a folder** → select this repo (or **Clone** from GitHub)
-3. `.figma/make` is already configured in this repo
-
-Waitlist: https://www.figma.com/join-waitlist-make/
+Figma Make → GitHub is one-way. This repo is master; update Make via the zip above.
 
 ---
 
@@ -93,7 +90,8 @@ Waitlist: https://www.figma.com/join-waitlist-make/
 
 | Issue | Fix |
 |-------|-----|
-| Preview blank after sync | Ask Make: “Run npm install and fix build errors” |
-| Hub images missing | Ensure `src/assets/hub/` has the 3 `.jpg` files from the zip |
-| Logo doesn’t open hub | Confirm `App.tsx` and `ProtoNavChrome.tsx` were replaced |
-| Old navy CTAs in hub | Confirm `globals.css` was fully replaced |
+| Preview blank after sync | Step 4 prompt |
+| Missing hub images | Zip includes `src/assets/hub/` (3 JPGs) |
+| PLP filters dead | Confirm `protoPlpListing.ts` + `protoInputControls.ts` were created |
+| Reset icon missing | Confirm `src/assets/proto-trash-icon.svg` was created |
+| Import errors for `@/app/...` | Ask Make to keep `@/` aliases; do not rewrite paths |

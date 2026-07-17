@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/ProtoCloseIcon";
+import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
 import iconSearch from "@/assets/avail/search.svg";
 import iconMapPin from "@/assets/avail/map-pin.svg";
 import iconCheck from "@/assets/avail/check.svg";
@@ -12,7 +12,7 @@ import accentMap from "@/assets/avail/accent-map.svg";
 import accentGlyphCheck from "@/assets/avail/accent-glyph-check.svg";
 import accentGlyphSearch from "@/assets/avail/accent-glyph-search.svg";
 import promoAppointmentIcon from "@/imports/Frame1000007317/9d46d8f7966cc26795f1d8689d9132bdf6e13c15.png";
-import { setupProtoMapView } from "@/app/protoMap";
+import { setupProtoMapView } from "@/app/proto/protoMap";
 import {
   dismissLocationFieldFocus,
   isListSearchView,
@@ -22,7 +22,7 @@ import {
   PROTO_LOC_SEARCH_DEFAULT,
   PROTO_LOC_SEARCH_NEAR,
   shouldShowLocationSearchClear,
-} from "@/app/protoLocationSearch";
+} from "@/app/proto/protoLocationSearch";
 
 /** Native hover tooltip for the demo “today” cell (12 June 2026). */
 export const PROTO_TODAY_TOOLTIP = "Today is June 12 2026";

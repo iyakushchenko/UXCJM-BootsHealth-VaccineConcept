@@ -1,0 +1,1446 @@
+.proto-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Prototype scroll pane — flex fill + zoom-safe min height (see useProtoScrollFill) */
+.proto-scroll--prototype:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+}
+
+.proto-scroll--prototype > .proto-viewport {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--proto-scroll-min-px, 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proto-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+[data-name="component.mega.menu.item"] {
+  align-items: center !important;
+}
+
+/* Boots Pharmacy logo → navigates to Agentic home (wired in App) */
+.proto-viewport [data-name="boots-pharmacy"] {
+  cursor: pointer !important;
+}
+
+/* ── Global CTA hover effects ───────────────────────────────────────────────────
+ * Primary  = navy pill (bg-[#012169])
+ * Secondary = white pill with teal border (border-[#afccca])
+ * Applied globally so every screen gets consistent button behaviour.
+ */
+
+/* ── h-[32px] buttons ─────────────────────────────────────────────────────────
+ * Icon-only (heart / share): circular hover wash
+ * Tertiary text+icon (“See what’s available…”, “Change location”): NO hover bg
+ * Primary navy pills (chat bubbles, etc. bg-[#012169]) keep the primary CTA class —
+ * exclude them from the transparent tertiary overrides below.
+ */
+
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"] {
+  cursor: pointer !important;
+  user-select: none !important;
+  position: relative !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]) {
+  background: transparent !important;
+}
+
+/* Tertiary CTAs with a text label — no circle/wash; icon→primary navy, text→black */
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]),
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]):hover,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):not([class*="bg-[#c6e5e1]"]):active,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"],
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"])::before,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]::before {
+  content: none !important;
+  display: none !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) p,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) span,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] p,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] span {
+  transition: color 0.18s ease !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) svg path,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"] svg path {
+  transition: fill 0.18s ease !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover p,
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover span,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover p,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover span {
+  color: #000000 !important;
+}
+.proto-viewport
+  [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path,
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover svg path,
+.proto-tertiary-cta:hover svg path {
+  fill: #012169 !important;
+}
+
+/* ── Tertiary CTA — icon + link (Find a store, Change location, near-me, etc.) ──
+ * No hover background/circle; muted icon → navy; label → black on hover.
+ */
+.proto-tertiary-cta,
+.proto-avail-tertiary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 360px;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+  user-select: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.39px;
+  color: #5c5c5c;
+  white-space: nowrap;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.proto-tertiary-cta--compact,
+.proto-avail-tertiary {
+  height: 32px;
+  padding: 8px 12px;
+  font-size: 12px;
+  letter-spacing: -0.36px;
+}
+
+.proto-tertiary-cta::before {
+  content: none !important;
+  display: none !important;
+}
+
+.proto-tertiary-cta:hover,
+.proto-tertiary-cta:active,
+.proto-avail-tertiary:hover,
+.proto-avail-tertiary:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #000000;
+}
+
+.proto-tertiary-cta__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.proto-tertiary-cta__icon img,
+.proto-tertiary-cta__icon svg,
+.proto-tertiary-cta > img,
+.proto-avail-tertiary img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.proto-tertiary-cta svg path {
+  fill: #afccca;
+  transition: fill 0.18s ease;
+}
+
+.proto-tertiary-cta:hover svg path {
+  fill: #012169;
+}
+
+.proto-tertiary-cta__icon svg.proto-tertiary-cta__svg--stroke path {
+  fill: none !important;
+  stroke: #afccca;
+  stroke-width: 1.25;
+  transition: stroke 0.18s ease;
+}
+
+.proto-tertiary-cta:hover .proto-tertiary-cta__icon svg.proto-tertiary-cta__svg--stroke path {
+  fill: none !important;
+  stroke: #012169;
+}
+
+.proto-tertiary-cta__icon img,
+.proto-tertiary-cta > img,
+.proto-avail-tertiary img {
+  filter: brightness(0) saturate(100%) invert(86%) sepia(7%) saturate(622%)
+    hue-rotate(131deg) brightness(92%) contrast(88%);
+  transition: filter 0.18s ease;
+}
+
+.proto-tertiary-cta:hover .proto-tertiary-cta__icon img,
+.proto-tertiary-cta:hover > img,
+.proto-avail-tertiary:hover img {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%)
+    hue-rotate(205deg) brightness(0.85);
+}
+
+.proto-tertiary-cta__label {
+  transition: color 0.18s ease;
+}
+
+.proto-tertiary-cta:focus:not(:focus-visible),
+.proto-avail-tertiary:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.proto-tertiary-cta:active:not(:focus-visible),
+.proto-avail-tertiary:active:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Icon-only hit target — circular hover wash (PDP share/heart, footer socials, etc.) */
+.proto-icon-hit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)) {
+  position: relative !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.proto-icon-hit__glyph {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.proto-icon-hit__glyph--16 {
+  width: 16px;
+  height: 16px;
+}
+
+.proto-icon-hit__glyph--24 {
+  width: 24px;
+  height: 24px;
+}
+
+.proto-icon-hit__glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Figma-export footer social wrappers (24px glyph, 32px hit target) */
+.proto-icon-hit.proto-icon-hit--figma-glyph-24[class*="size-[24px]"] {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.proto-icon-hit::before,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p))::before {
+  content: "" !important;
+  position: absolute !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: background 0.18s ease !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+.proto-icon-hit:hover::before,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover::before {
+  background: #eef8f7 !important;
+}
+
+.proto-icon-hit:active::before,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):active::before {
+  background: #c6e5e1 !important;
+}
+
+.proto-icon-hit svg path,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)) svg path {
+  transition: fill 0.18s ease !important;
+}
+
+.proto-icon-hit:hover svg path,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover svg path {
+  fill: #01318f !important;
+}
+
+/* Heart hover when favourited — deepen fuchsia */
+.proto-icon-hit:hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path {
+  fill: #c2186e !important;
+}
+
+/* CTAs and toggle tabs: text non-selectable */
+.proto-viewport [data-name="component.input.button"],
+.proto-viewport [data-name="component.input.button"] *,
+.proto-viewport [data-name="units"][data-toggle-index],
+.proto-viewport [data-name="units"][data-toggle-index] * {
+  user-select: none !important;
+}
+
+/* Global toggles — inactive label regular; active label semibold
+ * (Myself/Someone else, List/Map, and any future [data-toggle-index] pair) */
+.proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) p,
+.proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) span,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) p,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:not([data-toggle-active]) span {
+  font-weight: 400 !important;
+  font-family: "Open Sans", sans-serif !important;
+}
+.proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] p,
+.proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] span,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] p,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] span {
+  font-weight: 600 !important;
+  font-family: "Open Sans", sans-serif !important;
+}
+
+/* Toggle tabs — no focus ring (browser / theme outline looks unpolished) */
+.proto-viewport [data-name="units"][data-toggle-index]:focus,
+.proto-viewport [data-name="units"][data-toggle-index]:focus-visible,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:focus,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Primary CTA — darken slightly, lift with shadow.
+ * Also covers Agentic send (Figma #003fcc) → same Boots navy as PDP. */
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"],
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"] {
+  cursor: pointer !important;
+  background: #012169 !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:hover,
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:hover {
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1,33,105,0.35) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:active,
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:active {
+  background: #011a5c !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Chat “demo hover” primaries (Figma #003fcb) — locked in primary hover look;
+ * keep the Figma .utility / cursor affordance visible beside them. */
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"] {
+  cursor: pointer !important;
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
+  transform: translateY(-1px) !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"]:hover {
+  background: #01318f !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcb]"]:active {
+  background: #011a5c !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+/* Cursor demo graphic sits above the lifted CTA */
+.proto-viewport [data-name=".utility / cursor"] {
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] {
+  overflow: visible !important;
+}
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] > div {
+  overflow: visible !important;
+}
+
+/* Secondary CTA — the border-[#afccca] is on an inner aria-hidden child,
+   so use :has() to target the button by its child */
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]),
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) {
+  cursor: pointer !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+/* Secondary icons — visible at rest (#5c5c5c), navy on hover */
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]) svg path,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) svg path {
+  fill: #5c5c5c !important;
+}
+.proto-secondary-cta-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]) :is([data-name*="icon"], [data-name="glyph"]) img,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]) :is([data-name*="icon"], [data-name="glyph"]) img {
+  filter: brightness(0) saturate(100%) invert(37%) sepia(5%) saturate(635%) hue-rotate(169deg) brightness(94%) contrast(86%);
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover {
+  background: #c6e5e1 !important;
+  box-shadow: 0 4px 12px rgba(175,204,202,0.4) !important;
+  transform: translateY(-1px) !important;
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover svg path,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path {
+  fill: #01318f !important;
+}
+.proto-avail-btn-secondary:hover .proto-secondary-cta-icon,
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover :is([data-name*="icon"], [data-name="glyph"]) img,
+.proto-viewport [data-name="component.input.button"][class*="border-[#afccca]"]:not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover :is([data-name*="icon"], [data-name="glyph"]) img {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%) hue-rotate(205deg) brightness(0.85);
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):hover * {
+  color: #01318f !important;
+}
+.proto-viewport [data-name="component.input.button"]:has(> [aria-hidden][class*="border-[#afccca]"]):active {
+  background: #afccca !important;
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* ── Design System: Search fields (Figma export + Availability Tool) ────────
+ * Hover/focus uses the aria-hidden border overlay — same inset ring as
+ * `.proto-avail-field`, and avoids painting a wash on the Text Field body. */
+
+.proto-viewport [data-name="component.input.field"]:hover [data-name="Text Field"] > [aria-hidden],
+.proto-viewport [data-name="component.input.field"]:focus-within [data-name="Text Field"] > [aria-hidden],
+.proto-search-field:hover > [aria-hidden],
+.proto-search-field:focus-within > [aria-hidden] {
+  border-color: #012169 !important;
+  box-shadow: inset 0 0 0 2px #012169 !important;
+}
+
+.proto-viewport [data-name="component.input.field"] [data-name="Text Field"] > [aria-hidden],
+.proto-search-field > [aria-hidden] {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* Shared search text input — PLP wired fields + Availability Tool */
+.proto-search-input,
+.proto-avail-field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+  letter-spacing: 0.1px;
+}
+
+.proto-search-input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.proto-search-input::placeholder,
+.proto-avail-field input::placeholder {
+  color: #7a7d87;
+}
+
+/* PLP filter search — wired Figma rows */
+[data-name="component.input.field"].proto-plp-search-field {
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
+}
+
+[data-name="component.input.field"].proto-plp-search-field [data-name="Text Field"],
+.proto-search-field {
+  background: #fff !important;
+}
+
+[data-name="component.input.field"].proto-plp-search-field [data-name="Text Field"] > div.flex-row,
+[data-name="component.input.field"].proto-plp-search-field [data-name="Text Field"] > .flex {
+  width: 100%;
+}
+
+[data-name="component.input.field"].proto-plp-search-field .content-stretch.flex {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+[data-name="component.input.field"].proto-plp-search-field [data-name="wrapper"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.proto-plp-search-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+}
+
+.proto-plp-search-icon:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.proto-plp-search-field .proto-plp-search-clear {
+  width: 24px;
+  height: 24px;
+}
+
+.proto-plp-search-field .proto-plp-search-clear[hidden] {
+  display: none !important;
+}
+
+/* ── Sticky headers ─────────────────────────────────────────────────────────
+ * Scrollport is .proto-scroll (flex-1 min-h-0 overflow-y:auto), NOT the
+ * document — so the prototype chrome stays put while pages scroll.
+ * Ancestors between header and scrollport must stay overflow:visible.
+ */
+
+.proto-viewport,
+.proto-viewport > div {
+  overflow: visible !important;
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+}
+
+/* Native Figma headers are hidden; shared ProtoHeader is mounted at scroll top */
+[data-name="boots-pharmacy.module.header"]:not(.proto-header-sticky) {
+  display: none !important;
+}
+
+/* Shared sticky header mount — direct child of scroll container */
+.proto-header-mount {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.proto-header-avatar,
+.proto-header-avatar--guest,
+.proto-header-search-icon {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  flex-shrink: 0 !important;
+}
+.proto-header-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: none;
+  box-sizing: border-box;
+}
+.proto-avatar-dot {
+  position: absolute;
+  top: -4px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #c8247e;
+  border: 2px solid #012169;
+  display: none;
+  pointer-events: none;
+  animation: proto-dot-glimmer 0.6s ease;
+}
+@keyframes proto-dot-glimmer {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.proto-header-avatar--guest {
+  background: none;
+  border: none;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"]:has(.proto-header-avatar--guest):hover .proto-header-avatar--guest {
+  background: rgba(255, 255, 255, 0.15);
+}
+.proto-header-search-icon {
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"]:has(.proto-header-search-icon):hover .proto-header-search-icon {
+  background: rgba(255, 255, 255, 0.15);
+}
+.proto-header-flyout-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #012169;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+}
+.proto-header-flyout-item {
+  white-space: nowrap;
+}
+
+/* Force both aux nav items (Search + Login) to same column width */
+.proto-header-sticky [data-name="component.header.aux.nav.item"] {
+  width: 64px !important;
+  min-width: 64px !important;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"] > p {
+  text-align: center !important;
+}
+
+/* Frame337 (Site Pilot bar, screen 2) — sticky wrapper injected by JS handles
+ * this; no individual sticky rule needed here. */
+
+/* Page 2 Site Pilot secondary header — Figma hardcodes w-[1312px]; keep the
+ * same optical column as the main nav, fluid across viewport widths. */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] {
+  width: 100% !important;
+  max-width: none !important;
+  align-self: stretch !important;
+  background: #fff;
+}
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2),
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding-left: 64px !important;
+  padding-right: 64px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+/* Frame338 row inside Site Pilot bar */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2) > div,
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) > div {
+  width: 100% !important;
+  max-width: 1312px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  flex-wrap: wrap !important;
+  gap: 12px 16px !important;
+  box-sizing: border-box !important;
+}
+
+/*
+ * Chat body column centering (Chrome):
+ * Figma artboard uses drop-shadow(20px …) + fixed 864px column — the filter and
+ * flex stretch make the thread look left-shifted. Kill the artboard shadow and
+ * pin the chat column to the horizontal center.
+ */
+.proto-viewport > div > div:nth-child(10) {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] {
+  width: 100% !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] > div,
+.proto-viewport > div > div:nth-child(10) > [data-name="body"] > div > div {
+  width: 100% !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.appointment.summary"] {
+  width: min(864px, 100%) !important;
+  max-width: 864px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  align-self: center !important;
+}
+/* Left cluster (logo + Contact Support) — allow shrink */
+.proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2) > div > :first-child,
+.proto-viewport > div > div:nth-child(10) > :nth-child(2):not([data-proto-sticky-group]) > div > :first-child {
+  width: auto !important;
+  max-width: 100% !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  flex-wrap: wrap !important;
+}
+
+/* Breadcrumb bar — static, scrolls with page content. */
+[data-name="module.breadcrumbs"] {
+  position: relative !important;
+  z-index: 1 !important;
+  background: white !important;
+  width: 100% !important;
+}
+
+/* The breadcrumb background spans full width, but the inner padding container
+ * must be capped at 1440px (the Figma frame width) and centred — matching
+ * the header's own content column (max-w-[1312px] + px-[64px] = 1440px total). */
+[data-name="module.breadcrumbs"] > div > div {
+  max-width: 1440px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ── Account pages: Order Details (child 1) + Order History (child 2) ─────── */
+/* Match header/breadcrumb grid: 1440px outer, 1312px content inside 64px pad. */
+
+.proto-viewport > div > div:nth-child(1) > [data-name="body"],
+.proto-viewport > div > div:nth-child(2) > [data-name="body"] {
+  width: 100% !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+
+/* Order Details — centre shell */
+.proto-viewport > div > div:nth-child(1) > [data-name="body"] > div {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  justify-content: center !important;
+}
+
+/* Order Details — padded content row */
+.proto-viewport > div > div:nth-child(1) > [data-name="body"] > div > div {
+  width: 100% !important;
+  max-width: 1440px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Order History — padded row is a direct child of body (no extra wrapper) */
+.proto-viewport > div > div:nth-child(2) > [data-name="body"] > div {
+  width: 100% !important;
+  max-width: 1440px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Mounted ProtoFooter — stretch full width on every screen that uses it */
+.proto-viewport > div > div:nth-child(1) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(2) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(3) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(4) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(7) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(8) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(9) > .proto-footer-mount {
+  width: 100% !important;
+  align-self: stretch !important;
+}
+
+/* ── ProtoFooter (full + minified) ─────────────────────────────────────── */
+
+.proto-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  font-family: "Open Sans", sans-serif;
+}
+
+/* 1440px outer / 1312px content — same grid as header and breadcrumbs. */
+.proto-footer__shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 64px;
+  padding-right: 64px;
+  box-sizing: border-box;
+}
+
+.proto-footer__shell-inner {
+  width: 100%;
+  max-width: 1312px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.proto-footer--full.proto-footer--pharmacy {
+  background: #f1f8ff;
+}
+
+.proto-footer--full.proto-footer--health {
+  background: #ebf5ff;
+}
+
+.proto-footer--minified {
+  background: #2e2e2e;
+}
+
+.proto-footer__top-bar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 24px 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__top-bar--dark {
+  background: #2e2e2e;
+}
+
+.proto-footer__utility-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.proto-footer .proto-link {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.proto-footer button.proto-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
+.proto-footer__utility-links--dark .proto-link,
+.proto-footer--minified .proto-footer__utility-links .proto-link {
+  color: #c3c3c3 !important;
+}
+
+.proto-footer__utility-links--dark .proto-link:hover,
+.proto-footer--minified .proto-footer__utility-links .proto-link:hover {
+  color: #e8e8e8 !important;
+}
+
+.proto-footer__column-links .proto-link {
+  text-align: left;
+}
+
+.proto-footer__body {
+  width: 100%;
+  background: #ebf5ff;
+}
+
+.proto-footer__link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 56px 32px;
+  justify-content: flex-start;
+  padding: 48px 0 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__link-column {
+  flex: 1 1 214px;
+  min-width: 214px;
+  max-width: 320px;
+}
+
+.proto-footer__column-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.proto-footer__column-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.proto-footer__copyright--dark .proto-link {
+  color: #fff !important;
+}
+
+.proto-footer__copyright--dark .proto-link:hover {
+  color: #e8e8e8 !important;
+}
+
+.proto-footer__extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: flex-start;
+  padding: 48px 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__newsletter,
+.proto-footer__socials,
+.proto-footer__pharmacy {
+  flex: 1 1 169px;
+  min-width: 169px;
+  max-width: 360px;
+}
+
+.proto-footer__block-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.proto-footer__block-copy {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.proto-footer__email-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 360px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.proto-footer__email-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.proto-footer__signup-btn {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 360px;
+  background: #012169;
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  cursor: default;
+}
+
+.proto-footer__social-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  --proto-footer-social-size: 28px;
+}
+
+.proto-footer__social-icons .proto-icon-hit__glyph--24 {
+  width: var(--proto-footer-social-size);
+  height: var(--proto-footer-social-size);
+}
+
+/* Figma glyph insets — scaled up slightly from 24px for readability. */
+.proto-footer-social-glyph {
+  position: relative;
+  display: block;
+  width: var(--proto-footer-social-size, 24px);
+  height: var(--proto-footer-social-size, 24px);
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.proto-footer-social-glyph__mark {
+  position: absolute;
+  overflow: visible;
+}
+
+.proto-footer-social-glyph__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.proto-footer__social-icons .proto-icon-hit:focus,
+.proto-footer__social-icons .proto-icon-hit:focus-visible,
+.proto-footer__social-icons .proto-icon-hit:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* No lingering focus wash after click — but keep hover + pressed circles */
+.proto-footer__social-icons .proto-icon-hit:focus:not(:hover):not(:active)::before,
+.proto-footer__social-icons .proto-icon-hit:focus-visible:not(:hover):not(:active)::before {
+  background: transparent !important;
+}
+
+.proto-footer__social-icons .proto-icon-hit:hover::before {
+  background: #eef8f7 !important;
+}
+
+.proto-footer__social-icons .proto-icon-hit:active::before {
+  background: #c6e5e1 !important;
+}
+
+.proto-icon-hit:hover .proto-footer-social-glyph__mark svg path {
+  fill: #01318f !important;
+}
+
+.proto-footer__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.proto-footer__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: 360px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.39px;
+  color: #5c5c5c;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease,
+    color 0.18s ease;
+}
+
+.proto-footer__cta--outline {
+  background: #fff;
+  border: 1px solid #afccca;
+}
+
+.proto-footer__cta--outline:hover {
+  background: #c6e5e1;
+  box-shadow: 0 4px 12px rgba(175, 204, 202, 0.4);
+  transform: translateY(-1px);
+  color: #01318f;
+}
+
+.proto-footer__cta--outline:active {
+  background: #afccca;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.proto-footer__copyright {
+  width: 100%;
+  padding: 32px 0;
+  background: #bcd3e9;
+  box-sizing: border-box;
+}
+
+.proto-footer__copyright--dark {
+  padding: 24px 0;
+  background: #2e2e2e;
+}
+
+.proto-footer__copyright-copy {
+  text-align: center;
+  font-size: 10px;
+  line-height: 12px;
+  color: #7a7d87;
+}
+
+.proto-footer__copyright--dark .proto-footer__copyright-copy {
+  color: #fff;
+}
+
+.proto-footer__copyright-copy p {
+  margin: 0 0 8px;
+}
+
+.proto-footer__copyright-copy .proto-link {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.proto-footer__version {
+  position: relative;
+  margin: 8px 0 0;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  opacity: 0.2;
+  color: #fff;
+}
+
+.proto-footer__version .proto-link {
+  color: inherit !important;
+}
+
+.proto-footer__version .proto-link:hover {
+  color: inherit !important;
+}
+
+.proto-footer__copyright:not(.proto-footer__copyright--dark) .proto-footer__version {
+  position: absolute;
+  right: 64px;
+  bottom: 32px;
+  margin: 0;
+}
+
+/* Sidebar — fixed 304px */
+.proto-viewport > div > div:nth-child(1) [data-name="module.ma.navigation"],
+.proto-viewport > div > div:nth-child(2) [data-name="module.ma.navigation"] {
+  flex: 0 0 304px !important;
+  width: 304px !important;
+  min-width: 304px !important;
+  max-width: 304px !important;
+}
+
+/* Main content column */
+.proto-viewport > div > div:nth-child(1) [data-name="Content"],
+.proto-viewport > div > div:nth-child(2) [data-name="Content"],
+.proto-viewport > div > div:nth-child(1) [data-name="Right Column"],
+.proto-viewport > div > div:nth-child(2) [data-name="Right Column"],
+.proto-viewport > div > div:nth-child(2) [data-name="Left"] {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  width: auto !important;
+  align-items: stretch !important;
+}
+
+.proto-viewport > div > div:nth-child(2) [data-name="2 Columns"] {
+  width: 100% !important;
+}
+
+/* Order cards — Figma hardcodes w-[976px]; fill the remaining column */
+.proto-viewport > div > div:nth-child(1) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"],
+.proto-viewport > div > div:nth-child(2) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+
+/* Load more — keep centred narrow block */
+.proto-viewport > div > div:nth-child(2) [data-name="b2b.component.gse.load.more"] {
+  width: 100% !important;
+  max-width: 376px !important;
+  align-self: center !important;
+}
+
+/* Order summary + contact/payment blocks */
+.proto-viewport > div > div:nth-child(1) [data-name="component.co.buyer.info.static"],
+.proto-viewport > div > div:nth-child(1) [data-name="component.co.product.in.this.order"],
+.proto-viewport > div > div:nth-child(1) [data-name="Info Blocks / Order Summary/NO"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* ── Screen 3: Vaccination Listing ─────────────────────────────────────────── */
+
+/* Hero: full-width band, content constrained to the 1440px optical grid.
+ * padding-inline grows at (viewport - 1440) / 2 so the background bleeds
+ * edge-to-edge while Copy + Image stay inside the same column as the header. */
+.proto-viewport > div > div:nth-child(9) [data-name="module.plp.hero"] {
+  width: 100% !important;
+  min-width: unset !important;
+  padding-left: max(0px, calc((100% - 1440px) / 2)) !important;
+  padding-right: max(0px, calc((100% - 1440px) / 2)) !important;
+}
+
+/* Remove the white bg wash so the blurred photo is the dominant background */
+.proto-viewport > div > div:nth-child(9) [data-name="component.plp.hero.bg"] {
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+/* ── Design System: Checkboxes & Radios ──────────────────────────────────── */
+
+[data-name="component.input.checkbox"],
+[data-name="component.input.radio"],
+[data-name="component.plp.filter.checkbox.item"] {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer !important;
+}
+
+[data-name="component.plp.filter.checkbox.item"][data-proto-filter-disabled="true"] {
+  cursor: not-allowed !important;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+[data-name="component.plp.filter.checkbox.item"][data-proto-filter-disabled="true"]
+  [data-name="component.input.checkbox"] {
+  cursor: not-allowed !important;
+}
+
+[data-name="icon / input / checkbox"],
+[data-name="icon / input / radio"] {
+  position: relative !important;
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  overflow: visible !important;
+}
+
+[data-name="component.input.checkbox"] [data-name="box"],
+[data-name="component.input.radio"] [data-name="box"] {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 !important;
+  transform: none !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  box-sizing: border-box !important;
+}
+
+[data-name="component.input.checkbox"] [data-name="box"] {
+  border-radius: 4px !important;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+[data-name="component.input.radio"] [data-name="box"] {
+  border-radius: 360px !important;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+/* Mark/dot wrappers — same structure for every control */
+[data-name="component.input.checkbox"] [data-name="element. gse. checkbox. check mark"],
+[data-name="component.input.radio"] [data-name="element. gse. radio. circle"] {
+  position: absolute !important;
+  inset: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"],
+[data-name="component.input.checkbox"]:not([data-checkbox-checked="true"]) [data-name="box"] {
+  background: #fff !important;
+  border-color: #c3c3c3 !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="false"]:hover [data-name="box"],
+[data-name="component.input.checkbox"]:not([data-checkbox-checked="true"]):hover [data-name="box"],
+[data-name="component.plp.filter.checkbox.item"]:hover
+  [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"],
+[data-name="component.plp.filter.checkbox.item"]:hover
+  [data-name="component.input.checkbox"]:not([data-checkbox-checked="true"]) [data-name="box"] {
+  background: #c6e5e1 !important;
+  border-color: #c6e5e1 !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"],
+[data-name="component.input.checkbox"][data-checkbox-checked="true"]:hover [data-name="box"] {
+  background: #afccca !important;
+  border-color: #afccca !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="element. gse. checkbox. check mark"] {
+  display: flex !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="element. gse. checkbox. check mark"] svg path {
+  fill: #305854 !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="false"] [data-name="box"],
+[data-name="component.input.radio"]:not([data-radio-checked="true"]) [data-name="box"] {
+  background: #fff !important;
+  border-color: #c3c3c3 !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="false"]:hover [data-name="box"],
+[data-name="component.input.radio"]:not([data-radio-checked="true"]):hover [data-name="box"] {
+  background: #c6e5e1 !important;
+  border-color: #c6e5e1 !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="box"],
+[data-name="component.input.radio"][data-radio-checked="true"]:hover [data-name="box"] {
+  background: #afccca !important;
+  border-color: #afccca !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="element. gse. radio. circle"] {
+  display: flex !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="element. gse. radio. circle"] svg circle {
+  fill: #305854 !important;
+}
+
+/* Lower sections: backgrounds are already w-full; constrain inner content
+ * to max-width: 1440px so it aligns with the header/breadcrumb column.
+ *
+ * ModuleLaptopSpecs  (has aria-hidden bg div + sibling content div)
+ * ModuleLaptopSpecs1 (bg-white > centering div > padding div)
+ */
+.proto-viewport > div > div:nth-child(9) [data-name="module.laptop.specs"] > div:not([aria-hidden]) {
+  max-width: 1440px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.proto-viewport > div > div:nth-child(9) [data-name="module.laptop.specs"] > div > div {
+  max-width: 1440px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.proto-viewport > div > div:nth-child(9) [data-name="component.filter.controls"] {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-filter-controls__row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px 16px !important;
+  width: 100% !important;
+  font-family: "Open Sans", sans-serif !important;
+  font-size: 13px !important;
+  line-height: 24px !important;
+  color: #3a3a3a !important;
+  text-align: left !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-results-summary {
+  margin: 0 !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: inline !important;
+  text-align: left !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-filter-chip {
+  display: inline !important;
+  font: inherit !important;
+  color: #012169 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+  cursor: pointer !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-filter-chip:hover {
+  color: #001a52 !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-reset-filters-link {
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+}
+
+.proto-viewport > div > div:nth-child(9) .proto-plp-reset-filters-link[hidden] {
+  display: none !important;
+}
+
+.proto-viewport > div > div:nth-child(9) [data-proto-plp-reset-filters="true"] {
+  font-family: inherit;
+}
+
