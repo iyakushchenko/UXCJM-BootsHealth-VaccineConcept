@@ -155,7 +155,13 @@ export default function ProtoNavPanel({
 
             <div className="proto-nav-stepper">
               {scenarioControls}
-              <span ref={zoomLabelRef} className="proto-nav-zoom-label">100%</span>
+              <span
+                ref={zoomLabelRef}
+                className="proto-nav-zoom-label"
+                title="Current Page Zoom"
+              >
+                100%
+              </span>
               <button
                 type="button"
                 onClick={onPrevious}

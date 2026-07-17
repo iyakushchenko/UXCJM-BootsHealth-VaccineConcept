@@ -757,8 +757,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]),
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) {
   cursor: pointer !important;
@@ -769,8 +768,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) > [aria-hidden],
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]) > [aria-hidden] {
   transition: border-color 0.18s ease !important;
@@ -778,8 +776,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover {
   background: #eef8f7 !important;
@@ -787,8 +784,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover > [aria-hidden],
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover > [aria-hidden] {
   border-color: #afccca !important;
@@ -796,8 +792,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover svg path,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):hover svg path {
   fill: #012169 !important;
@@ -806,61 +801,37 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):active,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="Vector"]):active {
   background: #c6e5e1 !important;
 }
 
 /* Agentic chat composer — send = primary navy CTA (same dynamics as home send) */
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"].proto-agentic-send,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) {
-  background: #012169 !important;
-  cursor: pointer !important;
-  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+  overflow: visible !important;
 }
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) > [aria-hidden] {
   border-color: transparent !important;
 }
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"]
   [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) svg path {
   fill: #ffffff !important;
-}
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
-  [data-name="Subtotal"]
-  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):hover {
-  background: #01318f !important;
-  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
-  transform: translateY(-1px) !important;
-}
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
-  [data-name="Subtotal"]
-  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):active {
-  background: #011a5c !important;
-  transform: translateY(0) !important;
-  box-shadow: none !important;
 }
 
 /* Agentic dialog option chips (home “Suggested…” + chat “Next…”) */
 .proto-viewport > div > div:nth-child(11)
   [data-name="component.co.order.summary"]
   [data-name="component.gse.system.message"],
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="component.gse.system.message"] {
   cursor: pointer !important;
   user-select: none !important;
@@ -869,8 +840,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="component.co.order.summary"]
   [data-name="component.gse.system.message"]:hover,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="component.gse.system.message"]:hover {
   background: rgba(175, 204, 202, 0.55) !important;
   box-shadow: 0 2px 8px rgba(1, 33, 105, 0.12) !important;
@@ -879,8 +849,7 @@
 .proto-viewport > div > div:nth-child(11)
   [data-name="component.co.order.summary"]
   [data-name="component.gse.system.message"]:active,
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="component.gse.system.message"]:active {
   background: rgba(175, 204, 202, 0.85) !important;
   transform: translateY(0) !important;
@@ -888,12 +857,11 @@
 }
 
 /* Agentic chat composer — hug empty line; mic/send vertically centred */
-.proto-viewport > div > div:nth-child(10)
-  [data-name="component.co.order.summary"]
+.proto-site-pilot-composer
   [data-name="Subtotal"] {
   align-items: center !important;
 }
-.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query {
+.proto-site-pilot-composer textarea.proto-agentic-query {
   flex: 1 1 0 !important;
   width: 0 !important;
   min-width: 0 !important;
@@ -919,15 +887,15 @@
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
-.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query::-webkit-scrollbar {
+.proto-site-pilot-composer textarea.proto-agentic-query::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
-.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query::placeholder {
+.proto-site-pilot-composer textarea.proto-agentic-query::placeholder {
   color: #7a7d87 !important;
 }
-.proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query:focus {
+.proto-site-pilot-composer textarea.proto-agentic-query:focus {
   outline: none !important;
 }
 

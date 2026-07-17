@@ -362,19 +362,37 @@
 /* Primary CTA — darken slightly, lift with shadow.
  * Also covers Agentic send (Figma #003fcc) → same Boots navy as PDP. */
 .proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"],
-.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"] {
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"],
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send,
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]) {
   cursor: pointer !important;
   background: #012169 !important;
   transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
 }
 .proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:hover,
-.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:hover {
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:hover,
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send:hover,
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):hover {
   background: #01318f !important;
-  box-shadow: 0 4px 12px rgba(1,33,105,0.35) !important;
+  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35) !important;
   transform: translateY(-1px) !important;
 }
 .proto-viewport [data-name="component.input.button"][class*="bg-[#012169]"]:active,
-.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:active {
+.proto-viewport [data-name="component.input.button"][class*="bg-[#003fcc]"]:active,
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send:active,
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"][class*="size-[48px]"]:has([data-name="glyph"]):active {
   background: #011a5c !important;
   transform: translateY(0) !important;
   box-shadow: none !important;
@@ -404,10 +422,12 @@
   z-index: 5 !important;
   pointer-events: none !important;
 }
-.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] {
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"],
+.proto-site-pilot-composer {
   overflow: visible !important;
 }
-.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] > div {
+.proto-viewport > div > div:nth-child(10) [data-name="component.co.order.summary"] > div,
+.proto-site-pilot-composer > div {
   overflow: visible !important;
 }
 
@@ -722,21 +742,26 @@
   align-self: stretch !important;
   box-sizing: border-box !important;
 }
-/* Fill scrollport height so blue bg is not torn on frame 1 — but allow thread to grow for scroll */
+/* Fill scrollport height so blue bg is not torn on frame 1 — thread still grows when long */
 .proto-viewport > div > div:nth-child(10).proto-chat-screen {
+  display: flex !important;
+  flex-direction: column !important;
   flex: 0 0 auto !important;
   min-height: var(--proto-scroll-min-px, 100%) !important;
   height: auto !important;
+  --proto-scenario-frame-max: 3200px;
 }
 .proto-viewport > div > div:nth-child(10).proto-chat-screen > [data-name="body"] {
-  flex: 0 0 auto !important;
+  flex: 1 1 auto !important;
   min-height: auto !important;
   height: auto !important;
   overflow: visible !important;
 }
 .proto-viewport > div > div:nth-child(10).proto-chat-screen > [data-name="body"] > div {
-  flex: 0 0 auto !important;
-  min-height: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 100% !important;
   height: auto !important;
   overflow: visible !important;
 }
@@ -756,31 +781,116 @@
   padding-bottom: var(--proto-chat-composer-h, 0px) !important;
   box-sizing: border-box !important;
 }
-/* Scenario frames — smooth reveal / hide (opacity/transform only; keep layout height) */
+/* Scenario frames — smooth reveal / hide; clip only while collapsing */
 .proto-viewport > div > div:nth-child(10) .proto-scenario-frame {
-  overflow: hidden !important;
-  opacity: 1 !important;
-  transform: translateY(0) scale(1) !important;
-  transform-origin: top center !important;
+  overflow: visible !important;
+  max-height: var(--proto-scenario-frame-max, 3200px);
+  margin-block: 0;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transform-origin: top center;
   transition:
-    opacity 0.32s ease,
-    transform 0.32s ease !important;
+    opacity 0.34s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.34s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-block 0.34s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .proto-viewport > div > div:nth-child(10) .proto-scenario-frame.proto-scenario-frame--hidden {
-  opacity: 0 !important;
-  transform: translateY(10px) scale(0.985) !important;
-  max-height: 0 !important;
-  margin-block: 0 !important;
-  pointer-events: none !important;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  max-height: 0;
+  margin-block: 0;
+  pointer-events: none;
   overflow: hidden !important;
 }
-.proto-viewport > div > div:nth-child(10) .proto-scenario-frame:not(.proto-scenario-frame--hidden) {
-  max-height: none !important;
+/* Agent thinking bubble — injected at send; not a scenario frame */
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
+  flex-shrink: 0;
 }
-@media (prefers-reduced-motion: reduce) {
-  .proto-viewport > div > div:nth-child(10) .proto-scenario-frame {
-    transition: none !important;
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble[hidden] {
+  display: none !important;
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble__inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: 40px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: rgba(215, 233, 248, 0.57);
+  box-sizing: border-box;
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble--reveal .proto-chat-thinking-bubble__inner {
+  animation: proto-chat-thinking-reveal 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes proto-chat-thinking-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 8px;
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #012169;
+  opacity: 0.35;
+  transform: translateY(0);
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots--run > span {
+  animation: proto-chat-thinking-dot 1s ease-in-out infinite;
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots--run > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots--run > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes proto-chat-thinking-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send--stop
+  [data-name="glyph"] {
+  width: 14px !important;
+  height: 14px !important;
 }
 /* Portal dock — fixed to viewport bottom, aligned to chat column via JS */
 .proto-chat-composer-dock--portal {

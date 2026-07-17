@@ -5,6 +5,7 @@
 const LEGACY_THREAD_CLASS = "proto-chat-thread";
 const DOCK_CLASS = "proto-chat-composer-dock";
 const DOCK_PORTAL_CLASS = "proto-chat-composer-dock--portal";
+const COMPOSER_CARD_CLASS = "proto-site-pilot-composer";
 const COMPOSER_PAD_VAR = "--proto-chat-composer-h";
 const SCREEN_CHILD = 10;
 
@@ -51,6 +52,7 @@ function restoreChatDom(summary: HTMLElement, paddingDiv: HTMLElement): void {
     const disclaimer = dock.querySelector("p");
     if (composer) {
       summary.appendChild(composer);
+      composer.classList.remove(COMPOSER_CARD_CLASS);
       delete composer.dataset.protoChatComposer;
     }
     if (disclaimer) {
@@ -71,6 +73,33 @@ export function isSitePilotChatComposerFrame(el: HTMLElement): boolean {
       : el.querySelector<HTMLElement>('[data-name="component.co.order.summary"]');
   if (!card) return false;
   return /ask boots sitepilot|next dialog options/i.test(card.textContent ?? "");
+}
+
+/** Composer card — lives in the portal dock after setup (not under the screen root). */
+export function findSitePilotChatComposerCard(): HTMLElement | null {
+  const portaled = document.querySelector<HTMLElement>(
+    `.${DOCK_CLASS}.${DOCK_PORTAL_CLASS} [data-name="component.co.order.summary"]`
+  );
+  if (
+    portaled &&
+    /ask boots sitepilot|next dialog options/i.test(portaled.textContent ?? "")
+  ) {
+    return portaled;
+  }
+
+  const screen = document.querySelector<HTMLElement>(
+    ".proto-viewport > div > div:nth-child(10)"
+  );
+  const cards = Array.from(
+    screen?.querySelectorAll<HTMLElement>(
+      '[data-name="component.co.order.summary"]'
+    ) ?? []
+  );
+  return (
+    cards.find((c) =>
+      /ask boots sitepilot|next dialog options/i.test(c.textContent ?? "")
+    ) ?? null
+  );
 }
 
 function findChatDisclaimer(paddingDiv: HTMLElement): HTMLParagraphElement | null {
@@ -123,6 +152,7 @@ export function setupSitePilotChatComposerDock(
   if (!composer) return () => {};
 
   composer.dataset.protoChatComposer = "true";
+  composer.classList.add(COMPOSER_CARD_CLASS);
   const disclaimer = findChatDisclaimer(paddingDiv);
 
   const dock = document.createElement("div");
@@ -162,6 +192,8 @@ export function collectSitePilotChatScenarioFrames(
 
   return Array.from(summary.children).filter(
     (node): node is HTMLElement =>
-      node instanceof HTMLElement && !isSitePilotChatComposerFrame(node)
+      node instanceof HTMLElement &&
+      !isSitePilotChatComposerFrame(node) &&
+      !node.hasAttribute("data-proto-chat-thinking")
   );
 }

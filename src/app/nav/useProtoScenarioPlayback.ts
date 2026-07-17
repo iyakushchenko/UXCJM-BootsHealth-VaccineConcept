@@ -2,10 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObje
 import {
   applyScenarioFrameVisibility,
   PROTO_SCENARIO_MIN_VISIBLE_FRAMES,
-  scrollPrototypeScrollToBottomOnce,
-  scrollPrototypeScrollToTopAfterLayout,
-  scrollScenarioChatAnchor,
+  scheduleScenarioScroll,
+  scenarioScrollTiming,
+  scenarioScrollTopBeforeCollapse,
+  scrollPrototypeScrollToTop,
   type ScenarioScrollAlign,
+  type ScenarioScrollTiming,
 } from "@/app/proto/protoScenarioEngine";
 
 type Options = {
@@ -21,7 +23,10 @@ type PlaybackMode = "idle" | "playing";
 
 type ScrollIntent = {
   visibleCount: number;
+  prevCount: number;
   align: ScenarioScrollAlign;
+  smooth: boolean;
+  timing: ScenarioScrollTiming;
 };
 
 function clearScenarioFrameStyles(frames: HTMLElement[]): void {
@@ -72,10 +77,19 @@ export function useProtoScenarioPlayback({
   const isPlaying = playbackMode === "playing";
 
   const queueScroll = useCallback(
-    (count: number, align?: ScenarioScrollAlign) => {
+    (
+      count: number,
+      align?: ScenarioScrollAlign,
+      smooth = true,
+      prevCount = visibleCountRef.current
+    ) => {
+      const resolvedAlign = align ?? scrollAlignForCount(count, minVisibleFrames);
       scrollIntentRef.current = {
         visibleCount: count,
-        align: align ?? scrollAlignForCount(count, minVisibleFrames),
+        prevCount,
+        align: resolvedAlign,
+        smooth,
+        timing: scenarioScrollTiming(prevCount, count),
       };
     },
     [minVisibleFrames]
@@ -103,7 +117,10 @@ export function useProtoScenarioPlayback({
       visibleCountRef.current = frames.length;
       scrollIntentRef.current = {
         visibleCount: frames.length,
+        prevCount: 0,
         align: "end",
+        smooth: true,
+        timing: "after-init",
       };
       setVisibleCount(frames.length);
     } else if (frames.length > 0) {
@@ -163,25 +180,41 @@ export function useProtoScenarioPlayback({
       visibleCount > 0 ? visibleCount : pendingInit > 0 ? pendingInit : 0;
     if (effectiveCount === 0) return;
 
+    const intent = scrollIntentRef.current;
+    if (
+      intent &&
+      intent.visibleCount === effectiveCount &&
+      scenarioScrollTopBeforeCollapse(
+        intent.prevCount,
+        intent.visibleCount,
+        intent.align,
+        minVisibleFrames
+      )
+    ) {
+      scrollPrototypeScrollToTop(scrollRootRef?.current, "instant");
+    }
+
     applyScenarioFrameVisibility(frames, effectiveCount);
 
-    const intent = scrollIntentRef.current;
     if (intent && intent.visibleCount === effectiveCount) {
-      scrollScenarioChatAnchor(
+      if (intent.timing === "after-init" && initialScrollDoneRef.current) {
+        scrollIntentRef.current = null;
+        return;
+      }
+
+      scheduleScenarioScroll(
         frames,
         intent.visibleCount,
         intent.align,
-        scrollRootRef?.current
+        scrollRootRef?.current,
+        intent.smooth,
+        intent.timing,
+        intent.prevCount
       );
       scrollIntentRef.current = null;
 
-      if (
-        !initialScrollDoneRef.current &&
-        intent.align === "end" &&
-        intent.visibleCount === frames.length
-      ) {
+      if (intent.timing === "after-init") {
         initialScrollDoneRef.current = true;
-        scrollPrototypeScrollToBottomOnce(scrollRootRef?.current);
       }
     }
   }, [active, minVisibleFrames, scrollRootRef, visibleCount]);
@@ -192,7 +225,8 @@ export function useProtoScenarioPlayback({
     stopPlayback();
     setVisibleCount((count) => {
       const next = clampVisible(count - 1, framesRef.current.length, minVisibleFrames);
-      queueScroll(next);
+      const align = scrollAlignForCount(next, minVisibleFrames);
+      queueScroll(next, align, false, count);
       return next;
     });
   }, [minVisibleFrames, queueScroll, stopPlayback]);
@@ -201,7 +235,8 @@ export function useProtoScenarioPlayback({
     stopPlayback();
     setVisibleCount((count) => {
       const next = clampVisible(count + 1, framesRef.current.length, minVisibleFrames);
-      queueScroll(next);
+      // Pin to bottom while the new bubble expands — no delayed smooth scroll.
+      queueScroll(next, "end", false, count);
       return next;
     });
   }, [minVisibleFrames, queueScroll, stopPlayback]);
@@ -229,7 +264,7 @@ export function useProtoScenarioPlayback({
       }
 
       const next = clampVisible(current + 1, frames.length, minVisibleFrames);
-      queueScroll(next);
+      queueScroll(next, "end", false, current);
       setVisibleCount(next);
 
       if (next >= frames.length) {
@@ -241,10 +276,20 @@ export function useProtoScenarioPlayback({
   const jumpToStart = useCallback(() => {
     stopPlayback();
     if (framesRef.current.length > 0 && visibleCountRef.current > minVisibleFrames) {
-      queueScroll(minVisibleFrames, "start");
+      const prev = visibleCountRef.current;
+      queueScroll(minVisibleFrames, "start", false, prev);
       setVisibleCount(minVisibleFrames);
+      return;
     }
-    scrollPrototypeScrollToTopAfterLayout(scrollRootRef?.current);
+    scheduleScenarioScroll(
+      framesRef.current,
+      minVisibleFrames,
+      "start",
+      scrollRootRef?.current,
+      false,
+      "immediate",
+      visibleCountRef.current
+    );
   }, [minVisibleFrames, queueScroll, scrollRootRef, stopPlayback]);
 
   const jumpToEnd = useCallback(() => {
@@ -252,7 +297,8 @@ export function useProtoScenarioPlayback({
     const total = framesRef.current.length;
     if (total === 0 || visibleCountRef.current >= total) return;
 
-    queueScroll(total, "end");
+    const prev = visibleCountRef.current;
+    queueScroll(total, "end", false, prev);
     setVisibleCount(total);
   }, [queueScroll, stopPlayback]);
 

@@ -78,9 +78,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-right: 4px;
-  padding-right: 8px;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  margin-right: 6px;
 }
 
 .proto-nav-scenario__label {
@@ -109,15 +107,9 @@
   gap: 1px;
   padding: 2px;
   border-radius: 4px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(0, 0, 0, 0.28) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .proto-nav-scenario__deck .proto-nav-scenario__btn {
@@ -286,11 +278,16 @@
   cursor: default;
 }
 
-.proto-nav-step-btn:focus,
-.proto-nav-step-btn:focus-visible,
-.proto-nav-step-btn:active {
+.proto-nav-step-btn:not(.proto-nav-scenario__btn):focus,
+.proto-nav-step-btn:not(.proto-nav-scenario__btn):focus-visible,
+.proto-nav-step-btn:not(.proto-nav-scenario__btn):active {
   outline: none !important;
   box-shadow: none !important;
+}
+
+.proto-nav-scenario__deck .proto-nav-scenario__btn:focus,
+.proto-nav-scenario__deck .proto-nav-scenario__btn:focus-visible {
+  outline: none !important;
 }
 
 .proto-nav-zoom-controls {
@@ -330,7 +327,7 @@
   margin-right: 6px;
   padding-right: 8px;
   border-right: 1px solid rgba(255, 255, 255, 0.12);
-  pointer-events: none;
+  cursor: default;
   user-select: none;
 }
 

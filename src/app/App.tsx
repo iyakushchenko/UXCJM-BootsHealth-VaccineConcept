@@ -23,8 +23,15 @@ import { getProtoScenarioForChildIndex } from "@/app/proto/protoScenarioEngine";
 import {
   collectSitePilotChatScenarioFrames,
   ensureSitePilotChatComposerDock,
+  findSitePilotChatComposerCard,
   teardownSitePilotChatComposerDock,
 } from "@/app/proto/protoSitePilotChatScenario";
+import {
+  beginSitePilotChatThinking,
+  endSitePilotChatThinking,
+  isSitePilotChatThinking,
+  setSitePilotChatSendThinkingMode,
+} from "@/app/proto/protoSitePilotChatThinking";
 import { resolveAvailStoreId } from "@/app/proto/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/app/proto/protoVaccineList";
@@ -954,6 +961,9 @@ export default function App() {
     playbackStepMs: activeScenarioConfig?.playbackStepMs,
   });
 
+  const jumpToEndRef = useRef(scenarioPlayback.jumpToEnd);
+  jumpToEndRef.current = scenarioPlayback.jumpToEnd;
+
   /** Hide Reset when page states are already pristine (nav position ignored). */
   const isProtoPristine =
     !availabilityOpen &&
@@ -1055,8 +1065,10 @@ export default function App() {
   }, [hubOpen, restoreHubScroll]);
 
   // Prototype tabs always open at scroll top (nav, in-flow links, hub exit).
+  // Site Pilot Chat owns scroll — default is last frame pinned to bottom.
   useLayoutEffect(() => {
     if (hubOpen) return;
+    if (SCREENS[current]?.childIndex === 10) return;
     resetPrototypeScroll();
   }, [current, hubOpen, resetPrototypeScroll]);
 
@@ -1444,21 +1456,21 @@ export default function App() {
   // Agentic chat (child 10): composer matches home — textarea, mic/send, chip dynamics
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 10) return;
-    const screen = document.querySelector(
-      ".proto-viewport > div > div:nth-child(10)"
-    ) as HTMLElement | null;
-    // Bottom composer card (contains “Ask Boots SitePilot” / Next dialog options)
-    const cards = Array.from(
-      screen?.querySelectorAll<HTMLElement>(
-        '[data-name="component.co.order.summary"]'
-      ) ?? []
-    );
-    const card =
-      cards.find((c) =>
-        /ask boots sitepilot|next dialog options/i.test(c.textContent ?? "")
-      ) ?? null;
-    const subtotal = card?.querySelector<HTMLElement>('[data-name="Subtotal"]');
-    if (!card || !subtotal) return;
+
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
+    let finishing = false;
+    let scenarioDeck: HTMLElement | null = null;
+
+    const wireComposer = () => {
+      if (disposed) return;
+
+      cleanup?.();
+      cleanup = undefined;
+
+      const card = findSitePilotChatComposerCard();
+      const subtotal = card?.querySelector<HTMLElement>('[data-name="Subtotal"]');
+      if (!card || !subtotal) return;
 
     let ta = subtotal.querySelector<HTMLTextAreaElement>(
       "textarea.proto-agentic-query"
@@ -1494,6 +1506,42 @@ export default function App() {
       subtotal.querySelectorAll<HTMLElement>('[data-name="component.input.button"]')
     ).find((btn) => btn.querySelector('[data-name="glyph"]'));
 
+    const onScenarioDeckClick = (e: Event) => {
+      if (!isSitePilotChatThinking()) return;
+      const t = e.target as Element | null;
+      if (!t?.closest(".proto-nav-scenario")) return;
+      cancelThinking();
+    };
+
+    const bindScenarioDeckInterrupt = () => {
+      scenarioDeck =
+        scenarioDeck ?? document.querySelector<HTMLElement>(".proto-nav-scenario");
+      scenarioDeck?.addEventListener("click", onScenarioDeckClick, true);
+    };
+
+    const unbindScenarioDeckInterrupt = () => {
+      scenarioDeck?.removeEventListener("click", onScenarioDeckClick, true);
+    };
+
+    const cancelThinking = () => {
+      if (finishing || !isSitePilotChatThinking()) return;
+      finishing = true;
+      endSitePilotChatThinking();
+      unbindScenarioDeckInterrupt();
+      if (sendBtn) setSitePilotChatSendThinkingMode(sendBtn, false);
+      finishing = false;
+    };
+
+    const finishThinking = () => {
+      if (finishing) return;
+      finishing = true;
+      endSitePilotChatThinking();
+      unbindScenarioDeckInterrupt();
+      if (sendBtn) setSitePilotChatSendThinkingMode(sendBtn, false);
+      jumpToEndRef.current();
+      finishing = false;
+    };
+
     if (sendBtn) {
       sendBtn.classList.add("proto-agentic-send");
       sendBtn.className = sendBtn.className
@@ -1502,18 +1550,51 @@ export default function App() {
       if (!/bg-\[#012169\]/.test(sendBtn.className)) {
         sendBtn.classList.add("bg-[#012169]");
       }
-      sendBtn.style.setProperty("background", "#012169", "important");
+      sendBtn.style.removeProperty("background");
       sendBtn.setAttribute("role", "button");
-      sendBtn.setAttribute("aria-label", "Send message");
       sendBtn.tabIndex = 0;
       sendBtn.querySelectorAll("svg path").forEach((path) => {
         path.setAttribute("fill", "#ffffff");
       });
+      setSitePilotChatSendThinkingMode(sendBtn, isSitePilotChatThinking());
+      if (!sendBtn.hasAttribute("aria-label")) {
+        sendBtn.setAttribute("aria-label", "Send message");
+      }
     }
+
+    const onSendActivate = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (finishing) return;
+
+      if (isSitePilotChatThinking()) {
+        finishThinking();
+        return;
+      }
+
+      const screen = document.querySelector(
+        ".proto-viewport > div > div:nth-child(10)"
+      );
+      if (!screen) return;
+
+      beginSitePilotChatThinking(screen);
+      if (sendBtn) setSitePilotChatSendThinkingMode(sendBtn, true);
+      bindScenarioDeckInterrupt();
+    };
+
+    const onSendKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      onSendActivate(e);
+    };
 
     const onCardClick = (e: MouseEvent) => {
       const t = e.target as Element | null;
       if (!t || !ta) return;
+
+      if (sendBtn && (t === sendBtn || sendBtn.contains(t))) {
+        onSendActivate(e);
+        return;
+      }
 
       const chip = t.closest(
         '[data-name="component.gse.system.message"]'
@@ -1538,10 +1619,25 @@ export default function App() {
     };
 
     card.addEventListener("click", onCardClick);
+    sendBtn?.addEventListener("keydown", onSendKey);
+      cleanup = () => {
+        unbindScenarioDeckInterrupt();
+        endSitePilotChatThinking();
+        if (sendBtn) setSitePilotChatSendThinkingMode(sendBtn, false);
+        unbindAutoHeight();
+        ta?.removeEventListener("input", onComposerInput);
+        card.removeEventListener("click", onCardClick);
+        sendBtn?.removeEventListener("keydown", onSendKey);
+      };
+    };
+
+    wireComposer();
+    const raf = requestAnimationFrame(wireComposer);
+
     return () => {
-      unbindAutoHeight();
-      ta?.removeEventListener("input", onComposerInput);
-      card.removeEventListener("click", onCardClick);
+      disposed = true;
+      cancelAnimationFrame(raf);
+      cleanup?.();
     };
   }, [current]);
 
@@ -3871,7 +3967,9 @@ export default function App() {
     }
     setHubOpen(false);
     if (wasHub || next !== current) {
-      resetPrototypeScroll();
+      if (SCREENS[next]?.childIndex !== 10) {
+        resetPrototypeScroll();
+      }
     }
     setCurrent(next);
   };
