@@ -449,6 +449,21 @@ export function setupProtoHeader(
     scrollEl.insertBefore(headerMount, scrollEl.firstChild);
   }
 
+  const headerRoot = scrollEl.querySelector<HTMLElement>(`.${HEADER_MOUNT_CLASS}`);
+  headerRoot
+    ?.querySelectorAll<HTMLElement>('[data-name="component.mega.menu.item"]')
+    .forEach((item) => {
+      const label = (
+        item.querySelector("p")?.textContent ??
+        item.textContent ??
+        ""
+      ).trim();
+      if (!/^home$/i.test(label)) return;
+      item.style.cursor = "pointer";
+      item.setAttribute("role", "link");
+      item.tabIndex = 0;
+    });
+
   // Hide all native Figma headers inside pages
   nativeHeaders.forEach((el) => {
     if (!el.classList.contains("proto-header-sticky")) {

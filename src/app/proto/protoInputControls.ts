@@ -61,7 +61,10 @@ export function ensureCheckboxRow(row: HTMLElement): void {
 
   if (box.dataset.protoStandardized !== "1") {
     if (row.dataset.checkboxChecked === undefined && !isBoosterCheckboxRow(row)) {
-      row.dataset.checkboxChecked = String(isBoxCheckedFromFigma(box));
+      const plpFilterPanel = row.closest('[data-name="module.plp.filters"]');
+      row.dataset.checkboxChecked = plpFilterPanel
+        ? "false"
+        : String(isBoxCheckedFromFigma(box));
     }
     standardizeCheckboxBox(box);
   }

@@ -22,7 +22,14 @@ import type { VaccineItem } from "@/app/proto/protoVaccineList";
 import {
   setupChosenPageMap,
 } from "@/app/proto/protoMap";
-import { ensurePlpTileTitleLinks, syncPlpListingFilters } from "@/app/proto/protoPlpListing";
+import {
+  arePlpFiltersActive,
+  ensurePlpFiltersDefault,
+  ensurePlpTileTitleLinks,
+  PLP_FILTERS_CHANGE_EVENT,
+  resetPlpFilters,
+  syncPlpListingFilters,
+} from "@/app/proto/protoPlpListing";
 import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/app/proto/protoLocationSearch";
 import { setupProtoFooters } from "@/app/chrome/protoFooterMount";
 import { setupProtoHeader, syncProtoHeaderLogin, syncMaAccountAvatars, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist, applyWishlistHeartVisual, syncChickenpoxWishlistHearts, PROTO_PDP_WISHLIST_ID } from "@/app/chrome/protoHeaderMount";
@@ -86,6 +93,37 @@ const DEFAULT_CHOSEN_BOOKING_SLOT: ChosenBookingSlot = {
 /** Default Agentic home query — Reset hides while this is unchanged. */
 const AGENTIC_HOME_QUERY_DEFAULT =
   "I need a full course of travel vaccinations for a three-week trip to Southeast Asia (Indonesia) starting next month, specifically looking to book and buy jabs as a bundle if possible.";
+
+const AGENTIC_HOME_HEADING_DEFAULT =
+  "What health services are you focusing on today?";
+const AGENTIC_HOME_HEADING_LOGGED_IN =
+  "Sarah, what health services are you focusing on today?";
+
+/** Agentic home hero line — personalised when header login is active. */
+function syncAgenticHomeHeading(isLoggedIn: boolean): void {
+  const screen = document.querySelector(
+    ".proto-viewport > div > div:nth-child(11)"
+  ) as HTMLElement | null;
+  if (!screen) return;
+
+  let heading = screen.querySelector<HTMLElement>(
+    "[data-proto-agentic-home-heading]"
+  );
+  if (!heading) {
+    heading =
+      Array.from(screen.querySelectorAll("p")).find((p) =>
+        /what health services are you focusing on today/i.test(
+          p.textContent ?? ""
+        )
+      ) ?? null;
+    if (heading) heading.dataset.protoAgenticHomeHeading = "true";
+  }
+  if (!heading) return;
+
+  heading.textContent = isLoggedIn
+    ? AGENTIC_HOME_HEADING_LOGGED_IN
+    : AGENTIC_HOME_HEADING_DEFAULT;
+}
 
 const AGENTIC_QUERY_LINE_PX = 24;
 const AGENTIC_QUERY_MAX_LINES = 5;
@@ -207,18 +245,78 @@ function resolveAvailIntent(
 function syncAgenticQueryHeight(ta: HTMLTextAreaElement) {
   const max = AGENTIC_QUERY_LINE_PX * AGENTIC_QUERY_MAX_LINES;
   // Collapse before measuring so height shrinks when lines are deleted.
-  ta.style.setProperty("height", `${AGENTIC_QUERY_LINE_PX}px`, "important");
-  ta.style.setProperty("min-height", `${AGENTIC_QUERY_LINE_PX}px`, "important");
+  ta.style.setProperty("height", "0px", "important");
+  ta.style.setProperty("min-height", "0px", "important");
   const next = Math.min(
     Math.max(ta.scrollHeight, AGENTIC_QUERY_LINE_PX),
     max
   );
+  ta.style.setProperty("min-height", `${AGENTIC_QUERY_LINE_PX}px`, "important");
   ta.style.setProperty("height", `${next}px`, "important");
   ta.style.setProperty(
     "overflow-y",
     next >= max ? "auto" : "hidden",
     "important"
   );
+}
+
+/** Re-measure when layout, fonts, or width change — fixes 1-line squash on first paint. */
+function bindAgenticQueryAutoHeight(ta: HTMLTextAreaElement): () => void {
+  let cancelled = false;
+  let innerRaf = 0;
+
+  const run = () => {
+    if (cancelled) return;
+    syncAgenticQueryHeight(ta);
+  };
+
+  run();
+
+  const outerRaf = requestAnimationFrame(() => {
+    if (cancelled) return;
+    run();
+    innerRaf = requestAnimationFrame(run);
+  });
+
+  const t0 = window.setTimeout(run, 0);
+  const t1 = window.setTimeout(run, 120);
+
+  const ro =
+    typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => run())
+      : null;
+  ro?.observe(ta);
+  const wrap = ta.parentElement;
+  if (wrap) ro?.observe(wrap);
+
+  const io =
+    typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) run();
+          },
+          { threshold: 0 }
+        )
+      : null;
+  io?.observe(ta);
+
+  const onResize = () => run();
+  window.addEventListener("resize", onResize);
+
+  void document.fonts?.ready.then(() => {
+    if (!cancelled) run();
+  });
+
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(outerRaf);
+    cancelAnimationFrame(innerRaf);
+    window.clearTimeout(t0);
+    window.clearTimeout(t1);
+    ro?.disconnect();
+    io?.disconnect();
+    window.removeEventListener("resize", onResize);
+  };
 }
 
 let protoStoreSeq = 0;
@@ -677,6 +775,8 @@ export default function App() {
   const [homeQueryDirty, setHomeQueryDirty] = useState(false);
   /** True once the Chat composer has any input. */
   const [chatComposerDirty, setChatComposerDirty] = useState(false);
+  /** True when PLP sidebar filters differ from defaults (any screen). */
+  const [plpFiltersDirty, setPlpFiltersDirty] = useState(false);
   const hubScrollElRef = useRef<HTMLDivElement>(null);
   const prototypeScrollElRef = useRef<HTMLDivElement>(null);
   const appContentRef = useRef<HTMLDivElement>(null);
@@ -743,6 +843,10 @@ export default function App() {
     openAvailabilityTool(intent);
   };
 
+  const syncPlpFiltersDirty = useCallback(() => {
+    setPlpFiltersDirty(arePlpFiltersActive(document));
+  }, []);
+
   /** Hide Reset when page states are already pristine (nav position ignored). */
   const isProtoPristine =
     !availabilityOpen &&
@@ -751,7 +855,8 @@ export default function App() {
     !quickViewOpen &&
     chosenLocation === null &&
     !homeQueryDirty &&
-    !chatComposerDirty;
+    !chatComposerDirty &&
+    !plpFiltersDirty;
 
   const saveHubScroll = useCallback(() => {
     if (hubScrollElRef.current) {
@@ -798,6 +903,7 @@ export default function App() {
     } catch {
       /* ignore */
     }
+    resetPlpFilters(document);
     clearProtoUiStorage();
     window.location.reload();
   };
@@ -841,7 +947,7 @@ export default function App() {
 
   useProtoScrollFill(prototypeScrollElRef, !hubOpen);
 
-  // Boots Pharmacy logo + breadcrumb “Home” → page 1 (Agentic Site Pilot Home)
+  // Boots Pharmacy logo, header “Home”, and breadcrumb “Home” → page 1 (Agentic Site Pilot Home)
   useEffect(() => {
     const root = prototypeScrollElRef.current;
     if (!root) return;
@@ -858,11 +964,32 @@ export default function App() {
       setCurrent(0);
     };
 
+    const isHeaderHomeTarget = (el: Element | null): boolean => {
+      if (!el) return false;
+      const menuItem = el.closest(
+        '[data-name="component.mega.menu.item"]'
+      ) as HTMLElement | null;
+      if (menuItem) {
+        const label = (
+          menuItem.querySelector("p")?.textContent ??
+          menuItem.textContent ??
+          ""
+        ).trim();
+        if (/^home$/i.test(label)) return true;
+      }
+      return false;
+    };
+
     const onClick = (e: MouseEvent) => {
       const t = e.target as Element | null;
       if (!t || !root.contains(t)) return;
 
       if (t.closest('[data-name="boots-pharmacy"]')) {
+        goHome(e);
+        return;
+      }
+
+      if (isHeaderHomeTarget(t)) {
         goHome(e);
         return;
       }
@@ -879,7 +1006,7 @@ export default function App() {
       if (e.key !== "Enter" && e.key !== " ") return;
       const t = e.target as Element | null;
       if (!t || !root.contains(t)) return;
-      if (t.closest('[data-name="boots-pharmacy"]')) {
+      if (t.closest('[data-name="boots-pharmacy"]') || isHeaderHomeTarget(t)) {
         goHome(e);
       }
     };
@@ -892,13 +1019,27 @@ export default function App() {
         logo.tabIndex = 0;
       });
 
+    root
+      .querySelectorAll<HTMLElement>('[data-name="component.mega.menu.item"]')
+      .forEach((item) => {
+        const label = (
+          item.querySelector("p")?.textContent ??
+          item.textContent ??
+          ""
+        ).trim();
+        if (!/^home$/i.test(label)) return;
+        item.style.cursor = "pointer";
+        item.setAttribute("role", "link");
+        item.tabIndex = 0;
+      });
+
     root.addEventListener("click", onClick);
     root.addEventListener("keydown", onKey);
     return () => {
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [closeAllPopups, resetPrototypeScroll]);
 
   // Nav tabs: vertical wheel / trackpad over the strip scrolls X (tabs aren't clipped dead).
   useEffect(() => {
@@ -944,10 +1085,19 @@ export default function App() {
     const scrollEl = prototypeScrollElRef.current;
     if (!scrollEl) return;
     setupProtoHeader(scrollEl, {
-      onLoginChange: () => { setLoggedInFlag(isProtoHeaderLoggedIn()); },
+      onLoginChange: () => {
+        const isLoggedIn = isProtoHeaderLoggedIn();
+        setLoggedInFlag(isLoggedIn);
+        if (SCREENS[currentRef.current]?.childIndex === 11) {
+          syncAgenticHomeHeading(isLoggedIn);
+        }
+      },
       onLoginClick: (tab) => { setLoginPopupTab(tab || "signin"); setLoginPopupOpen(true); },
       onSignOut: () => {
         setLoggedInFlag(false);
+        if (SCREENS[currentRef.current]?.childIndex === 11) {
+          syncAgenticHomeHeading(false);
+        }
         const idx = SCREENS[currentRef.current]?.childIndex;
         if (idx === 1 || idx === 2 || idx === 3) {
           setCurrent(0);
@@ -1045,6 +1195,8 @@ export default function App() {
     const subtotal = card?.querySelector<HTMLElement>('[data-name="Subtotal"]');
     if (!card || !subtotal) return;
 
+    syncAgenticHomeHeading(loggedInFlag || isProtoHeaderLoggedIn());
+
     let ta = subtotal.querySelector<HTMLTextAreaElement>(
       "textarea.proto-agentic-query"
     );
@@ -1073,7 +1225,7 @@ export default function App() {
       syncAgenticQueryHeight(ta!);
       syncQueryDirty();
     };
-    syncAgenticQueryHeight(ta);
+    const unbindAutoHeight = bindAgenticQueryAutoHeight(ta);
     syncQueryDirty();
     ta.addEventListener("input", onQueryInput);
 
@@ -1118,11 +1270,12 @@ export default function App() {
     card.addEventListener("click", onCardClick);
     sendBtn?.addEventListener("keydown", onSendKey);
     return () => {
+      unbindAutoHeight();
       ta?.removeEventListener("input", onQueryInput);
       card.removeEventListener("click", onCardClick);
       sendBtn?.removeEventListener("keydown", onSendKey);
     };
-  }, [current]);
+  }, [current, loggedInFlag]);
 
   // Agentic chat (child 10): composer matches home — textarea, mic/send, chip dynamics
   useEffect(() => {
@@ -1169,7 +1322,7 @@ export default function App() {
       syncAgenticQueryHeight(ta!);
       syncComposerDirty();
     };
-    syncAgenticQueryHeight(ta);
+    const unbindAutoHeight = bindAgenticQueryAutoHeight(ta);
     syncComposerDirty();
     ta.addEventListener("input", onComposerInput);
 
@@ -1222,6 +1375,7 @@ export default function App() {
 
     card.addEventListener("click", onCardClick);
     return () => {
+      unbindAutoHeight();
       ta?.removeEventListener("input", onComposerInput);
       card.removeEventListener("click", onCardClick);
     };
@@ -1661,10 +1815,21 @@ export default function App() {
   useEffect(() => {
     initProtoInputControls();
     initProtoSearchFields();
-    syncPlpListingFilters();
+    ensurePlpFiltersDefault(document);
     const plpFilters = document.querySelector('[data-name="module.plp.filters"]');
     if (plpFilters) initProtoInputControls(plpFilters);
-  }, [current]);
+    syncPlpListingFilters();
+    syncPlpFiltersDirty();
+  }, [current, syncPlpFiltersDirty]);
+
+  useEffect(() => {
+    const onPlpFiltersChange = () => syncPlpFiltersDirty();
+    document.addEventListener(PLP_FILTERS_CHANGE_EVENT, onPlpFiltersChange);
+    syncPlpFiltersDirty();
+    return () => {
+      document.removeEventListener(PLP_FILTERS_CHANGE_EVENT, onPlpFiltersChange);
+    };
+  }, [syncPlpFiltersDirty]);
 
   // Figma search rows — hide in-field clear (X) when value is empty / placeholder.
   useEffect(() => {
@@ -3758,6 +3923,9 @@ export default function App() {
         onSignIn={() => {
           setProtoHeaderLoggedIn(true);
           setLoggedInFlag(true);
+          if (SCREENS[current]?.childIndex === 11) {
+            syncAgenticHomeHeading(true);
+          }
         }}
       />
 

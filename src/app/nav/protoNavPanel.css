@@ -256,19 +256,23 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  border: 1px solid #6b0f1f;
   padding: 2px 8px;
   border-radius: 4px;
   cursor: default;
-  background: transparent;
+  background: #8b1538;
   flex-shrink: 0;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .proto-nav-reset-state:hover {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: #a01842;
+  background: #a01842;
 }
 
 .proto-nav-dot {

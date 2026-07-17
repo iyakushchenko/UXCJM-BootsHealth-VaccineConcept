@@ -325,6 +325,12 @@ function readActivePlpFilters(root: ParentNode = document): ActivePlpFilters {
   };
 }
 
+export const PLP_FILTERS_CHANGE_EVENT = "proto-plp-filters-change";
+
+function emitPlpFiltersChange(): void {
+  document.dispatchEvent(new CustomEvent(PLP_FILTERS_CHANGE_EVENT));
+}
+
 /** True when any PLP sidebar filter differs from the reset defaults. */
 function isPlpFiltersActive(root: ParentNode = document): boolean {
   const ageSection = findFilterSection(root, /by age/i);
@@ -350,6 +356,10 @@ function isPlpFiltersActive(root: ParentNode = document): boolean {
   }
 
   return false;
+}
+
+export function arePlpFiltersActive(root: ParentNode = document): boolean {
+  return isPlpFiltersActive(root);
 }
 
 function getFilterCheckboxItemLabel(item: HTMLElement): string {
@@ -396,6 +406,7 @@ export function syncPlpFilterListSearch(
   } else {
     reapplyPlpFilterListSearch(root);
   }
+  emitPlpFiltersChange();
 }
 
 type PlpFacetKey = "age" | "disease" | "region" | "country";
@@ -1785,6 +1796,16 @@ function renderPlpResultsSummary(
   summaryEl.textContent = `${visible} ${noun} available`;
 }
 
+let plpDefaultsApplied = false;
+
+/** Apply pristine PLP filter defaults once (Figma export may pre-check region/disease boxes). */
+export function ensurePlpFiltersDefault(root: ParentNode = document): void {
+  if (plpDefaultsApplied) return;
+  if (!root.querySelector(PLP_FILTERS_SELECTOR)) return;
+  plpDefaultsApplied = true;
+  resetPlpFilters(root);
+}
+
 /** Reset PLP sidebar filters to defaults and refresh the listing. */
 export function resetPlpFilters(root: ParentNode = document): void {
   const module = root.querySelector(PLP_FILTERS_SELECTOR);
@@ -1802,6 +1823,7 @@ export function resetPlpFilters(root: ParentNode = document): void {
   cancelPlpListingLoadTimer();
   syncPlpFilterListSearch(root, { refreshResults: false });
   syncPlpListingResults(root, { simulateLoad: true });
+  emitPlpFiltersChange();
 }
 
 function updateResultsCount(
@@ -1841,6 +1863,7 @@ function updateResultsCount(
 
   resetBtn.hidden = !filtersActive;
   resetBtn.style.display = filtersActive ? "" : "none";
+  emitPlpFiltersChange();
 }
 
 /** @deprecated Use syncPlpListingFilters */

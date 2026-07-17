@@ -698,6 +698,7 @@
 }
 .proto-viewport > div > div:nth-child(11) textarea.proto-agentic-query {
   flex: 1 1 0 !important;
+  width: 0 !important;
   min-width: 0 !important;
   height: 24px !important;
   min-height: 24px !important;
@@ -873,6 +874,7 @@
 }
 .proto-viewport > div > div:nth-child(10) textarea.proto-agentic-query {
   flex: 1 1 0 !important;
+  width: 0 !important;
   min-width: 0 !important;
   /* Empty state hugs one line; grows to max 5 lines */
   height: 24px !important;
@@ -2908,8 +2910,49 @@
   justify-content: center;
   width: 40px;
   height: 40px;
+  padding: 0;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   background: white;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.proto-login-social-icon svg path {
+  fill: #3a3a3a;
+  transition: fill 0.18s ease;
+}
+
+.proto-login-social-icon:hover {
+  border-color: #d0d0d0;
+  background: #fafafa;
+}
+
+.proto-login-social-icon--facebook:hover svg path {
+  fill: #1877f2;
+}
+
+.proto-login-social-icon--apple:hover svg path {
+  fill: #000000;
+}
+
+.proto-login-social-icon--x:hover svg path {
+  fill: #000000;
+}
+
+.proto-login-social-icon--google:hover svg path:nth-child(1) {
+  fill: #4285f4;
+}
+
+.proto-login-social-icon--google:hover svg path:nth-child(2) {
+  fill: #34a853;
+}
+
+.proto-login-social-icon--google:hover svg path:nth-child(3) {
+  fill: #fbbc05;
+}
+
+.proto-login-social-icon--google:hover svg path:nth-child(4) {
+  fill: #ea4335;
 }
 
