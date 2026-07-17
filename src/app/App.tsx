@@ -16,7 +16,7 @@ import LoginPopup from "@/app/popups/LoginPopup";
 import QuickViewPopup from "@/app/popups/QuickViewPopup";
 import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
 import { ProtoNavScenarioControls } from "@/app/nav/ProtoNavScenarioControls";
-import { useProtoScenarioPlayback } from "@/app/nav/useProtoScenarioPlayback";
+import { useProtoScenarioPlayback, type PlaybackStepHooks } from "@/app/nav/useProtoScenarioPlayback";
 import ProtoHubViewport from "@/app/hub/ProtoHubViewport";
 import { PROTO_HUB_LABEL, PROTO_INDEX_APPOINTMENT_DETAILS, PROTO_INDEX_APPOINTMENT_HISTORY, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
 import { getProtoScenarioForChildIndex } from "@/app/proto/protoScenarioEngine";
@@ -27,10 +27,17 @@ import {
   teardownSitePilotChatComposerDock,
 } from "@/app/proto/protoSitePilotChatScenario";
 import {
+  abortSitePilotChatPlaybackPrelude,
+  runSitePilotChatBeforeReveal,
+  stripSitePilotChatDemoCursors,
+} from "@/app/proto/protoSitePilotChatPlayback";
+import {
   beginSitePilotChatThinking,
   endSitePilotChatThinking,
+  isSitePilotChatSendThinking,
   isSitePilotChatThinking,
   setSitePilotChatSendThinkingMode,
+  syncSitePilotChatThinkingHint,
 } from "@/app/proto/protoSitePilotChatThinking";
 import { resolveAvailStoreId } from "@/app/proto/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
@@ -809,6 +816,11 @@ function readInitialNavIndex(): number {
   }
 }
 
+const SITE_PILOT_CHAT_PLAYBACK_HOOKS: PlaybackStepHooks = {
+  beforeReveal: runSitePilotChatBeforeReveal,
+  onPreludeAbort: abortSitePilotChatPlaybackPrelude,
+};
+
 export default function App() {
   const [current, setCurrent] = useState(readInitialNavIndex);
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
@@ -959,10 +971,41 @@ export default function App() {
     scrollRootRef: prototypeScrollElRef,
     minVisibleFrames: activeScenarioConfig?.minVisibleFrames,
     playbackStepMs: activeScenarioConfig?.playbackStepMs,
+    playbackStepHooks:
+      activeScenarioConfig?.id === "site-pilot-chat"
+        ? SITE_PILOT_CHAT_PLAYBACK_HOOKS
+        : undefined,
   });
 
   const jumpToEndRef = useRef(scenarioPlayback.jumpToEnd);
   jumpToEndRef.current = scenarioPlayback.jumpToEnd;
+  const cancelPreRevealPauseRef = useRef(scenarioPlayback.cancelPreRevealPause);
+  cancelPreRevealPauseRef.current = scenarioPlayback.cancelPreRevealPause;
+  const scenarioVisibleCountRef = useRef(scenarioPlayback.visibleCount);
+  scenarioVisibleCountRef.current = scenarioPlayback.visibleCount;
+
+  // Frame 1 ambient thinking hint — shows the chat is live / dynamic.
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 10) return;
+
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(10)"
+    );
+    const showHint =
+      scenarioPlayback.visibleCount === 1 &&
+      scenarioPlayback.totalFrames > 1 &&
+      !scenarioPlayback.isPlaying &&
+      !scenarioPlayback.isPausingBeforeReveal;
+    syncSitePilotChatThinkingHint(screen, showHint);
+
+    return () => syncSitePilotChatThinkingHint(null, false);
+  }, [
+    current,
+    scenarioPlayback.visibleCount,
+    scenarioPlayback.totalFrames,
+    scenarioPlayback.isPlaying,
+    scenarioPlayback.isPausingBeforeReveal,
+  ]);
 
   /** Hide Reset when page states are already pristine (nav position ignored). */
   const isProtoPristine =
@@ -1450,7 +1493,12 @@ export default function App() {
     ) as HTMLElement | null;
     if (!screen) return;
     ensureSitePilotChatComposerDock(screen);
-    return () => teardownSitePilotChatComposerDock(screen);
+    stripSitePilotChatDemoCursors();
+    const raf = requestAnimationFrame(() => stripSitePilotChatDemoCursors());
+    return () => {
+      cancelAnimationFrame(raf);
+      teardownSitePilotChatComposerDock(screen);
+    };
   }, [current]);
 
   // Agentic chat (child 10): composer matches home — textarea, mic/send, chip dynamics
@@ -1526,9 +1574,16 @@ export default function App() {
     const cancelThinking = () => {
       if (finishing || !isSitePilotChatThinking()) return;
       finishing = true;
+      cancelPreRevealPauseRef.current();
       endSitePilotChatThinking();
       unbindScenarioDeckInterrupt();
       if (sendBtn) setSitePilotChatSendThinkingMode(sendBtn, false);
+      if (scenarioVisibleCountRef.current === 1) {
+        const screen = document.querySelector(
+          ".proto-viewport > div > div:nth-child(10)"
+        );
+        syncSitePilotChatThinkingHint(screen, true);
+      }
       finishing = false;
     };
 
@@ -1556,7 +1611,7 @@ export default function App() {
       sendBtn.querySelectorAll("svg path").forEach((path) => {
         path.setAttribute("fill", "#ffffff");
       });
-      setSitePilotChatSendThinkingMode(sendBtn, isSitePilotChatThinking());
+      setSitePilotChatSendThinkingMode(sendBtn, isSitePilotChatSendThinking());
       if (!sendBtn.hasAttribute("aria-label")) {
         sendBtn.setAttribute("aria-label", "Send message");
       }
@@ -1567,7 +1622,7 @@ export default function App() {
       e.stopPropagation();
       if (finishing) return;
 
-      if (isSitePilotChatThinking()) {
+      if (isSitePilotChatSendThinking()) {
         finishThinking();
         return;
       }

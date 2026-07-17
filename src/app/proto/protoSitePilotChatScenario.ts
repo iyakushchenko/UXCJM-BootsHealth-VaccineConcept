@@ -197,3 +197,10 @@ export function collectSitePilotChatScenarioFrames(
       !node.hasAttribute("data-proto-chat-thinking")
   );
 }
+
+/** Agent reply bubbles — show thinking pause before these during play. */
+export function isSitePilotChatAgentReplyFrame(frame: HTMLElement): boolean {
+  return frame.matches('[data-name="reply"]');
+}
+
+export const SITE_PILOT_CHAT_PLAYBACK_THINK_MS = 1400;

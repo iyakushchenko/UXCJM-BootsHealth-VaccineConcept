@@ -17,6 +17,25 @@ type Options = {
   scrollRootRef?: RefObject<HTMLElement | null>;
   minVisibleFrames?: number;
   playbackStepMs?: number;
+  playbackStepHooks?: PlaybackStepHooks;
+};
+
+export type PlaybackStepHooks = {
+  /** Async prelude before a frame is revealed (thinking, typing, CTA clicks). */
+  beforeReveal?: (ctx: BeforeRevealContext) => Promise<void>;
+  /** @deprecated Use beforeReveal */
+  shouldPauseBeforeReveal?: (frame: HTMLElement, frameIndex: number) => boolean;
+  pauseBeforeRevealMs?: number;
+  onPauseBeforeRevealStart?: (frame: HTMLElement, frameIndex: number) => void;
+  onPauseBeforeRevealEnd?: () => void;
+  onPreludeAbort?: () => void;
+};
+
+export type BeforeRevealContext = {
+  frame: HTMLElement;
+  frameIndex: number;
+  frames: HTMLElement[];
+  currentCount: number;
 };
 
 type PlaybackMode = "idle" | "playing";
@@ -61,9 +80,11 @@ export function useProtoScenarioPlayback({
   scrollRootRef,
   minVisibleFrames = PROTO_SCENARIO_MIN_VISIBLE_FRAMES,
   playbackStepMs = 2000,
+  playbackStepHooks,
 }: Options) {
   const framesRef = useRef<HTMLElement[]>([]);
   const playTimerRef = useRef<number | null>(null);
+  const pauseCleanupRef = useRef<(() => void) | null>(null);
   const isPlayingRef = useRef(false);
   const initializedRef = useRef(false);
   const initialScrollDoneRef = useRef(false);
@@ -73,8 +94,10 @@ export function useProtoScenarioPlayback({
   const [totalFrames, setTotalFrames] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("idle");
+  const [isPausingBeforeReveal, setIsPausingBeforeReveal] = useState(false);
 
   const isPlaying = playbackMode === "playing";
+  const controlsLocked = isPlaying || isPausingBeforeReveal;
 
   const queueScroll = useCallback(
     (
@@ -95,14 +118,24 @@ export function useProtoScenarioPlayback({
     [minVisibleFrames]
   );
 
-  const stopPlayback = useCallback(() => {
+  const clearPreRevealPause = useCallback(() => {
     if (playTimerRef.current != null) {
-      window.clearInterval(playTimerRef.current);
+      window.clearTimeout(playTimerRef.current);
       playTimerRef.current = null;
     }
+    if (pauseCleanupRef.current) {
+      pauseCleanupRef.current();
+      pauseCleanupRef.current = null;
+    }
+    playbackStepHooks?.onPreludeAbort?.();
+    setIsPausingBeforeReveal(false);
+  }, [playbackStepHooks]);
+
+  const stopPlayback = useCallback(() => {
+    clearPreRevealPause();
     isPlayingRef.current = false;
     setPlaybackMode("idle");
-  }, []);
+  }, [clearPreRevealPause]);
 
   const syncFrames = useCallback(() => {
     const frames = collectFrames();
@@ -221,6 +254,84 @@ export function useProtoScenarioPlayback({
 
   useEffect(() => () => stopPlayback(), [stopPlayback]);
 
+  const advanceOneFrame = useCallback(
+    (onRevealed?: () => void): boolean => {
+      const frames = framesRef.current;
+      const current = visibleCountRef.current;
+      if (current >= frames.length || playTimerRef.current != null) return false;
+
+      const next = clampVisible(current + 1, frames.length, minVisibleFrames);
+      const frame = frames[next - 1];
+      const fromCount = current;
+
+      const revealFrame = () => {
+        if (visibleCountRef.current !== fromCount) return;
+
+        setIsPausingBeforeReveal(false);
+        queueScroll(next, "end", false, fromCount);
+        setVisibleCount(next);
+
+        if (next >= frames.length) {
+          stopPlayback();
+          return;
+        }
+
+        onRevealed?.();
+      };
+
+      const runPrelude = async () => {
+        const hasBeforeReveal = Boolean(playbackStepHooks?.beforeReveal);
+        const legacyPause =
+          !hasBeforeReveal &&
+          (playbackStepHooks?.shouldPauseBeforeReveal?.(frame, next) ?? false);
+
+        if (!hasBeforeReveal && !legacyPause) {
+          revealFrame();
+          return;
+        }
+
+        setIsPausingBeforeReveal(true);
+        pauseCleanupRef.current = () => {
+          playbackStepHooks?.onPreludeAbort?.();
+          setIsPausingBeforeReveal(false);
+        };
+
+        try {
+          if (hasBeforeReveal) {
+            await playbackStepHooks!.beforeReveal!({
+              frame,
+              frameIndex: next,
+              frames,
+              currentCount: fromCount,
+            });
+          } else {
+            playbackStepHooks?.onPauseBeforeRevealStart?.(frame, next);
+            await new Promise<void>((resolve) => {
+              playTimerRef.current = window.setTimeout(() => {
+                playTimerRef.current = null;
+                resolve();
+              }, playbackStepHooks?.pauseBeforeRevealMs ?? 1400);
+            });
+            playbackStepHooks?.onPauseBeforeRevealEnd?.();
+          }
+        } finally {
+          pauseCleanupRef.current = null;
+        }
+
+        if (visibleCountRef.current !== fromCount) return;
+        revealFrame();
+      };
+
+      playTimerRef.current = window.setTimeout(() => {
+        playTimerRef.current = null;
+        void runPrelude();
+      }, 0);
+
+      return true;
+    },
+    [minVisibleFrames, playbackStepHooks, queueScroll, stopPlayback]
+  );
+
   const stepBack = useCallback(() => {
     stopPlayback();
     setVisibleCount((count) => {
@@ -233,13 +344,8 @@ export function useProtoScenarioPlayback({
 
   const stepForward = useCallback(() => {
     stopPlayback();
-    setVisibleCount((count) => {
-      const next = clampVisible(count + 1, framesRef.current.length, minVisibleFrames);
-      // Pin to bottom while the new bubble expands — no delayed smooth scroll.
-      queueScroll(next, "end", false, count);
-      return next;
-    });
-  }, [minVisibleFrames, queueScroll, stopPlayback]);
+    advanceOneFrame();
+  }, [advanceOneFrame, stopPlayback]);
 
   const play = useCallback(() => {
     if (isPlayingRef.current) {
@@ -250,28 +356,25 @@ export function useProtoScenarioPlayback({
     const frames = framesRef.current;
     if (frames.length === 0 || playTimerRef.current != null) return;
 
-    const start = visibleCountRef.current;
-    if (start >= frames.length) return;
+    if (visibleCountRef.current >= frames.length) return;
 
     isPlayingRef.current = true;
     setPlaybackMode("playing");
 
-    playTimerRef.current = window.setInterval(() => {
-      const current = visibleCountRef.current;
-      if (current >= frames.length) {
-        stopPlayback();
-        return;
-      }
+    const scheduleNext = () => {
+      if (!isPlayingRef.current) return;
+      playTimerRef.current = window.setTimeout(() => {
+        playTimerRef.current = null;
+        if (!advanceOneFrame(scheduleNext)) {
+          stopPlayback();
+        }
+      }, playbackStepMs);
+    };
 
-      const next = clampVisible(current + 1, frames.length, minVisibleFrames);
-      queueScroll(next, "end", false, current);
-      setVisibleCount(next);
-
-      if (next >= frames.length) {
-        stopPlayback();
-      }
-    }, playbackStepMs);
-  }, [minVisibleFrames, playbackStepMs, queueScroll, stopPlayback]);
+    if (!advanceOneFrame(scheduleNext)) {
+      stopPlayback();
+    }
+  }, [advanceOneFrame, playbackStepMs, stopPlayback]);
 
   const jumpToStart = useCallback(() => {
     stopPlayback();
@@ -312,17 +415,19 @@ export function useProtoScenarioPlayback({
     totalFrames,
     visibleCount,
     isPlaying,
+    isPausingBeforeReveal,
     isDirty,
     canStepBack: visibleCount > minVisibleFrames && !isPlaying,
-    canStepForward: visibleCount < totalFrames && !isPlaying,
-    canJumpToStart: visibleCount > minVisibleFrames && !isPlaying,
-    canPlay: visibleCount < totalFrames,
-    canJumpToEnd: visibleCount < totalFrames && !isPlaying,
+    canStepForward: visibleCount < totalFrames && !controlsLocked,
+    canJumpToStart: visibleCount > minVisibleFrames && !controlsLocked,
+    canPlay: visibleCount < totalFrames && !isPausingBeforeReveal,
+    canJumpToEnd: visibleCount < totalFrames && !controlsLocked,
     stepBack,
     stepForward,
     play,
     jumpToStart,
     jumpToEnd,
     resetToEnd,
+    cancelPreRevealPause: clearPreRevealPause,
   };
 }

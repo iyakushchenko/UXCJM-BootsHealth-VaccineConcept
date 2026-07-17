@@ -811,6 +811,9 @@
   width: 100%;
   flex-shrink: 0;
 }
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble--hint {
+  align-items: flex-start;
+}
 .proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble[hidden] {
   display: none !important;
 }
@@ -891,6 +894,32 @@
   [data-name="glyph"] {
   width: 14px !important;
   height: 14px !important;
+}
+/* Hide static Figma demo cursors — Sarah clicks are simulated in playback */
+.proto-viewport > div > div:nth-child(10) [data-name=".utility / cursor"] {
+  display: none !important;
+}
+.proto-chat-demo-cursor {
+  position: fixed;
+  z-index: 10050;
+  width: 37px;
+  height: 37px;
+  pointer-events: none;
+  transition:
+    left 0.52s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.52s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+}
+.proto-viewport > div > div:nth-child(10)
+  [data-name="component.input.button"].proto-chat-cta--pressed {
+  transform: scale(0.96) !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+.proto-site-pilot-composer
+  [data-name="Subtotal"]
+  [data-name="component.input.button"].proto-agentic-send--sending {
+  transform: scale(0.94) !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28) !important;
 }
 /* Portal dock — fixed to viewport bottom, aligned to chat column via JS */
 .proto-chat-composer-dock--portal {
