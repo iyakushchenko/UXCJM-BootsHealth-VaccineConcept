@@ -149,11 +149,11 @@ export const PROTO_HUB_SCREEN_GUIDE: HubScreenGuide[] = [
 export const PROTO_HUB = {
   title: "Boots Health Vaccine Appointment Prototype",
   lead: [
-    "This prototype shows how Boots Health can take Sarah from travel-vaccine intent to a confirmed appointment — through conversation or through browse — without breaking trust at checkout.",
-    "Read this page like presenter notes, then open any numbered tab to inspect the live UI. The story below is the demo; the tabs are the proof.",
+    "This prototype shows how Boots Health can take Sarah from travel vaccine intent to a confirmed appointment, whether she starts in conversation or in browse, without breaking trust at checkout.",
+    "This page explains what each part of the concept is for and why it matters. Open any numbered tab in the nav when you want to see the live screen behind the story.",
   ],
   tourIntro:
-    "All nine screens at a glance. For a guided review, follow the demo script: persona → tab 2 chat → tab 3 bundles → tabs 5–7 booking.",
+    "All nine screens in one place. Start with the persona and reading order below, then open tabs 2, 3, and 5 to 7 when you want to follow Sarah's journey end to end.",
   sections: [
     {
       id: "persona",
@@ -164,7 +164,7 @@ export const PROTO_HUB = {
       ],
       highlights: [
         "Primary job: book the right travel vaccination with confidence.",
-        "Scenario in this concept: three-week Indonesia trip, wants a bundle, needs pricing and timing upfront.",
+        "Scenario in this concept: three week Indonesia trip, wants a bundle, needs pricing and timing upfront.",
         "Success looks like: no dead ends between discovery, comparison, and checkout.",
       ],
       figure: {
@@ -175,33 +175,33 @@ export const PROTO_HUB = {
       },
     },
     {
-      id: "walkthrough",
-      title: "Suggested demo script",
+      id: "reading-order",
+      title: "How to explore this prototype",
       paragraphs: [
-        "Use this sequence in a live session — or read it in the same order on your own. Each step maps to a tab so stakeholders see UX value, not just static screens.",
+        "The sections on this page follow the same order as Sarah's journey. Each step below links to the tab where that part of the experience lives in the clickable build.",
       ],
       steps: [
         {
-          title: "1. Set the scene",
+          title: "1. Understand Sarah's goal",
           detail:
-            "Sarah Jenkins (persona above) is planning a three-week Southeast Asia trip centred on Indonesia. She wants a travel vaccine bundle, clear pricing, and a path to book without re-explaining her trip at every step.",
+            "Sarah Jenkins, described above, is planning a three week Southeast Asia trip centred on Indonesia. She wants a travel vaccine bundle, clear pricing, and a single path to book without repeating her itinerary at every step.",
         },
         {
-          title: "2. Show the agentic shortcut",
+          title: "2. Agentic entry on tabs 1 and 2",
           detail:
-            "Tab 1 → tab 2. SitePilot responds with a recommended travel pack, booking timeline urgency, and explicit CTAs into catalogue, product detail, or book now — without trapping her in chat.",
+            "On tabs 1 and 2, SitePilot responds with a recommended travel pack, booking timeline guidance, and clear routes into the catalogue, product detail, or book flow without keeping the conversation in chat alone.",
           protoTab: 2,
         },
         {
-          title: "3. Prove comparison on the listing",
+          title: "3. Comparison on tab 3",
           detail:
-            "Tab 3. Switch to Bundles, filter by region or disease, read what each pack covers, remove a filter chip or Reset Filters, then click a bundle title into PDP — the same destination as Book now.",
+            "On tab 3, switch to Bundles, filter by region or disease, read what each pack covers, adjust filters with chips or Reset Filters, and open a bundle from the tile title or Book now into product detail.",
           protoTab: 3,
         },
         {
-          title: "4. Close on one booking funnel",
+          title: "4. Shared booking on tabs 5 to 7",
           detail:
-            "Tabs 5–7. Whether Sarah arrived via chat or browse, she uses the same Availability Tool, date/time pick, and confirmation — protecting operational consistency and trust.",
+            "On tabs 5 to 7, Sarah uses the same Availability Tool, date and time selection, and confirmation whether she arrived from chat or from browse. One funnel protects operational consistency and customer trust.",
           protoTab: 5,
         },
       ],
@@ -214,8 +214,8 @@ export const PROTO_HUB = {
         "The diagram below shows how both paths converge. Tab badges jump straight into the live screen.",
       ],
       highlights: [
-        "Agentic path: intent captured in one query, routed into familiar Boots UI.",
-        "Traditional path: full PLP comparison before commit — now wired with bundles and filters.",
+        "Agentic path: intent captured in one query, then routed into familiar Boots UI.",
+        "Traditional path: full listing comparison before commit, including bundles and filters on tab 3.",
         "Shared funnel from recipient choice onward: one checkout experience.",
       ],
       figure: {
@@ -270,7 +270,7 @@ export const PROTO_HUB = {
               {
                 label: "Vaccination listing (PLP)",
                 detail:
-                  "Filter by age, disease, region, and country. Compare individual jabs or region-specific travel packs before PDP.",
+                  "Filter by age, disease, region, and country. Compare individual jabs or region specific travel packs before product detail.",
                 protoTab: 3,
               },
               {
@@ -342,18 +342,18 @@ export const PROTO_HUB = {
       id: "agentic",
       title: "How the chat experience is designed",
       paragraphs: [
-        "This is the core of the prototype. SitePilot does not replace Boots UI. It structures a conversation that always resolves into familiar screens, links, and the Availability Tool.",
-        "The diagram below walks through every chat turn on tab 2: what Sarah asks, what SitePilot returns, and exactly what each button or chip does in the clickable prototype.",
+        "SitePilot is not a replacement for Boots UI. It structures a conversation that resolves into familiar screens, links, and the Availability Tool.",
+        "The diagram below documents each chat turn on tab 2: what Sarah asks, what SitePilot returns, and what each control does in the prototype.",
       ],
       highlights: [
-        "Turn 1 recommends a travel pack and surfaces booking timeline pressure.",
-        "Turns 2–4 hand off into the real Availability Tool — not a chat-only simulation.",
-        "Composer chips pre-fill the next question or open a tool step directly.",
+        "Turn 1 recommends a travel pack and surfaces booking timeline guidance.",
+        "Turns 2 to 4 hand off into the real Availability Tool, not a chat only simulation.",
+        "Composer chips prefill the next question or open a tool step directly.",
       ],
       chatDiagram: {
         title: "SitePilot chat conversation map",
         intro:
-          "Four scripted turns demonstrate the design pattern: rich assistant reply, explicit next steps, then transactional handoff without leaving Boots.",
+          "Four turns illustrate the pattern: a structured assistant reply, explicit next steps, then a transactional handoff that stays inside Boots.",
         protoTab: 2,
         home: {
           query:
@@ -363,7 +363,7 @@ export const PROTO_HUB = {
             "Skin health services",
             "Other Health services",
           ],
-          sendAction: "Send or suggested chip → opens tab 2 (Chat) with query carried in.",
+          sendAction: "Send or a suggested chip opens tab 2 (Chat) with the query carried in.",
         },
         turns: [
           {
@@ -372,26 +372,26 @@ export const PROTO_HUB = {
             assistantSummary:
               "SitePilot recommends the Southeast Asia Travel Vaccination Pack (£245) with jab coverage, eligibility notes, Yellow Fever guidance, and a critical booking timeline (book by July 23).",
             assistantDetails: [
-              "Inline links: Southeast Asia Travel Vaccination Pack, Hepatitis A, Typhoid, Tetanus Booster, Yellow Fever Vaccine → open tab 4 (PDP).",
-              "Go to vaccines catalog → tab 3 (PLP) to compare bundles side by side with live filters.",
-              "Boots Account sign in is surfaced before checkout.",
+              "Inline links for Southeast Asia Travel Vaccination Pack, Hepatitis A, Typhoid, Tetanus Booster, and Yellow Fever Vaccine open tab 4 (product detail).",
+              "Go to vaccines catalog opens tab 3 (listing) to compare bundles with live filters.",
+              "Boots Account sign in appears before checkout.",
             ],
             actions: [
               {
-                label: "Book Southeast Asia Travel Vaccination Pack – £245",
-                outcome: "Opens tab 4 (PDP) for bundle booking.",
+                label: "Book Southeast Asia Travel Vaccination Pack at £245",
+                outcome: "Opens tab 4 (product detail) for bundle booking.",
                 protoTab: 4,
                 variant: "cta",
               },
               {
-                label: "Book Yellow Fever Vaccine only – £75",
-                outcome: "Opens tab 4 (PDP) for single vaccine.",
+                label: "Book Yellow Fever Vaccine only at £75",
+                outcome: "Opens tab 4 (product detail) for a single vaccine.",
                 protoTab: 4,
                 variant: "cta",
               },
               {
                 label: "Go to vaccines catalog",
-                outcome: "Opens tab 3 (PLP) to compare all services.",
+                outcome: "Opens tab 3 (listing) to compare all services.",
                 protoTab: 3,
                 variant: "cta",
               },
@@ -403,7 +403,7 @@ export const PROTO_HUB = {
             assistantSummary:
               "SitePilot explains the Availability Checker Tool in three steps: open tool, choose pharmacy (location or near me), pick date then time.",
             assistantDetails: [
-              "Inline link: Availability Checker Tool → opens Availability Tool at Find Pharmacy.",
+              "Inline link for Availability Checker Tool opens the Availability Tool at Find Pharmacy.",
             ],
             actions: [
               {
@@ -413,7 +413,7 @@ export const PROTO_HUB = {
               },
               {
                 label: "Check availability slot for me",
-                outcome: "Highlights the matching user query bubble in the thread (demo feedback).",
+                outcome: "Highlights the matching user query bubble in the thread.",
                 variant: "cta",
               },
             ],
@@ -426,7 +426,7 @@ export const PROTO_HUB = {
             actions: [
               {
                 label: "Find available slots for today",
-                outcome: "Chip in composer pre fills query; dedicated chip opens Availability Tool on today's date.",
+                outcome: "Chip in the composer prefills the query; the dedicated chip opens the Availability Tool on today's date.",
                 variant: "cta",
               },
               {
@@ -476,7 +476,7 @@ export const PROTO_HUB = {
             "Elaborate on previous reply",
           ],
           chipBehavior:
-            "Most chips pre fill the composer. Show available slots for today also opens the Availability Tool on today's date when clicked from the composer row.",
+            "Most chips prefill the composer. Show available slots for today also opens the Availability Tool on today's date when selected from the composer row.",
         },
         patterns: [
           {
@@ -507,14 +507,14 @@ export const PROTO_HUB = {
       id: "browse",
       title: "Browse: listing and product detail",
       paragraphs: [
-        "Sarah's comparison path lives on tab 3. Even when chat recommends a pack, she still needs to validate coverage, price, and trip fit before she commits.",
-        "The listing is interactive in this prototype: filters narrow results, bundle cards use realistic UK travel-clinic pack naming and disease-level copy, and tile titles route to the same PDP as Book now.",
+        "Sarah's comparison path is on tab 3. Even when chat recommends a pack, she still needs to validate coverage, price, and trip fit before she commits.",
+        "The listing is interactive in this prototype: filters narrow results, bundle cards use realistic UK travel clinic pack naming and disease level copy, and tile titles route to the same product detail page as Book now.",
       ],
       highlights: [
-        "Tab 3 → Bundles → filter South-East Asia or Indonesia to mirror Sarah's trip.",
-        "Cards explain which jabs are included, who the pack is for, and when to book (e.g. Indonesia & Bali Explorer Pack for island-hopping).",
+        "On tab 3, open Bundles and filter by South East Asia or Indonesia to match Sarah's trip.",
+        "Cards explain which jabs are included, who the pack is for, and when to book, for example Indonesia and Bali Explorer Pack for island hopping.",
         "Active filters appear as removable chips; Reset Filters clears the set in one action.",
-        "Tab 4 (PDP) carries recipient choice, dosing, and book now into the shared funnel.",
+        "Tab 4 carries recipient choice, dosing, and book now into the shared funnel.",
       ],
       screenLinks: [3, 4],
     },
@@ -522,7 +522,7 @@ export const PROTO_HUB = {
       id: "book",
       title: "Book appointment",
       paragraphs: [
-        "Pharmacy operations, slot logic, and confirmation copy stay consistent regardless of how Sarah arrived — agentic, PLP, or PDP.",
+        "Pharmacy operations, slot logic, and confirmation copy stay consistent regardless of how Sarah arrived, whether from chat, the listing, or product detail.",
         "Three live steps keep summary context visible so she never loses track of vaccine, recipient, or store.",
       ],
       highlights: [
@@ -555,12 +555,12 @@ export const PROTO_HUB = {
       id: "after",
       title: "After booking",
       paragraphs: [
-        "The journey does not end at confirmation. Appointment history and detail views show how Boots can support retention, rescheduling, and post visit follow up in the same account experience.",
+        "The journey continues after confirmation. Appointment history and detail views show how Boots can support retention, rescheduling, and post visit follow up in the same account experience.",
       ],
       highlights: [
         "History gives a single place to manage upcoming and past visits.",
         "Detail view supports status, location, and next best action.",
-        "Open tabs 8 and 9 to review post booking states.",
+        "Tabs 8 and 9 show post booking states.",
       ],
       screenLinks: [8, 9],
     },

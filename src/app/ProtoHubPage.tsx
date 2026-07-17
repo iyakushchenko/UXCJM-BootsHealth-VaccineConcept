@@ -296,7 +296,7 @@ export default function ProtoHubPage({ onGoToTab }: Props) {
             <div className="proto-hub-page__hero-brand">
               <BootsPharmacyLogo className="proto-hub-page__hero-logo" />
             </div>
-            <p className="proto-hub-page__hero-eyebrow">Stakeholder walkthrough</p>
+            <p className="proto-hub-page__hero-eyebrow">Prototype onboarding</p>
             <h1 className="proto-hub-page__h1">{title}</h1>
             <ul className="proto-hub-page__hero-meta" aria-label="Prototype highlights">
               <li>9 live screens</li>
@@ -337,9 +337,9 @@ export default function ProtoHubPage({ onGoToTab }: Props) {
               <button
                 type="button"
                 className="proto-hub-page__tour-cta-btn"
-                onClick={() => scrollToTarget("walkthrough-heading", "walkthrough")}
+                onClick={() => scrollToTarget("reading-order-heading", "reading-order")}
               >
-                Jump to demo script
+                Jump to reading order
               </button>
               <button
                 type="button"
@@ -488,30 +488,6 @@ export default function ProtoHubPage({ onGoToTab }: Props) {
                 </ol>
               </nav>
 
-              <div className="proto-hub-page__powered">
-                <p className="proto-hub-page__powered-kicker">Powered by</p>
-                <p className="proto-hub-page__powered-tools">Astound Digital</p>
-                <p className="proto-hub-page__powered-byline">
-                  AD UX Department · R&D Department
-                </p>
-                <p className="proto-hub-page__powered-detail">
-                  Internal experience tools (UXDS and X-Suite) behind this
-                  concept, stakeholder walkthrough, and persona journey.
-                </p>
-                <p className="proto-hub-page__powered-note">
-                  AI-assisted content is grounded in real research and
-                  human-reviewed before it is shared.
-                </p>
-                <div className="proto-hub-page__powered-credit">
-                  <p className="proto-hub-page__powered-credit-label">
-                    UX Concept and Documentation is prepared by
-                  </p>
-                  <p className="proto-hub-page__powered-credit-name">
-                    Igor Yakushchenko / UX Director @ Astound Digital © 2026
-                  </p>
-                </div>
-              </div>
-
               <button
                 type="button"
                 className="proto-hub-page__open-cta"
@@ -519,6 +495,20 @@ export default function ProtoHubPage({ onGoToTab }: Props) {
               >
                 Open UX Concept
               </button>
+
+              <div className="proto-hub-page__powered">
+                <p className="proto-hub-page__powered-meta">
+                  Built with UXDS and X Suite, the UX Department's own toolkit,
+                  systems, and self made agentic applications for research, concept,
+                  and prototype delivery.
+                </p>
+                <p className="proto-hub-page__powered-meta">
+                  Prepared by Igor Yakushchenko · UX
+                </p>
+                <p className="proto-hub-page__powered-meta">
+                  © 2026 Astound Digital. All rights reserved.
+                </p>
+              </div>
             </aside>
           </div>
         </div>
