@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { ProtoNavLogo } from "@/app/nav/ProtoNavLogo";
 import {
   PROTO_HUB_LABEL,
@@ -20,6 +20,7 @@ type Props = {
   onOpenHub: () => void;
   onGo: (index: number) => void;
   onReset: () => void;
+  scenarioControls?: ReactNode;
 };
 
 /**
@@ -38,6 +39,7 @@ export default function ProtoNavPanel({
   onOpenHub,
   onGo,
   onReset,
+  scenarioControls,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -152,6 +154,7 @@ export default function ProtoNavPanel({
             <p className="proto-nav-status-bar__title">{navLabel}</p>
 
             <div className="proto-nav-stepper">
+              {scenarioControls}
               <span ref={zoomLabelRef} className="proto-nav-zoom-label">100%</span>
               <button
                 type="button"

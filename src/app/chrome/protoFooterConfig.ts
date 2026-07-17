@@ -28,6 +28,9 @@ export const PROTO_FOOTER_BY_CHILD: Record<number, ProtoFooterProps> = {
   9: { variant: "full", tone: "pharmacy", showColumns: true },
 };
 
+/** Site Pilot (home + chat) — no ProtoFooter. */
+export const PROTO_SITE_PILOT_CHILD_INDICES = [10, 11] as const;
+
 export const PROTO_FOOTER_CHILD_INDICES = Object.keys(PROTO_FOOTER_BY_CHILD)
   .map(Number)
   .sort((a, b) => a - b);

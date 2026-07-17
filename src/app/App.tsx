@@ -15,8 +15,16 @@ import RecipientPickerPopup, {
 import LoginPopup from "@/app/popups/LoginPopup";
 import QuickViewPopup from "@/app/popups/QuickViewPopup";
 import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
+import { ProtoNavScenarioControls } from "@/app/nav/ProtoNavScenarioControls";
+import { useProtoScenarioPlayback } from "@/app/nav/useProtoScenarioPlayback";
 import ProtoHubViewport from "@/app/hub/ProtoHubViewport";
 import { PROTO_HUB_LABEL, PROTO_INDEX_APPOINTMENT_DETAILS, PROTO_INDEX_APPOINTMENT_HISTORY, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
+import { getProtoScenarioForChildIndex } from "@/app/proto/protoScenarioEngine";
+import {
+  collectSitePilotChatScenarioFrames,
+  ensureSitePilotChatComposerDock,
+  teardownSitePilotChatComposerDock,
+} from "@/app/proto/protoSitePilotChatScenario";
 import { resolveAvailStoreId } from "@/app/proto/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/app/proto/protoVaccineList";
@@ -913,6 +921,39 @@ export default function App() {
     setPlpFiltersDirty(arePlpFiltersActive(document));
   }, []);
 
+  const activeScenarioConfig = hubOpen
+    ? undefined
+    : getProtoScenarioForChildIndex(SCREENS[current]?.childIndex ?? -1);
+
+  const collectScenarioFrames = useCallback(() => {
+    if (!activeScenarioConfig) return [];
+    const screen = document.querySelector(
+      `.proto-viewport > div > div:nth-child(${activeScenarioConfig.childIndex})`
+    );
+    if (!screen) return [];
+
+    if (activeScenarioConfig.id === "site-pilot-chat" && screen instanceof HTMLElement) {
+      ensureSitePilotChatComposerDock(screen);
+    }
+
+    if (activeScenarioConfig.id === "site-pilot-chat") {
+      return collectSitePilotChatScenarioFrames(screen);
+    }
+
+    return [];
+  }, [activeScenarioConfig]);
+
+  const scenarioPlayback = useProtoScenarioPlayback({
+    active: activeScenarioConfig != null,
+    collectFrames: collectScenarioFrames,
+    screenSelector: activeScenarioConfig
+      ? `.proto-viewport > div > div:nth-child(${activeScenarioConfig.childIndex})`
+      : undefined,
+    scrollRootRef: prototypeScrollElRef,
+    minVisibleFrames: activeScenarioConfig?.minVisibleFrames,
+    playbackStepMs: activeScenarioConfig?.playbackStepMs,
+  });
+
   /** Hide Reset when page states are already pristine (nav position ignored). */
   const isProtoPristine =
     !availabilityOpen &&
@@ -922,7 +963,8 @@ export default function App() {
     chosenLocation === null &&
     !homeQueryDirty &&
     !chatComposerDirty &&
-    !plpFiltersDirty;
+    !plpFiltersDirty &&
+    !scenarioPlayback.isDirty;
 
   const saveHubScroll = useCallback(() => {
     if (hubScrollElRef.current) {
@@ -963,6 +1005,22 @@ export default function App() {
   }, []);
 
   const resetPrototype = () => {
+    const scenarioOnlyDirty =
+      scenarioPlayback.isDirty &&
+      !availabilityOpen &&
+      !vaccinePickerOpen &&
+      !recipientPickerOpen &&
+      !quickViewOpen &&
+      chosenLocation === null &&
+      !homeQueryDirty &&
+      !chatComposerDirty &&
+      !plpFiltersDirty;
+
+    if (scenarioOnlyDirty) {
+      scenarioPlayback.resetToEnd();
+      return;
+    }
+
     // Stay on the current nav screen; only wipe interaction / DOM state.
     try {
       sessionStorage.setItem(PROTO_NAV_KEY, String(current));
@@ -1370,6 +1428,17 @@ export default function App() {
       card.removeEventListener("click", onCardClick);
       sendBtn?.removeEventListener("keydown", onSendKey);
     };
+  }, [current]);
+
+  // Agentic chat (child 10): fixed composer dock over scrollable bubbles
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== 10) return;
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(10)"
+    ) as HTMLElement | null;
+    if (!screen) return;
+    ensureSitePilotChatComposerDock(screen);
+    return () => teardownSitePilotChatComposerDock(screen);
   }, [current]);
 
   // Agentic chat (child 10): composer matches home — textarea, mic/send, chip dynamics
@@ -3995,6 +4064,26 @@ export default function App() {
         onOpenHub={openHub}
         onGo={go}
         onReset={resetPrototype}
+        scenarioControls={
+          activeScenarioConfig && scenarioPlayback.totalFrames > 0 ? (
+            <ProtoNavScenarioControls
+              label={activeScenarioConfig.label}
+              visibleCount={scenarioPlayback.visibleCount}
+              totalFrames={scenarioPlayback.totalFrames}
+              isPlaying={scenarioPlayback.isPlaying}
+              canStepBack={scenarioPlayback.canStepBack}
+              canStepForward={scenarioPlayback.canStepForward}
+              canJumpToStart={scenarioPlayback.canJumpToStart}
+              canPlay={scenarioPlayback.canPlay}
+              canJumpToEnd={scenarioPlayback.canJumpToEnd}
+              onJumpToStart={scenarioPlayback.jumpToStart}
+              onStepBack={scenarioPlayback.stepBack}
+              onPlay={scenarioPlayback.play}
+              onStepForward={scenarioPlayback.stepForward}
+              onJumpToEnd={scenarioPlayback.jumpToEnd}
+            />
+          ) : null
+        }
       />
 
       <div

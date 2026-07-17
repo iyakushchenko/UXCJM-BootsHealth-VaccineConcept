@@ -23,8 +23,10 @@ $Files = @(
   "src/app/nav/ProtoNavChrome.tsx",
   "src/app/nav/ProtoNavLogo.tsx",
   "src/app/nav/ProtoNavPanel.tsx",
+  "src/app/nav/ProtoNavScenarioControls.tsx",
   "src/app/nav/protoNavPanel.css",
   "src/app/nav/protoNavZoom.ts",
+  "src/app/nav/useProtoScenarioPlayback.ts",
 
   # Header, footer, shared chrome
   "src/app/chrome/protoHeaderMount.tsx",
@@ -55,6 +57,8 @@ $Files = @(
   "src/app/proto/protoPdpRtb.ts",
   "src/app/proto/protoOrderPricing.ts",
   "src/app/proto/protoAppointments.ts",
+  "src/app/proto/protoScenarioEngine.ts",
+  "src/app/proto/protoSitePilotChatScenario.ts",
   "src/app/proto/protoMap.ts",
   "src/app/proto/protoVaccineList.ts",
 

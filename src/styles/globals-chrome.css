@@ -707,8 +707,7 @@
   box-sizing: border-box !important;
 }
 
-/*
- * Chat body column centering (Chrome):
+/* Chat body column centering (Chrome):
  * Figma artboard uses drop-shadow(20px …) + fixed 864px column — the filter and
  * flex stretch make the thread look left-shifted. Kill the artboard shadow and
  * pin the chat column to the horizontal center.
@@ -716,11 +715,30 @@
 .proto-viewport > div > div:nth-child(10) {
   filter: none !important;
   -webkit-filter: none !important;
+  transform: none !important;
 }
 .proto-viewport > div > div:nth-child(10) > [data-name="body"] {
   width: 100% !important;
   align-self: stretch !important;
   box-sizing: border-box !important;
+}
+/* Fill scrollport height so blue bg is not torn on frame 1 — but allow thread to grow for scroll */
+.proto-viewport > div > div:nth-child(10).proto-chat-screen {
+  flex: 0 0 auto !important;
+  min-height: var(--proto-scroll-min-px, 100%) !important;
+  height: auto !important;
+}
+.proto-viewport > div > div:nth-child(10).proto-chat-screen > [data-name="body"] {
+  flex: 0 0 auto !important;
+  min-height: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+.proto-viewport > div > div:nth-child(10).proto-chat-screen > [data-name="body"] > div {
+  flex: 0 0 auto !important;
+  min-height: auto !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 .proto-viewport > div > div:nth-child(10) > [data-name="body"] > div,
 .proto-viewport > div > div:nth-child(10) > [data-name="body"] > div > div {
@@ -735,6 +753,60 @@
   margin-left: auto !important;
   margin-right: auto !important;
   align-self: center !important;
+  padding-bottom: var(--proto-chat-composer-h, 0px) !important;
+  box-sizing: border-box !important;
+}
+/* Scenario frames — smooth reveal / hide (opacity/transform only; keep layout height) */
+.proto-viewport > div > div:nth-child(10) .proto-scenario-frame {
+  overflow: hidden !important;
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+  transform-origin: top center !important;
+  transition:
+    opacity 0.32s ease,
+    transform 0.32s ease !important;
+}
+.proto-viewport > div > div:nth-child(10) .proto-scenario-frame.proto-scenario-frame--hidden {
+  opacity: 0 !important;
+  transform: translateY(10px) scale(0.985) !important;
+  max-height: 0 !important;
+  margin-block: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+.proto-viewport > div > div:nth-child(10) .proto-scenario-frame:not(.proto-scenario-frame--hidden) {
+  max-height: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-viewport > div > div:nth-child(10) .proto-scenario-frame {
+    transition: none !important;
+  }
+}
+/* Portal dock — fixed to viewport bottom, aligned to chat column via JS */
+.proto-chat-composer-dock--portal {
+  position: fixed !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+  box-sizing: border-box !important;
+  padding: 12px 0 24px !important;
+  pointer-events: none !important;
+  background: linear-gradient(
+    180deg,
+    rgba(219, 235, 245, 0) 0%,
+    rgba(219, 235, 245, 0.92) 18%,
+    #dbebf5 32%
+  ) !important;
+}
+.proto-chat-composer-dock--portal > * {
+  pointer-events: auto !important;
+}
+.proto-chat-composer-dock--portal > p {
+  margin: 8px 0 0 !important;
+  text-align: center !important;
+}
+/* Site Pilot chat — no mini footer. */
+.proto-viewport > div > div:nth-child(10) > .proto-footer-mount {
+  display: none !important;
 }
 /* Left cluster (logo + Contact Support) — allow shrink */
 .proto-viewport > div > div:nth-child(10) [data-proto-sticky-group] > :nth-child(2) > div > :first-child,
