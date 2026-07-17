@@ -13,6 +13,7 @@ import RecipientPickerPopup, {
   type RecipientMode,
 } from "@/app/RecipientPickerPopup";
 import LoginPopup from "@/app/LoginPopup";
+import QuickViewPopup from "@/app/QuickViewPopup";
 import ProtoNavPanel from "@/app/ProtoNavPanel";
 import ProtoHubViewport from "@/app/ProtoHubViewport";
 import { PROTO_HUB_LABEL, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/protoScreens";
@@ -21,9 +22,10 @@ import type { VaccineItem } from "@/app/protoVaccineList";
 import {
   setupChosenPageMap,
 } from "@/app/protoMap";
-import { syncFigmaSearchClearIcons } from "@/app/protoLocationSearch";
+import { syncPlpListingFilters } from "@/app/protoPlpListing";
+import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/app/protoLocationSearch";
 import { setupProtoFooters } from "@/app/protoFooterMount";
-import { setupProtoHeader, syncProtoHeaderLogin, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist } from "@/app/protoHeaderMount";
+import { setupProtoHeader, syncProtoHeaderLogin, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist, applyWishlistHeartVisual, syncChickenpoxWishlistHearts, PROTO_PDP_WISHLIST_ID } from "@/app/protoHeaderMount";
 import { wireProtoIconHits } from "@/app/protoIconHitWire";
 import { useProtoScrollFill } from "@/app/useProtoScrollFill";
 import {
@@ -665,6 +667,7 @@ export default function App() {
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
   const [loginPopupOpen, setLoginPopupOpen] = useState(false);
   const [loginPopupTab, setLoginPopupTab] = useState<"signin" | "create">("signin");
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [loggedInFlag, setLoggedInFlag] = useState(false);
   /** Logo hub — blank standalone page (content TBD). */
   const [hubOpen, setHubOpen] = useState(() => {
@@ -697,6 +700,27 @@ export default function App() {
   const closeVaccinePicker = () => setVaccinePickerOpen(false);
   const openRecipientPicker = () => setRecipientPickerOpen(true);
   const closeRecipientPicker = () => setRecipientPickerOpen(false);
+  const openQuickView = useCallback(() => setQuickViewOpen(true), []);
+  const closeQuickView = useCallback(() => setQuickViewOpen(false), []);
+  const closeAllPopups = useCallback(() => {
+    setQuickViewOpen(false);
+    setAvailabilityOpen(false);
+    setVaccinePickerOpen(false);
+    setRecipientPickerOpen(false);
+    setLoginPopupOpen(false);
+  }, []);
+  const onQuickViewBookNow = useCallback(() => {
+    setQuickViewOpen(false);
+    setCurrent(4); // Book - Step 1 - Location
+  }, []);
+  const onQuickViewViewDetails = useCallback(() => {
+    setQuickViewOpen(false);
+    setCurrent(3); // PDP. Vaccine Details Page
+  }, []);
+  const onQuickViewOpenLogin = useCallback((tab: "signin" | "create") => {
+    setLoginPopupTab(tab);
+    setLoginPopupOpen(true);
+  }, []);
 
   /** All former Locations-popup entry points → Availability Tool location screens. */
   const openPickLocations = (
@@ -724,6 +748,7 @@ export default function App() {
     !availabilityOpen &&
     !vaccinePickerOpen &&
     !recipientPickerOpen &&
+    !quickViewOpen &&
     chosenLocation === null &&
     !homeQueryDirty &&
     !chatComposerDirty;
@@ -805,6 +830,15 @@ export default function App() {
     resetPrototypeScroll();
   }, [current, hubOpen, resetPrototypeScroll]);
 
+  // Popups are tab-specific — close all when leaving a screen (nav tab or hub).
+  const navSnapshotRef = useRef({ current, hubOpen });
+  useLayoutEffect(() => {
+    const prev = navSnapshotRef.current;
+    if (prev.current === current && prev.hubOpen === hubOpen) return;
+    navSnapshotRef.current = { current, hubOpen };
+    closeAllPopups();
+  }, [current, hubOpen, closeAllPopups]);
+
   useProtoScrollFill(prototypeScrollElRef, !hubOpen);
 
   // Boots Pharmacy logo + breadcrumb “Home” → page 1 (Agentic Site Pilot Home)
@@ -818,7 +852,7 @@ export default function App() {
       if ("stopImmediatePropagation" in e) {
         (e as Event).stopImmediatePropagation();
       }
-      setAvailabilityOpen(false);
+      closeAllPopups();
       setHubOpen(false);
       resetPrototypeScroll();
       setCurrent(0);
@@ -1573,6 +1607,9 @@ export default function App() {
     const handlers: Array<[HTMLElement, () => void]> = [];
 
     hearts.forEach((heart, i) => {
+      // PDP / Quick View chickenpox heart uses PROTO_PDP_WISHLIST_ID (cross-experience).
+      if (heart.closest('[data-name="module.pdp.rtb"]')) return;
+
       const btn = heart.closest('[data-name="component.input.button"]') as HTMLElement | null;
       const target = btn || heart;
       const id = `vaccine-${i}`;
@@ -1607,24 +1644,50 @@ export default function App() {
     };
 
     document.addEventListener("click", onClick, true);
-    return () => document.removeEventListener("click", onClick, true);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+    };
   }, []);
 
   useEffect(() => {
     initProtoInputControls();
+    initProtoSearchFields();
+    syncPlpListingFilters();
   }, [current]);
 
-  // Escape closes popups; lock page scroll while either is open.
+  // Figma search rows — hide in-field clear (X) when value is empty / placeholder.
+  useEffect(() => {
+    const root = prototypeScrollElRef.current;
+    if (!root) return;
+    const run = () => {
+      initProtoSearchFields(root);
+      syncFigmaSearchClearIcons(root);
+    };
+    run();
+    const raf = requestAnimationFrame(run);
+    const t = window.setTimeout(run, 0);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [current, chosenLocation, availabilityOpen]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (loginPopupOpen) setLoginPopupOpen(false);
+      else if (quickViewOpen) closeQuickView();
       else if (recipientPickerOpen) closeRecipientPicker();
       else if (vaccinePickerOpen) closeVaccinePicker();
       else if (availabilityOpen) closeAvailabilityTool();
     };
     window.addEventListener("keydown", onKey);
-    if (availabilityOpen || vaccinePickerOpen || recipientPickerOpen || loginPopupOpen) {
+    if (
+      availabilityOpen ||
+      vaccinePickerOpen ||
+      recipientPickerOpen ||
+      loginPopupOpen ||
+      quickViewOpen
+    ) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
@@ -1633,7 +1696,71 @@ export default function App() {
       };
     }
     return () => window.removeEventListener("keydown", onKey);
-  }, [availabilityOpen, vaccinePickerOpen, recipientPickerOpen, loginPopupOpen]);
+  }, [availabilityOpen, vaccinePickerOpen, recipientPickerOpen, loginPopupOpen, quickViewOpen]);
+
+  // PLP (child 9) — Quick View → RTB popup (PDP clone, no Check availability)
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 9) return;
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(9)"
+    ) as HTMLElement | null;
+    if (!screen) return;
+
+    const isQuickViewBtn = (btn: HTMLElement | null): boolean =>
+      !!btn &&
+      btn.getAttribute("data-name") === "component.input.button" &&
+      /quick view/i.test((btn.textContent ?? "").replace(/\s+/g, " ").trim());
+
+    const openQv = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if ("stopImmediatePropagation" in e) {
+        (e as Event).stopImmediatePropagation();
+      }
+      openQuickView();
+    };
+
+    const quickViewBtns = Array.from(
+      screen.querySelectorAll<HTMLElement>('[data-name="component.input.button"]')
+    ).filter((btn) => isQuickViewBtn(btn));
+
+    quickViewBtns.forEach((btn) => {
+      btn.dataset.protoQuickView = "true";
+      btn.setAttribute("role", "button");
+      btn.tabIndex = 0;
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", openQv);
+    });
+
+    const onClick = (e: MouseEvent) => {
+      const btn = (e.target as Element | null)?.closest(
+        '[data-name="component.input.button"]'
+      ) as HTMLElement | null;
+      if (!isQuickViewBtn(btn)) return;
+      openQv(e);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const btn = (e.target as Element | null)?.closest(
+        '[data-name="component.input.button"]'
+      ) as HTMLElement | null;
+      if (!isQuickViewBtn(btn)) return;
+      openQv(e);
+    };
+
+    screen.addEventListener("click", onClick, true);
+    screen.addEventListener("keydown", onKey);
+
+    return () => {
+      quickViewBtns.forEach((btn) => {
+        delete btn.dataset.protoQuickView;
+        btn.removeEventListener("click", openQv);
+      });
+      screen.removeEventListener("click", onClick, true);
+      screen.removeEventListener("keydown", onKey);
+    };
+  }, [current, openQuickView]);
 
   // PLP (child 9) — all “Book now” CTAs → page 4 (PDP)
   useEffect(() => {
@@ -1765,20 +1892,6 @@ export default function App() {
       nearMeBtn?.removeEventListener("click", openNearMe);
     };
   }, [current, chosenLocation]);
-
-  // Figma search rows — hide in-field clear (X) when value is empty / placeholder.
-  useEffect(() => {
-    const root = prototypeScrollElRef.current;
-    if (!root) return;
-    const run = () => syncFigmaSearchClearIcons(root);
-    run();
-    const raf = requestAnimationFrame(run);
-    const t = window.setTimeout(run, 0);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t);
-    };
-  }, [current, chosenLocation, availabilityOpen]);
 
   // ProtoFooter on all screens with static Figma footers (replaces native DOM)
   useEffect(() => {
@@ -3295,8 +3408,10 @@ export default function App() {
     return () => cleanup.forEach((fn) => fn());
   }, []);
 
-  // Screen 4: favourite heart toggle
+  // Screen 4 (PDP): favourite heart — shared wishlist with Quick View + header flyout
   useEffect(() => {
+    syncChickenpoxWishlistHearts();
+
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(8)"
     ) as HTMLElement | null;
@@ -3306,32 +3421,23 @@ export default function App() {
     const favBtn = favIcon?.closest<HTMLElement>("[data-name='component.input.button']");
     if (!favBtn || !favIcon) return;
 
-    const path = favIcon.querySelector<SVGPathElement>("path");
-    const originalD = path?.getAttribute("d") ?? "";
+    applyWishlistHeartVisual(favIcon, isInWishlist(PROTO_PDP_WISHLIST_ID));
 
-    // Solid filled heart for viewBox 0 0 16 14
-    const filledHeartD =
-      "M8 13.5C7.6 13.2 1 8.8 1 4.5C1 2.3 2.7 1 4.5 1C6 1 7.3 1.9 8 3C8.7 1.9 10 1 11.5 1C13.3 1 15 2.3 15 4.5C15 8.8 8.4 13.2 8 13.5Z";
-
-    let active = false;
     const toggle = () => {
-      active = !active;
-      favIcon.dataset.favActive = String(active);
-      if (path) {
-        path.setAttribute("d", active ? filledHeartD : originalD);
-        path.style.fill = active ? "#e91e8c" : "";
-        path.style.stroke = "none";
-      }
+      toggleWishlist(PROTO_PDP_WISHLIST_ID);
     };
 
     favBtn.addEventListener("click", toggle);
     return () => favBtn.removeEventListener("click", toggle);
-  }, []);
+  }, [current, quickViewOpen]);
 
   const go = (i: number) => {
     const wasHub = hubOpen;
     if (wasHub) saveHubScroll();
     const next = Math.max(0, Math.min(SCREENS.length - 1, i));
+    if (wasHub || next !== current) {
+      closeAllPopups();
+    }
     setHubOpen(false);
     if (wasHub || next !== current) {
       resetPrototypeScroll();
@@ -3348,6 +3454,7 @@ export default function App() {
       return;
     }
 
+    closeAllPopups();
     savePrototypeScroll();
     setHubOpen(true);
   };
@@ -3355,6 +3462,9 @@ export default function App() {
   const { label, childIndex } = SCREENS[current];
   const isScreen1 = childIndex === 11 && !hubOpen;
   const navLabel = hubOpen ? PROTO_HUB_LABEL : label;
+  const activeChildIndex = hubOpen ? null : childIndex;
+  const popupOnScreen = (...allowed: number[]) =>
+    activeChildIndex != null && allowed.includes(activeChildIndex);
 
   /**
    * Sticky footer: active screen is at least the scroll-area height; footers use
@@ -3486,7 +3596,9 @@ export default function App() {
     }
 
     /* Search field on screen 5 gets a hover ring so the click affordance is clear */
-    .proto-viewport > div > div:nth-child(7) [data-name='component.input.field']:hover [data-name='Text Field'] {
+    .proto-viewport > div > div:nth-child(7) [data-name='component.input.field']:hover [data-name='Text Field'] > [aria-hidden],
+    .proto-viewport > div > div:nth-child(7) [data-name='component.input.field']:focus-within [data-name='Text Field'] > [aria-hidden] {
+      border-color: #012169 !important;
       box-shadow: inset 0 0 0 2px #012169 !important;
     }
 
@@ -3557,7 +3669,7 @@ export default function App() {
       </div>
 
       <AvailabilityTool
-        open={availabilityOpen}
+        open={availabilityOpen && activeChildIndex != null}
         openIntent={availIntent}
         onClose={closeAvailabilityTool}
         onChooseLocation={(store) => {
@@ -3582,7 +3694,7 @@ export default function App() {
       />
 
       <VaccinePickerPopup
-        open={vaccinePickerOpen}
+        open={vaccinePickerOpen && popupOnScreen(7, 4)}
         selectedId={chosenVaccine.id}
         onClose={closeVaccinePicker}
         onSelect={(vaccine: VaccineItem) => {
@@ -3591,20 +3703,31 @@ export default function App() {
       />
 
       <RecipientPickerPopup
-        open={recipientPickerOpen}
+        open={recipientPickerOpen && popupOnScreen(7, 4)}
         selected={chosenRecipient}
         onClose={closeRecipientPicker}
         onSelect={setChosenRecipient}
       />
 
       <LoginPopup
-        open={loginPopupOpen}
+        open={loginPopupOpen && activeChildIndex != null}
         initialTab={loginPopupTab}
         onClose={() => setLoginPopupOpen(false)}
         onSignIn={() => {
           setProtoHeaderLoggedIn(true);
           setLoggedInFlag(true);
         }}
+      />
+
+      <QuickViewPopup
+        open={quickViewOpen && popupOnScreen(9)}
+        includeBoosterDose={includeBoosterDose}
+        loggedIn={loggedInFlag || isProtoHeaderLoggedIn()}
+        onClose={closeQuickView}
+        onBookNow={onQuickViewBookNow}
+        onViewDetails={onQuickViewViewDetails}
+        onToggleBooster={() => setIncludeBoosterDose((prev) => !prev)}
+        onOpenLogin={onQuickViewOpenLogin}
       />
     </div>
   );

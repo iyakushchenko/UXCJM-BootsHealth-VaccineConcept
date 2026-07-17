@@ -8117,20 +8117,30 @@ function Box4() {
 function List13() {
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full" data-name="list">
-      <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="component.input.radio">
-        <div className="relative shrink-0 size-[24px]" data-name="icon / input / radio">
-          <Box3 />
+      <div className="content-stretch flex gap-[16px] items-center relative shrink-0 w-full" data-name="component.input.radio">
+        <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-start min-w-px relative">
+          <div className="relative shrink-0 size-[24px]" data-name="icon / input / radio">
+            <Box3 />
+          </div>
+          <p className="[word-break:break-word] flex-[1_0_0] font-['Open_Sans:Regular',sans-serif] font-normal leading-[24px] min-w-px relative text-[#3a3a3a] text-[13px]" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"kern" 0' }}>
+            Individual jabs
+          </p>
         </div>
-        <p className="[word-break:break-word] flex-[1_0_0] font-['Open_Sans:Regular',sans-serif] font-normal leading-[24px] min-w-px relative text-[#3a3a3a] text-[13px]" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"kern" 0' }}>
-          Individual jabs
+        <p className="[word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100' }}>
+          21
         </p>
       </div>
-      <div className="content-stretch flex gap-[16px] items-start relative shrink-0 w-full" data-name="component.input.radio">
-        <div className="relative shrink-0 size-[24px]" data-name="icon / input / radio">
-          <Box4 />
+      <div className="content-stretch flex gap-[16px] items-center relative shrink-0 w-full" data-name="component.input.radio">
+        <div className="content-stretch flex flex-[1_0_0] gap-[16px] items-start min-w-px relative">
+          <div className="relative shrink-0 size-[24px]" data-name="icon / input / radio">
+            <Box4 />
+          </div>
+          <p className="[word-break:break-word] flex-[1_0_0] font-['Open_Sans:Regular',sans-serif] font-normal leading-[24px] min-w-px relative text-[#3a3a3a] text-[13px]" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"kern" 0' }}>
+            Bundles
+          </p>
         </div>
-        <p className="[word-break:break-word] flex-[1_0_0] font-['Open_Sans:Regular',sans-serif] font-normal leading-[24px] min-w-px relative text-[#3a3a3a] text-[13px]" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"kern" 0' }}>
-          Bundles
+        <p className="[word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100' }}>
+          7
         </p>
       </div>
     </div>
@@ -8520,9 +8530,14 @@ function Wrapper28() {
         </div>
       </div>
       <List15 />
-      <p className="[word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal h-[32px] leading-[24px] relative shrink-0 text-[#305854] text-[13px] w-full" style={{ fontVariationSettings: '"wdth" 100' }}>
+      <a
+        href="#"
+        className="proto-link block [word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal h-[32px] leading-[24px] relative shrink-0 text-[13px] w-full"
+        data-name="component.plp.filter.view-all"
+        style={{ fontVariationSettings: '"wdth" 100' }}
+      >
         View All
-      </p>
+      </a>
     </div>
   );
 }
@@ -8935,9 +8950,14 @@ function Wrapper32() {
         </div>
       </div>
       <List17 />
-      <p className="[word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal h-[32px] leading-[24px] relative shrink-0 text-[#305854] text-[13px] w-full" style={{ fontVariationSettings: '"wdth" 100' }}>
+      <a
+        href="#"
+        className="proto-link block [word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal h-[32px] leading-[24px] relative shrink-0 text-[13px] w-full"
+        data-name="component.plp.filter.view-all"
+        style={{ fontVariationSettings: '"wdth" 100' }}
+      >
         View All
-      </p>
+      </a>
     </div>
   );
 }

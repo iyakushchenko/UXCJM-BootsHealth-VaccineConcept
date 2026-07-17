@@ -24,12 +24,52 @@ function saveWishlist(): void {
 }
 export function getWishlistCount(): number { return wishlistSet.size; }
 export function isInWishlist(id: string): boolean { return wishlistSet.has(id); }
+
+export const PROTO_PDP_WISHLIST_ID = "chickenpox";
+
+const FILLED_HEART_D =
+  "M8 13.5C7.6 13.2 1 8.8 1 4.5C1 2.3 2.7 1 4.5 1C6 1 7.3 1.9 8 3C8.7 1.9 10 1 11.5 1C13.3 1 15 2.3 15 4.5C15 8.8 8.4 13.2 8 13.5Z";
+
+/** Shared heart visual for PDP / Quick View — keeps cross-page state in sync. */
+export function applyWishlistHeartVisual(favIcon: HTMLElement, active: boolean): void {
+  const path = favIcon.querySelector<SVGPathElement>("path");
+  favIcon.dataset.favActive = String(active);
+  if (!path) return;
+
+  if (!path.dataset.protoHeartOutline) {
+    path.dataset.protoHeartOutline = path.getAttribute("d") ?? "";
+  }
+  const outlineD = path.dataset.protoHeartOutline;
+
+  if (active) {
+    path.setAttribute("d", FILLED_HEART_D);
+    path.style.fill = "#e91e8c";
+    path.style.stroke = "none";
+  } else {
+    path.setAttribute("d", outlineD);
+    path.style.fill = "";
+    path.style.stroke = "";
+  }
+}
+
+export function syncChickenpoxWishlistHearts(root: ParentNode = document): void {
+  const active = isInWishlist(PROTO_PDP_WISHLIST_ID);
+  root
+    .querySelectorAll<HTMLElement>(
+      '.proto-viewport > div > div:nth-child(8) [data-name="icon=add to wishlist"], [data-proto-quick-view-clone="true"] [data-name="icon=add to wishlist"]',
+    )
+    .forEach((icon) => applyWishlistHeartVisual(icon, active));
+}
+
 export function toggleWishlist(id: string): boolean {
-  if (wishlistSet.has(id)) wishlistSet.delete(id);
-  else wishlistSet.add(id);
+  const adding = !wishlistSet.has(id);
+  if (adding) wishlistSet.add(id);
+  else wishlistSet.delete(id);
   saveWishlist();
-  updateFlyoutBadge();
-  showAvatarDot();
+  updateFlyoutBadge(adding);
+  if (adding) showAvatarDot();
+  else hideAvatarDotNow();
+  if (id === PROTO_PDP_WISHLIST_ID) syncChickenpoxWishlistHearts();
   return wishlistSet.has(id);
 }
 
@@ -52,21 +92,28 @@ function showAvatarDot(): void {
   dot.style.animation = "";
 }
 
+function hideAvatarDotNow(): void {
+  if (!headerClone) return;
+  const dot = headerClone.querySelector(".proto-avatar-dot") as HTMLElement | null;
+  if (dot) dot.style.display = "none";
+}
+
 function hideAvatarDot(): void {
   if (!headerClone) return;
   const dot = headerClone.querySelector(".proto-avatar-dot") as HTMLElement | null;
-  if (dot) setTimeout(() => {
+  if (!dot) return;
+  setTimeout(() => {
     dot.style.display = "none";
     const badge = flyoutEl?.querySelector(".proto-header-flyout-badge--wishlist") as HTMLElement | null;
     if (badge) badge.style.background = "";
   }, 2000);
 }
 
-function updateFlyoutBadge(): void {
+function updateFlyoutBadge(highlight = false): void {
   const badge = flyoutEl?.querySelector(".proto-header-flyout-badge--wishlist") as HTMLElement | null;
   if (badge) {
     badge.textContent = String(wishlistSet.size);
-    badge.style.background = "#c8247e";
+    badge.style.background = highlight ? "#c8247e" : "";
   }
 }
 

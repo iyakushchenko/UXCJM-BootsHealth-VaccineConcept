@@ -1,3 +1,14 @@
+/**
+ * Prototype nav counter-zoom — keeps the tab strip at 1× while page content zooms (Ctrl+/−).
+ *
+ * ⚠️ DO NOT MODIFY THIS FILE (or nav layout in protoNavPanel.css / ProtoNavPanel.tsx)
+ * to “fix gaps”, Cursor-browser quirks, lightbox offsets, fixed positioning, height
+ * sync, padding-top on .proto-app-content, --proto-nav-panel-height, etc.
+ * Those changes repeatedly broke zoom immunity across browsers and took hours to recover.
+ *
+ * Safe exception: z-index on .proto-nav-panel-host only (lightbox stacking, not zoom).
+ * Ctrl+0 recalibrates baseline after browser reset.
+ */
 import { useLayoutEffect, type RefObject } from "react";
 
 const ZOOM_STEPS = [

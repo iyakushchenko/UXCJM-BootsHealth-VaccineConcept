@@ -23,8 +23,9 @@ type Props = {
 };
 
 /**
- * Prototype nav in document flow — scales naturally with browser zoom.
- * Zoom controls mirror Chrome; no counter-zoom (avoids refresh / Ctrl+0 glitches).
+ * Prototype nav in document flow — counter-zoom via useProtoNavZoom (see protoNavZoom.ts).
+ *
+ * ⚠️ Do not add height sync, fixed positioning, or layout hacks here — they break zoom.
  */
 export default function ProtoNavPanel({
   current,

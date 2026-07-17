@@ -1,10 +1,17 @@
 /* Isolated prototype nav panel — imported only by ProtoNavPanel.tsx */
+/*
+ * ⚠️ NAV PANEL — DO NOT “IMPROVE” LAYOUT HERE WITHOUT EXPLICIT OWNER REQUEST.
+ * position:fixed, content padding-top, ResizeObserver height vars, host height/zoom
+ * tweaks, and scrim top-offsets all broke counter-zoom (protoNavZoom.ts) in practice.
+ * Only z-index below may be changed for lightbox stacking (not zoom behavior).
+ */
 
 .proto-nav-panel-host {
   flex-shrink: 0;
   width: 100%;
   position: relative;
-  z-index: 100;
+  /* Above .proto-avail-scrim (10000) — lightboxes must not cover prototype nav */
+  z-index: 10001;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 

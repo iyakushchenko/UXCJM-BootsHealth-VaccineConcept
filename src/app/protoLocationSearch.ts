@@ -1,3 +1,4 @@
+import { syncPlpFilterListSearch } from "@/app/protoPlpListing";
 import { PROTO_CLOSE_ICON_HTML } from "@/app/ProtoCloseIcon";
 
 /** Shared copy + counts for Availability Tool and Locations popup. */
@@ -9,7 +10,77 @@ export const PROTO_LOC_COUNT_NEAR = "63 locations found (in 10km radius)";
 const FOUND_DOT_FLASH_MS = 900;
 
 const FIGMA_SEARCH_PLACEHOLDER_RE =
-  /^(search disease|search for city|enter city|post code|location\.\.\.)$/i;
+  /^(search disease|search couhtry|search country|search for city|enter city|post code|location\.\.\.)$/i;
+
+const PLP_SEARCH_FIELD_SELECTOR =
+  '[data-name="Text Fields / Search. Filled"] [data-name="component.input.field"]';
+
+const PLP_SEARCH_WIRE_VERSION = "2";
+const PLP_SEARCH_SYNC_VERSION = "2";
+
+type PlpSearchInput = HTMLInputElement & {
+  __protoPlpSearchHandler?: () => void;
+};
+
+function attachPlpFilterSearchSync(
+  input: HTMLInputElement,
+  textField: HTMLElement,
+  clearBtn: HTMLButtonElement | null
+): void {
+  const typed = input as PlpSearchInput;
+  if (typed.dataset.protoPlpSearchSync === PLP_SEARCH_SYNC_VERSION) return;
+
+  if (typed.__protoPlpSearchHandler) {
+    input.removeEventListener("input", typed.__protoPlpSearchHandler);
+  }
+
+  const handler = () => {
+    syncSearchFieldFilled(textField, input.value);
+    syncLocationSearchClearBtn(clearBtn, input.value);
+    syncPlpFilterListSearch();
+  };
+  typed.__protoPlpSearchHandler = handler;
+  typed.dataset.protoPlpSearchSync = PLP_SEARCH_SYNC_VERSION;
+  input.addEventListener("input", handler);
+}
+
+function attachPlpSearchIconHandlers(
+  searchIconHost: HTMLElement,
+  input: HTMLInputElement
+): void {
+  if (searchIconHost.dataset.protoSearchIconWired === "1") return;
+
+  searchIconHost.style.cursor = "pointer";
+  searchIconHost.setAttribute("role", "button");
+  searchIconHost.setAttribute("tabindex", "0");
+  searchIconHost.setAttribute("aria-label", "Search");
+  searchIconHost.classList.add("proto-plp-search-icon");
+  searchIconHost.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    input.focus();
+  });
+  searchIconHost.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    input.focus();
+  });
+  searchIconHost.dataset.protoSearchIconWired = "1";
+}
+
+function repairBrokenPlpSearchIcon(textField: HTMLElement): HTMLElement | null {
+  const brokenBtn = textField.querySelector("button.proto-plp-search-icon");
+  if (!brokenBtn) {
+    return textField.querySelector<HTMLElement>('[data-name="icon=search"]');
+  }
+
+  const host = document.createElement("div");
+  host.className = "relative shrink-0 size-[24px]";
+  host.setAttribute("data-name", "icon=search");
+  host.innerHTML = brokenBtn.innerHTML;
+  brokenBtn.replaceWith(host);
+  return host;
+}
 
 /** True when a location/search field has no user-entered value. */
 export function isLocationSearchQueryEmpty(query: string): boolean {
@@ -52,9 +123,159 @@ function isFigmaSearchFieldEmpty(textField: HTMLElement): boolean {
   return false;
 }
 
-/** Hide baked-in Figma `icon=clear` when the static search label is empty/placeholder. */
+function normalizeSearchPlaceholder(text: string): string {
+  const trimmed = text.trim();
+  if (/^search couhtry$/i.test(trimmed)) return "Search Country";
+  if (/^search disease$/i.test(trimmed)) return "Search Disease";
+  return trimmed;
+}
+
+function syncSearchFieldFilled(
+  textField: HTMLElement,
+  query: string
+): void {
+  const empty = isLocationSearchQueryEmpty(query);
+  textField.dataset.protoSearchFilled = empty ? "false" : "true";
+}
+
+function wirePlpSearchField(fieldHost: HTMLElement): void {
+  const textField = fieldHost.querySelector<HTMLElement>('[data-name="Text Field"]');
+  if (!textField) return;
+
+  let input = textField.querySelector<HTMLInputElement>(".proto-search-input");
+  if (
+    fieldHost.dataset.protoSearchWired === PLP_SEARCH_WIRE_VERSION &&
+    input
+  ) {
+    const searchIconHost = repairBrokenPlpSearchIcon(textField);
+    if (searchIconHost) attachPlpSearchIconHandlers(searchIconHost, input);
+    attachPlpFilterSearchSync(
+      input,
+      textField,
+      textField.querySelector<HTMLButtonElement>(".proto-plp-search-clear")
+    );
+    syncSearchFieldFilled(textField, input.value);
+    syncLocationSearchClearBtn(
+      textField.querySelector<HTMLButtonElement>(".proto-plp-search-clear"),
+      input.value
+    );
+    return;
+  }
+
+  const row =
+    textField.querySelector<HTMLElement>(".content-stretch.flex") ??
+    textField.querySelector<HTMLElement>(".content-stretch");
+
+  if (input) {
+    const searchIconHost =
+      repairBrokenPlpSearchIcon(textField) ??
+      row?.querySelector<HTMLElement>('[data-name="icon=search"]') ??
+      null;
+    if (searchIconHost) attachPlpSearchIconHandlers(searchIconHost, input);
+    attachPlpFilterSearchSync(
+      input,
+      textField,
+      textField.querySelector<HTMLButtonElement>(".proto-plp-search-clear")
+    );
+    syncSearchFieldFilled(textField, input.value);
+    syncLocationSearchClearBtn(
+      textField.querySelector<HTMLButtonElement>(".proto-plp-search-clear"),
+      input.value
+    );
+    fieldHost.classList.add("proto-plp-search-field");
+    textField.classList.add("proto-search-field");
+    fieldHost.dataset.protoSearchWired = PLP_SEARCH_WIRE_VERSION;
+    return;
+  }
+
+  const wrapper = textField.querySelector<HTMLElement>("[data-name='wrapper']");
+  const labelP = wrapper?.querySelector("p") ?? null;
+
+  const placeholder = normalizeSearchPlaceholder(
+    labelP?.textContent ?? wrapper?.textContent ?? "Search"
+  );
+
+  input = document.createElement("input");
+  input.type = "text";
+  input.className = "proto-search-input";
+  input.placeholder = placeholder;
+  input.setAttribute("aria-label", placeholder);
+
+  if (wrapper) {
+    wrapper.replaceChildren(input);
+  } else if (labelP instanceof HTMLParagraphElement) {
+    labelP.replaceWith(input);
+  } else {
+    row?.querySelector<HTMLElement>('[data-name="icon=search"]')?.after(input);
+  }
+
+  let clearBtn: HTMLButtonElement | null = null;
+  const clearIcon = textField.querySelector<HTMLElement>('[data-name="icon=clear"]');
+  if (clearIcon) {
+    clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "proto-popup-close proto-plp-search-clear";
+    clearBtn.setAttribute("aria-label", "Clear search");
+    clearBtn.innerHTML = PROTO_CLOSE_ICON_HTML;
+    clearIcon.replaceWith(clearBtn);
+  }
+
+  let searchIconEl: HTMLElement | null = null;
+  const searchIconHost = repairBrokenPlpSearchIcon(textField) ??
+    row?.querySelector<HTMLElement>('[data-name="icon=search"]') ??
+    null;
+  if (searchIconHost) {
+    searchIconEl = searchIconHost;
+    attachPlpSearchIconHandlers(searchIconHost, input);
+  }
+
+  const sync = () => {
+    syncSearchFieldFilled(textField, input.value);
+    syncLocationSearchClearBtn(clearBtn, input.value);
+    syncPlpFilterListSearch();
+  };
+
+  attachPlpFilterSearchSync(input, textField, clearBtn);
+
+  clearBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    input.value = "";
+    sync();
+    input.focus();
+  });
+
+  fieldHost.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof Node)) return;
+    if (t === input || clearBtn?.contains(t) || searchIconEl?.contains(t)) return;
+    input.focus();
+  });
+
+  fieldHost.classList.add("proto-plp-search-field");
+  textField.classList.add("proto-search-field");
+  fieldHost.dataset.protoSearchWired = PLP_SEARCH_WIRE_VERSION;
+  sync();
+}
+
+/** PLP filter search rows — static Figma labels → real inputs + clear/search chrome. */
+export function initProtoSearchFields(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLElement>(PLP_SEARCH_FIELD_SELECTOR).forEach(wirePlpSearchField);
+}
+
+/** Hide baked-in Figma `icon=clear` when the static search label is empty / placeholder. */
 export function syncFigmaSearchClearIcons(root: ParentNode = document): void {
   root.querySelectorAll<HTMLElement>('[data-name="Text Field"]').forEach((tf) => {
+    const input = tf.querySelector<HTMLInputElement>(".proto-search-input");
+    if (input) {
+      syncSearchFieldFilled(tf, input.value);
+      syncLocationSearchClearBtn(
+        tf.querySelector<HTMLButtonElement>(".proto-plp-search-clear"),
+        input.value
+      );
+      return;
+    }
+
     const clear = tf.querySelector<HTMLElement>('[data-name="icon=clear"]');
     if (!clear) return;
     const empty = isFigmaSearchFieldEmpty(tf);
