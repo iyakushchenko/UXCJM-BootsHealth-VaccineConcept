@@ -21,6 +21,7 @@ import {
   PROTO_LOC_COUNT_NEAR,
   PROTO_LOC_SEARCH_DEFAULT,
   PROTO_LOC_SEARCH_NEAR,
+  shouldShowLocationSearchClear,
 } from "@/app/protoLocationSearch";
 
 /** Native hover tooltip for the demo “today” cell (12 June 2026). */
@@ -44,6 +45,12 @@ export type AvailStep =
   | "date"
   | "time";
 
+export type ChosenBookingSlot = {
+  month: "June" | "July";
+  day: number;
+  time: string;
+};
+
 export type AvailOpenIntent = {
   step: AvailStep;
   query?: string;
@@ -61,7 +68,7 @@ type Props = {
   open: boolean;
   openIntent?: AvailOpenIntent;
   onClose: () => void;
-  onBookNow: (store: AvailStore) => void;
+  onBookNow: (store: AvailStore, slot: ChosenBookingSlot) => void;
   onChooseLocation?: (store: AvailStore) => void;
 };
 
@@ -633,6 +640,7 @@ export default function AvailabilityTool({
   };
 
   const isListSearchScenario = isListSearchView({ step, nearMe });
+  const showSearchClear = shouldShowLocationSearchClear(query);
 
   const dismissFieldFocus = dismissLocationFieldFocus;
 
@@ -740,7 +748,7 @@ export default function AvailabilityTool({
                 </label>
                 <button
                   type="button"
-                  className="proto-avail-tertiary"
+                  className="proto-tertiary-cta proto-tertiary-cta--compact"
                   onClick={goNearMe}
                 >
                   <img src={iconMapPin} alt="" width={16} height={16} />
@@ -777,14 +785,16 @@ export default function AvailabilityTool({
                   }}
                 />
                 <span className="proto-avail-field__actions">
-                  <button
-                    type="button"
-                    className="proto-popup-close"
-                    aria-label="Clear search"
-                    onClick={goStart}
-                  >
-                    <ProtoCloseIcon />
-                  </button>
+                  {showSearchClear ? (
+                    <button
+                      type="button"
+                      className="proto-popup-close"
+                      aria-label="Clear search"
+                      onClick={goStart}
+                    >
+                      <ProtoCloseIcon />
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className="proto-avail-field__icon"
@@ -797,7 +807,7 @@ export default function AvailabilityTool({
               </label>
               <button
                 type="button"
-                className="proto-avail-tertiary"
+                className="proto-tertiary-cta proto-tertiary-cta--compact"
                 onClick={goNearMe}
               >
                 <img src={iconMapPin} alt="" width={16} height={16} />
@@ -1075,7 +1085,13 @@ export default function AvailabilityTool({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (store) onBookNow(store);
+                  if (store) {
+                    onBookNow(store, {
+                      month: selectedDate.month,
+                      day: selectedDate.day,
+                      time: selectedTime,
+                    });
+                  }
                 }}
               >
                 Book Now

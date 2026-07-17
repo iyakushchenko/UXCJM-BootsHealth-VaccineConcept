@@ -1847,16 +1847,7 @@ function Wrapper1() {
 }
 
 function Frame45() {
-  return (
-    <div className="absolute bottom-0 content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 right-0 text-[10px] text-white whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function ComponentFooterCopyright() {
@@ -2998,16 +2989,7 @@ function Column() {
 }
 
 function Frame46() {
-  return (
-    <div className="absolute bottom-0 content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 right-0 text-[10px] text-white whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function ComponentFooterCopyright1() {
@@ -4539,16 +4521,7 @@ function Wrapper7() {
 }
 
 function Frame47() {
-  return (
-    <div className="absolute bottom-0 content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 right-0 text-[10px] text-white whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function ComponentFooterCopyright2() {
@@ -5099,16 +5072,7 @@ function Wrapper8() {
 }
 
 function Frame48() {
-  return (
-    <div className="content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 relative shrink-0 w-full whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function Wrapper9() {
@@ -6387,16 +6351,7 @@ function Wrapper12() {
 }
 
 function Frame49() {
-  return (
-    <div className="content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 relative shrink-0 w-full whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function Wrapper13() {
@@ -6621,7 +6576,7 @@ function ModuleBreadcrumbs() {
                     </div>
                   </div>
                 </div>
-                <p className="[word-break:break-word] decoration-[5%] decoration-solid font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] underline whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }}>
+                <p className="[word-break:break-word] decoration-[5%] decoration-solid font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] underline whitespace-nowrap" data-proto-crumb="vaccination" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }}>
                   Vaccination
                 </p>
                 <div className="relative shrink-0 size-[16px]" data-name="component.gse.breadcrumbs.delimiter">
@@ -6631,18 +6586,8 @@ function ModuleBreadcrumbs() {
                     </div>
                   </div>
                 </div>
-                <p className="[word-break:break-word] decoration-[5%] decoration-solid font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] underline whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }}>
-                  Travel Vaccines
-                </p>
-                <div className="relative shrink-0 size-[16px]" data-name="component.gse.breadcrumbs.delimiter">
-                  <div className="-translate-x-1/2 -translate-y-1/2 absolute flex h-[13.507px] items-center justify-center left-1/2 top-1/2 w-[8.524px]">
-                    <div className="flex-none rotate-30">
-                      <div className="bg-[#c3c3c3] h-[14.871px] relative w-[1.257px]" />
-                    </div>
-                  </div>
-                </div>
                 <p className="[word-break:break-word] font-['Open_Sans:Regular',sans-serif] font-normal leading-[12px] relative shrink-0 text-[#7a7d87] text-[10px] whitespace-nowrap" style={{ fontVariationSettings: '"wdth" 100' }}>
-                  Travel Vaccination (Summer Season, Asia)
+                  Chickenpox
                 </p>
                 <div className="h-[10px] relative shrink-0 w-[47px]" data-name="spacer for mobile horizontal scroll" />
               </div>
@@ -7825,16 +7770,7 @@ function Column1() {
 }
 
 function Frame50() {
-  return (
-    <div className="absolute bottom-0 content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 right-0 text-[10px] text-white whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function ComponentFooterCopyright3() {
@@ -11904,16 +11840,7 @@ function Column2() {
 }
 
 function Frame51() {
-  return (
-    <div className="absolute bottom-0 content-stretch flex gap-[4px] items-center justify-center leading-[12px] opacity-20 right-0 text-[10px] text-white whitespace-nowrap">
-      <p className="relative shrink-0" style={{ fontVariationSettings: '"wdth" 100' }}>
-        v1.5.5
-      </p>
-      <a className="block cursor-pointer decoration-[5%] decoration-solid relative shrink-0 underline" href="https://www.figma.com/design/GWSgrH6KiGZhmqjaefa498/-UX--Knowledge-Hub?node-id=5061-1190" style={{ fontVariationSettings: '"wdth" 100', fontFeatureSettings: '"lnum", "pnum"' }} target="_blank">
-        UXDS
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function ComponentFooterCopyright4() {

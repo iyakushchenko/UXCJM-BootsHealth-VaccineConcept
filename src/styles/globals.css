@@ -1,50 +1,20 @@
-/* Prototype nav tab strip — scrollable, scrollbar hidden */
-.proto-nav-tabs {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.proto-nav-tabs::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-.proto-nav-logo-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 4px;
-  border: none;
-  border-radius: 4px 4px 0 0;
-  background: transparent;
-  cursor: pointer;
-  line-height: 0;
-  transition: opacity 0.15s ease;
-}
-.proto-nav-logo-btn:hover {
-  opacity: 0.9;
-}
-.proto-nav-logo-btn--active {
-  background: transparent;
-}
-.proto-nav-logo__svg {
-  display: block;
-  flex-shrink: 0;
-  transition: opacity 0.15s ease, filter 0.15s ease;
-}
-.proto-nav-logo-btn:not(.proto-nav-logo-btn--active) .proto-nav-logo__svg {
-  opacity: 0.72;
-  filter: grayscale(1);
-}
-.proto-nav-logo-btn--active .proto-nav-logo__svg {
-  opacity: 1;
-  filter: none;
-}
-
 .proto-scroll {
   scroll-behavior: smooth;
 }
+
+/* Prototype scroll pane — flex fill + zoom-safe min height (see useProtoScrollFill) */
+.proto-scroll--prototype:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+}
+
+.proto-scroll--prototype > .proto-viewport {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--proto-scroll-min-px, 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .proto-scroll {
     scroll-behavior: auto;
@@ -1465,11 +1435,182 @@
 }
 .proto-viewport
   [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path,
-.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover svg path {
+.proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover svg path,
+.proto-tertiary-cta:hover svg path {
   fill: #012169 !important;
 }
 
-/* Icon-only h-[32px] — circular hover via pseudo-element */
+/* ── Tertiary CTA — icon + link (Find a store, Change location, near-me, etc.) ──
+ * No hover background/circle; muted icon → navy; label → black on hover.
+ */
+.proto-tertiary-cta,
+.proto-avail-tertiary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 360px;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+  user-select: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.39px;
+  color: #5c5c5c;
+  white-space: nowrap;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.proto-tertiary-cta--compact,
+.proto-avail-tertiary {
+  height: 32px;
+  padding: 8px 12px;
+  font-size: 12px;
+  letter-spacing: -0.36px;
+}
+
+.proto-tertiary-cta::before {
+  content: none !important;
+  display: none !important;
+}
+
+.proto-tertiary-cta:hover,
+.proto-tertiary-cta:active,
+.proto-avail-tertiary:hover,
+.proto-avail-tertiary:active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #000000;
+}
+
+.proto-tertiary-cta__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.proto-tertiary-cta__icon img,
+.proto-tertiary-cta__icon svg,
+.proto-tertiary-cta > img,
+.proto-avail-tertiary img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.proto-tertiary-cta svg path {
+  fill: #afccca;
+  transition: fill 0.18s ease;
+}
+
+.proto-tertiary-cta:hover svg path {
+  fill: #012169;
+}
+
+.proto-tertiary-cta__icon img,
+.proto-tertiary-cta > img,
+.proto-avail-tertiary img {
+  filter: brightness(0) saturate(100%) invert(86%) sepia(7%) saturate(622%)
+    hue-rotate(131deg) brightness(92%) contrast(88%);
+  transition: filter 0.18s ease;
+}
+
+.proto-tertiary-cta:hover .proto-tertiary-cta__icon img,
+.proto-tertiary-cta:hover > img,
+.proto-avail-tertiary:hover img {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%)
+    hue-rotate(205deg) brightness(0.85);
+}
+
+.proto-tertiary-cta__label {
+  transition: color 0.18s ease;
+}
+
+.proto-tertiary-cta:focus:not(:focus-visible),
+.proto-avail-tertiary:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.proto-tertiary-cta:active:not(:focus-visible),
+.proto-avail-tertiary:active:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Icon-only hit target — circular hover wash (PDP share/heart, footer socials, etc.) */
+.proto-icon-hit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)) {
+  position: relative !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.proto-icon-hit__glyph {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.proto-icon-hit__glyph--16 {
+  width: 16px;
+  height: 16px;
+}
+
+.proto-icon-hit__glyph--24 {
+  width: 24px;
+  height: 24px;
+}
+
+.proto-icon-hit__glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Figma-export footer social wrappers (24px glyph, 32px hit target) */
+.proto-icon-hit.proto-icon-hit--figma-glyph-24[class*="size-[24px]"] {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.proto-icon-hit::before,
 .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p))::before {
   content: "" !important;
   position: absolute !important;
@@ -1484,18 +1625,29 @@
   z-index: 0 !important;
   pointer-events: none !important;
 }
+
+.proto-icon-hit:hover::before,
 .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover::before {
   background: #eef8f7 !important;
 }
+
+.proto-icon-hit:active::before,
 .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):active::before {
   background: #c6e5e1 !important;
 }
-.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover svg path {
-  fill: #01318f !important;
+
+.proto-icon-hit svg path,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)) svg path {
   transition: fill 0.18s ease !important;
 }
 
+.proto-icon-hit:hover svg path,
+.proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover svg path {
+  fill: #01318f !important;
+}
+
 /* Heart hover when favourited — deepen fuchsia */
+.proto-icon-hit:hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path,
 .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover [data-name="icon=add to wishlist"][data-fav-active="true"] svg path {
   fill: #c2186e !important;
 }
@@ -1523,6 +1675,15 @@
 .proto-lb-open .proto-viewport [data-name="units"][data-toggle-index][data-toggle-active] span {
   font-weight: 600 !important;
   font-family: "Open Sans", sans-serif !important;
+}
+
+/* Toggle tabs — no focus ring (browser / theme outline looks unpolished) */
+.proto-viewport [data-name="units"][data-toggle-index]:focus,
+.proto-viewport [data-name="units"][data-toggle-index]:focus-visible,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:focus,
+.proto-lb-open .proto-viewport [data-name="units"][data-toggle-index]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Primary CTA — darken slightly, lift with shadow.
@@ -1642,16 +1803,100 @@
   perspective: none !important;
 }
 
-/* Main navy header — sticky on every screen.
- * On screen 2 the JS sticky-group wrapper overrides this, but the rule is
- * harmless there because the wrapper itself is sticky at top: 0. */
-[data-name="boots-pharmacy.module.header"] {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-  background: #012169 !important;
+/* Native Figma headers are hidden; shared ProtoHeader is mounted at scroll top */
+[data-name="boots-pharmacy.module.header"]:not(.proto-header-sticky) {
+  display: none !important;
+}
+
+/* Shared sticky header mount — direct child of scroll container */
+.proto-header-mount {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.proto-header-avatar,
+.proto-header-avatar--guest,
+.proto-header-search-icon {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
   flex-shrink: 0 !important;
-  align-self: stretch !important;
+}
+.proto-header-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: none;
+  box-sizing: border-box;
+}
+.proto-avatar-dot {
+  position: absolute;
+  top: -4px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #c8247e;
+  border: 2px solid #012169;
+  display: none;
+  pointer-events: none;
+  animation: proto-dot-glimmer 0.6s ease;
+}
+@keyframes proto-dot-glimmer {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.proto-header-avatar--guest {
+  background: none;
+  border: none;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"]:has(.proto-header-avatar--guest):hover .proto-header-avatar--guest {
+  background: rgba(255, 255, 255, 0.15);
+}
+.proto-header-search-icon {
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"]:has(.proto-header-search-icon):hover .proto-header-search-icon {
+  background: rgba(255, 255, 255, 0.15);
+}
+.proto-header-flyout-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #012169;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: auto;
+}
+.proto-header-flyout-item {
+  white-space: nowrap;
+}
+
+/* Force both aux nav items (Search + Login) to same column width */
+.proto-header-sticky [data-name="component.header.aux.nav.item"] {
+  width: 64px !important;
+  min-width: 64px !important;
+}
+.proto-header-sticky [data-name="component.header.aux.nav.item"] > p {
+  text-align: center !important;
 }
 
 /* Frame337 (Site Pilot bar, screen 2) — sticky wrapper injected by JS handles
@@ -1728,13 +1973,10 @@
   flex-wrap: wrap !important;
 }
 
-/* Breadcrumb bar — sticky below the header (or header+microheader on screen 2).
- * --sticky-top is measured in JS after every screen switch so it always matches
- * the actual rendered sticky group height. White background covers scrolling content. */
+/* Breadcrumb bar — static, scrolls with page content. */
 [data-name="module.breadcrumbs"] {
-  position: sticky !important;
-  top: var(--sticky-top, 64px) !important;
-  z-index: 45 !important;
+  position: relative !important;
+  z-index: 1 !important;
   background: white !important;
   width: 100% !important;
 }
@@ -1784,17 +2026,387 @@
   box-sizing: border-box !important;
 }
 
-/* Cloned PLP footer on account pages */
-.proto-viewport > div > div:nth-child(1) > .proto-plp-footer,
-.proto-viewport > div > div:nth-child(2) > .proto-plp-footer {
+/* Mounted ProtoFooter — stretch full width on every screen that uses it */
+.proto-viewport > div > div:nth-child(1) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(2) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(3) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(4) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(7) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(8) > .proto-footer-mount,
+.proto-viewport > div > div:nth-child(9) > .proto-footer-mount {
   width: 100% !important;
   align-self: stretch !important;
 }
 
-.proto-viewport > div > div:nth-child(1) > .proto-plp-footer [data-name="boots.phm.module.footer.copyright"],
-.proto-viewport > div > div:nth-child(2) > .proto-plp-footer [data-name="boots.phm.module.footer.copyright"] {
-  width: 100% !important;
-  max-width: 100% !important;
+/* ── ProtoFooter (full + minified) ─────────────────────────────────────── */
+
+.proto-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  font-family: "Open Sans", sans-serif;
+}
+
+/* 1440px outer / 1312px content — same grid as header and breadcrumbs. */
+.proto-footer__shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 64px;
+  padding-right: 64px;
+  box-sizing: border-box;
+}
+
+.proto-footer__shell-inner {
+  width: 100%;
+  max-width: 1312px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.proto-footer--full.proto-footer--pharmacy {
+  background: #f1f8ff;
+}
+
+.proto-footer--full.proto-footer--health {
+  background: #ebf5ff;
+}
+
+.proto-footer--minified {
+  background: #2e2e2e;
+}
+
+.proto-footer__top-bar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 72px;
+  padding: 24px 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__top-bar--dark {
+  background: #2e2e2e;
+}
+
+.proto-footer__utility-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.proto-footer .proto-link {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.proto-footer button.proto-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+}
+
+.proto-footer__utility-links--dark .proto-link,
+.proto-footer--minified .proto-footer__utility-links .proto-link {
+  color: #c3c3c3 !important;
+}
+
+.proto-footer__utility-links--dark .proto-link:hover,
+.proto-footer--minified .proto-footer__utility-links .proto-link:hover {
+  color: #e8e8e8 !important;
+}
+
+.proto-footer__column-links .proto-link {
+  text-align: left;
+}
+
+.proto-footer__body {
+  width: 100%;
+  background: #ebf5ff;
+}
+
+.proto-footer__link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 56px 32px;
+  justify-content: flex-start;
+  padding: 48px 0 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__link-column {
+  flex: 1 1 214px;
+  min-width: 214px;
+  max-width: 320px;
+}
+
+.proto-footer__column-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.proto-footer__column-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.proto-footer__copyright--dark .proto-link {
+  color: #fff !important;
+}
+
+.proto-footer__copyright--dark .proto-link:hover {
+  color: #e8e8e8 !important;
+}
+
+.proto-footer__extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: flex-start;
+  padding: 48px 0;
+  box-sizing: border-box;
+}
+
+.proto-footer__newsletter,
+.proto-footer__socials,
+.proto-footer__pharmacy {
+  flex: 1 1 169px;
+  min-width: 169px;
+  max-width: 360px;
+}
+
+.proto-footer__block-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.proto-footer__block-copy {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.proto-footer__email-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 360px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.proto-footer__email-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.proto-footer__signup-btn {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 360px;
+  background: #012169;
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  cursor: default;
+}
+
+.proto-footer__social-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  --proto-footer-social-size: 28px;
+}
+
+.proto-footer__social-icons .proto-icon-hit__glyph--24 {
+  width: var(--proto-footer-social-size);
+  height: var(--proto-footer-social-size);
+}
+
+/* Figma glyph insets — scaled up slightly from 24px for readability. */
+.proto-footer-social-glyph {
+  position: relative;
+  display: block;
+  width: var(--proto-footer-social-size, 24px);
+  height: var(--proto-footer-social-size, 24px);
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.proto-footer-social-glyph__mark {
+  position: absolute;
+  overflow: visible;
+}
+
+.proto-footer-social-glyph__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.proto-footer__social-icons .proto-icon-hit:focus,
+.proto-footer__social-icons .proto-icon-hit:focus-visible,
+.proto-footer__social-icons .proto-icon-hit:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* No lingering focus wash after click — but keep hover + pressed circles */
+.proto-footer__social-icons .proto-icon-hit:focus:not(:hover):not(:active)::before,
+.proto-footer__social-icons .proto-icon-hit:focus-visible:not(:hover):not(:active)::before {
+  background: transparent !important;
+}
+
+.proto-footer__social-icons .proto-icon-hit:hover::before {
+  background: #eef8f7 !important;
+}
+
+.proto-footer__social-icons .proto-icon-hit:active::before {
+  background: #c6e5e1 !important;
+}
+
+.proto-icon-hit:hover .proto-footer-social-glyph__mark svg path {
+  fill: #01318f !important;
+}
+
+.proto-footer__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.proto-footer__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 8px 16px;
+  border-radius: 360px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.39px;
+  color: #5c5c5c;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease,
+    color 0.18s ease;
+}
+
+.proto-footer__cta--outline {
+  background: #fff;
+  border: 1px solid #afccca;
+}
+
+.proto-footer__cta--outline:hover {
+  background: #c6e5e1;
+  box-shadow: 0 4px 12px rgba(175, 204, 202, 0.4);
+  transform: translateY(-1px);
+  color: #01318f;
+}
+
+.proto-footer__cta--outline:active {
+  background: #afccca;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.proto-footer__copyright {
+  width: 100%;
+  padding: 32px 0;
+  background: #bcd3e9;
+  box-sizing: border-box;
+}
+
+.proto-footer__copyright--dark {
+  padding: 24px 0;
+  background: #2e2e2e;
+}
+
+.proto-footer__copyright-copy {
+  text-align: center;
+  font-size: 10px;
+  line-height: 12px;
+  color: #7a7d87;
+}
+
+.proto-footer__copyright--dark .proto-footer__copyright-copy {
+  color: #fff;
+}
+
+.proto-footer__copyright-copy p {
+  margin: 0 0 8px;
+}
+
+.proto-footer__copyright-copy .proto-link {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.proto-footer__version {
+  position: relative;
+  margin: 8px 0 0;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  opacity: 0.2;
+  color: #fff;
+}
+
+.proto-footer__version .proto-link {
+  color: inherit !important;
+}
+
+.proto-footer__version .proto-link:hover {
+  color: inherit !important;
+}
+
+.proto-footer__copyright:not(.proto-footer__copyright--dark) .proto-footer__version {
+  position: absolute;
+  right: 64px;
+  bottom: 32px;
+  margin: 0;
 }
 
 /* Sidebar — fixed 304px */
@@ -1863,6 +2475,100 @@
 .proto-viewport > div > div:nth-child(9) [data-name="component.plp.hero.bg"] {
   background: transparent !important;
   opacity: 1 !important;
+}
+
+/* ── Design System: Checkboxes & Radios ──────────────────────────────────── */
+
+[data-name="component.input.checkbox"],
+[data-name="component.input.radio"],
+[data-name="component.plp.filter.checkbox.item"] {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer !important;
+}
+
+[data-name="icon / input / checkbox"],
+[data-name="icon / input / radio"] {
+  position: relative !important;
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  overflow: visible !important;
+}
+
+[data-name="component.input.checkbox"] [data-name="box"],
+[data-name="component.input.radio"] [data-name="box"] {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 !important;
+  transform: none !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  box-sizing: border-box !important;
+}
+
+[data-name="component.input.checkbox"] [data-name="box"] {
+  border-radius: 4px !important;
+}
+
+[data-name="component.input.radio"] [data-name="box"] {
+  border-radius: 360px !important;
+}
+
+/* Mark/dot wrappers — same structure for every control */
+[data-name="component.input.checkbox"] [data-name="element. gse. checkbox. check mark"],
+[data-name="component.input.radio"] [data-name="element. gse. radio. circle"] {
+  position: absolute !important;
+  inset: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"],
+[data-name="component.input.checkbox"]:not([data-checkbox-checked="true"]) [data-name="box"] {
+  background: #fff !important;
+  border-color: #c3c3c3 !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"] {
+  background: #afccca !important;
+  border-color: #afccca !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="element. gse. checkbox. check mark"] {
+  display: flex !important;
+}
+
+[data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="element. gse. checkbox. check mark"] svg path {
+  fill: #305854 !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="false"] [data-name="box"],
+[data-name="component.input.radio"]:not([data-radio-checked="true"]) [data-name="box"] {
+  background: #fff !important;
+  border-color: #c3c3c3 !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="box"] {
+  background: #afccca !important;
+  border-color: #afccca !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="element. gse. radio. circle"] {
+  display: flex !important;
+}
+
+[data-name="component.input.radio"][data-radio-checked="true"] [data-name="element. gse. radio. circle"] svg circle {
+  fill: #305854 !important;
 }
 
 /* Lower sections: backgrounds are already w-full; constrain inner content
@@ -2666,32 +3372,69 @@
   outline: none !important;
 }
 
-/* Book Appointment progress — Step 1 column is back-nav on Steps 2–3 */
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"],
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] {
-  cursor: pointer;
+/* Book Step 1 — progress + form card width matches Steps 2–3 (863px) */
+.proto-viewport > div > div:nth-child(7) [data-name="component.book.appointment.progress"] {
+  width: 863px !important;
+  max-width: 100%;
 }
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] > div:last-child,
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] > div:last-child {
-  transition: background 0.15s ease;
+.proto-viewport > div > div:nth-child(7)
+  [data-name="component.book.appointment.progress"]
+  + [class*="rounded-[24px]"] {
+  width: 863px !important;
+  max-width: 100%;
+}
+.proto-viewport > div > div:nth-child(7) [data-name="component.errors.footer"] {
+  width: 863px !important;
+  max-width: 100%;
+}
+
+/* Confirmation — progress is read-only; all step bars use active teal */
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] {
+  pointer-events: none;
+}
+
+/* Progress bar — larger font on all instances, all descendants */
+[data-name="component.book.appointment.progress"] * {
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+}
+
+/* Progress bar — current (active) step: bold + Boots primary navy */
+[data-name="component.book.appointment.progress"] > [data-proto-step-active="true"] * {
+  font-weight: 700 !important;
+  color: #012169 !important;
+}
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > * {
+  cursor: default;
+}
+.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > * > div:last-child {
+  background: #c6e5e1 !important;
+}
+
+/* Book Appointment progress — Step 1 column is back-nav on Step 2 only */
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] {
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"] > div:last-child {
+  transition: background 0.15s ease, filter 0.15s ease;
 }
 .proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover > div:last-child,
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover > div:last-child,
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible > div:last-child,
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible > div:last-child {
-  background: #012169 !important;
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible > div:last-child {
+  background: #c6e5e1 !important;
+  filter: brightness(0.92);
 }
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover span,
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover span {
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:hover span {
   color: #012169;
 }
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus:not(:focus-visible),
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus:not(:focus-visible) {
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus:not(:focus-visible) {
   outline: none !important;
   box-shadow: none !important;
 }
-.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible,
-.proto-viewport > div > div:nth-child(3) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible {
+.proto-viewport > div > div:nth-child(4) [data-name="component.book.appointment.progress"] > [data-proto-book-step-back="true"]:focus-visible {
   outline: 2px solid #012169;
   outline-offset: 2px;
 }
@@ -2715,12 +3458,15 @@
   font-weight: 700 !important;
 }
 .proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"] {
-  background: #c6e5e1 !important;
-  border-color: #c6e5e1 !important;
+  background: #afccca !important;
+  border-color: #afccca !important;
+}
+.proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"] svg path {
+  fill: #305854 !important;
 }
 .proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"] {
   background: white !important;
-  border-color: #9e9e9e !important;
+  border: 1.5px solid #c3c3c3 !important;
 }
 .proto-viewport > div > div:nth-child(7) .proto-page-booster-checkbox [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="element. gse. checkbox. check mark"] {
   opacity: 0 !important;
@@ -2893,56 +3639,6 @@
   box-shadow: none !important;
 }
 
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"] {
-  cursor: pointer !important;
-  border-radius: 8px !important;
-  transition: background 0.18s ease !important;
-}
-/* Description text below: default arrow, not pointer */
-.proto-viewport > div > div:nth-child(8) [data-name="units"]:not([data-toggle-index]) > :not([data-name="component.input.checkbox"]) {
-  cursor: default !important;
-}
-.proto-viewport > div > div:nth-child(8) [data-name="units"]:not([data-toggle-index]) > :not([data-name="component.input.checkbox"]) * {
-  cursor: default !important;
-}
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"]:hover {
-  background: #eef8f7 !important;
-}
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"]:hover [data-name="Label"] p,
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"]:hover [data-name="Label"] span {
-  color: #000000 !important;
-}
-
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="Label"] p,
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="Label"] span {
-  font-weight: 700 !important;
-}
-
-/* Box checked: teal fill */
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"][data-checkbox-checked="true"] [data-name="box"] {
-  background: #c6e5e1 !important;
-  border-color: #c6e5e1 !important;
-}
-
-/* Box unchecked: white with grey border */
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="box"] {
-  background: white !important;
-  border-color: #9e9e9e !important;
-  transition: background 0.18s ease, border-color 0.18s ease !important;
-}
-
-/* Box hover: fill with same teal as active toggle tab */
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"]:hover [data-name="box"] {
-  background: #c6e5e1 !important;
-  border-color: #c6e5e1 !important;
-}
-
-/* Checkmark hidden when unchecked */
-.proto-viewport > div > div:nth-child(8) [data-name="component.input.checkbox"][data-checkbox-checked="false"] [data-name="element. gse. checkbox. check mark"] {
-  opacity: 0 !important;
-  transition: opacity 0.15s !important;
-}
-
 /* ── Screen 1 (Agentic home) – full-bleed background, no seam ───────────── */
 
 .proto-viewport > div > div:nth-child(11) > [data-name="body"] {
@@ -3000,6 +3696,7 @@
   box-sizing: border-box;
   animation: proto-avail-slide 0.22s ease;
   font-family: "Open Sans", sans-serif;
+  color-scheme: light;
 }
 .proto-avail-header {
   display: flex;
@@ -3210,7 +3907,7 @@
   width: 100%;
   align-self: stretch;
 }
-.proto-avail-field-wrap--stack .proto-avail-tertiary {
+.proto-avail-field-wrap--stack .proto-tertiary-cta {
   align-self: center;
 }
 .proto-avail-field-wrap:not(.proto-avail-field-wrap--stack) .proto-avail-field,
@@ -3224,8 +3921,8 @@
   width: 100%;
   min-width: 0;
 }
-.proto-avail-field-wrap .proto-avail-tertiary,
-.proto-avail-search-row .proto-avail-tertiary {
+.proto-avail-field-wrap .proto-tertiary-cta,
+.proto-avail-search-row .proto-tertiary-cta {
   flex-shrink: 0;
 }
 .proto-avail-field {
@@ -3273,6 +3970,16 @@
   gap: 4px;
   flex-shrink: 0;
 }
+.proto-avail-field__actions .proto-popup-close[hidden],
+.proto-avail-field__actions .proto-popup-close.proto-search-clear--hidden {
+  display: none !important;
+}
+/* Figma export search rows — hide clear glyph when field is empty / placeholder */
+.proto-viewport
+  [data-name="Text Field"]:not([data-proto-search-filled="true"])
+  [data-name="icon=clear"] {
+  display: none !important;
+}
 .proto-avail-field__icon {
   display: inline-flex;
   border: none;
@@ -3293,42 +4000,6 @@
   display: block;
   width: 24px;
   height: 24px;
-}
-.proto-avail-tertiary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 32px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 360px;
-  background: transparent;
-  color: #5c5c5c;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: -0.36px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s ease;
-}
-.proto-avail-tertiary:hover {
-  color: #012169;
-}
-.proto-avail-tertiary:focus:not(:focus-visible) {
-  outline: none !important;
-  box-shadow: none !important;
-}
-.proto-avail-tertiary:active:not(:focus-visible) {
-  outline: none !important;
-  box-shadow: none !important;
-}
-.proto-avail-tertiary img {
-  display: block;
-  width: 16px;
-  height: 16px;
 }
 .proto-avail-list-bar {
   display: flex;
@@ -3410,6 +4081,16 @@
 .proto-avail-toggle__tab:not(.proto-avail-toggle__tab--active):hover {
   background: #eef8f7;
 }
+.proto-avail-toggle__tab:focus,
+.proto-avail-toggle__tab:focus-visible,
+.proto-avail-toggle__tab:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.proto-avail-toggle__tab--active:focus,
+.proto-avail-toggle__tab--active:focus-visible {
+  border-color: #c6e5e1 !important;
+}
 .proto-avail-store-list {
   flex: 1 1 auto;
   min-height: 0;
@@ -3418,6 +4099,24 @@
   flex-direction: column;
   gap: 16px;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
+}
+.proto-avail-store-list::-webkit-scrollbar {
+  width: 4px;
+}
+.proto-avail-store-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.proto-avail-store-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(122, 125, 135, 0.32);
+}
+.proto-avail-store-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 125, 135, 0.48);
+}
+.proto-avail-store-list::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .proto-avail-store {
   display: flex;
@@ -3711,6 +4410,24 @@
 }
 .proto-avail-times {
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
+}
+.proto-avail-times::-webkit-scrollbar {
+  width: 4px;
+}
+.proto-avail-times::-webkit-scrollbar-track {
+  background: transparent;
+}
+.proto-avail-times::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(122, 125, 135, 0.32);
+}
+.proto-avail-times::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 125, 135, 0.48);
+}
+.proto-avail-times::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .proto-avail-time-section {
   display: flex;
@@ -3856,6 +4573,9 @@
 }
 
 /* ── Vaccine picker popup (PLP-style simple listing) ─────────────────────── */
+.proto-vaccine-picker-card {
+  color-scheme: light;
+}
 .proto-vaccine-picker-card .proto-avail-body--stack {
   min-height: 0;
 }
@@ -3869,14 +4589,23 @@
   width: 100%;
   padding-right: 2px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(92, 92, 92, 0.45) transparent;
+  scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
 }
 .proto-vaccine-picker-list::-webkit-scrollbar {
   width: 4px;
 }
+.proto-vaccine-picker-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 .proto-vaccine-picker-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(92, 92, 92, 0.45);
+  background: rgba(122, 125, 135, 0.32);
+}
+.proto-vaccine-picker-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 125, 135, 0.48);
+}
+.proto-vaccine-picker-list::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .proto-vaccine-tile {
   display: flex;
@@ -4117,5 +4846,185 @@
     outline-offset: 3px;
     box-shadow: 0 0 0 0 transparent;
   }
+}
+
+/* ── Login Popup ─────────────────────────────────────────────────────────── */
+
+.proto-login-card {
+  width: min(460px, 90vw);
+  max-height: 90vh;
+  overflow: hidden;
+  transition: height 0.35s ease;
+}
+
+.proto-login-card .proto-login-form {
+  animation: proto-login-fade-in 0.3s ease;
+}
+
+@keyframes proto-login-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.proto-login-card .proto-avail-toggle {
+  align-self: center;
+}
+
+.proto-login-panel {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Replace generic account icon with Sarah avatar on MA pages */
+[data-name="icon / accent / account"] {
+  background: url("/src/assets/user-avatar.jpg") center / cover no-repeat !important;
+}
+[data-name="icon / accent / account"] > * {
+  display: none !important;
+}
+
+.proto-login-avatar {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.proto-login-subtitle {
+  text-align: center;
+  font-size: 13px;
+  color: #5c5c5c;
+  margin: 4px 0 12px;
+}
+
+.proto-login-error {
+  background: #fdf0f0;
+  border: 1px solid #f5c6c6;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #a04040;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.proto-login-success {
+  background: #f0fdf4;
+  border: 1px solid #c6e5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #3a3a3a;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.proto-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.proto-login-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.proto-login-label-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a3a3a;
+}
+
+.proto-login-required {
+  color: #c00;
+}
+
+.proto-login-forgot {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.proto-login-input-wrap {
+  width: 100% !important;
+}
+
+.proto-login-input-wrap input {
+  flex: 1;
+  min-width: 0;
+}
+
+.proto-login-toggle-pw {
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.proto-login-remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #3a3a3a;
+  cursor: default;
+}
+
+.proto-login-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1.5px solid #c3c3c3;
+  background: white;
+  flex-shrink: 0;
+}
+
+.proto-login-checkbox--checked {
+  background: #afccca;
+  border-color: #afccca;
+}
+
+.proto-login-cta {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.proto-login-or {
+  text-align: center;
+  font-size: 12px;
+  color: #7a7d87;
+  margin: 4px 0;
+}
+
+.proto-login-socials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.proto-login-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: white;
 }
 

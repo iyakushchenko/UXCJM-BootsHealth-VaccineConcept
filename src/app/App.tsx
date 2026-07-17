@@ -1,24 +1,45 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import Frame219 from "@/imports/Frame1000007317/index";
 import locationsMapChosen from "@/assets/locations-map-chosen.png";
 import bootsAdvantageCard from "@/assets/boots-advantage-card.png";
 import AvailabilityTool, {
   PROTO_TODAY_TOOLTIP,
   type AvailOpenIntent,
+  type ChosenBookingSlot,
 } from "@/app/AvailabilityTool";
 import VaccinePickerPopup from "@/app/VaccinePickerPopup";
 import RecipientPickerPopup, {
   recipientModeLabel,
   type RecipientMode,
 } from "@/app/RecipientPickerPopup";
-import ProtoNavChrome from "@/app/ProtoNavChrome";
+import LoginPopup from "@/app/LoginPopup";
+import ProtoNavPanel from "@/app/ProtoNavPanel";
 import ProtoHubViewport from "@/app/ProtoHubViewport";
-import { PROTO_HUB_LABEL, PROTO_SCREENS, protoTabToIndex } from "@/app/protoScreens";
+import { PROTO_HUB_LABEL, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/protoScreens";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/app/protoVaccineList";
 import {
   setupChosenPageMap,
 } from "@/app/protoMap";
+import { syncFigmaSearchClearIcons } from "@/app/protoLocationSearch";
+import { setupProtoFooters } from "@/app/protoFooterMount";
+import { setupProtoHeader, syncProtoHeaderLogin, setProtoHeaderLoggedIn, isProtoHeaderLoggedIn, toggleWishlist, isInWishlist } from "@/app/protoHeaderMount";
+import { wireProtoIconHits } from "@/app/protoIconHitWire";
+import { useProtoScrollFill } from "@/app/useProtoScrollFill";
+import {
+  boosterDoseSummaryLabel,
+  PDP_CHECKBOX_LABEL,
+  PDP_PRICE_WITH_BOOSTER,
+  PDP_PRICE_WITHOUT_BOOSTER,
+  syncAccountOrderSummary,
+  syncConfirmationOrderSummary,
+} from "@/app/protoOrderPricing";
+import {
+  ensureCheckboxRow,
+  handleProtoInputClick,
+  initProtoInputControls,
+  markBoosterCheckboxRow,
+} from "@/app/protoInputControls";
 
 /**
  * DOM child order inside Frame219's root div (JSX order = DOM order):
@@ -51,6 +72,14 @@ const DEFAULT_CHOSEN_VACCINE: ChosenVaccine = {
 };
 
 const DEFAULT_CHOSEN_RECIPIENT: RecipientMode = "myself";
+
+const DEFAULT_INCLUDE_BOOSTER_DOSE = true;
+
+const DEFAULT_CHOSEN_BOOKING_SLOT: ChosenBookingSlot = {
+  month: "June",
+  day: 24,
+  time: "16:30",
+};
 
 /** Default Agentic home query — Reset hides while this is unchanged. */
 const AGENTIC_HOME_QUERY_DEFAULT =
@@ -140,7 +169,10 @@ function resolveAvailIntent(
   if (intent.pickLocation) return intent;
   if (intent.step === "start") return intent;
 
-  if (!chosen) {
+  // When logged in, treat as having a location even if none explicitly chosen
+  const hasLocation = !!chosen || isProtoHeaderLoggedIn();
+
+  if (!hasLocation) {
     if (
       intent.step === "date" ||
       intent.step === "time" ||
@@ -152,7 +184,7 @@ function resolveAvailIntent(
     return intent;
   }
 
-  const storeId = mapChosenToAvailStoreId(chosen);
+  const storeId = chosen ? mapChosenToAvailStoreId(chosen) : AVAIL_DEMO_STORE;
 
   if (intent.step === "date" || intent.step === "time") {
     return { ...intent, storeId };
@@ -446,6 +478,7 @@ const PROTO_UI_LEGACY_KEYS = [
 ];
 /** Persist global nav tab across refresh / Reset. */
 const PROTO_NAV_KEY = "boots-vaccine-proto-nav";
+const PROTO_HUB_KEY = "boots-vaccine-proto-hub";
 
 /** Screen interaction defaults. Nav index is separate. */
 const DEFAULT_PROTO_UI = {
@@ -481,6 +514,37 @@ function formatBookingDateHeading(month: "June" | "July", day: number): string {
   const monthIndex = month === "July" ? 6 : 5;
   const d = new Date(2026, monthIndex, day);
   return `${BOOKING_WEEKDAYS[d.getDay()]}, ${bookingDayOrdinal(day)} ${month} 2026`;
+}
+
+function formatBookingDateTimeLabel(slot: ChosenBookingSlot): string {
+  return `${formatBookingDateHeading(slot.month, slot.day)}, ${slot.time}`;
+}
+
+function readBookingSlotFromScreen(
+  screen: HTMLElement
+): ChosenBookingSlot | null {
+  let month: ChosenBookingSlot["month"] | undefined;
+  let day: number | undefined;
+  let time: string | undefined;
+
+  screen
+    .querySelectorAll<HTMLElement>(
+      '[data-name="calendar. date. cell"][data-proto-cal-selected="true"]'
+    )
+    .forEach((cell) => {
+      if (cell.dataset.protoCalKind === "date") {
+        const m = cell.dataset.protoCalMonth;
+        if (m === "June" || m === "July") month = m;
+        const d = Number(cell.dataset.protoCalValue);
+        if (Number.isFinite(d)) day = d;
+      }
+      if (cell.dataset.protoCalKind === "time") {
+        time = cell.dataset.protoCalValue;
+      }
+    });
+
+  if (month && day != null && time) return { month, day, time };
+  return null;
 }
 
 function calCellLabel(cell: HTMLElement): string {
@@ -535,6 +599,33 @@ function clearProtoUiStorage() {
   PROTO_UI_LEGACY_KEYS.forEach((k) => sessionStorage.removeItem(k));
 }
 
+function findBookProgressCol(
+  screen: HTMLElement,
+  label: RegExp
+): HTMLElement | null {
+  const progress = screen.querySelector<HTMLElement>(
+    '[data-name="component.book.appointment.progress"]'
+  );
+  if (!progress) return null;
+  for (const child of Array.from(progress.children)) {
+    if (!(child instanceof HTMLElement)) continue;
+    if (label.test((child.textContent ?? "").replace(/\s+/g, " "))) {
+      return child;
+    }
+  }
+  return null;
+}
+
+function bookProgressBar(col: HTMLElement): HTMLElement | null {
+  const bar = col.lastElementChild;
+  return bar instanceof HTMLElement ? bar : null;
+}
+
+function markBookProgressCompleted(bar: HTMLElement) {
+  bar.style.setProperty("background", "#c6e5e1", "important");
+  bar.classList.remove("bg-white");
+}
+
 function readInitialNavIndex(): number {
   // Drop legacy interaction snapshots; nav is persisted separately.
   clearProtoUiStorage();
@@ -565,20 +656,35 @@ export default function App() {
   const [chosenRecipient, setChosenRecipient] = useState<RecipientMode>(
     DEFAULT_CHOSEN_RECIPIENT
   );
+  const [includeBoosterDose, setIncludeBoosterDose] = useState(
+    DEFAULT_INCLUDE_BOOSTER_DOSE
+  );
+  const [chosenBookingSlot, setChosenBookingSlot] = useState<ChosenBookingSlot>(
+    DEFAULT_CHOSEN_BOOKING_SLOT
+  );
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
+  const [loginPopupOpen, setLoginPopupOpen] = useState(false);
+  const [loginPopupTab, setLoginPopupTab] = useState<"signin" | "create">("signin");
+  const [loggedInFlag, setLoggedInFlag] = useState(false);
   /** Logo hub — blank standalone page (content TBD). */
-  const [hubOpen, setHubOpen] = useState(false);
+  const [hubOpen, setHubOpen] = useState(() => {
+    try { return sessionStorage.getItem(PROTO_HUB_KEY) === "1"; } catch { return false; }
+  });
   /** True once the Agentic home query differs from the seeded default. */
   const [homeQueryDirty, setHomeQueryDirty] = useState(false);
   /** True once the Chat composer has any input. */
   const [chatComposerDirty, setChatComposerDirty] = useState(false);
   const hubScrollElRef = useRef<HTMLDivElement>(null);
   const prototypeScrollElRef = useRef<HTMLDivElement>(null);
+  const appContentRef = useRef<HTMLDivElement>(null);
   const hubScrollPosRef = useRef(0);
   const prototypeScrollPosRef = useRef(0);
   const tabsScrollRef = useRef<HTMLDivElement>(null);
   const tabBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const chosenLocationRef = useRef(chosenLocation);
+  const goRef = useRef<(i: number) => void>(() => {});
+  const currentRef = useRef(current);
+  currentRef.current = current;
   chosenLocationRef.current = chosenLocation;
 
   const openAvailabilityTool = (intent: AvailOpenIntent = AVAIL_INTENT.start) => {
@@ -636,9 +742,16 @@ export default function App() {
 
   const resetPrototypeScroll = useCallback(() => {
     prototypeScrollPosRef.current = 0;
-    if (prototypeScrollElRef.current) {
-      prototypeScrollElRef.current.scrollTop = 0;
-    }
+    const el = prototypeScrollElRef.current;
+    if (!el) return;
+    const apply = () => {
+      el.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      el.scrollTop = 0;
+    };
+    apply();
+    requestAnimationFrame(apply);
+    window.setTimeout(apply, 0);
+    window.setTimeout(apply, 120);
   }, []);
 
   const restoreHubScroll = useCallback(() => {
@@ -668,10 +781,11 @@ export default function App() {
   useEffect(() => {
     try {
       sessionStorage.setItem(PROTO_NAV_KEY, String(current));
+      sessionStorage.setItem(PROTO_HUB_KEY, hubOpen ? "1" : "0");
     } catch {
       /* ignore */
     }
-  }, [current]);
+  }, [current, hubOpen]);
 
   useEffect(() => {
     if (!hubOpen) return;
@@ -684,6 +798,14 @@ export default function App() {
     ro.observe(inner);
     return () => ro.disconnect();
   }, [hubOpen, restoreHubScroll]);
+
+  // Prototype tabs always open at scroll top (nav, in-flow links, hub exit).
+  useLayoutEffect(() => {
+    if (hubOpen) return;
+    resetPrototypeScroll();
+  }, [current, hubOpen, resetPrototypeScroll]);
+
+  useProtoScrollFill(prototypeScrollElRef, !hubOpen);
 
   // Boots Pharmacy logo + breadcrumb “Home” → page 1 (Agentic Site Pilot Home)
   useEffect(() => {
@@ -783,25 +905,71 @@ export default function App() {
     }
   }, [current]);
 
-  // Measure the total sticky header height after each screen switch so breadcrumbs
-  // can dock precisely below it. On screen 2 the sticky group wraps both the nav
-  // and the Site Pilot bar, so we measure that wrapper instead.
+  // Mount shared sticky header at top of scroll container (replaces per-page Figma headers)
   useEffect(() => {
-    const measure = () => {
-      const active = document.querySelector(
-        `.proto-viewport > div > div:nth-child(${SCREENS[current]?.childIndex ?? 11})`
-      ) as HTMLElement | null;
-      const group = active?.querySelector("[data-proto-sticky-group]") as HTMLElement | null;
-      const header = active?.querySelector(
-        "[data-name='boots-pharmacy.module.header']"
-      ) as HTMLElement | null;
-      const el = group ?? header;
-      const h = el ? el.getBoundingClientRect().height : 64;
-      document.documentElement.style.setProperty("--sticky-top", `${h}px`);
+    const scrollEl = prototypeScrollElRef.current;
+    if (!scrollEl) return;
+    setupProtoHeader(scrollEl, {
+      onLoginChange: () => { setLoggedInFlag(isProtoHeaderLoggedIn()); },
+      onLoginClick: (tab) => { setLoginPopupTab(tab || "signin"); setLoginPopupOpen(true); },
+      onSignOut: () => {
+        setLoggedInFlag(false);
+        const idx = SCREENS[currentRef.current]?.childIndex;
+        if (idx === 1 || idx === 2 || idx === 3) {
+          setCurrent(0);
+        }
+      },
+      onNavigate: (screenIndex) => { setCurrent(screenIndex); },
+    });
+  }, []);
+
+  // Measure the sticky header height for any dependent positioning
+  useEffect(() => {
+    const scrollEl = prototypeScrollElRef.current;
+    if (!scrollEl) return;
+    const headerMount = scrollEl.querySelector(".proto-header-mount") as HTMLElement | null;
+    const h = headerMount ? headerMount.getBoundingClientRect().height : 64;
+    document.documentElement.style.setProperty("--sticky-top", `${h}px`);
+
+    // Sync login state: account/booking pages force logged-in
+    syncProtoHeaderLogin(SCREENS[current]?.childIndex ?? 11);
+    setLoggedInFlag(isProtoHeaderLoggedIn());
+  }, [current]);
+
+  // Mark active progress step on booking pages
+  useEffect(() => {
+    const childIndex = SCREENS[current]?.childIndex;
+    const activeStepMap: Record<number, RegExp> = {
+      7: /choose location/i,
+      4: /choose date/i,
+      3: /confirmation/i,
     };
-    requestAnimationFrame(measure);
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    const activePattern = activeStepMap[childIndex ?? -1];
+    if (!activePattern) return;
+
+    const mark = () => {
+      const screen = document.querySelector(
+        `.proto-viewport > div > div:nth-child(${childIndex})`
+      ) as HTMLElement | null;
+      const progress = screen?.querySelector<HTMLElement>(
+        '[data-name="component.book.appointment.progress"]'
+      );
+      if (!progress) return;
+      Array.from(progress.children)
+        .filter((n): n is HTMLElement => n instanceof HTMLElement)
+        .forEach((col) => {
+          const text = (col.textContent ?? "").replace(/\s+/g, " ");
+          if (activePattern.test(text)) {
+            col.dataset.protoStepActive = "true";
+          } else {
+            delete col.dataset.protoStepActive;
+          }
+        });
+    };
+    mark();
+    const raf = requestAnimationFrame(mark);
+    const t = window.setTimeout(mark, 120);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [current]);
 
   // Book – Step 1 (child 7): current breadcrumb crumb → “Book Appointment”
@@ -1044,8 +1212,10 @@ export default function App() {
     };
     const openLocations = (e: Event) => {
       stop(e);
-      setAvailabilityOpen(false);
-      openPickLocations("list");
+      const intent: AvailOpenIntent = { step: "list", query: "London" };
+      if (isProtoHeaderLoggedIn()) intent.storeId = AVAIL_DEMO_STORE;
+      setAvailIntent(intent);
+      setAvailabilityOpen(true);
     };
     const openAvailability = (intent: AvailOpenIntent) => (e: Event) => {
       stop(e);
@@ -1055,14 +1225,6 @@ export default function App() {
     /** Chat CTAs → availability tool step (allowlist). */
     const AVAIL_BTN_INTENT: Array<{ re: RegExp; intent: AvailOpenIntent }> = [
       { re: /^open availability checker tool$/i, intent: AVAIL_INTENT.start },
-      {
-        re: /^find available slots this week$/i,
-        intent: AVAIL_INTENT.dateWeek,
-      },
-      {
-        re: /^find available slots this weekend$/i,
-        intent: AVAIL_INTENT.dateWeekend,
-      },
       { re: /^choose time slot$/i, intent: AVAIL_INTENT.timeSlot },
       { re: /^choose different date$/i, intent: AVAIL_INTENT.dateChat },
     ];
@@ -1350,16 +1512,119 @@ export default function App() {
     };
   }, [current]);
 
+  // PDP (child 8) — "Quick Sign In" / "Create Boots Account" links → login popup
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 8) return;
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(8)"
+    ) as HTMLElement | null;
+    if (!screen) return;
+
+    const links = Array.from(screen.querySelectorAll<HTMLElement>("p")).filter((p) => {
+      const text = p.textContent?.trim() ?? "";
+      return text === "Quick Sign In" || text === "Create Boots Account";
+    });
+
+    // Find the narrow container: the element that holds "Boots Account will be required" + the two links
+    const reqText = Array.from(screen.querySelectorAll<HTMLElement>("p")).find((p) =>
+      p.textContent?.includes("Boots Account will be required")
+    );
+    const loginBlock = reqText?.parentElement;
+
+    // Wire "Vaccination" breadcrumb to navigate to PLP
+    const vacCrumb = screen.querySelector<HTMLElement>('[data-proto-crumb="vaccination"]');
+    const onVacCrumb = (e: Event) => { e.preventDefault(); setCurrent(PROTO_INDEX_PLP); };
+    if (vacCrumb) {
+      vacCrumb.style.cursor = "pointer";
+      vacCrumb.addEventListener("click", onVacCrumb);
+    }
+
+    // Hide only that block when logged in
+    if (isProtoHeaderLoggedIn() && loginBlock) {
+      (loginBlock as HTMLElement).style.display = "none";
+      return () => { if (vacCrumb) vacCrumb.removeEventListener("click", onVacCrumb); };
+    }
+    if (loginBlock) (loginBlock as HTMLElement).style.display = "";
+
+    const openLogin = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const text = (e.currentTarget as HTMLElement).textContent?.trim() ?? "";
+      setLoginPopupTab(text === "Create Boots Account" ? "create" : "signin");
+      setLoginPopupOpen(true);
+    };
+
+    links.forEach((link) => {
+      link.style.cursor = "default";
+      link.addEventListener("click", openLogin);
+    });
+
+    return () => {
+      links.forEach((link) => link.removeEventListener("click", openLogin));
+      if (vacCrumb) vacCrumb.removeEventListener("click", onVacCrumb);
+    };
+  }, [current, loginPopupOpen, loggedInFlag]);
+
+  // Wire wishlist heart icons on all pages
+  useEffect(() => {
+    const viewport = document.querySelector(".proto-viewport");
+    if (!viewport) return;
+    const hearts = viewport.querySelectorAll<HTMLElement>('[data-name="icon=add to wishlist"]');
+    const handlers: Array<[HTMLElement, () => void]> = [];
+
+    hearts.forEach((heart, i) => {
+      const btn = heart.closest('[data-name="component.input.button"]') as HTMLElement | null;
+      const target = btn || heart;
+      const id = `vaccine-${i}`;
+      target.style.cursor = "pointer";
+
+      // Set initial state
+      if (isInWishlist(id)) {
+        const svg = heart.querySelector("svg path");
+        if (svg) { svg.setAttribute("fill", "#c8247e"); }
+      }
+
+      const handler = () => {
+        const active = toggleWishlist(id);
+        const svg = heart.querySelector("svg path");
+        if (svg) {
+          svg.setAttribute("fill", active ? "#c8247e" : "var(--fill-0, #AFCCCA)");
+        }
+      };
+      target.addEventListener("click", handler);
+      handlers.push([target, handler]);
+    });
+
+    return () => { handlers.forEach(([el, h]) => el.removeEventListener("click", h)); };
+  }, [current]);
+
+  // Unified checkbox/radio click + init (PLP, PDP, Step 1, etc.)
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      handleProtoInputClick(target);
+    };
+
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  useEffect(() => {
+    initProtoInputControls();
+  }, [current]);
+
   // Escape closes popups; lock page scroll while either is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (recipientPickerOpen) closeRecipientPicker();
+      if (loginPopupOpen) setLoginPopupOpen(false);
+      else if (recipientPickerOpen) closeRecipientPicker();
       else if (vaccinePickerOpen) closeVaccinePicker();
       else if (availabilityOpen) closeAvailabilityTool();
     };
     window.addEventListener("keydown", onKey);
-    if (availabilityOpen || vaccinePickerOpen || recipientPickerOpen) {
+    if (availabilityOpen || vaccinePickerOpen || recipientPickerOpen || loginPopupOpen) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
@@ -1368,7 +1633,7 @@ export default function App() {
       };
     }
     return () => window.removeEventListener("keydown", onKey);
-  }, [availabilityOpen, vaccinePickerOpen, recipientPickerOpen]);
+  }, [availabilityOpen, vaccinePickerOpen, recipientPickerOpen, loginPopupOpen]);
 
   // PLP (child 9) — all “Book now” CTAs → page 4 (PDP)
   useEffect(() => {
@@ -1414,10 +1679,7 @@ export default function App() {
   }, [current]);
 
   // Screen 2 (Account Overview, child 10) has a Site Pilot microheader (Frame337)
-  // that must stick together with the main nav as one unit.
-  // Two separate sticky elements with offset `top` values scroll independently, so
-  // we physically wrap both in a single sticky container via the DOM.
-  // React won't touch Frame219's internals (no vDOM change), so this is safe.
+  // that must stick below the shared sticky header.
   useEffect(() => {
     const SCREEN2_CHILD = 10;
     const screenDiv = document.querySelector(
@@ -1425,32 +1687,24 @@ export default function App() {
     ) as HTMLElement | null;
     if (!screenDiv) return;
 
-    const header = screenDiv.children[0] as HTMLElement;
+    // The Site Pilot bar is the second child (first is the native header, now hidden)
     const microHeader = screenDiv.children[1] as HTMLElement;
-    if (!header || !microHeader) return;
+    if (!microHeader) return;
 
-    const wrapper = document.createElement("div");
-    wrapper.dataset.protoStickyGroup = "true";
-    Object.assign(wrapper.style, {
+    microHeader.dataset.protoStickyGroup = "true";
+    Object.assign(microHeader.style, {
       position: "sticky",
-      top: "0",
-      zIndex: "50",
+      top: "var(--sticky-top, 64px)",
+      zIndex: "40",
       width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
     });
 
-    screenDiv.insertBefore(wrapper, header);
-    wrapper.appendChild(header);
-    wrapper.appendChild(microHeader);
-
     return () => {
-      if (wrapper.parentNode === screenDiv) {
-        screenDiv.insertBefore(header, wrapper);
-        screenDiv.insertBefore(microHeader, wrapper);
-        wrapper.remove();
-      }
+      delete microHeader.dataset.protoStickyGroup;
+      microHeader.style.removeProperty("position");
+      microHeader.style.removeProperty("top");
+      microHeader.style.removeProperty("z-index");
+      microHeader.style.removeProperty("width");
     };
   }, []);
 
@@ -1512,73 +1766,26 @@ export default function App() {
     };
   }, [current, chosenLocation]);
 
-
-  // Book Step 1 — reuse Step 2 light footer (hide Hire Equipment dark footer)
+  // Figma search rows — hide in-field clear (X) when value is empty / placeholder.
   useEffect(() => {
-    const step1 = document.querySelector(
-      ".proto-viewport > div > div:nth-child(7)"
-    ) as HTMLElement | null;
-    const step2 = document.querySelector(
-      ".proto-viewport > div > div:nth-child(4)"
-    ) as HTMLElement | null;
-    if (!step1 || !step2) return;
+    const root = prototypeScrollElRef.current;
+    if (!root) return;
+    const run = () => syncFigmaSearchClearIcons(root);
+    run();
+    const raf = requestAnimationFrame(run);
+    const t = window.setTimeout(run, 0);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [current, chosenLocation, availabilityOpen]);
 
-    const sourceFooter = step2.querySelector<HTMLElement>(
-      ':scope > [data-name="boots.phm.module.footer"]'
-    );
-    if (!sourceFooter) return;
-
-    const oldFooter = step1.querySelector<HTMLElement>(
-      ':scope > [data-name="module.footer"]'
-    );
-    if (oldFooter) {
-      oldFooter.style.display = "none";
-      oldFooter.dataset.protoFooterHidden = "true";
-    }
-
-    let cloned = step1.querySelector<HTMLElement>(":scope > .proto-step2-footer");
-    if (!cloned) {
-      cloned = sourceFooter.cloneNode(true) as HTMLElement;
-      cloned.classList.add("proto-step2-footer");
-      step1.appendChild(cloned);
-    }
-  }, []);
-
-  // Account pages (Order Details + Order History) — reuse PLP footer
+  // ProtoFooter on all screens with static Figma footers (replaces native DOM)
   useEffect(() => {
-    const plp = document.querySelector(
-      ".proto-viewport > div > div:nth-child(9)"
-    ) as HTMLElement | null;
-    if (!plp) return;
-
-    const sourceFooter = plp.querySelector<HTMLElement>(
-      ':scope > [data-name="boots-pharmacy.module.footer"]'
-    );
-    if (!sourceFooter) return;
-
-    for (const childIdx of [1, 2]) {
-      const page = document.querySelector(
-        `.proto-viewport > div > div:nth-child(${childIdx})`
-      ) as HTMLElement | null;
-      if (!page) continue;
-
-      page
-        .querySelectorAll<HTMLElement>(
-          ':scope > [data-name="boots.phm.module.footer"], :scope > [data-name="boots-pharmacy.module.footer"], :scope > [data-name="module.footer"]'
-        )
-        .forEach((footer) => {
-          if (footer.classList.contains("proto-plp-footer")) return;
-          footer.style.display = "none";
-          footer.dataset.protoFooterHidden = "true";
-        });
-
-      let cloned = page.querySelector<HTMLElement>(":scope > .proto-plp-footer");
-      if (!cloned) {
-        cloned = sourceFooter.cloneNode(true) as HTMLElement;
-        cloned.classList.add("proto-plp-footer");
-        page.appendChild(cloned);
-      }
-    }
+    setupProtoFooters({
+      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    });
+    wireProtoIconHits();
   }, []);
 
   // My Account — Order → Appointment copy on Details + History pages
@@ -2023,11 +2230,19 @@ export default function App() {
       clearSelected(m.kind);
       cell.dataset.protoCalSelected = "true";
 
-      if (m.kind === "date" && m.month && heading) {
+      if (m.kind === "date" && m.month) {
         const day = Number(m.value);
         if (Number.isFinite(day)) {
-          heading.textContent = formatBookingDateHeading(m.month, day);
+          if (heading) {
+            heading.textContent = formatBookingDateHeading(m.month, day);
+          }
+          setChosenBookingSlot((prev) => ({ ...prev, month: m.month!, day }));
         }
+        return;
+      }
+
+      if (m.kind === "time") {
+        setChosenBookingSlot((prev) => ({ ...prev, time: m.value }));
       }
     };
 
@@ -2101,6 +2316,8 @@ export default function App() {
       if ("stopImmediatePropagation" in e) {
         (e as Event).stopImmediatePropagation();
       }
+      const slot = readBookingSlotFromScreen(screen);
+      if (slot) setChosenBookingSlot(slot);
       setCurrent(6); // Book - Step 3 - Confirmation
     };
 
@@ -2440,6 +2657,119 @@ export default function App() {
     });
   }, [chosenRecipient, current]);
 
+  // Confirmation + Appointment pages — sync chosen date/time on summary rows
+  useEffect(() => {
+    const childIndices = [3, 2, 1];
+    const value = formatBookingDateTimeLabel(chosenBookingSlot);
+    childIndices.forEach((childIndex) => {
+      const screen = document.querySelector(
+        `.proto-viewport > div > div:nth-child(${childIndex})`
+      ) as HTMLElement | null;
+      if (!screen) return;
+
+      screen
+        .querySelectorAll<HTMLElement>('[data-name="Week Schedule"]')
+        .forEach((card) => {
+          const rowLabel = Array.from(card.querySelectorAll("p")).find((p) =>
+            /^date$/i.test((p.textContent ?? "").trim())
+          );
+          if (!rowLabel) return;
+
+          rowLabel.textContent = "Date and Time";
+
+          const row = rowLabel.parentElement;
+          if (!row) return;
+
+          Array.from(row.querySelectorAll("p")).forEach((p) => {
+            if (p === rowLabel) return;
+            if (/^change/i.test((p.textContent ?? "").trim())) return;
+            if (
+              /semibold|font-bold/.test(p.className) ||
+              p.className.includes("Open_Sans:SemiBold")
+            ) {
+              p.textContent = value;
+            }
+          });
+        });
+
+      screen.querySelectorAll<HTMLElement>('[data-name="row"]').forEach((row) => {
+        const ps = Array.from(row.querySelectorAll("p"));
+        const rowLabel = ps.find((p) =>
+          /^appointment date$/i.test((p.textContent ?? "").trim())
+        );
+        if (!rowLabel) return;
+
+        rowLabel.textContent = "Date and Time";
+        const valueP = ps.find((p) => p !== rowLabel);
+        if (valueP) valueP.textContent = value;
+      });
+    });
+  }, [chosenBookingSlot, current]);
+
+  // Book Steps 1–3 + Appointment Details — sync booster dose on summary rows
+  useEffect(() => {
+    const childIndices = [7, 4, 3, 1];
+    const label = boosterDoseSummaryLabel(includeBoosterDose);
+    childIndices.forEach((childIndex) => {
+      const screen = document.querySelector(
+        `.proto-viewport > div > div:nth-child(${childIndex})`
+      ) as HTMLElement | null;
+      if (!screen) return;
+
+      screen
+        .querySelectorAll<HTMLElement>('[data-name="Week Schedule"]')
+        .forEach((card) => {
+          const rowLabel = Array.from(card.querySelectorAll("p")).find((p) =>
+            /^(booster dose|second dose)$/i.test((p.textContent ?? "").trim())
+          );
+          if (!rowLabel) return;
+
+          const row = rowLabel.parentElement;
+          if (!row) return;
+
+          Array.from(row.querySelectorAll("p")).forEach((p) => {
+            if (p === rowLabel) return;
+            if (/^change/i.test((p.textContent ?? "").trim())) return;
+            if (
+              /semibold|font-bold/.test(p.className) ||
+              p.className.includes("Open_Sans:SemiBold")
+            ) {
+              p.textContent = label;
+            }
+          });
+        });
+    });
+  }, [includeBoosterDose, current]);
+
+  // Confirmation + Appointment Details — order summary pricing from booster choice
+  useEffect(() => {
+    const pricingScreens: Array<{ childIndex: number; mode: "confirm" | "account" }> =
+      [
+        { childIndex: 3, mode: "confirm" },
+        { childIndex: 1, mode: "account" },
+      ];
+
+    pricingScreens.forEach(({ childIndex, mode }) => {
+      const screen = document.querySelector(
+        `.proto-viewport > div > div:nth-child(${childIndex})`
+      ) as HTMLElement | null;
+      if (!screen) return;
+
+      if (mode === "confirm") {
+        const summary = screen.querySelector<HTMLElement>(
+          '[data-name="component.co.order.summary"]'
+        );
+        if (summary) syncConfirmationOrderSummary(summary, includeBoosterDose);
+        return;
+      }
+
+      const block = screen.querySelector<HTMLElement>(
+        '[data-name="Info Blocks / Order Summary/NO"]'
+      );
+      if (block) syncAccountOrderSummary(block, includeBoosterDose);
+    });
+  }, [includeBoosterDose, current]);
+
   // Book Steps 1–2 — Vaccine row “Change” → vaccine picker popup
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
@@ -2594,47 +2924,138 @@ export default function App() {
     };
   }, [current]);
 
-  // Book Steps 2–3 — entire Step 1 progress column → back to Step 1 (Location)
+  // Book Step 2 — Step 1 progress column → back to Step 1 (Location)
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
-    if (childIndex !== 4 && childIndex !== 3) return;
 
-    const screen = document.querySelector(
-      `.proto-viewport > div > div:nth-child(${childIndex})`
-    ) as HTMLElement | null;
-    if (!screen) return;
+    // Confirmation — progress is read-only (no back-nav, all bars stay teal)
+    if (childIndex === 3) {
+      const lockProgress = () => {
+        const root = prototypeScrollElRef.current;
+        const screen = root?.querySelector(
+          ".proto-viewport > div > div:nth-child(3)"
+        ) as HTMLElement | null;
+        const progress = screen?.querySelector<HTMLElement>(
+          '[data-name="component.book.appointment.progress"]'
+        );
+        if (!progress) return;
 
-    const progress = screen.querySelector<HTMLElement>(
-      '[data-name="component.book.appointment.progress"]'
-    );
-    const step1Col = progress?.firstElementChild;
-    if (!(step1Col instanceof HTMLElement)) return;
+        Array.from(progress.children)
+          .filter((n): n is HTMLElement => n instanceof HTMLElement)
+          .forEach((col) => {
+            delete col.dataset.protoBookStepBack;
+            delete col.dataset.protoBookStepComplete;
+            col.removeAttribute("role");
+            col.removeAttribute("aria-label");
+            col.tabIndex = -1;
+            col.style.removeProperty("pointer-events");
+            col.style.removeProperty("cursor");
+            col.style.removeProperty("position");
+            col.style.removeProperty("z-index");
+            const bar = bookProgressBar(col);
+            if (bar) markBookProgressCompleted(bar);
+          });
+        progress.style.pointerEvents = "none";
+      };
+
+      lockProgress();
+      const raf = requestAnimationFrame(lockProgress);
+      const t0 = window.setTimeout(lockProgress, 0);
+      const t1 = window.setTimeout(lockProgress, 120);
+      return () => {
+        cancelAnimationFrame(raf);
+        window.clearTimeout(t0);
+        window.clearTimeout(t1);
+      };
+    }
+
+    if (childIndex !== 4) return;
+
+    let step1Col: HTMLElement | null = null;
+    let progress: HTMLElement | null = null;
 
     const goBookStep1 = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
+      if ("stopImmediatePropagation" in e) {
+        (e as Event).stopImmediatePropagation();
+      }
       setCurrent(4); // Book - Step 1 - Location
     };
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Enter" && e.key !== " ") return;
+      if (!step1Col) return;
+      const target = e.target as Node | null;
+      if (target && target !== step1Col && !step1Col.contains(target)) return;
       goBookStep1(e);
     };
 
-    step1Col.dataset.protoBookStepBack = "true";
-    step1Col.setAttribute("role", "button");
-    step1Col.setAttribute("aria-label", "Go back to Choose Location");
-    step1Col.tabIndex = 0;
-    step1Col.addEventListener("click", goBookStep1);
-    step1Col.addEventListener("keydown", onKey);
+    const onProgressClick = (e: MouseEvent) => {
+      if (!step1Col) return;
+      const target = e.target as Node | null;
+      if (!target || !step1Col.contains(target)) return;
+      goBookStep1(e);
+    };
+
+    const teardown = () => {
+      if (step1Col) {
+        delete step1Col.dataset.protoBookStepBack;
+        delete step1Col.dataset.protoBookStepComplete;
+        step1Col.removeAttribute("role");
+        step1Col.removeAttribute("aria-label");
+        step1Col.tabIndex = -1;
+        step1Col.style.removeProperty("pointer-events");
+        step1Col.style.removeProperty("cursor");
+        step1Col.style.removeProperty("position");
+        step1Col.style.removeProperty("z-index");
+        step1Col.removeEventListener("keydown", onKey);
+      }
+      progress?.removeEventListener("click", onProgressClick, true);
+    };
+
+    const wire = () => {
+      teardown();
+
+      const root = prototypeScrollElRef.current;
+      const screen = root?.querySelector(
+        `.proto-viewport > div > div:nth-child(${childIndex})`
+      ) as HTMLElement | null;
+      if (!screen) return;
+
+      progress = screen.querySelector<HTMLElement>(
+        '[data-name="component.book.appointment.progress"]'
+      );
+      step1Col = findBookProgressCol(screen, /choose location/i);
+      if (!step1Col || !progress) return;
+
+      const step1Bar = bookProgressBar(step1Col);
+      if (step1Bar) markBookProgressCompleted(step1Bar);
+
+      step1Col.dataset.protoBookStepBack = "true";
+      step1Col.setAttribute("role", "button");
+      step1Col.setAttribute("aria-label", "Go back to Choose Location");
+      step1Col.tabIndex = 0;
+      step1Col.style.pointerEvents = "auto";
+      step1Col.style.cursor = "pointer";
+      step1Col.style.position = "relative";
+      step1Col.style.zIndex = "2";
+      progress.style.pointerEvents = "auto";
+
+      step1Col.addEventListener("keydown", onKey);
+      progress.addEventListener("click", onProgressClick, true);
+    };
+
+    wire();
+    const raf = requestAnimationFrame(wire);
+    const t0 = window.setTimeout(wire, 0);
+    const t1 = window.setTimeout(wire, 120);
 
     return () => {
-      delete step1Col.dataset.protoBookStepBack;
-      step1Col.removeAttribute("role");
-      step1Col.removeAttribute("aria-label");
-      step1Col.tabIndex = -1;
-      step1Col.removeEventListener("click", goBookStep1);
-      step1Col.removeEventListener("keydown", onKey);
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+      teardown();
     };
   }, [current]);
 
@@ -2685,48 +3106,146 @@ export default function App() {
     };
   }, [current, chosenLocation]);
 
-  // Book Appointment: single booster checkbox (page Units4) — PDP-style toggle, no clone
+  // Book Appointment + PDP — wire shared booster checkbox (toggle → React state)
   useEffect(() => {
+    const cleanups: Array<() => void> = [];
+
+    const wireBoosterCheckbox = (
+      screen: HTMLElement | null,
+      options?: { isPdp?: boolean }
+    ) => {
+      if (!screen) return;
+
+      const checkboxBlock = options?.isPdp
+        ? (() => {
+            const checkboxRow = screen.querySelector<HTMLElement>(
+              "[data-name='component.input.checkbox']"
+            );
+            return checkboxRow?.closest<HTMLElement>("[data-name='units']") ?? null;
+          })()
+        : Array.from(
+            screen.querySelectorAll<HTMLElement>("[data-name='units']")
+          ).find((u) =>
+            /Include booking (booster|second) dose/i.test(u.textContent ?? "")
+          ) ?? null;
+
+      if (!checkboxBlock) return;
+
+      if (!options?.isPdp) {
+        checkboxBlock.classList.add("proto-page-booster-checkbox");
+        const labelP = checkboxBlock.querySelector<HTMLElement>(
+          "[data-name='Label'] p"
+        );
+        if (labelP) labelP.textContent = PDP_CHECKBOX_LABEL;
+      }
+
+      const checkboxRow = checkboxBlock.querySelector<HTMLElement>(
+        "[data-name='component.input.checkbox']"
+      );
+      if (!checkboxRow) return;
+
+      markBoosterCheckboxRow(checkboxRow);
+      ensureCheckboxRow(checkboxRow);
+      checkboxRow.dataset.checkboxChecked = String(includeBoosterDose);
+
+      const onToggle = () => {
+        setIncludeBoosterDose((prev) => !prev);
+      };
+      checkboxRow.addEventListener("click", onToggle);
+      cleanups.push(() => checkboxRow.removeEventListener("click", onToggle));
+    };
+
     const page5 = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
-    if (!page5) return;
-
-    // Remove leftover clones from older sessions
     page5
-      .querySelectorAll<HTMLElement>(".proto-chosen-checkbox")
+      ?.querySelectorAll<HTMLElement>(".proto-chosen-checkbox")
       .forEach((el) => el.remove());
+    wireBoosterCheckbox(page5);
 
-    const checkboxBlock = Array.from(
-      page5.querySelectorAll<HTMLElement>("[data-name='units']")
-    ).find((u) =>
-      /Include booking (booster|second) dose/i.test(u.textContent ?? "")
+    const pdpScreen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(8)"
+    ) as HTMLElement | null;
+    wireBoosterCheckbox(pdpScreen, { isPdp: true });
+
+    return () => cleanups.forEach((fn) => fn());
+  }, [current, chosenLocation]);
+
+  // Book Appointment + PDP — reflect shared booster state in checkbox DOM
+  useEffect(() => {
+    const syncRow = (screen: HTMLElement | null, isPdp?: boolean) => {
+      if (!screen) return;
+      const checkboxRow = isPdp
+        ? screen.querySelector<HTMLElement>("[data-name='component.input.checkbox']")
+        : Array.from(screen.querySelectorAll<HTMLElement>("[data-name='units']"))
+            .find((u) =>
+              /Include booking (booster|second) dose/i.test(u.textContent ?? "")
+            )
+            ?.querySelector<HTMLElement>("[data-name='component.input.checkbox']") ?? null;
+      if (checkboxRow) {
+        checkboxRow.dataset.checkboxChecked = String(includeBoosterDose);
+      }
+    };
+
+    syncRow(
+      document.querySelector(
+        ".proto-viewport > div > div:nth-child(7)"
+      ) as HTMLElement | null
     );
-    if (!checkboxBlock) return;
+    syncRow(
+      document.querySelector(
+        ".proto-viewport > div > div:nth-child(8)"
+      ) as HTMLElement | null,
+      true
+    );
+  }, [includeBoosterDose, current]);
 
-    checkboxBlock.classList.add("proto-page-booster-checkbox");
+  // PDP — keep checkbox section white; sync Book now price from shared booster state
+  useEffect(() => {
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(8)"
+    ) as HTMLElement | null;
+    if (!screen) return;
 
-    // Match PDP Deal Details label exactly (incl. + £75.00)
-    const PDP_CHECKBOX_LABEL = "Include booking second dose at a future date + £75.00";
-    const labelP = checkboxBlock.querySelector<HTMLElement>("[data-name='Label'] p");
-    if (labelP) labelP.textContent = PDP_CHECKBOX_LABEL;
-
-    const checkboxRow = checkboxBlock.querySelector<HTMLElement>(
+    const checkboxRow = screen.querySelector<HTMLElement>(
       "[data-name='component.input.checkbox']"
     );
-    if (!checkboxRow) return;
+    if (checkboxRow) {
+      checkboxRow.dataset.checkboxChecked = String(includeBoosterDose);
 
-    checkboxRow.style.cursor = "pointer";
-    if (checkboxRow.dataset.checkboxChecked == null) {
-      checkboxRow.dataset.checkboxChecked = "true";
+      const checkboxSection = checkboxRow.parentElement;
+      if (checkboxSection) {
+        checkboxSection.style.setProperty("background", "white", "important");
+        checkboxSection.style.setProperty(
+          "background-color",
+          "white",
+          "important"
+        );
+      }
+      Array.from(checkboxSection?.children ?? []).forEach((child) => {
+        if (child !== checkboxRow) {
+          (child as HTMLElement).style?.setProperty(
+            "background",
+            "transparent",
+            "important"
+          );
+        }
+      });
     }
-    const onToggle = () => {
-      const next = checkboxRow.dataset.checkboxChecked !== "true";
-      checkboxRow.dataset.checkboxChecked = String(next);
-    };
-    checkboxRow.addEventListener("click", onToggle);
-    return () => checkboxRow.removeEventListener("click", onToggle);
-  }, [current, chosenLocation]);
+
+    const navyButton = screen.querySelector<HTMLElement>(
+      "[data-name='component.input.button']"
+    );
+    const allSpans = navyButton
+      ? Array.from(navyButton.querySelectorAll("span"))
+      : [];
+    const priceSpan = allSpans.length ? allSpans[allSpans.length - 1] : null;
+    if (priceSpan) {
+      priceSpan.textContent = String(
+        includeBoosterDose ? PDP_PRICE_WITH_BOOSTER : PDP_PRICE_WITHOUT_BOOSTER
+      );
+    }
+  }, [includeBoosterDose]);
 
   // Screen 4 (Deal Details, child 8): wire up the Myself / Someone else toggle.
   // We tag each tab with data-toggle-index so CSS can apply the correct 3-sided
@@ -2776,58 +3295,6 @@ export default function App() {
     return () => cleanup.forEach((fn) => fn());
   }, []);
 
-  // Screen 4 (Deal Details, child 8): second dose checkbox.
-  // Starts checked (£150 = £75 base + £75 addon). Unchecking drops price to £75.
-  useEffect(() => {
-    const screen = document.querySelector(
-      ".proto-viewport > div > div:nth-child(8)"
-    ) as HTMLElement | null;
-    if (!screen) return;
-
-    const checkboxRow = screen.querySelector<HTMLElement>(
-      "[data-name='component.input.checkbox']"
-    );
-    if (!checkboxRow) return;
-
-    // Forcibly strip teal background from the checkbox section (Units7) and
-    // every ancestor up to component.pdp.rtb via inline style — CSS alone has
-    // not been able to override the source of the teal.
-    const checkboxSection = checkboxRow.parentElement;
-    if (checkboxSection) {
-      checkboxSection.style.setProperty("background", "white", "important");
-      checkboxSection.style.setProperty("background-color", "white", "important");
-    }
-    // Clear bg on the description sibling only — leave checkboxRow unstyled
-    // so CSS :hover can apply the teal tint freely.
-    Array.from(checkboxSection?.children ?? []).forEach((child) => {
-      if (child !== checkboxRow) {
-        (child as HTMLElement).style?.setProperty("background", "transparent", "important");
-      }
-    });
-
-    // The navy "Book now" button is the first component.input.button in the RTB.
-    // Its price is the last <span> inside: "Book now - " | "£" | "150"
-    const navyButton = screen.querySelector<HTMLElement>(
-      "[data-name='component.input.button']"
-    );
-    const allSpans = navyButton ? Array.from(navyButton.querySelectorAll("span")) : [];
-    const priceSpan = allSpans.length ? allSpans[allSpans.length - 1] : null;
-
-    let checked = true;
-    checkboxRow.dataset.checkboxChecked = "true";
-    // Sync price to initial state immediately
-    if (priceSpan) priceSpan.textContent = "150";
-
-    const toggle = () => {
-      checked = !checked;
-      checkboxRow.dataset.checkboxChecked = String(checked);
-      if (priceSpan) priceSpan.textContent = checked ? "150" : "75";
-    };
-
-    checkboxRow.addEventListener("click", toggle);
-    return () => checkboxRow.removeEventListener("click", toggle);
-  }, []);
-
   // Screen 4: favourite heart toggle
   useEffect(() => {
     const screen = document.querySelector(
@@ -2871,11 +3338,13 @@ export default function App() {
     }
     setCurrent(next);
   };
+  goRef.current = go;
 
   const openHub = () => {
     if (hubOpen) {
       saveHubScroll();
       setHubOpen(false);
+      resetPrototypeScroll();
       return;
     }
 
@@ -2888,14 +3357,31 @@ export default function App() {
   const navLabel = hubOpen ? PROTO_HUB_LABEL : label;
 
   /**
-   * Screen 1 uses a height:100% chain so the body fills exactly the available
-   * viewport space without adding a scrollbar. Other screens use height:auto
-   * so they scroll naturally when their content is taller than the viewport.
+   * Sticky footer: active screen is at least the scroll-area height; footers use
+   * margin-top:auto so they sit on the viewport bottom when content is short.
+   * Screen 1 (Agentic home) also uses height:100% so the body fills without a seam.
    */
   const dynamicCSS = `
-    /* Frame219 root height depends on active screen */
+    /* Flex column fill chain — footer sticks even when browser zoom changes */
+    .proto-scroll--prototype:not(.hidden) {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .proto-scroll--prototype > .proto-viewport {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      min-height: var(--proto-scroll-min-px, 100%) !important;
+    }
+
+    /* Frame219 root — override size-full (height:100% breaks % chain when zoomed) */
     .proto-viewport > div {
-      height: ${isScreen1 ? "100%" : "auto"} !important;
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      height: auto !important;
+      min-height: var(--proto-scroll-min-px, 100%) !important;
       width: 100% !important;
     }
 
@@ -2916,9 +3402,21 @@ export default function App() {
       left: auto !important;
       top: auto !important;
       height: ${isScreen1 ? "100%" : "auto"} !important;
-      min-height: unset !important;
+      min-height: var(--proto-scroll-min-px, 100%) !important;
+      flex: 1 1 auto !important;
       overflow: visible !important;
+      overflow-x: visible !important;
+      overflow-y: visible !important;
       animation: proto-fade 0.25s ease;
+    }
+
+    /* Push footer to the bottom when the page is shorter than the viewport */
+    .proto-viewport > div > div:nth-child(${childIndex}) > .proto-footer-mount,
+    .proto-viewport > div > div:nth-child(${childIndex}) > [data-name="boots.phm.module.footer"],
+    .proto-viewport > div > div:nth-child(${childIndex}) > [data-name="boots-pharmacy.module.footer"],
+    .proto-viewport > div > div:nth-child(${childIndex}) > [data-name="module.footer"] {
+      margin-top: auto !important;
+      flex-shrink: 0 !important;
     }
 
     /*
@@ -2930,7 +3428,9 @@ export default function App() {
     .proto-viewport > div > div:nth-child(${childIndex}) [data-name="boots-pharmacy.module.footer"],
     .proto-viewport > div > div:nth-child(${childIndex}) [data-name="module.footer"],
     .proto-viewport > div > div:nth-child(${childIndex}) [data-name="module.breadcrumbs"],
-    .proto-viewport > div > div:nth-child(${childIndex}) [data-name="boots.phm.module.footer.copyright"] {
+    .proto-viewport > div > div:nth-child(${childIndex}) [data-name="boots.phm.module.footer.copyright"],
+    .proto-viewport > div > div:nth-child(${childIndex}) > .proto-footer-mount,
+    .proto-viewport > div > div:nth-child(${childIndex}) .proto-footer {
       width: 100% !important;
       min-width: 1200px !important;
     }
@@ -2950,10 +3450,6 @@ export default function App() {
      * overflow-y: auto on viewportRef means a scrollbar only appears if the
      * viewport is shrunk until the content no longer fits.
      */
-    .proto-viewport > div > div:nth-child(11) {
-      min-height: 100% !important;
-      height: 100% !important;
-    }
     .proto-viewport > div > div:nth-child(11) > [data-name="body"] {
       flex: 1 1 auto !important;
       width: 100% !important;
@@ -3009,16 +3505,17 @@ export default function App() {
 
   return (
     <div
-      className="flex flex-col h-full max-h-[100dvh] overflow-hidden"
+      className="proto-app-root flex flex-col h-full max-h-[100dvh] overflow-hidden"
       style={{ fontFamily: "'Open Sans', sans-serif" }}
     >
       <style>{dynamicCSS}</style>
 
-      <ProtoNavChrome
+      <ProtoNavPanel
         current={current}
         hubOpen={hubOpen}
         navLabel={navLabel}
         isProtoPristine={isProtoPristine}
+        contentRef={appContentRef}
         tabsScrollRef={tabsScrollRef}
         tabBtnRefs={tabBtnRefs}
         onOpenHub={openHub}
@@ -3026,8 +3523,11 @@ export default function App() {
         onReset={resetPrototype}
       />
 
-      {/* Hub + prototype each keep their own scroll position (stay mounted). */}
-      <div className="flex flex-1 min-h-0 w-full flex-col overflow-hidden bg-white">
+      <div
+        ref={appContentRef}
+        className="proto-app-content flex flex-1 min-h-0 w-full flex-col overflow-hidden bg-white"
+        style={{ isolation: "isolate" }}
+      >
         <div
           ref={hubScrollElRef}
           className={`proto-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full${
@@ -3039,14 +3539,17 @@ export default function App() {
         </div>
         <div
           ref={prototypeScrollElRef}
-          className={`proto-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full${
+          className={`proto-scroll proto-scroll--prototype min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full${
             hubOpen ? " hidden" : ""
           }`}
           onScroll={savePrototypeScroll}
         >
           <div
             className="proto-viewport w-full"
-            style={{ height: isScreen1 ? "100%" : "auto" }}
+            style={{
+              minHeight: "100%",
+              height: isScreen1 ? "100%" : "auto",
+            }}
           >
             <Frame219 />
           </div>
@@ -3065,12 +3568,13 @@ export default function App() {
           });
           closeAvailabilityTool();
         }}
-        onBookNow={(store) => {
+        onBookNow={(store, slot) => {
           setChosenLocation({
             name: store.name,
             address: store.address,
             storeId: store.id,
           });
+          setChosenBookingSlot(slot);
           closeAvailabilityTool();
           // Defer nav so this click cannot ghost-hit Step 1 Continue → Step 2.
           window.setTimeout(() => setCurrent(4), 0);
@@ -3091,6 +3595,16 @@ export default function App() {
         selected={chosenRecipient}
         onClose={closeRecipientPicker}
         onSelect={setChosenRecipient}
+      />
+
+      <LoginPopup
+        open={loginPopupOpen}
+        initialTab={loginPopupTab}
+        onClose={() => setLoginPopupOpen(false)}
+        onSignIn={() => {
+          setProtoHeaderLoggedIn(true);
+          setLoggedInFlag(true);
+        }}
       />
     </div>
   );

@@ -8,6 +8,62 @@ export const PROTO_LOC_COUNT_NEAR = "63 locations found (in 10km radius)";
 
 const FOUND_DOT_FLASH_MS = 900;
 
+const FIGMA_SEARCH_PLACEHOLDER_RE =
+  /^(search disease|search for city|enter city|post code|location\.\.\.)$/i;
+
+/** True when a location/search field has no user-entered value. */
+export function isLocationSearchQueryEmpty(query: string): boolean {
+  return query.trim() === "";
+}
+
+/** Show the in-field clear (X) only when the search has a value. */
+export function shouldShowLocationSearchClear(query: string): boolean {
+  return !isLocationSearchQueryEmpty(query);
+}
+
+export function syncLocationSearchClearBtn(
+  clearBtn: HTMLElement | null | undefined,
+  query: string
+): void {
+  if (!clearBtn) return;
+  const show = shouldShowLocationSearchClear(query);
+  clearBtn.hidden = !show;
+  clearBtn.style.display = show ? "" : "none";
+  clearBtn.tabIndex = show ? 0 : -1;
+  clearBtn.setAttribute("aria-hidden", show ? "false" : "true");
+}
+
+function readFigmaTextFieldValue(textField: HTMLElement): string {
+  const input = textField.querySelector<HTMLInputElement>("input");
+  if (input) return input.value.trim();
+  const label = textField.querySelector<HTMLElement>(
+    "[data-name='wrapper'] p, [data-name='Label'] p"
+  );
+  return (label?.textContent ?? "").trim();
+}
+
+function isFigmaSearchFieldEmpty(textField: HTMLElement): boolean {
+  const text = readFigmaTextFieldValue(textField);
+  if (!text) return true;
+  if (text === PROTO_LOC_SEARCH_NEAR) return true;
+  if (FIGMA_SEARCH_PLACEHOLDER_RE.test(text)) return true;
+  if (/^search for city/i.test(text)) return true;
+  if (/^enter city/i.test(text)) return true;
+  return false;
+}
+
+/** Hide baked-in Figma `icon=clear` when the static search label is empty/placeholder. */
+export function syncFigmaSearchClearIcons(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLElement>('[data-name="Text Field"]').forEach((tf) => {
+    const clear = tf.querySelector<HTMLElement>('[data-name="icon=clear"]');
+    if (!clear) return;
+    const empty = isFigmaSearchFieldEmpty(tf);
+    clear.hidden = empty;
+    clear.style.display = empty ? "none" : "";
+    tf.dataset.protoSearchFilled = empty ? "false" : "true";
+  });
+}
+
 export type LocationSearchView = {
   step: "list" | "map";
   nearMe: boolean;
@@ -192,9 +248,26 @@ export function wirePopupLocationSearchChrome(opts: WirePopupSearchChromeOpts) {
     }
   }
 
+  const syncClear = () => {
+    const input = textField.querySelector<HTMLInputElement>("input");
+    const value = input
+      ? input.value
+      : (textField.querySelector<HTMLElement>("[data-name='wrapper'] p")?.textContent ??
+        "");
+    syncLocationSearchClearBtn(clearBtn, value);
+  };
+
   if (clearBtn) {
     clearBtn.addEventListener("click", onClear);
     viewCleanups.push(() => clearBtn!.removeEventListener("click", onClear));
+  }
+
+  syncClear();
+  const input = textField.querySelector<HTMLInputElement>("input");
+  if (input) {
+    const onInput = () => syncClear();
+    input.addEventListener("input", onInput);
+    viewCleanups.push(() => input.removeEventListener("input", onInput));
   }
 
   searchField.style.cursor = "pointer";
@@ -214,7 +287,7 @@ export function wirePopupNearMeCta(
     viewCleanups: (() => void)[];
   }
 ) {
-  nearMeBtn.classList.add("proto-avail-tertiary");
+  nearMeBtn.classList.add("proto-tertiary-cta", "proto-tertiary-cta--compact");
   nearMeBtn.style.cursor = "pointer";
 
   const onNearMe = (e: Event) => {

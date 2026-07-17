@@ -31,3 +31,8 @@ export function protoTabToIndex(tab: number): number {
 export function protoScreenAtTab(tab: number): ProtoScreen | undefined {
   return PROTO_SCREENS[protoTabToIndex(tab)];
 }
+
+/** Zero-based `current` index for PLP. Vaccinations (child 9). */
+export const PROTO_INDEX_PLP = PROTO_SCREENS.findIndex(
+  (screen) => screen.childIndex === 9,
+);
