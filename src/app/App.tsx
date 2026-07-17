@@ -16,7 +16,7 @@ import LoginPopup from "@/app/popups/LoginPopup";
 import QuickViewPopup from "@/app/popups/QuickViewPopup";
 import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
 import ProtoHubViewport from "@/app/hub/ProtoHubViewport";
-import { PROTO_HUB_LABEL, PROTO_INDEX_APPOINTMENT_HISTORY, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
+import { PROTO_HUB_LABEL, PROTO_INDEX_APPOINTMENT_DETAILS, PROTO_INDEX_APPOINTMENT_HISTORY, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
 import { resolveAvailStoreId } from "@/app/proto/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/app/proto/protoVaccineList";
@@ -50,6 +50,13 @@ import {
   initProtoInputControls,
   markBoosterCheckboxRow,
 } from "@/app/proto/protoInputControls";
+import {
+  getSelectedAppointmentId,
+  PROTO_APPOINTMENT_PILOT_QUERY,
+  syncAppointmentDetails,
+  syncAppointmentHistory,
+  wireAppointmentDetailsBreadcrumbs,
+} from "@/app/proto/protoAppointments";
 
 /**
  * DOM child order inside Frame219's root div (JSX order = DOM order):
@@ -624,6 +631,7 @@ const PROTO_UI_LEGACY_KEYS = [
 /** Persist global nav tab across refresh / Reset. */
 const PROTO_NAV_KEY = "boots-vaccine-proto-nav";
 const PROTO_HUB_KEY = "boots-vaccine-proto-hub";
+const PROTO_AGENTIC_PENDING_QUERY_KEY = "boots-vaccine-proto-agentic-pending-query";
 
 /** Screen interaction defaults. Nav index is separate. */
 const DEFAULT_PROTO_UI = {
@@ -742,6 +750,7 @@ function stripCalCellChrome(cell: HTMLElement) {
 
 function clearProtoUiStorage() {
   PROTO_UI_LEGACY_KEYS.forEach((k) => sessionStorage.removeItem(k));
+  sessionStorage.removeItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
 }
 
 function findBookProgressCol(
@@ -832,6 +841,7 @@ export default function App() {
   const chosenLocationRef = useRef(chosenLocation);
   const goRef = useRef<(i: number) => void>(() => {});
   const currentRef = useRef(current);
+  const pendingAgenticHomeQueryRef = useRef<string | null>(null);
   currentRef.current = current;
   chosenLocationRef.current = chosenLocation;
 
@@ -853,6 +863,17 @@ export default function App() {
     setVaccinePickerOpen(false);
     setRecipientPickerOpen(false);
     setLoginPopupOpen(false);
+  }, []);
+
+  const goSitePilotHome = useCallback((query: string) => {
+    pendingAgenticHomeQueryRef.current = query;
+    try {
+      sessionStorage.setItem(PROTO_AGENTIC_PENDING_QUERY_KEY, query);
+    } catch {
+      /* ignore */
+    }
+    setHubOpen(false);
+    setCurrent(0);
   }, []);
   const onQuickViewBookNow = useCallback(() => {
     setQuickViewOpen(false);
@@ -1270,6 +1291,26 @@ export default function App() {
       ta.setAttribute("aria-label", "Ask Site Pilot");
       ta.placeholder = "Ask about health services…";
       prompt.replaceWith(ta);
+    }
+
+    const pendingQuery =
+      pendingAgenticHomeQueryRef.current ??
+      (() => {
+        try {
+          return sessionStorage.getItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
+        } catch {
+          return null;
+        }
+      })();
+    if (pendingQuery) {
+      ta.value = pendingQuery;
+      pendingAgenticHomeQueryRef.current = null;
+      try {
+        sessionStorage.removeItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
+      } catch {
+        /* ignore */
+      }
+      syncAgenticQueryHeight(ta);
     }
 
     const syncQueryDirty = () => {
@@ -2171,6 +2212,66 @@ export default function App() {
       if (page) rewriteAccountAppointmentCopy(page);
     }
   }, [current]);
+
+  // Tab 8 — Appointment History: realistic cards + title links → tab 9
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 2) return;
+    const page = document.querySelector(
+      ".proto-viewport > div > div:nth-child(2)"
+    ) as HTMLElement | null;
+    if (!page) return;
+
+    let cleanup: (() => void) | undefined;
+    const run = () => {
+      cleanup?.();
+      cleanup = syncAppointmentHistory(
+        page,
+        () => setCurrent(PROTO_INDEX_APPOINTMENT_DETAILS),
+        () => goSitePilotHome(PROTO_APPOINTMENT_PILOT_QUERY),
+        goSitePilotHome
+      );
+    };
+
+    run();
+    const raf = requestAnimationFrame(run);
+    return () => {
+      cancelAnimationFrame(raf);
+      cleanup?.();
+    };
+  }, [current, goSitePilotHome]);
+
+  // Tab 9 — Appointment Details: reflect selected list item
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 1) return;
+    const page = document.querySelector(
+      ".proto-viewport > div > div:nth-child(1)"
+    ) as HTMLElement | null;
+    if (!page) return;
+
+    let cleanup: (() => void) | undefined;
+    const run = () => {
+      cleanup?.();
+      const refundCleanup = syncAppointmentDetails(
+        page,
+        getSelectedAppointmentId(),
+        goSitePilotHome
+      );
+      const breadcrumbCleanup = wireAppointmentDetailsBreadcrumbs(page, () =>
+        setCurrent(PROTO_INDEX_APPOINTMENT_HISTORY)
+      );
+      cleanup = () => {
+        refundCleanup();
+        breadcrumbCleanup();
+      };
+    };
+
+    run();
+    const raf = requestAnimationFrame(run);
+    return () => {
+      cancelAnimationFrame(raf);
+      cleanup?.();
+    };
+  }, [current, goSitePilotHome]);
 
   // Location states on Book Appointment Step 1 (child 7) — per original CJM:
   //   chosenLocation === null  → INITIAL: search placeholder + near-me

@@ -654,9 +654,13 @@
   font-size: 11px;
   font-weight: 700;
   margin-left: auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .proto-header-flyout-item {
   white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Force both aux nav items (Search + Login) to same column width */
@@ -1211,6 +1215,214 @@
   min-width: 0 !important;
   align-self: stretch !important;
   box-sizing: border-box !important;
+  gap: 20px !important;
+  padding: 20px !important;
+}
+
+/* Card title — “Appointment #…” (Figma 25px; slightly smaller for balance) */
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > p {
+  font-size: 20px !important;
+  line-height: 28px !important;
+}
+
+/* Inner white detail panel — softer border, tighter padding */
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > .pointer-events-none[aria-hidden],
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > .pointer-events-none[aria-hidden] {
+  border-color: #ebebeb !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > div:not([aria-hidden]),
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > div:not([aria-hidden]) {
+  padding: 20px !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > div:not([aria-hidden])
+  > div,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  > .bg-white
+  > div:not([aria-hidden])
+  > div {
+  gap: 2px !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="row"],
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="row"] {
+  gap: 8px 20px !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"],
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"] {
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  .proto-avail-btn-primary--sm,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  .proto-avail-btn-primary--sm {
+  min-width: 0 !important;
+}
+
+/* Appointment card detail rows — Figma exports ~10–12px; bump for readability */
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="row"]
+  p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="row"]
+  p,
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="component.product.price"]
+  p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="component.product.price"]
+  p {
+  font-size: 13px !important;
+  line-height: 20px !important;
+}
+
+/* Appointment status — bold, color by state */
+.proto-appointment-status--completed {
+  font-weight: 600 !important;
+  color: #4a9b72 !important;
+}
+
+.proto-appointment-status--active {
+  font-weight: 600 !important;
+  color: #5b8fc9 !important;
+}
+
+.proto-appointment-status--cancelled {
+  font-weight: 600 !important;
+  color: #d4a03a !important;
+}
+
+/* Refund row — bold prefix; Site Pilot follow-up is a normal-weight link */
+.proto-appointment-refund-pilot-link {
+  font-weight: 400 !important;
+  color: #012169 !important;
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-underline-position: from-font;
+  cursor: pointer;
+}
+
+.proto-appointment-refund-pilot-link:hover,
+.proto-appointment-refund-pilot-link:active {
+  color: #01318f !important;
+}
+
+/* Appointment Cancel CTA — navy label; hover icon → coral/red */
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]
+  p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]
+  p,
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:hover
+  p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:hover
+  p,
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:active
+  p,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:active
+  p {
+  color: #012169 !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]
+  svg
+  path,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]
+  svg
+  path {
+  transition: stroke 0.18s ease, fill 0.18s ease !important;
+}
+
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:hover
+  svg
+  path,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:hover
+  svg
+  path,
+.proto-viewport > div > div:nth-child(1)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:active
+  svg
+  path,
+.proto-viewport > div > div:nth-child(2)
+  [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
+  [data-name="CTAs"]
+  [data-proto-appointment-cancel="true"]:active
+  svg
+  path {
+  stroke: #c96b6b !important;
+  fill: none !important;
 }
 
 /* Load more — keep centred narrow block */

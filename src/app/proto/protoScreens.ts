@@ -41,3 +41,8 @@ export const PROTO_INDEX_PLP = PROTO_SCREENS.findIndex(
 export const PROTO_INDEX_APPOINTMENT_HISTORY = PROTO_SCREENS.findIndex(
   (screen) => screen.childIndex === 2,
 );
+
+/** Zero-based `current` index for Appointment Details (tab 9). */
+export const PROTO_INDEX_APPOINTMENT_DETAILS = PROTO_SCREENS.findIndex(
+  (screen) => screen.childIndex === 1,
+);

@@ -367,6 +367,12 @@
   fill: #012169 !important;
 }
 
+.proto-viewport .proto-appointment-title-link {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 28px !important;
+}
+
 /* ── Global text links — match Locations popup “Show on map” ───────────────
  * No underline; Boots primary navy (#012169); hover #01318f.
  * Covers <a>, Figma underline spans/ps, and anything tagged .proto-link.

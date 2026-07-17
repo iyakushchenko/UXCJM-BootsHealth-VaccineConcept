@@ -52,6 +52,7 @@ $Files = @(
   "src/app/proto/protoIconHitWire.ts",
   "src/app/proto/protoPdpRtb.ts",
   "src/app/proto/protoOrderPricing.ts",
+  "src/app/proto/protoAppointments.ts",
   "src/app/proto/protoMap.ts",
   "src/app/proto/protoVaccineList.ts",
 

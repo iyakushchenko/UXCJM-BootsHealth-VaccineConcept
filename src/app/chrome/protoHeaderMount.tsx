@@ -322,10 +322,10 @@ function updateFlyoutContent(): void {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#888" stroke-width="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span>My Appointments</span> <span class="proto-header-flyout-badge">3</span>
       </button>
-      <div class="proto-header-flyout-item proto-header-flyout-item--static">
+      <button type="button" class="proto-header-flyout-item">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.5 7-11a7 7 0 10-14 0c0 6.5 7 11 7 11z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#888" stroke-width="1.5"/></svg>
         <span>My Locations</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--locations">${getSavedLocationsCount()}</span>
-      </div>
+      </button>
       <button class="proto-header-flyout-item" data-action="wishlist">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>My List</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--wishlist">${wishlistSet.size}</span>
@@ -345,10 +345,10 @@ function updateFlyoutContent(): void {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="8" r="4" stroke="#888" stroke-width="1.5"/><path d="M2 20c0-4 4-6 8-6s8 2 8 6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/><path d="M19 8v6M16 11h6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
         Create Account
       </button>
-      <div class="proto-header-flyout-item proto-header-flyout-item--static">
+      <button type="button" class="proto-header-flyout-item">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.5 7-11a7 7 0 10-14 0c0 6.5 7 11 7 11z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#888" stroke-width="1.5"/></svg>
         <span>My Locations</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--locations">${getSavedLocationsCount()}</span>
-      </div>
+      </button>
       <button class="proto-header-flyout-item" data-action="wishlist">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>My List</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--wishlist">${wishlistSet.size}</span>
@@ -381,6 +381,11 @@ function injectFlyoutStyles(): void {
   const style = document.createElement("style");
   style.id = "proto-header-flyout-styles";
   style.textContent = `
+    .proto-header-flyout,
+    .proto-header-flyout * {
+      user-select: none;
+      -webkit-user-select: none;
+    }
     .proto-header-flyout-item {
       display: flex;
       align-items: center;
@@ -398,13 +403,6 @@ function injectFlyoutStyles(): void {
     }
     .proto-header-flyout-item:hover {
       background: #f5f5f5;
-    }
-    .proto-header-flyout-item--static {
-      cursor: default;
-      pointer-events: none;
-    }
-    .proto-header-flyout-item--static:hover {
-      background: none;
     }
 
     .proto-header-flyout::before {
