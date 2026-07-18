@@ -170,6 +170,37 @@ describe("resolveJourneyRetreatTarget", () => {
     expect(target).toEqual({ kind: "close-popups" });
   });
 
+  it("maps agentic avail-book retreat to avail-time beat (not avail-location)", () => {
+    const playlist = buildStudioTouchpointPlaylist(AGENTIC_CJM_JOURNEY, 9);
+    const target = resolveJourneyRetreatTarget({
+      playlist,
+      currentTouchpointKey: "beat:avail-book",
+      currentBeatId: "avail-book",
+      beats: AGENTIC_CJM_JOURNEY.beats,
+      shouldSkipBeat: () => false,
+    });
+    expect(target).toEqual({
+      kind: "beat",
+      beatIndex: AGENTIC_CJM_JOURNEY.beats.findIndex((b) => b.id === "avail-time"),
+      beat: AGENTIC_CJM_JOURNEY.beats.find((b) => b.id === "avail-time"),
+    });
+  });
+
+  it("maps agentic avail-time retreat to avail-continue beat", () => {
+    const playlist = buildStudioTouchpointPlaylist(AGENTIC_CJM_JOURNEY, 9);
+    const target = resolveJourneyRetreatTarget({
+      playlist,
+      currentTouchpointKey: "popup:availability:time",
+      currentBeatId: "avail-time",
+      beats: AGENTIC_CJM_JOURNEY.beats,
+      shouldSkipBeat: () => false,
+    });
+    expect(target?.kind).toBe("beat");
+    if (target?.kind === "beat") {
+      expect(target.beat.id).toBe("avail-continue");
+    }
+  });
+
   it("reports playlist retreat availability for choose-location", () => {
     expect(
       canRetreatJourneyTouchpoint(playlist, "beat:choose-location")
@@ -177,5 +208,47 @@ describe("resolveJourneyRetreatTarget", () => {
     expect(canRetreatJourneyTouchpoint(playlist, "beat:traditional-plp")).toBe(
       false
     );
+  });
+
+  it("steps back from traditional book-step2-time to book-step2-date", () => {
+    const target = resolveJourneyRetreatTarget({
+      playlist,
+      currentTouchpointKey: "beat:book-step2-time",
+      currentBeatId: "book-step2-time",
+      beats: TRADITIONAL_CJM_JOURNEY.beats,
+      shouldSkipBeat: (beat) => shouldSkipTraditionalLoginBeat(beat, true),
+    });
+    expect(target?.kind).toBe("beat");
+    if (target?.kind === "beat") {
+      expect(target.beat.id).toBe("book-step2-date");
+    }
+  });
+
+  it("steps back from traditional book-step2-reserve to book-step2-time", () => {
+    const target = resolveJourneyRetreatTarget({
+      playlist,
+      currentTouchpointKey: "beat:book-step2-reserve",
+      currentBeatId: "book-step2-reserve",
+      beats: TRADITIONAL_CJM_JOURNEY.beats,
+      shouldSkipBeat: (beat) => shouldSkipTraditionalLoginBeat(beat, true),
+    });
+    expect(target?.kind).toBe("beat");
+    if (target?.kind === "beat") {
+      expect(target.beat.id).toBe("book-step2-time");
+    }
+  });
+
+  it("steps back from traditional confirmation to book-step2-reserve", () => {
+    const target = resolveJourneyRetreatTarget({
+      playlist,
+      currentTouchpointKey: "beat:confirmation",
+      currentBeatId: "confirmation",
+      beats: TRADITIONAL_CJM_JOURNEY.beats,
+      shouldSkipBeat: (beat) => shouldSkipTraditionalLoginBeat(beat, true),
+    });
+    expect(target?.kind).toBe("beat");
+    if (target?.kind === "beat") {
+      expect(target.beat.id).toBe("book-step2-reserve");
+    }
   });
 });

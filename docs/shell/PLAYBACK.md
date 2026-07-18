@@ -133,7 +133,7 @@ Run `npm run dev`, then:
 ### Agentic CJM (full path — before demos)
 
 - [ ] Jump to start → **Play** through: home query → chat frames → availability (date → time → book) → book date/time/reserve → confirmation → appointment history → details
-- [ ] Chat finale opens availability overlay; closing availability retreats scenario frames
+- [ ] Retreat contract: `personas/sarah-jenkins/__tests__/agenticRetreatContract.test.ts` (Agentic avail + book step-back baselines)
 - [ ] Composer send during chat pauses/resumes scenario correctly
 
 ### Traditional CJM (full path — before demos)
@@ -253,6 +253,7 @@ If the control room still shows pause/green diode while a popup is stuck, the wa
 **Copy report** (playback diagnostic) is optimized for agents:
 
 - `failureStep` — exact script checkpoint (e.g. `findButtonByText: "Book now" on PLP tile not found`)
+- `trigger` / `triggerKind` / `triggerElement` — last studio interaction before the failure (transport button, director script, robo-cursor click target)
 - `source` — file + function (`traditional.ts → runPlpOpenPdp()`)
 - `## studio` — project/persona, beat index, protoTab, childIndex, touchpoint, wire flags at failure time
 - No duplicate `## raw` block, no userAgent noise
@@ -273,6 +274,8 @@ The guard captures the script label when scripting **starts** (`noteDirectorScri
 Demo camera easing uses `computeDemoScrollDuration` (~720–1200ms depending on travel distance).
 
 Tab/screen changes (e.g. PLP → PDP on Book now) get a **700ms navigation grace** — scroll resets during intentional screen swaps are not reported as jumps.
+
+**CJM step-back retreat sync** (`syncBeatRetreatState`, e.g. `select-book-time` instant snap to the time grid) gets a **900ms retreat grace** — instant `snapDemoTargetIntoView` scrolls are expected and not reported as `scroll-jump`.
 
 **Viewport alignment guard** (`useProtoPlaybackViewportGuard`) catches touchpoint advances where the status bar moves but the prototype scroll root does not follow on the **same screen**:
 
@@ -313,6 +316,49 @@ Studio step counter (`scenarioFrames` in diagnostics) uses the **live touchpoint
 Key files: `protoPlaybackTransportAnomalies.ts`, `useProtoPlaybackTransportGuard.ts`.
 
 **Viewport guard** derives `expectsViewportFollow` from journey beat metadata (`beatExpectsViewportFollow` in `journeyBeatDirector.ts`): same `protoTab`, chained director scripts on one screen. No per-beat id registry.
+
+### Retreat selection monitor
+
+After CJM **step back**, the viewport monitor waits ~520ms then evaluates project selection baselines via `checkRetreatSelectionGoal` on `ProtoProjectPlayback` (Boots: `retreatSelectionGoal.ts`). Fires `state-mismatch` diagnostics (copy report includes `expected` / `actual` / trigger context).
+
+| Beat | Baseline verified |
+|------|-------------------|
+| `avail-continue` | Availability date step, **June 25** selected |
+| `avail-time` | **June 21** selected, no time slot |
+| `avail-book` | **June 21** + **15:30** |
+| `book-step2` (dwell) | Book Step 2 **June 24** + wire default **16:30**, not playback **21/15:30** |
+| `book-step2-date` / `select-book-time` | Same as dwell default |
+| `book-step2-reserve` | Playback **June 21** + **15:30** |
+
+Anomaly kinds (shell `protoPlaybackRetreatAnomalies.ts`):
+
+| Kind | When it fires |
+|------|----------------|
+| `retreat-sync-no-op` | Beat has retreatable state + selection goal, but no `retreat-sync` interaction recorded within ~800ms of step back |
+| `retreat-selection-mismatch` | Retreat sync ran (or beat has no sync requirement met) but DOM/date/time/overlay selection still matches the **forward-playback** state instead of the beat baseline |
+
+Still covered separately: `transport-retreat-mismatch` (wrong tab/overlay), `transport-retreat-scroll-mismatch` (scroll anchor / book viewport goal).
+
+**Not monitored yet:** traditional tab beats (`login-sign-in`, `book-location-pick`, confirmation/history) — `runTraditionalScript({ syncState: true })` is still a no-op; selection monitor does not apply.
+
+### Control panel console log
+
+Every studio control-panel interaction logs to the browser console with prefix **`[ProtoControlPanel]`** — filter DevTools on that string.
+
+Each entry includes `seq`, action id, detail (e.g. `canStepBack`, blocked reason), and a **snapshot** (beat, touchpoint, steps, overlay flags, transport caps).
+
+| Action prefix | Control |
+|---------------|---------|
+| `transport:*` | Cassette deck — jump/start, step back/forward, play |
+| `nav:*` | Hub, tabs, dots, prev/next screen, reset page |
+| `studio:*` | Journey mode switch, project/persona/journey selects |
+| `diagnostic:*` | Dismiss error overlay, copy report |
+
+Blocked clicks (disabled buttons) log as **`BLOCKED`** via `console.warn`.
+
+Dump recent history in the console: `dumpProtoControlPanelLog()` or inspect `window.__protoControlPanelLog`.
+
+Implementation: `protoControlPanelLog.ts`, `ProtoNavScenarioControls.tsx`, `ProtoNavPanel.tsx`, `ProtoNavStudioSelect.tsx`.
 
 Key files: `journeyBeatDirector.ts`, `protoPlaybackDirectorAnomalies.ts`, `protoPlaybackDirectorMonitor.ts`, `useProtoPlaybackDirectorGuard.ts`.
 

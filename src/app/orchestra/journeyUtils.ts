@@ -13,6 +13,12 @@ export function parseBeatIdFromTouchpointKey(key: string): string | undefined {
   return key.match(/^beat:([^:]+)/)?.[1];
 }
 
+/** Availability popup playlist keys → overlay beat for CJM step-back. */
+const AVAIL_POPUP_BEAT_IDS: Record<string, string> = {
+  "popup:availability:date": "avail-continue",
+  "popup:availability:time": "avail-time",
+};
+
 /** Previous studio touchpoint when stepping back in CJM (playlist order, not book UI steps). */
 export function resolveJourneyRetreatTarget(options: {
   playlist: readonly StudioTouchpointEntry[];
@@ -50,7 +56,17 @@ export function resolveJourneyRetreatTarget(options: {
 
   for (let scan = currentIndex - 1; scan >= 0; scan -= 1) {
     const entry = playlist[scan];
-    if (isPopupTouchpoint(entry.key)) continue;
+    if (isPopupTouchpoint(entry.key)) {
+      const mappedBeatId = AVAIL_POPUP_BEAT_IDS[entry.key];
+      if (mappedBeatId) {
+        const beatIndex = beats.findIndex((beat) => beat.id === mappedBeatId);
+        const beat = beats[beatIndex];
+        if (beatIndex >= 0 && !shouldSkipBeat(beat)) {
+          return { kind: "beat", beatIndex, beat };
+        }
+      }
+      continue;
+    }
 
     const beatId = parseBeatIdFromTouchpointKey(entry.key);
     if (!beatId) continue;

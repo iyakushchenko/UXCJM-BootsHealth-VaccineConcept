@@ -22,7 +22,8 @@ export function ProtoNavJourneyMenu({
       options={modes}
       value={value}
       onChange={onChange}
-      ariaLabel="Journey mode"
+      ariaLabel="Orchestra mode"
+      logAction="studio:orchestra-mode"
       liveLabel="Live"
       isPlaying={isPlaying}
       controlsLocked={controlsLocked}

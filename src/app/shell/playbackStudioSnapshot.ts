@@ -1,4 +1,12 @@
 import type { JourneyBeat } from "@/app/orchestra/types";
+import {
+  PlaybackDiagnosticError,
+  type PlaybackDiagnosticError as PlaybackDiagnosticErrorType,
+} from "@/app/shell/protoPlaybackDiagnostic";
+import {
+  formatPlaybackInteraction,
+  getLastPlaybackInteraction,
+} from "@/app/shell/protoPlaybackInteractionContext";
 
 export type PlaybackStudioSnapshot = {
   projectId?: string;
@@ -86,4 +94,20 @@ export function enrichPlaybackDiagnosticSnapshot<
       snapshot,
     },
   };
+}
+
+export function attachPlaybackInteractionToDiagnostic(
+  error: PlaybackDiagnosticErrorType
+): PlaybackDiagnosticErrorType {
+  if (error.context.triggerInteraction) return error;
+
+  const interaction = getLastPlaybackInteraction();
+  if (!interaction) return error;
+
+  return new PlaybackDiagnosticError({
+    ...error.context,
+    triggerInteraction: formatPlaybackInteraction(interaction),
+    triggerKind: interaction.kind,
+    triggerElement: interaction.element,
+  });
 }

@@ -29,4 +29,15 @@ describe("classifyRuntimeError", () => {
     );
     expect(hint.id).toBe("chunk-load");
   });
+
+  it("detects vite transform syntax errors", () => {
+    const hint = classifyRuntimeError(
+      new Error(
+        "Transform failed with 1 error:\nC:/proj/src/app/orchestra/useProtoJourneyPlayback.ts:312:2: ERROR: Unexpected \")\""
+      )
+    );
+    expect(hint.id).toBe("transform-error");
+    expect(hint.summary).toContain("Unexpected");
+    expect(hint.summary).toContain("useProtoJourneyPlayback.ts");
+  });
 });

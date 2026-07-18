@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { StudioSelectOption } from "@/projects/types";
+import {
+  logControlPanel,
+  type ControlPanelAction,
+} from "@/app/shell/protoControlPanelLog";
 
 type Props<T extends string> = {
   options: StudioSelectOption<T>[];
   value: T;
   onChange: (id: T) => void;
   ariaLabel: string;
+  /** Console log action id for studio select interactions. */
+  logAction?: ControlPanelAction;
   /** Overrides selected label while transport is on-air (journey mode only). */
   liveLabel?: string;
   isPlaying?: boolean;
@@ -18,6 +24,7 @@ export function ProtoNavStudioSelect<T extends string>({
   value,
   onChange,
   ariaLabel,
+  logAction,
   liveLabel,
   isPlaying = false,
   controlsLocked = false,
@@ -57,8 +64,42 @@ export function ProtoNavStudioSelect<T extends string>({
   }, [open, options, value]);
 
   const selectOption = (id: T) => {
+    if (logAction) {
+      logControlPanel(logAction, {
+        ariaLabel,
+        from: value,
+        to: id,
+        controlsLocked,
+        isPlaying,
+      });
+    }
     onChange(id);
     close();
+  };
+
+  const toggleOpen = () => {
+    if (isPlaying || controlsLocked) {
+      if (logAction) {
+        logControlPanel("studio:select-open", {
+          blocked: true,
+          blockReason: isPlaying ? "isPlaying" : "controlsLocked",
+          ariaLabel,
+          logAction,
+        });
+      }
+      return;
+    }
+    setOpen((prev) => {
+      const next = !prev;
+      if (logAction) {
+        logControlPanel(next ? "studio:select-open" : "studio:select-close", {
+          ariaLabel,
+          logAction,
+          value,
+        });
+      }
+      return next;
+    });
   };
 
   const onTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -105,7 +146,7 @@ export function ProtoNavStudioSelect<T extends string>({
         aria-expanded={open}
         aria-controls={listId}
         disabled={isPlaying || controlsLocked}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggleOpen}
         onKeyDown={onTriggerKeyDown}
       >
         <span className="proto-nav-journey-menu__label">{displayLabel}</span>

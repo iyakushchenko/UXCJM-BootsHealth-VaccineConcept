@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { ProtoNavLogo } from "@/app/nav/ProtoNavLogo";
 import { protoNavIndex } from "@/projects/boots-pharmacy/screens/protoScreens";
 import { useProtoNavZoom } from "@/app/nav/protoNavZoom";
+import { logControlPanel } from "@/app/shell/protoControlPanelLog";
 import "./protoNavPanel.css";
 
 export type ProtoNavScreen = {
@@ -68,15 +69,100 @@ export default function ProtoNavPanel({
   const navIndex = protoNavIndex(hubOpen, current);
 
   const onPrevious = () => {
-    if (navBrowseLocked || hubOpen) return;
+    if (navBrowseLocked || hubOpen) {
+      logControlPanel("nav:prev-screen", {
+        blocked: true,
+        blockReason: navBrowseLocked ? "navBrowseLocked" : "hubOpen",
+        current,
+        hubOpen,
+      });
+      return;
+    }
+    logControlPanel("nav:prev-screen", { current, hubOpen });
     if (current === 0) onOpenHub();
     else onGo(current - 1);
   };
 
   const onNext = () => {
-    if (navBrowseLocked) return;
-    if (hubOpen) onGo(0);
-    else if (current < screenCount - 1) onGo(current + 1);
+    if (navBrowseLocked) {
+      logControlPanel("nav:next-screen", {
+        blocked: true,
+        blockReason: "navBrowseLocked",
+        current,
+        hubOpen,
+      });
+      return;
+    }
+    if (hubOpen) {
+      logControlPanel("nav:next-screen", { from: "hub", to: 0 });
+      onGo(0);
+      return;
+    }
+    if (current < screenCount - 1) {
+      logControlPanel("nav:next-screen", { from: current, to: current + 1 });
+      onGo(current + 1);
+      return;
+    }
+    logControlPanel("nav:next-screen", {
+      blocked: true,
+      blockReason: "at-last-screen",
+      current,
+    });
+  };
+
+  const handleOpenHub = () => {
+    logControlPanel("nav:hub", { hubOpen, togglingTo: !hubOpen });
+    onOpenHub();
+  };
+
+  const handleGoTab = (index: number) => {
+    if (navBrowseLocked) {
+      logControlPanel("nav:tab", {
+        blocked: true,
+        blockReason: "navBrowseLocked",
+        targetIndex: index,
+        targetLabel: screens[index]?.label,
+      });
+      return;
+    }
+    logControlPanel("nav:tab", {
+      from: current,
+      to: index,
+      label: screens[index]?.label,
+      childIndex: screens[index]?.childIndex,
+    });
+    onGo(index);
+  };
+
+  const handleGoDot = (index: number) => {
+    if (navBrowseLocked) {
+      logControlPanel("nav:dot", {
+        blocked: true,
+        blockReason: "navBrowseLocked",
+        targetIndex: index,
+      });
+      return;
+    }
+    logControlPanel("nav:dot", { from: current, to: index });
+    onGo(index);
+  };
+
+  const handleReset = () => {
+    if (navResetLocked) {
+      logControlPanel("nav:reset-page", {
+        blocked: true,
+        blockReason: "navResetLocked",
+        current,
+        label: screens[current]?.label,
+      });
+      return;
+    }
+    logControlPanel("nav:reset-page", {
+      current,
+      label: screens[current]?.label,
+      childIndex: screens[current]?.childIndex,
+    });
+    onReset();
   };
 
   return (
@@ -91,7 +177,7 @@ export default function ProtoNavPanel({
           <div ref={tabsScrollRef} className="proto-nav-tabs">
             <button
               type="button"
-              onClick={onOpenHub}
+              onClick={handleOpenHub}
               title={hubLabel}
               aria-label={`Open ${hubLabel}`}
               aria-current={hubOpen ? "page" : undefined}
@@ -109,7 +195,7 @@ export default function ProtoNavPanel({
                 ref={(node) => {
                   if (tabBtnRefs.current) tabBtnRefs.current[i] = node;
                 }}
-                onClick={() => onGo(i)}
+                onClick={() => handleGoTab(i)}
                 disabled={navBrowseLocked}
                 className={
                   !hubOpen && i === current
@@ -145,7 +231,7 @@ export default function ProtoNavPanel({
                   <button
                     key={i}
                     type="button"
-                    onClick={() => onGo(i)}
+                    onClick={() => handleGoDot(i)}
                     disabled={navBrowseLocked}
                     aria-label={`Screen ${i + 1}`}
                     aria-current={!hubOpen && i === current ? "true" : undefined}
@@ -163,7 +249,7 @@ export default function ProtoNavPanel({
               {!isProtoPristine && !journeyMode ? (
                 <button
                   type="button"
-                  onClick={onReset}
+                  onClick={handleReset}
                   disabled={navResetLocked}
                   title="Reset interactions on this screen (may reload the page)"
                   className="proto-nav-reset-state"

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import type { JourneyBeat } from "@/app/orchestra/types";
-import type { RetreatViewportGoal } from "@/projects/types";
+import type { RetreatSelectionGoal, RetreatViewportGoal } from "@/projects/types";
 import {
   beatExpectsViewportFollow,
   beatExpectsViewportFollowAfterScript,
@@ -14,7 +14,13 @@ import {
   isElementInScrollRootViewport,
 } from "@/app/shell/protoPlaybackViewportAnomalies";
 import type { ViewportAnomaly } from "@/app/shell/protoPlaybackViewportAnomalies";
+import type { RetreatAnomaly } from "@/app/shell/protoPlaybackRetreatAnomalies";
 import {
+  getLastPlaybackInteraction,
+  type PlaybackInteractionRecord,
+} from "@/app/shell/protoPlaybackInteractionContext";
+import {
+  playbackRetreatAnomalyDiagnostic,
   playbackViewportStallDiagnostic,
   type PlaybackDiagnosticError,
 } from "@/app/shell/protoPlaybackDiagnostic";
@@ -45,6 +51,7 @@ type Options = {
   onDiagnostic: (error: PlaybackDiagnosticError) => void;
   monitor?: PlaybackViewportMonitor;
   checkRetreatViewportGoal?: (beat: JourneyBeat | undefined) => RetreatViewportGoal | null;
+  checkRetreatSelectionGoal?: (beat: JourneyBeat | undefined) => RetreatSelectionGoal | null;
 };
 
 function measureViewportAnchors(
@@ -67,6 +74,7 @@ export function useProtoPlaybackViewportGuard({
   onDiagnostic,
   monitor = playbackViewportMonitor,
   checkRetreatViewportGoal,
+  checkRetreatSelectionGoal,
 }: Options): void {
   const onDiagnosticRef = useRef(onDiagnostic);
   onDiagnosticRef.current = onDiagnostic;
@@ -86,12 +94,21 @@ export function useProtoPlaybackViewportGuard({
   const checkRetreatViewportGoalRef = useRef(checkRetreatViewportGoal);
   checkRetreatViewportGoalRef.current = checkRetreatViewportGoal;
 
+  const checkRetreatSelectionGoalRef = useRef(checkRetreatSelectionGoal);
+  checkRetreatSelectionGoalRef.current = checkRetreatSelectionGoal;
+
+  const resolveRetreatSyncRecord = (): PlaybackInteractionRecord | null => {
+    const last = getLastPlaybackInteraction();
+    return last?.kind === "retreat-sync" ? last : null;
+  };
+
   const pushMonitorContext = (scrollEl: HTMLElement | null) => {
     const snap = snapshotRef.current;
     const beat = currentBeatRef.current;
     const beatId = snap.beatId ?? beat?.id;
     const anchors = measureViewportAnchors(scrollEl);
     const retreatGoal = checkRetreatViewportGoalRef.current?.(beat);
+    const selectionGoal = checkRetreatSelectionGoalRef.current?.(beat);
 
     monitor.setContext({
       scrollTop: scrollEl?.scrollTop ?? 0,
@@ -107,23 +124,36 @@ export function useProtoPlaybackViewportGuard({
       anchorProminent: anchors.anchorProminent,
       retreatExpectsAnchor: retreatGoal?.expectsAnchor,
       retreatDomGoalMet: retreatGoal?.domGoalMet,
+      retreatSelectionGoal: selectionGoal,
+      currentBeat: beat,
+      lastRetreatSync: resolveRetreatSyncRecord(),
     });
   };
 
   useEffect(() => {
-    const report = (anomaly: ViewportAnomaly) => {
+    const report = (anomaly: ViewportAnomaly | RetreatAnomaly) => {
       const snap = snapshotRef.current;
       const beat = currentBeatRef.current;
-      onDiagnosticRef.current(
-        playbackViewportStallDiagnostic({
-          journeyId: snap.journeyId,
-          beatId: snap.beatId ?? beat?.id,
-          beatLabel: snap.beatLabel ?? beat?.label,
-          anomaly,
-          touchpoint: snap.touchpointLabel,
-          visibleProgress: snap.visibleProgress,
-        })
-      );
+      const diagnostic =
+        anomaly.kind === "retreat-selection-mismatch" ||
+        anomaly.kind === "retreat-sync-no-op"
+          ? playbackRetreatAnomalyDiagnostic({
+              journeyId: snap.journeyId,
+              beatId: snap.beatId ?? beat?.id,
+              beatLabel: snap.beatLabel ?? beat?.label,
+              anomaly,
+              touchpoint: snap.touchpointLabel,
+              visibleProgress: snap.visibleProgress,
+            })
+          : playbackViewportStallDiagnostic({
+              journeyId: snap.journeyId,
+              beatId: snap.beatId ?? beat?.id,
+              beatLabel: snap.beatLabel ?? beat?.label,
+              anomaly,
+              touchpoint: snap.touchpointLabel,
+              visibleProgress: snap.visibleProgress,
+            });
+      onDiagnosticRef.current(diagnostic);
     };
 
     monitor.setOnAnomaly(report);

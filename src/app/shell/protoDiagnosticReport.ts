@@ -93,6 +93,8 @@ function journeyPlaybackContext(
 ): Record<string, string | undefined> {
   const tokens = parsePlaybackDetailTokens(ctx.detail);
   const playlistStep = tokens.frames ?? snapshot?.scenarioProgress;
+  const scrollFrom = tokens.from;
+  const scrollTo = tokens.to;
   return {
     journeyPlaylistStep: playlistStep,
     atTouchpoint: snapshot?.touchpointLabel ?? snapshot?.touchpointKey,
@@ -100,8 +102,9 @@ function journeyPlaybackContext(
       snapshot?.beatIndex != null && snapshot?.beatCount != null
         ? `${snapshot.beatIndex + 1}/${snapshot.beatCount} ${snapshot.beatId ?? ""} (${snapshot.beatLabel ?? ""})`.trim()
         : snapshot?.beatId,
-    afterBeat: tokens.from,
-    landedOnBeat: tokens.to,
+    ...(ctx.phase === "scroll-anomaly" && scrollFrom != null
+      ? { scrollFromPx: scrollFrom, scrollToPx: scrollTo }
+      : { afterBeat: scrollFrom, landedOnBeat: scrollTo }),
     directorScript: tokens.script,
     directorBeat: tokens.beat,
   };
@@ -128,6 +131,9 @@ export function buildPlaybackDiagnosticReport(
       expected: ctx.expected,
       actual: ctx.actual,
       detail: ctx.detail,
+      trigger: ctx.triggerInteraction,
+      triggerKind: ctx.triggerKind,
+      triggerElement: ctx.triggerElement,
       ...journeyPlaybackContext(ctx, snapshot),
     }),
     ...snapshotSection(snapshot),

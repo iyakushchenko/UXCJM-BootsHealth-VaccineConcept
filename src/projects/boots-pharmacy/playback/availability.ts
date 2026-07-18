@@ -386,12 +386,39 @@ async function runSelectLocation(options?: { skip?: boolean }): Promise<Playback
       );
 }
 
+async function syncAvailScriptState(
+  scriptId: AvailabilityScriptId,
+  options?: PlaybackScriptOptions
+): Promise<PlaybackScriptResult> {
+  const card = await waitForAvailCard();
+  if (!card) return scriptOk();
+
+  switch (scriptId) {
+    case "continue-from-date": {
+      if (!(await waitForDateStep(card))) {
+        return shouldAbort()
+          ? scriptAborted()
+          : scriptFail("waitForDateStep: .proto-avail-calendars not visible");
+      }
+      return scriptOk();
+    }
+    case "select-time-slot":
+    case "book-now":
+    case "select-location":
+      return scriptOk();
+    default:
+      return scriptOk();
+  }
+}
+
 export async function runAvailabilityScript(
   scriptId: AvailabilityScriptId,
   options?: PlaybackScriptOptions
 ): Promise<PlaybackScriptResult> {
   playbackAborted = false;
-  if (options?.syncState) return scriptOk();
+  if (options?.syncState) {
+    return syncAvailScriptState(scriptId, options);
+  }
 
   switch (scriptId) {
     case "select-location":

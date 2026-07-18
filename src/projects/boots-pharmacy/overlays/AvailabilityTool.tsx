@@ -65,6 +65,8 @@ export type AvailOpenIntent = {
   pickLocation?: boolean;
   /** Show validation hint (Continue without a pharmacy on Book Step 1) */
   locationRequired?: boolean;
+  /** CJM retreat — force re-apply intent even when the payload matches a prior open. */
+  replayKey?: number;
 };
 
 type Props = {
@@ -559,7 +561,8 @@ export default function AvailabilityTool({
       return;
     }
     const intent: AvailOpenIntent = openIntent ?? { step: "start" };
-    const sig = JSON.stringify(intent);
+    // replayKey forces re-apply on CJM step-back even when step/store/date match
+    const sig = `${intent.replayKey ?? "static"}::${JSON.stringify(intent)}`;
     if (sig === appliedIntentSigRef.current) return;
     appliedIntentSigRef.current = sig;
 

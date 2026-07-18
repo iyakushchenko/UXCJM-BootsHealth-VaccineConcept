@@ -70,7 +70,10 @@ import {
 import { wireProtoIconHits } from "@/projects/boots-pharmacy/dom/protoIconHitWire";
 import { onProtoRetreatSync } from "@/app/proto/protoRetreatBridge";
 import {
+  applyBookStep2CalendarFromSlot,
+  bookStep2Screen,
   isBookStep2RetreatSyncDetail,
+  isBookStep2RetreatSlotDetail,
   syncBookStep2RetreatDefaultDom,
 } from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
 import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
@@ -871,15 +874,39 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   useEffect(() => {
     return onProtoRetreatSync((detail) => {
+      if (isBookStep2RetreatSlotDetail(detail)) {
+        const { month, day, time } = detail.data;
+        queueMicrotask(() => {
+          setChosenBookingSlot({
+            month,
+            day,
+            time:
+              typeof time === "string" && time.length > 0
+                ? time
+                : DEFAULT_CHOSEN_BOOKING_SLOT.time,
+          });
+        });
+        return;
+      }
       if (!isBookStep2RetreatSyncDetail(detail)) return;
       const { month, day, clearTime } = detail.data;
-      setChosenBookingSlot((prev) => ({
-        month,
-        day,
-        time: clearTime ? DEFAULT_CHOSEN_BOOKING_SLOT.time : prev.time,
-      }));
+      queueMicrotask(() => {
+        setChosenBookingSlot((prev) => ({
+          month,
+          day,
+          time: clearTime ? DEFAULT_CHOSEN_BOOKING_SLOT.time : prev.time,
+        }));
+      });
     });
   }, []);
+
+  // Book Step 2 — re-apply calendar selection when slot changes (incl. CJM step-back)
+  useEffect(() => {
+    if (SCREENS[current]?.childIndex !== 4) return;
+    const screen = bookStep2Screen();
+    if (!screen) return;
+    applyBookStep2CalendarFromSlot(screen, chosenBookingSlot);
+  }, [current, chosenBookingSlot]);
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
   const [loginPopupOpen, setLoginPopupOpen] = useState(false);
   const [loginPopupTab, setLoginPopupTab] = useState<"signin" | "create">("signin");
@@ -897,8 +924,16 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   const openAvailabilityTool = (intent: AvailOpenIntent = AVAIL_INTENT.start) => {
     const resolved = resolveAvailIntent(intent, chosenLocationRef.current);
-    setAvailIntent(resolved);
-    setAvailabilityOpen(true);
+    const apply = () => {
+      setAvailIntent(resolved);
+      setAvailabilityOpen(true);
+    };
+    // CJM step-back re-apply — defer out of beat-enter effects (no flushSync in lifecycle).
+    if (intent.replayKey != null) {
+      queueMicrotask(apply);
+      return;
+    }
+    apply();
   };
   openAvailabilityToolRef.current = openAvailabilityTool;
   const closeAvailabilityTool = () => setAvailabilityOpen(false);
@@ -3016,23 +3051,6 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         setChosenBookingSlot((prev) => ({ ...prev, time: m.value }));
       }
     };
-
-    // Defaults from Figma: 24 June chosen, 16:30 chosen
-    const initialDate =
-      cells.find(
-        (c) =>
-          c.dataset.protoCalKind === "date" &&
-          c.dataset.protoCalMonth === "June" &&
-          c.dataset.protoCalValue === "24"
-      ) ?? null;
-    const initialTime =
-      cells.find(
-        (c) =>
-          c.dataset.protoCalKind === "time" &&
-          c.dataset.protoCalValue === "16:30"
-      ) ?? null;
-    if (initialDate) selectCell(initialDate);
-    if (initialTime) selectCell(initialTime);
 
     const onClick = (e: MouseEvent) => {
       const cell = (e.target as Element | null)?.closest(

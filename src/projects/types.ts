@@ -60,6 +60,13 @@ export type RetreatViewportGoal = {
   domGoalMet: boolean;
 };
 
+export type RetreatSelectionGoal = {
+  expectsSelection: boolean;
+  domGoalMet: boolean;
+  expected?: string;
+  actual?: string;
+};
+
 /** @deprecated Use PlaybackScriptOptions — kept for gradual migration. */
 export type BookScriptOptions = PlaybackScriptOptions;
 
@@ -93,6 +100,8 @@ export type ProtoProjectPlayback = {
   ) => Promise<void>;
   /** Optional DOM/scroll goal check after step-back (~520ms viewport guard). */
   checkRetreatViewportGoal?: (beat: JourneyBeat) => RetreatViewportGoal | null;
+  /** Optional date/time/overlay selection check after step-back (~520ms retreat guard). */
+  checkRetreatSelectionGoal?: (beat: JourneyBeat) => RetreatSelectionGoal | null;
 };
 
 export type StudioSelectOption<T extends string = string> = {

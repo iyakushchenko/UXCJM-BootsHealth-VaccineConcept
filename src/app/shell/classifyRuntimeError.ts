@@ -102,6 +102,9 @@ export function classifyRuntimeError(error: unknown): RuntimeErrorHint {
   }
 
   if (/Failed to fetch dynamically imported module/i.test(text)) {
+    if (/Transform failed with/i.test(message)) {
+      return classifyTransformError(message);
+    }
     return {
       id: "chunk-load",
       title: "Stale or broken dev bundle",
@@ -171,7 +174,37 @@ export function classifyRuntimeError(error: unknown): RuntimeErrorHint {
     };
   }
 
+  if (/Transform failed with/i.test(message) || name === "ViteTransformError") {
+    return classifyTransformError(message);
+  }
+
   return DEFAULT_HINT;
+}
+
+function classifyTransformError(message: string): RuntimeErrorHint {
+  const fileLine = message.match(/([^:\n]+\.(?:tsx?|jsx?)):(\d+):(\d+)/);
+  const syntax = message.match(/ERROR:\s*(.+)$/m)?.[1]?.trim();
+  const location = fileLine
+    ? `${fileLine[1].split(/[/\\]/).pop()} line ${fileLine[2]}`
+    : "the file named in technical details";
+
+  return {
+    id: "transform-error",
+    title: "Build error — fix syntax before continuing",
+    summary: syntax
+      ? `Vite could not compile the studio: ${syntax} (${location}).`
+      : `Vite could not compile the studio — check ${location}.`,
+    likelyCauses: [
+      "A recent edit left a stray bracket, comma, or incomplete merge.",
+      "A useCallback/useMemo block lost its opening line during search-replace.",
+      "TypeScript/JSX syntax is invalid in the file path shown below.",
+    ],
+    tryThese: [
+      "Open the file and line in technical details — fix the syntax error.",
+      "Save the file; the studio reloads automatically once the build succeeds.",
+      "Hard-refresh (Ctrl+Shift+R) if the error card stays after fixing.",
+    ],
+  };
 }
 
 export function formatRuntimeErrorDetails(error: unknown): string {

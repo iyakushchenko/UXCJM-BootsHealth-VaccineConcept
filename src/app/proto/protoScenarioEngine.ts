@@ -155,6 +155,9 @@ export function scenarioScrollTiming(
   nextCount: number
 ): ScenarioScrollTiming {
   if (prevCount === nextCount) return "immediate";
+  // Step-back hides a bubble — defer scroll until collapse finishes so scrollHeight
+  // shrink does not clamp scrollTop outside eased animation (scroll-jump diagnostic).
+  if (nextCount < prevCount) return "after-exit";
   return "immediate";
 }
 
@@ -360,6 +363,8 @@ function startScrollPin(
     el.removeEventListener("touchstart", stop);
     el.removeEventListener("pointerdown", stop);
     if (activeScrollPinStop === stop) activeScrollPinStop = null;
+    const settled = resolveScrollEl(scrollEl);
+    if (settled) playbackScrollMonitor.noteScrollPosition(settled.scrollTop);
   };
 
   activeScrollPinStop = stop;
@@ -485,6 +490,18 @@ export function scheduleScenarioScroll(
     }
     scrollPrototypeScrollToBottom(scrollEl, "instant");
     pinScenarioScrollToBottomDuring(scrollEl, SCENARIO_SCROLL_INITIAL_MS);
+    return;
+  }
+
+  if (timing === "after-exit") {
+    pinScenarioScrollToBottomDuring(scrollEl, SCENARIO_SCROLL_ANIM_PIN_MS * 2);
+    window.setTimeout(() => {
+      if (generation !== scenarioScrollGeneration) return;
+      scrollPrototypeScrollToBottom(scrollEl, "instant");
+      const settled = resolveScrollEl(scrollEl);
+      if (settled) playbackScrollMonitor.noteScrollPosition(settled.scrollTop);
+      pinScenarioScrollToBottomDuring(scrollEl);
+    }, SCENARIO_SCROLL_ANIM_PIN_MS);
     return;
   }
 

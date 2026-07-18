@@ -3,6 +3,7 @@ import type { RuntimeErrorHint } from "@/app/shell/classifyRuntimeError";
 import type { PlaybackStudioSnapshot } from "@/app/shell/playbackStudioSnapshot";
 import type { CursorAnomaly } from "@/app/shell/protoPlaybackCursorAnomalies";
 import type { ViewportAnomaly } from "@/app/shell/protoPlaybackViewportAnomalies";
+import type { PlaybackInteractionKind } from "@/app/shell/protoPlaybackInteractionContext";
 
 export type PlaybackScriptKind =
   | "home"
@@ -35,6 +36,10 @@ export type PlaybackDiagnosticContext = {
   failureStep?: string;
   message: string;
   detail?: string;
+  /** Last transport / director / demo-click before this diagnostic fired */
+  triggerInteraction?: string;
+  triggerKind?: PlaybackInteractionKind;
+  triggerElement?: string;
   snapshot?: PlaybackStudioSnapshot;
 };
 
@@ -297,6 +302,34 @@ export function playbackViewportStallDiagnostic(options: {
   });
 }
 
+export function playbackRetreatAnomalyDiagnostic(options: {
+  journeyId?: string;
+  beatId?: string;
+  beatLabel?: string;
+  anomaly: import("@/app/shell/protoPlaybackRetreatAnomalies").RetreatAnomaly;
+  touchpoint?: string;
+  visibleProgress?: string;
+}): PlaybackDiagnosticError {
+  const { anomaly } = options;
+  return new PlaybackDiagnosticError({
+    phase: "state-mismatch",
+    journeyId: options.journeyId,
+    beatId: options.beatId,
+    beatLabel: options.beatLabel,
+    failureStep: anomaly.kind,
+    expected: anomaly.expected ?? "Retreat baseline selection restored after step back",
+    actual: anomaly.actual ?? anomaly.message,
+    message: anomaly.message,
+    detail: [
+      anomaly.detail,
+      options.touchpoint ? `touchpoint=${options.touchpoint}` : "",
+      options.visibleProgress ? `frames=${options.visibleProgress}` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  });
+}
+
 export function formatPlaybackDiagnostic(error: PlaybackDiagnosticError): RuntimeErrorHint {
   const ctx = error.context;
   const scriptRef =
@@ -341,7 +374,12 @@ export function formatPlaybackDiagnostic(error: PlaybackDiagnosticError): Runtim
     case "state-mismatch":
       return {
         id: "playback-state-mismatch",
-        title: "State mismatch",
+        title:
+          ctx.failureStep === "retreat-selection-mismatch"
+            ? "Step back selection mismatch"
+            : ctx.failureStep === "retreat-sync-no-op"
+              ? "Retreat sync did not run"
+              : "State mismatch",
         summary:
           ctx.expected && ctx.actual
             ? `Expected ${ctx.expected}. Got ${ctx.actual}.`
@@ -416,6 +454,9 @@ export function formatPlaybackDiagnosticDetails(
     ctx.expected ? `expected: ${ctx.expected}` : "",
     ctx.actual ? `actual: ${ctx.actual}` : "",
     ctx.detail ? `detail: ${ctx.detail}` : "",
+    ctx.triggerInteraction ? `trigger: ${ctx.triggerInteraction}` : "",
+    ctx.triggerKind ? `triggerKind: ${ctx.triggerKind}` : "",
+    ctx.triggerElement ? `triggerElement: ${ctx.triggerElement}` : "",
   ].filter(Boolean);
   return lines.join("\n");
 }

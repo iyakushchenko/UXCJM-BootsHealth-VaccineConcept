@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copyDiagnosticReport } from "@/app/shell/protoDiagnosticReport";
+import { logControlPanel } from "@/app/shell/protoControlPanelLog";
 
 type Props = {
   getReport: () => string;
@@ -25,6 +26,7 @@ export function ProtoCopyReportButton({
   );
 
   const onCopy = useCallback(async () => {
+    logControlPanel("diagnostic:copy-report");
     const ok = await copyDiagnosticReport(getReport());
     if (!ok) return;
     setCopied(true);

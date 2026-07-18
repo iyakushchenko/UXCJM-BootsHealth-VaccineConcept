@@ -19,10 +19,18 @@ import {
 } from "@/projects/playbackScriptResult";
 import { playbackDirectorMonitor } from "@/app/shell/protoPlaybackDirectorMonitor";
 import {
+  notePlaybackBeatEnter,
+  notePlaybackDirectorScript,
+} from "@/app/shell/protoPlaybackInteractionContext";
+import {
   beatDirectorScriptLabel,
   isDwellLandingBeat,
   shouldChainManualDirectorStepOnAdvance,
 } from "@/app/orchestra/journeyBeatDirector";
+import {
+  shouldAdvanceCompletedDirectorStep,
+  shouldSuppressTransportNoOpForCompletedDirector,
+} from "@/app/orchestra/manualDirectorStep";
 import { syncBeatRetreatState } from "@/app/orchestra/journeyRetreatSync";
 import {
   canRetreatJourneyTouchpoint,
@@ -32,6 +40,7 @@ import {
 } from "@/app/orchestra/journeyUtils";
 import { resolveStudioTouchpointProgress } from "@/app/nav/resolveStudioTouchpoint";
 import { isPlaybackScrollAnimating } from "@/app/proto/protoPlaybackScroll";
+import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
 import {
   cancelDemoCursorJourneyEndFade,
   parkDemoCursorAtRest,
@@ -56,7 +65,7 @@ export type ScreenPlaybackApi = {
   play: () => void;
   jumpToStart: () => void;
   jumpToEnd: () => void;
-  resetToEnd: () => void;
+  resetToEnd: (options?: { smooth?: boolean; force?: boolean }) => void;
   retreatFromFinale: () => void;
 };
 
@@ -78,6 +87,8 @@ type Options = {
   onDiagnostic?: (error: PlaybackDiagnosticError) => void;
   /** CJM off — screen-frames beats show full scenario content, not frame 1. */
   scenarioBrowseMode?: boolean;
+  /** Called after CJM step-back lands on a screen-frames beat (before scenario re-init). */
+  onScreenFramesRetreatEnd?: () => void;
 };
 
 function isScreenFramesBeat(beat: JourneyBeat | undefined): boolean {
@@ -117,6 +128,7 @@ export function useProtoJourneyPlayback({
   currentTouchpointKey,
   onDiagnostic,
   scenarioBrowseMode = false,
+  onScreenFramesRetreatEnd,
 }: Options) {
   const beats = journey?.beats ?? [];
   const onDiagnosticRef = useRef(onDiagnostic);
@@ -183,6 +195,7 @@ export function useProtoJourneyPlayback({
   const transportStepAttemptRef = useRef<{
     beatIndex: number;
     beatId?: string;
+    scenarioVisibleCount?: number;
   } | null>(null);
   const playTimerRef = useRef<number | null>(null);
   const beatIndexRef = useRef(beatIndex);
@@ -199,6 +212,8 @@ export function useProtoJourneyPlayback({
   const suppressBeatEnterSyncRef = useRef(false);
   /** CJM step-back — snap DOM/scroll on beat enter, director script runs on step forward. */
   const retreatSyncRef = useRef(false);
+  const onScreenFramesRetreatEndRef = useRef(onScreenFramesRetreatEnd);
+  onScreenFramesRetreatEndRef.current = onScreenFramesRetreatEnd;
   const currentTabIndexRef = useRef(currentTabIndex);
 
   beatIndexRef.current = beatIndex;
@@ -278,6 +293,29 @@ export function useProtoJourneyPlayback({
     [journey?.id, stopJourneyPlay]
   );
 
+  const noteDirectorScriptInteraction = useCallback(
+    (
+      beat: JourneyBeat,
+      options?: { skip?: boolean; manualStep?: boolean; syncState?: boolean }
+    ) => {
+      if (options?.syncState && beat.bookScript) {
+        notePlaybackBeatEnter(`sync-${beat.bookScript}`, beat.id);
+        return;
+      }
+      if (options?.skip) return;
+      const script = describeBeatScript(beat);
+      if (!script || script.kind === "beat-enter") return;
+      notePlaybackDirectorScript({
+        scriptId: script.id,
+        scriptKind: script.kind,
+        beatId: beat.id,
+        beatLabel: beat.label,
+        manual: options?.manualStep,
+      });
+    },
+    []
+  );
+
   const runScriptWithGuard = useCallback(
     (label: string, run: () => Promise<PlaybackScriptResult>) =>
       withPlaybackScriptTimeout(label, run),
@@ -321,6 +359,13 @@ export function useProtoJourneyPlayback({
           }
         }
         playbackDirectorMonitor.noteDirectorScriptStarted(nextBeat.id);
+        notePlaybackDirectorScript({
+          scriptId: nextBeat.bookScript ?? nextBeat.tabScript ?? "unknown",
+          scriptKind: nextBeat.bookScript ? "book" : "tab",
+          beatId: nextBeat.id,
+          beatLabel: nextBeat.label,
+          manual: true,
+        });
         const chained = nextBeat.bookScript
           ? await invokeBeatScript(
               nextBeat.bookScript,
@@ -405,6 +450,7 @@ export function useProtoJourneyPlayback({
       options?: { skip?: boolean; chainScreenFrames?: boolean }
     ) => {
       if (!beat.homeScript) return false;
+      noteDirectorScriptInteraction(beat, options);
       const runId = ++homeScriptRunRef.current;
       setScriptingActive(true);
       try {
@@ -452,6 +498,25 @@ export function useProtoJourneyPlayback({
       options?: { skip?: boolean; manualStep?: boolean }
     ) => {
       if (!beat.availScript) return false;
+      const runId = `${beatIndexRef.current}:${beat.id}`;
+      if (
+        shouldAdvanceCompletedDirectorStep({
+          manualStep: options?.manualStep,
+          advanceAfter,
+          lastAutoRunId: lastAvailAutoRunRef.current,
+          beatRunId: runId,
+        })
+      ) {
+        setScriptingActive(true);
+        enteredBeatRef.current = null;
+        const next = advanceFrom(beatIndexRef.current);
+        if (next >= beats.length) return true;
+        setBeatIndex(next);
+        beatIndexRef.current = next;
+        setScriptingActive(false);
+        return true;
+      }
+      noteDirectorScriptInteraction(beat, options);
       setScriptingActive(true);
       try {
         const { ok, failureStep, diagnosticSent } = await invokeBeatScript(
@@ -503,6 +568,7 @@ export function useProtoJourneyPlayback({
         return advanceFromCompletedDirectorBeat(beat, options);
       }
       playbackDirectorMonitor.noteDirectorScriptStarted(beat.id);
+      noteDirectorScriptInteraction(beat, options);
       setScriptingActive(true);
       try {
         const { ok, failureStep, diagnosticSent } = await invokeBeatScript(
@@ -562,6 +628,7 @@ export function useProtoJourneyPlayback({
         setScriptingActive(true);
         return advanceFromCompletedDirectorBeat(beat, options);
       }
+      noteDirectorScriptInteraction(beat, options);
       setScriptingActive(true);
       try {
         const { ok, failureStep, diagnosticSent } = await invokeBeatScript(
@@ -614,7 +681,7 @@ export function useProtoJourneyPlayback({
 
   useEffect(() => {
     transportStepAttemptRef.current = null;
-  }, [beatIndex]);
+  }, [beatIndex, screenPlayback.visibleCount]);
 
   useEffect(() => {
     const attempt = transportStepAttemptRef.current;
@@ -626,7 +693,25 @@ export function useProtoJourneyPlayback({
         transportStepAttemptRef.current = null;
         return;
       }
+      if (
+        isScreenFramesBeat(beats[beatIndexRef.current]) &&
+        attempt.scenarioVisibleCount != null &&
+        screenPlayback.visibleCount !== attempt.scenarioVisibleCount
+      ) {
+        transportStepAttemptRef.current = null;
+        return;
+      }
       if (isScriptingNow()) return;
+      const beatRunId = `${beatIndexRef.current}:${beats[beatIndexRef.current]?.id}`;
+      if (
+        shouldSuppressTransportNoOpForCompletedDirector({
+          lastAutoRunId: lastAvailAutoRunRef.current,
+          beatRunId,
+        })
+      ) {
+        transportStepAttemptRef.current = null;
+        return;
+      }
       const beat = beats[beatIndexRef.current];
       const script = describeBeatScript(beat);
       transportStepAttemptRef.current = null;
@@ -642,7 +727,15 @@ export function useProtoJourneyPlayback({
     }, TRANSPORT_STEP_NO_OP_MS);
 
     return () => window.clearTimeout(timer);
-  }, [active, beatIndex, beats, isScripting, journey?.id, transportStepToken]);
+  }, [
+    active,
+    beatIndex,
+    beats,
+    isScripting,
+    journey?.id,
+    screenPlayback.visibleCount,
+    transportStepToken,
+  ]);
 
   useEffect(() => () => stopScrollPoll(), [stopScrollPoll]);
 
@@ -686,6 +779,7 @@ export function useProtoJourneyPlayback({
         navigateBeatTab(beat);
       }
       if (beat.onEnter) {
+        notePlaybackBeatEnter(beat.onEnter, beat.id);
         playback.runBeatAction(beat.onEnter, runtime);
       }
     },
@@ -755,11 +849,24 @@ export function useProtoJourneyPlayback({
     lastBookAutoRunRef.current = null;
     lastTabAutoRunRef.current = null;
     lastHomeAutoRunRef.current = null;
-    void runBeatEnter(currentBeat);
+    if (!retreatSyncRef.current) {
+      void runBeatEnter(currentBeat);
+    }
     if (retreatSyncRef.current) {
       void syncBeatRetreatState(playback, currentBeat, runtime, {
         instant: true,
       }).finally(() => {
+        suppressInitialBeatTabNavRef.current = false;
+        navigateBeatTab(currentBeat, { instant: true });
+        if (isScreenFramesBeat(currentBeat)) {
+          onScreenFramesRetreatEndRef.current?.();
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              playbackScrollMonitor.noteRetreatSync();
+              screenPlayback.resetToEnd({ smooth: false, force: true });
+            });
+          });
+        }
         retreatSyncRef.current = false;
       });
     } else if (
@@ -767,6 +874,7 @@ export function useProtoJourneyPlayback({
       !isPlayingRef.current &&
       !suppressBeatEnterSyncRef.current
     ) {
+      noteDirectorScriptInteraction(currentBeat, { syncState: true });
       void playback.runBookScript(currentBeat.bookScript, {
         skip: true,
         syncState: true,
@@ -782,7 +890,7 @@ export function useProtoJourneyPlayback({
     ) {
       scheduleDwellAdvanceRef.current();
     }
-  }, [active, currentBeat, isPlaying, playback, runBeatEnter, runtime]);
+  }, [active, currentBeat, isPlaying, navigateBeatTab, playback, runBeatEnter, runtime, screenPlayback]);
 
   useEffect(() => {
     if (!active || !isPlaying || isScripting || retreatSyncRef.current) return;
@@ -1087,19 +1195,19 @@ export function useProtoJourneyPlayback({
     cancelDemoCursorJourneyEndFade();
     void parkDemoCursorAtRest({ animate: false });
 
+    // Scenario useLayoutEffect runs before beat-enter useEffect — set restore
+    // intent synchronously so re-init lands at thread end, not minVisibleFrames.
+    if (isScreenFramesBeat(prevBeat)) {
+      onScreenFramesRetreatEndRef.current?.();
+    }
+
     setBeatIndex(prev);
     beatIndexRef.current = prev;
-
-    if (prevBeat) {
-      suppressInitialBeatTabNavRef.current = false;
-      navigateBeatTab(prevBeat, { instant: true });
-    }
 
     return true;
   }, [
     beats,
     currentTouchpointKey,
-    navigateBeatTab,
     retreatFrom,
     runtime,
     setBeatIndex,
@@ -1113,27 +1221,42 @@ export function useProtoJourneyPlayback({
     playbackDirectorMonitor.noteManualDirectorStepExpected(beat.id, scriptLabel);
   }, []);
 
+  const stepScenarioFrameForward = useCallback(() => {
+    if (
+      !screenPlayback.isPausingBeforeReveal &&
+      !screenPlayback.canStepForward
+    ) {
+      advanceBeat();
+      return;
+    }
+    screenPlayback.stepForward();
+  }, [advanceBeat, screenPlayback]);
+
   const stepForward = useCallback(() => {
     if (atPlaylistEndRef.current) return;
     suppressInitialBeatTabNavRef.current = false;
     transportStepAttemptRef.current = {
       beatIndex: beatIndexRef.current,
       beatId: beats[beatIndexRef.current]?.id,
+      scenarioVisibleCount: onScreenFramesBeat
+        ? screenPlayback.visibleCount
+        : undefined,
     };
     setTransportStepToken((token) => token + 1);
     if (isScriptingNow()) {
       // Keep isPlaying so chat (and other beats) resume after the skip completes.
       abortActiveScripts();
+      if (onScreenFramesBeat) {
+        stopAutoPlayOnly();
+        stepScenarioFrameForward();
+        return;
+      }
       skipActiveScriptingBeat();
       return;
     }
     stopAutoPlayOnly();
-    if (onScreenFramesBeat && screenPlayback.canStepForward) {
-      screenPlayback.stepForward();
-      return;
-    }
-    if (onScreenFramesBeat && !screenPlayback.canStepForward) {
-      advanceBeat();
+    if (onScreenFramesBeat) {
+      stepScenarioFrameForward();
       return;
     }
     if (currentBeat?.homeScript) {
@@ -1181,6 +1304,7 @@ export function useProtoJourneyPlayback({
     screenPlayback,
     setScriptingActive,
     skipActiveScriptingBeat,
+    stepScenarioFrameForward,
     stopAutoPlayOnly,
     stopJourneyPlay,
   ]);

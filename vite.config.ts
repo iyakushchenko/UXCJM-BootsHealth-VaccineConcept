@@ -19,6 +19,12 @@ function figmaAssetResolver() {
 export default defineConfig({
   // GitHub Pages project site: /UXCJM-BootsHealth-VaccineConcept/
   base: process.env.VITE_BASE_PATH ?? '/',
+  server: {
+    // Studio shows build/HMR errors via ProtoFatalErrorScreen — avoid duplicate Vite overlay.
+    hmr: {
+      overlay: false,
+    },
+  },
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if

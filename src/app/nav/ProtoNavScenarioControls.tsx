@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ProtoStudioJourneySwitch } from "@/app/nav/ProtoStudioJourneySwitch";
+import {
+  logControlPanel,
+  type ControlPanelAction,
+} from "@/app/shell/protoControlPanelLog";
 export type ProtoNavScenarioControlsProps = {
   studioMenus: ReactNode;
   segmentLabel?: string;
@@ -273,26 +277,6 @@ export function ProtoNavScenarioControls({
     }, STEP_DIODE_MS);
   };
 
-  const handleJumpToStart = () => {
-    triggerStepDiodeBlink();
-    onJumpToStart();
-  };
-
-  const handleStepBack = () => {
-    triggerStepDiodeBlink();
-    onStepBack();
-  };
-
-  const handleStepForward = () => {
-    triggerStepDiodeBlink();
-    onStepForward();
-  };
-
-  const handleJumpToEnd = () => {
-    triggerStepDiodeBlink();
-    onJumpToEnd();
-  };
-
   const showEndDiode =
     (journeyAtEnd || diodeEndPulse) && !playbackErrorActive && !isOnAir;
   const transportAtEnd = journeyAtEnd && !isOnAir;
@@ -303,6 +287,81 @@ export function ProtoNavScenarioControls({
     !journeyMode ||
     transportAtEnd ||
     (!playbackActive && !canPlay);
+
+  const logBlockedTransport = (
+    action: ControlPanelAction,
+    disabled: boolean,
+    blockReason: string,
+    extra?: Record<string, unknown>
+  ) => {
+    if (!disabled) return;
+    logControlPanel(action, { blocked: true, blockReason, ...extra });
+  };
+
+  const jumpToStartDisabled =
+    !journeyMode || playbackActive || !canJumpToStart;
+  const stepBackDisabled = !journeyMode || playbackActive || !canStepBack;
+  const stepForwardDisabled =
+    !journeyMode || playbackActive || transportAtEnd || !canStepForward;
+  const jumpToEndDisabled =
+    !journeyMode || playbackActive || transportAtEnd || !canJumpToEnd;
+
+  const handleJumpToStart = () => {
+    logControlPanel("transport:jump-to-start", {
+      canJumpToStart,
+      journeyMode,
+      playbackActive,
+    });
+    triggerStepDiodeBlink();
+    onJumpToStart();
+  };
+
+  const handleStepBack = () => {
+    logControlPanel("transport:step-back", {
+      canStepBack,
+      journeyMode,
+      playbackActive,
+    });
+    triggerStepDiodeBlink();
+    onStepBack();
+  };
+
+  const handlePlay = () => {
+    logControlPanel("transport:play", {
+      canPlay,
+      journeyMode,
+      playbackActive,
+      playDisabled,
+      playShowsPause,
+      playShowsStop,
+      isPlaying,
+      isOnAir,
+    });
+    onPlay();
+  };
+
+  const handleStepForward = () => {
+    logControlPanel("transport:step-forward", {
+      canStepForward,
+      journeyMode,
+      playbackActive,
+      transportAtEnd,
+    });
+    triggerStepDiodeBlink();
+    onStepForward();
+  };
+
+  const handleJumpToEnd = () => {
+    logControlPanel("transport:jump-to-end", {
+      canJumpToEnd,
+      journeyMode,
+      playbackActive,
+      transportAtEnd,
+    });
+    triggerStepDiodeBlink();
+    onJumpToEnd();
+  };
+
   const onAirClass = isOnAir ? " proto-nav-scenario--on-air" : "";
   const journeyModeClass = journeyMode ? " proto-nav-scenario--journey-mode" : "";
   const diodeErrorClass = playbackErrorActive ? " proto-nav-scenario__on-air--error" : "";
@@ -332,7 +391,14 @@ export function ProtoNavScenarioControls({
         {onJourneyModeChange ? (
           <ProtoStudioJourneySwitch
             checked={journeyMode}
-            onChange={onJourneyModeChange}
+            onChange={(enabled) => {
+              logControlPanel("studio:journey-mode", {
+                enabled,
+                previous: journeyMode,
+                switchDisabled: journeyModeSwitchDisabled,
+              });
+              onJourneyModeChange(enabled);
+            }}
             disabled={journeyModeSwitchDisabled}
           />
         ) : null}
@@ -357,7 +423,18 @@ export function ProtoNavScenarioControls({
         <button
           type="button"
           className="proto-nav-step-btn proto-nav-scenario__btn"
-          disabled={!journeyMode || playbackActive || !canJumpToStart}
+          disabled={jumpToStartDisabled}
+          onPointerDown={() =>
+            logBlockedTransport(
+              "transport:jump-to-start",
+              jumpToStartDisabled,
+              !journeyMode
+                ? "journey-mode-off"
+                : playbackActive
+                  ? "playback-active"
+                  : "canJumpToStart=false"
+            )
+          }
           onClick={handleJumpToStart}
         >
           <CassetteJumpToStartIcon />
@@ -365,7 +442,18 @@ export function ProtoNavScenarioControls({
         <button
           type="button"
           className="proto-nav-step-btn proto-nav-scenario__btn"
-          disabled={!journeyMode || playbackActive || !canStepBack}
+          disabled={stepBackDisabled}
+          onPointerDown={() =>
+            logBlockedTransport(
+              "transport:step-back",
+              stepBackDisabled,
+              !journeyMode
+                ? "journey-mode-off"
+                : playbackActive
+                  ? "playback-active"
+                  : "canStepBack=false"
+            )
+          }
           onClick={handleStepBack}
         >
           <CassetteStepBackIcon />
@@ -382,7 +470,18 @@ export function ProtoNavScenarioControls({
             className="proto-nav-step-btn proto-nav-scenario__btn proto-nav-scenario__btn--play"
             aria-pressed={isOnAir}
             disabled={playDisabled}
-            onClick={onPlay}
+            onPointerDown={() =>
+              logBlockedTransport(
+                "transport:play",
+                playDisabled,
+                !journeyMode
+                  ? "journey-mode-off"
+                  : transportAtEnd
+                    ? "journey-at-end"
+                    : "canPlay=false"
+              )
+            }
+            onClick={handlePlay}
           >
             {playShowsPause ? (
               <CassettePauseIcon />
@@ -396,7 +495,20 @@ export function ProtoNavScenarioControls({
         <button
           type="button"
           className="proto-nav-step-btn proto-nav-scenario__btn"
-          disabled={!journeyMode || playbackActive || transportAtEnd || !canStepForward}
+          disabled={stepForwardDisabled}
+          onPointerDown={() =>
+            logBlockedTransport(
+              "transport:step-forward",
+              stepForwardDisabled,
+              !journeyMode
+                ? "journey-mode-off"
+                : playbackActive
+                  ? "playback-active"
+                  : transportAtEnd
+                    ? "journey-at-end"
+                    : "canStepForward=false"
+            )
+          }
           onClick={handleStepForward}
         >
           <CassetteStepForwardIcon />
@@ -404,7 +516,20 @@ export function ProtoNavScenarioControls({
         <button
           type="button"
           className="proto-nav-step-btn proto-nav-scenario__btn"
-          disabled={!journeyMode || playbackActive || transportAtEnd || !canJumpToEnd}
+          disabled={jumpToEndDisabled}
+          onPointerDown={() =>
+            logBlockedTransport(
+              "transport:jump-to-end",
+              jumpToEndDisabled,
+              !journeyMode
+                ? "journey-mode-off"
+                : playbackActive
+                  ? "playback-active"
+                  : transportAtEnd
+                    ? "journey-at-end"
+                    : "canJumpToEnd=false"
+            )
+          }
           onClick={handleJumpToEnd}
         >
           <CassetteJumpToEndIcon />

@@ -11,6 +11,7 @@ import {
 } from "@/app/shell/protoPlaybackScrollAnomalies";
 
 const NAVIGATION_SCROLL_GRACE_MS = 700;
+const RETREAT_SYNC_SCROLL_GRACE_MS = 900;
 
 export type ScrollAnimationTelemetry = {
   id: number;
@@ -41,6 +42,7 @@ export type PlaybackScrollMonitor = {
   onPassiveScroll: (scrollTop: number) => void;
   onPinApply: (scrollTop: number) => void;
   noteScreenChange: () => void;
+  noteRetreatSync: () => void;
   noteDirectorScriptStart: (options?: { scriptLabel?: string }) => void;
   noteDirectorScriptEnd: (options?: { scriptLabel?: string }) => void;
   isBurstWatchActive: () => boolean;
@@ -57,6 +59,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
   let lastScrollTop: number | null = null;
   let pinActive = false;
   let navigationGraceUntil = 0;
+  let retreatGraceUntil = 0;
   let burstWatchUntil = 0;
   let burstScriptLabel: string | undefined;
   let burstAnimationStarts = 0;
@@ -68,6 +71,8 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
   let inScriptAnimationStarts = 0;
 
   const inNavigationGrace = () => performance.now() < navigationGraceUntil;
+  const inRetreatGrace = () => performance.now() < retreatGraceUntil;
+  const inPassiveScrollGrace = () => inNavigationGrace() || inRetreatGrace();
   const inBurstWatch = () => performance.now() < burstWatchUntil;
 
   const clearBurstFinalizeTimer = () => {
@@ -126,7 +131,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
   };
 
   const pushSample = (top: number) => {
-    if (inNavigationGrace()) return;
+    if (inPassiveScrollGrace()) return;
     const t = performance.now();
     samples.push({ t, top });
     if (samples.length > 120) samples.shift();
@@ -152,6 +157,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       lastScrollTop = null;
       pinActive = false;
       navigationGraceUntil = 0;
+      retreatGraceUntil = 0;
       inScriptWatch = false;
       inScriptLabel = undefined;
       inScriptAnimationStarts = 0;
@@ -164,6 +170,11 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       samples = [];
       lastScrollTop = null;
       pinActive = false;
+      clearBurstWatch();
+    },
+    noteRetreatSync() {
+      retreatGraceUntil = performance.now() + RETREAT_SYNC_SCROLL_GRACE_MS;
+      samples = [];
       clearBurstWatch();
     },
     noteDirectorScriptStart(options) {
@@ -253,7 +264,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
         accumulateBurstTravel(finalTop);
         evaluateBurstWatch();
       }
-      if (animation && !completed && !replaced) {
+      if (animation && !completed && !replaced && !inPassiveScrollGrace()) {
         report({
           kind: "scroll-interrupted",
           message: "Eased scroll animation was cancelled before completion",
@@ -266,6 +277,10 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
     },
     onAnimationCancelled() {
       if (!active || !animation) return;
+      if (inPassiveScrollGrace()) {
+        animation = null;
+        return;
+      }
       report({
         kind: "scroll-interrupted",
         message: "Eased scroll animation cancelled (competing scroll or transport interrupt)",
@@ -275,7 +290,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
     },
     onPassiveScroll(scrollTop) {
       if (!active) return;
-      if (inNavigationGrace()) {
+      if (inPassiveScrollGrace()) {
         lastScrollTop = scrollTop;
         return;
       }

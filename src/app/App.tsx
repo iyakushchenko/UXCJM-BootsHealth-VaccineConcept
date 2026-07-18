@@ -49,12 +49,21 @@ import { ProtoPlaybackShield } from "@/app/shell/ProtoPlaybackShield";
 import { ProtoPlaybackDiagnosticOverlay } from "@/app/shell/ProtoPlaybackDiagnosticOverlay";
 import type { PlaybackDiagnosticError } from "@/app/shell/protoPlaybackDiagnostic";
 import {
+  attachPlaybackInteractionToDiagnostic,
   buildPlaybackStudioSnapshot,
   enrichPlaybackDiagnosticSnapshot,
   type PlaybackStudioSnapshot,
 } from "@/app/shell/playbackStudioSnapshot";
+import { notePlaybackTransport } from "@/app/shell/protoPlaybackInteractionContext";
+import {
+  logControlPanel,
+  registerControlPanelSnapshotProvider,
+} from "@/app/shell/protoControlPanelLog";
+import { registerProtoStudioMcpHelpers } from "@/app/shell/protoStudioMcpHelpers";
 import { useProtoPlaybackGuard } from "@/app/shell/useProtoPlaybackGuard";
 import { useProtoPlaybackScrollGuard } from "@/app/shell/useProtoPlaybackScrollGuard";
+import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
+import { useProtoJourneyScrollLock } from "@/app/shell/useProtoJourneyScrollLock";
 import { useProtoPlaybackCursorGuard } from "@/app/shell/useProtoPlaybackCursorGuard";
 import { useProtoPlaybackDirectorGuard } from "@/app/shell/useProtoPlaybackDirectorGuard";
 import { useProtoPlaybackTransportGuard } from "@/app/shell/useProtoPlaybackTransportGuard";
@@ -132,14 +141,19 @@ export default function App() {
   const [playbackDiagnostic, setPlaybackDiagnostic] =
     useState<PlaybackDiagnosticError | null>(null);
   const [studioJourneyMode, setStudioJourneyMode] = useState(false);
+  const [chatRetreatRestoreActive, setChatRetreatRestoreActive] = useState(false);
   const stopAllPlaybackRef = useRef<() => void>(() => {});
   const playbackSnapshotRef = useRef<PlaybackStudioSnapshot>({});
+  const controlPanelTransportRef = useRef<Record<string, unknown>>({});
   const onWireApiChange = useCallback(() => setWireTick((t) => t + 1), []);
 
   const handlePlaybackDiagnostic = useCallback((error: PlaybackDiagnosticError) => {
     stopAllPlaybackRef.current();
     setPlaybackDiagnostic((prev) =>
-      prev ?? enrichPlaybackDiagnosticSnapshot(error, playbackSnapshotRef.current)
+      prev ??
+      attachPlaybackInteractionToDiagnostic(
+        enrichPlaybackDiagnosticSnapshot(error, playbackSnapshotRef.current)
+      )
     );
   }, []);
 
@@ -257,6 +271,8 @@ export default function App() {
     return [];
   }, [activeScreenScenario]);
 
+  const scenarioRestoreFullOnInitRef = useRef(false);
+
   const sitePilotChatPlaybackHooks = useMemo<PlaybackStepHooks>(
     () => ({
       beforeReveal: runSitePilotChatBeforeReveal,
@@ -297,6 +313,7 @@ export default function App() {
         : undefined,
     browseMode: !studioJourneyMode,
     onDiagnostic: handlePlaybackDiagnostic,
+    restoreFullOnInitRef: scenarioRestoreFullOnInitRef,
   });
 
   const headerLoggedIn = useMemo(
@@ -393,6 +410,10 @@ export default function App() {
     currentTouchpointKey: studioTouchpoint.key,
     onDiagnostic: handlePlaybackDiagnostic,
     scenarioBrowseMode: !studioJourneyMode,
+    onScreenFramesRetreatEnd: () => {
+      scenarioRestoreFullOnInitRef.current = true;
+      setChatRetreatRestoreActive(true);
+    },
   });
 
   useEffect(() => {
@@ -474,6 +495,7 @@ export default function App() {
     studioJourneyMode,
     studioPlaylist,
     studioTouchpoint.key,
+    scenarioPlayback.visibleCount,
   ]);
 
   const journeyAtEnd =
@@ -505,6 +527,8 @@ export default function App() {
     journeyPlayback.resetJourney();
     resetBeatIndex();
     setStudioJourneyMode(false);
+    setChatRetreatRestoreActive(false);
+    scenarioRestoreFullOnInitRef.current = false;
     wireApiRef.current?.resetWireInteractionState();
     removeDemoCursor();
     resetDemoCursorTravelOrigin();
@@ -663,8 +687,42 @@ export default function App() {
     journeys: studioPersona.journeys,
   });
 
+  const handleOrchestraModeChangeRef = useRef(handleOrchestraModeChange);
+  handleOrchestraModeChangeRef.current = handleOrchestraModeChange;
+
   const resetToEndRef = useRef(scenarioPlayback.resetToEnd);
   resetToEndRef.current = scenarioPlayback.resetToEnd;
+
+  useEffect(() => {
+    if (!studioJourneyMode || !activeScreenScenario) return;
+    const beat = activeJourney?.beats[journeyBeatIndex];
+    if (beat?.kind !== "screen-frames") return;
+    if (!chatRetreatRestoreActive) return;
+
+    const contentEnd =
+      scenarioPlayback.totalFrames > 0
+        ? Math.max(1, scenarioPlayback.totalFrames - 1)
+        : stableChatPlaylistFrames - 1;
+
+    if (scenarioPlayback.visibleCount >= contentEnd) {
+      scenarioRestoreFullOnInitRef.current = false;
+      setChatRetreatRestoreActive(false);
+      return;
+    }
+
+    playbackScrollMonitor.noteRetreatSync();
+    resetToEndRef.current({ smooth: false, force: true });
+  }, [
+    activeJourney,
+    activeScreenScenario,
+    chatRetreatRestoreActive,
+    journeyBeatIndex,
+    scenarioPlayback.totalFrames,
+    scenarioPlayback.visibleCount,
+    stableChatPlaylistFrames,
+    studioJourneyMode,
+  ]);
+
   const jumpToStartRef = useRef(scenarioPlayback.jumpToStart);
   jumpToStartRef.current = scenarioPlayback.jumpToStart;
   const triggerChatBrowseRevealRef = useRef<() => void>(() => {});
@@ -859,6 +917,19 @@ export default function App() {
     wire,
   });
 
+  controlPanelTransportRef.current = {
+    journeyMode: studioJourneyMode,
+    isPlaying: transport.isPlaying,
+    isOnAir: transport.isOnAir,
+    isScripting: transport.isScripting,
+    canStepBack: transport.canStepBack,
+    canStepForward: transport.canStepForward,
+    canJumpToStart: transport.canJumpToStart,
+    canJumpToEnd: transport.canJumpToEnd,
+    canPlay: transport.canPlay,
+    journeyAtEnd,
+  };
+
   useProtoPlaybackGuard({
     snapshot: {
       isOnAir: transport.isOnAir,
@@ -894,6 +965,11 @@ export default function App() {
     currentBeat,
     scrollRootRef: prototypeScrollElRef,
     onDiagnostic: handlePlaybackDiagnostic,
+  });
+
+  useProtoJourneyScrollLock({
+    active: studioJourneyMode && !hubOpen,
+    scrollRootRef: prototypeScrollElRef,
   });
 
   useProtoPlaybackCursorGuard({
@@ -968,6 +1044,7 @@ export default function App() {
     scrollRootRef: prototypeScrollElRef,
     onDiagnostic: handlePlaybackDiagnostic,
     checkRetreatViewportGoal: projectPlayback.checkRetreatViewportGoal,
+    checkRetreatSelectionGoal: projectPlayback.checkRetreatSelectionGoal,
   });
 
   useLayoutEffect(() => {
@@ -1087,6 +1164,40 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    registerControlPanelSnapshotProvider(() => ({
+      ...playbackSnapshotRef.current,
+      ...controlPanelTransportRef.current,
+    }));
+    return () => registerControlPanelSnapshotProvider(null);
+  }, []);
+
+  useEffect(() => {
+    return registerProtoStudioMcpHelpers({
+      dismissDiagnostic: () => setPlaybackDiagnostic(null),
+      isDiagnosticOpen: () =>
+        document.querySelector(".proto-playback-diagnostic") != null,
+      getState: () => ({
+        journeyMode:
+          document
+            .querySelector('[role="switch"][aria-label="Journey mode"]')
+            ?.getAttribute("aria-checked") === "true",
+        scrollLock:
+          prototypeScrollElRef.current?.classList.contains(
+            "proto-scroll--journey-locked"
+          ) ?? false,
+        label:
+          document.querySelector(".proto-nav-scenario__label")?.textContent?.trim() ??
+          null,
+        counter:
+          document.querySelector(".proto-nav-scenario__counter")?.textContent?.trim() ??
+          null,
+      }),
+      getOrchestraModeId: () => orchestraModeId,
+      setOrchestraMode: (modeId) => handleOrchestraModeChangeRef.current(modeId),
+    });
+  }, [orchestraModeId]);
+
+  useEffect(() => {
     const btn = tabBtnRefs.current[current];
     const scroller = tabsScrollRef.current;
     if (!btn || !scroller) return;
@@ -1184,6 +1295,7 @@ export default function App() {
       value={studioProjectId}
       onChange={handleStudioProjectChange}
       ariaLabel="Project"
+      logAction="studio:project"
       isPlaying={transport.isPlaying}
       controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
     />
@@ -1196,7 +1308,13 @@ export default function App() {
     >
       <ProtoPlaybackDiagnosticOverlay
         error={playbackDiagnostic}
-        onDismiss={() => setPlaybackDiagnostic(null)}
+        onDismiss={() => {
+          logControlPanel("diagnostic:dismiss", {
+            kind: playbackDiagnostic?.context.kind,
+            message: playbackDiagnostic?.message,
+          });
+          setPlaybackDiagnostic(null);
+        }}
       />
 
       <ProtoNavPanel
@@ -1226,6 +1344,7 @@ export default function App() {
                     value={studioPersonaId}
                     onChange={handleStudioPersonaChange}
                     ariaLabel="Persona"
+                    logAction="studio:persona"
                     isPlaying={transport.isPlaying}
                     controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
                   />
@@ -1261,26 +1380,31 @@ export default function App() {
               canPlay={transport.canPlay}
               canJumpToEnd={transport.canJumpToEnd}
               onJumpToStart={() => {
+                notePlaybackTransport("jump-to-start");
                 playbackCursorMonitor.noteManualTransport("jump-to-start");
                 playbackViewportMonitor.noteManualTransport("jump-to-start");
                 transport.jumpToStart();
               }}
               onStepBack={() => {
+                notePlaybackTransport("step-back");
                 playbackCursorMonitor.noteManualTransport("step-back");
                 playbackViewportMonitor.noteManualTransport("step-back");
                 transport.stepBack();
               }}
               onPlay={() => {
+                notePlaybackTransport("play");
                 playbackCursorMonitor.noteManualTransport("play");
                 playbackViewportMonitor.noteManualTransport("play");
                 transport.play();
               }}
               onStepForward={() => {
+                notePlaybackTransport("step-forward");
                 playbackCursorMonitor.noteManualTransport("step-forward");
                 playbackViewportMonitor.noteManualTransport("step-forward");
                 transport.stepForward();
               }}
               onJumpToEnd={() => {
+                notePlaybackTransport("jump-to-end");
                 playbackCursorMonitor.noteManualTransport("jump-to-end");
                 playbackViewportMonitor.noteManualTransport("jump-to-end");
                 transport.jumpToEnd();

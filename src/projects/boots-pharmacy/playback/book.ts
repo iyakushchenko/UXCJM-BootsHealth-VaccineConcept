@@ -27,6 +27,7 @@ import {
   BOOK_STEP2_RETREAT_DEFAULT_DATE,
   bookStep2Screen,
   syncBookStep2RetreatDefaultDom,
+  syncBookStep2RetreatSlotDom,
 } from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
 
 /** Wire default from `DEFAULT_CHOSEN_BOOKING_SLOT` — pre-director Book Step 2 state. */
@@ -119,6 +120,17 @@ export function isBookPlaybackTimeSelected(): boolean {
   return screen ? isBookTimeCellSelected(screen, PLAYBACK_TARGET_TIME) : false;
 }
 
+export function isBookDefaultTimeSelected(): boolean {
+  const screen = bookStep2Screen();
+  return screen ? isBookTimeCellSelected(screen, BOOK_DEFAULT_TIME) : false;
+}
+
+export function isAnyBookTimeSelectedOnScreen(screen?: HTMLElement | null): boolean {
+  const target = screen ?? bookStep2Screen();
+  if (!target) return false;
+  return isAnyBookTimeSelected(target);
+}
+
 function buildBookDirectorOutcomeReport(
   scriptId: BookScriptId,
   syncState: boolean,
@@ -137,7 +149,9 @@ function buildBookDirectorOutcomeReport(
         : dateSelected
       : scriptId === "select-book-time"
         ? syncState
-          ? defaultDateSelected && !isAnyBookTimeSelected(screen)
+          ? defaultDateSelected &&
+            isBookDefaultTimeSelected() &&
+            !isBookPlaybackTimeSelected()
           : timeSelected
         : scriptId === "reserve-appointment"
           ? timeSelected
@@ -341,13 +355,13 @@ async function syncBookBeatState(
       return true;
     }
     case "reserve-appointment": {
-      const dateOk = await runSelectBookDate(syncOptions);
-      if (!dateOk || shouldAbort()) return false;
-      const timeOk = await runSelectBookTime({
-        ...syncOptions,
-        afterSelectScroll: "reserve",
+      syncBookStep2RetreatSlotDom({
+        month: PLAYBACK_TARGET_DATE.month,
+        day: PLAYBACK_TARGET_DATE.day,
+        time: PLAYBACK_TARGET_TIME,
       });
-      return timeOk && !shouldAbort();
+      await scrollBookStep2ToReserve(screen, { instant: options?.instant });
+      return !shouldAbort();
     }
     default:
       return false;

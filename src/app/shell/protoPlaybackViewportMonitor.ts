@@ -6,6 +6,13 @@ import {
   type ViewportAnomaly,
   type ViewportCheckContext,
 } from "@/app/shell/protoPlaybackViewportAnomalies";
+import {
+  evaluateRetreatSelectionAnomalies,
+  type RetreatAnomaly,
+} from "@/app/shell/protoPlaybackRetreatAnomalies";
+import type { RetreatSelectionGoal } from "@/projects/types";
+import type { JourneyBeat } from "@/app/orchestra/types";
+import type { PlaybackInteractionRecord } from "@/app/shell/protoPlaybackInteractionContext";
 
 export type ManualTransportAction =
   | "step-forward"
@@ -37,11 +44,14 @@ export type ViewportMonitorContext = {
   anchorProminent: boolean;
   retreatExpectsAnchor?: boolean;
   retreatDomGoalMet?: boolean;
+  retreatSelectionGoal?: RetreatSelectionGoal | null;
+  currentBeat?: JourneyBeat;
+  lastRetreatSync?: PlaybackInteractionRecord | null;
 };
 
 export type PlaybackViewportMonitor = {
   setActive: (active: boolean) => void;
-  setOnAnomaly: (handler: ((anomaly: ViewportAnomaly) => void) | null) => void;
+  setOnAnomaly: (handler: ((anomaly: ViewportAnomaly | RetreatAnomaly) => void) | null) => void;
   setContext: (context: ViewportMonitorContext) => void;
   reset: () => void;
   noteTouchpointAdvance: (baseline: ViewportTransitionBaseline) => void;
@@ -51,7 +61,7 @@ export type PlaybackViewportMonitor = {
 
 export function createPlaybackViewportMonitor(): PlaybackViewportMonitor {
   let active = false;
-  let onAnomaly: ((anomaly: ViewportAnomaly) => void) | null = null;
+  let onAnomaly: ((anomaly: ViewportAnomaly | RetreatAnomaly) => void) | null = null;
   let reported = false;
   let context: ViewportMonitorContext = {
     scrollTop: 0,
@@ -75,7 +85,7 @@ export function createPlaybackViewportMonitor(): PlaybackViewportMonitor {
     }
   };
 
-  const report = (anomaly: ViewportAnomaly) => {
+  const report = (anomaly: ViewportAnomaly | RetreatAnomaly) => {
     if (!active || reported || !onAnomaly) return;
     reported = true;
     onAnomaly(anomaly);
@@ -125,6 +135,23 @@ export function createPlaybackViewportMonitor(): PlaybackViewportMonitor {
     });
     if (retreatAnomaly) {
       report(retreatAnomaly);
+      return;
+    }
+    const selectionAnomaly = evaluateRetreatSelectionAnomalies(
+      {
+        transportAction,
+        beatId: context.beatId,
+        beatLabel: context.beatLabel,
+        screenFramesBeat: context.screenFramesBeat,
+        isScripting: context.isScripting,
+        isPausingBeforeReveal: context.isPausingBeforeReveal,
+        selectionGoal: context.retreatSelectionGoal,
+        lastRetreatSync: context.lastRetreatSync,
+      },
+      context.currentBeat
+    );
+    if (selectionAnomaly) {
+      report(selectionAnomaly);
       return;
     }
     const scrollAnomaly = detectTransportRetreatScrollMismatch({

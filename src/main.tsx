@@ -1,5 +1,5 @@
-import { createRoot } from "react-dom/client";
 import { ProtoAppErrorBoundary, renderBootstrapError } from "@/app/shell/ProtoAppErrorBoundary";
+import { renderStudioRoot } from "@/app/shell/protoStudioFatalError";
 import "./styles/index.css";
 
 async function boot(): Promise<void> {
@@ -8,7 +8,7 @@ async function boot(): Promise<void> {
 
   try {
     const { default: App } = await import("./app/App.tsx");
-    createRoot(root).render(
+    renderStudioRoot(
       <ProtoAppErrorBoundary>
         <App />
       </ProtoAppErrorBoundary>

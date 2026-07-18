@@ -15,6 +15,7 @@ import {
   PLAYBACK_SCENARIO_PRELUDE_TIMEOUT_MS,
   scenarioStallDiagnostic,
 } from "@/app/shell/protoPlaybackDiagnostic";
+import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
 
 type Options = {
   active: boolean;
@@ -27,6 +28,8 @@ type Options = {
   onDiagnostic?: (error: PlaybackDiagnosticError) => void;
   /** CJM off — reveal the full scenario thread (all content frames). */
   browseMode?: boolean;
+  /** When true on init, land at end state (CJM step-back to screen-frames beat). */
+  restoreFullOnInitRef?: RefObject<boolean>;
 };
 
 export type PlaybackStepHooks = {
@@ -111,6 +114,15 @@ export function resolveBrowseScenarioVisibleCount(
   return contentFrameCount;
 }
 
+/** End-state visible count — matches resetToEnd / jumpToEnd content landing. */
+export function resolveScenarioEndVisibleCount(
+  contentFrameCount: number,
+  hasFinale: boolean
+): number {
+  const scenarioTotal = scenarioTotalFor(contentFrameCount, hasFinale);
+  return hasFinale && contentFrameCount > 0 ? contentFrameCount : scenarioTotal;
+}
+
 export { scenarioTotalFor };
 
 function bubbleVisibleCount(visibleCount: number, contentFrameCount: number): number {
@@ -132,6 +144,7 @@ export function useProtoScenarioPlayback({
   playbackStepHooks,
   onDiagnostic,
   browseMode = false,
+  restoreFullOnInitRef,
 }: Options) {
   const framesRef = useRef<HTMLElement[]>([]);
   const playTimerRef = useRef<number | null>(null);
@@ -249,13 +262,16 @@ export function useProtoScenarioPlayback({
       initializedRef.current = true;
       const contentTotal = frames.length;
       const scenarioTotal = scenarioTotalFor(contentTotal, hasFinale);
+      const restoreFull = restoreFullOnInitRef?.current === true;
       const initialCount = browseMode
         ? minVisibleFrames
-        : resolveInitialScenarioVisibleCount(
-            contentTotal,
-            hasFinale,
-            minVisibleFrames
-          );
+        : restoreFull
+          ? resolveScenarioEndVisibleCount(contentTotal, hasFinale)
+          : resolveInitialScenarioVisibleCount(
+              contentTotal,
+              hasFinale,
+              minVisibleFrames
+            );
       visibleCountRef.current = initialCount;
       scrollIntentRef.current = {
         visibleCount: initialCount,
@@ -267,23 +283,38 @@ export function useProtoScenarioPlayback({
       setVisibleCount(initialCount);
     } else if (frames.length > 0) {
       const scenarioTotal = scenarioTotalFor(frames.length, hasFinale);
-      setVisibleCount((prev) => {
-        // RAF re-sync can run before the init setState lands — keep progressive entry.
-        if (prev === 0) {
-          if (browseMode) {
-            return minVisibleFrames;
+      const restoreFull = restoreFullOnInitRef?.current === true;
+      if (restoreFull) {
+        const endCount = resolveScenarioEndVisibleCount(frames.length, hasFinale);
+        const prev = visibleCountRef.current;
+        visibleCountRef.current = endCount;
+        scrollIntentRef.current = {
+          visibleCount: endCount,
+          prevCount: prev,
+          align: scrollAlignForCount(endCount, minVisibleFrames),
+          smooth: false,
+          timing: "after-init",
+        };
+        setVisibleCount(endCount);
+      } else {
+        setVisibleCount((prev) => {
+          // RAF re-sync can run before the init setState lands — keep progressive entry.
+          if (prev === 0) {
+            if (browseMode) {
+              return minVisibleFrames;
+            }
+            return clampVisible(minVisibleFrames, scenarioTotal, minVisibleFrames);
           }
-          return clampVisible(minVisibleFrames, scenarioTotal, minVisibleFrames);
-        }
-        if (browseMode && prev < frames.length && prev > minVisibleFrames) {
-          return frames.length;
-        }
-        return clampVisible(prev, scenarioTotal, minVisibleFrames);
-      });
+          if (browseMode && prev < frames.length && prev > minVisibleFrames) {
+            return frames.length;
+          }
+          return clampVisible(prev, scenarioTotal, minVisibleFrames);
+        });
+      }
     }
 
     return frames;
-  }, [browseMode, collectFrames, hasFinale, minVisibleFrames]);
+  }, [browseMode, collectFrames, hasFinale, minVisibleFrames, restoreFullOnInitRef]);
 
   const refreshFrameList = useCallback(() => {
     const frames = collectFrames();
@@ -293,8 +324,10 @@ export function useProtoScenarioPlayback({
       frame.dataset.protoScenarioFrame = String(index + 1);
     });
     setTotalFrames(scenarioTotalFor(frames.length, hasFinale));
-    const count =
-      visibleCountRef.current > 0
+    const restoreFull = restoreFullOnInitRef?.current === true;
+    const count = restoreFull
+      ? resolveScenarioEndVisibleCount(frames.length, hasFinale)
+      : visibleCountRef.current > 0
         ? visibleCountRef.current
         : browseMode
           ? minVisibleFrames
@@ -303,9 +336,20 @@ export function useProtoScenarioPlayback({
               scenarioTotalFor(frames.length, hasFinale),
               minVisibleFrames
             );
+    if (restoreFull) {
+      visibleCountRef.current = count;
+      setVisibleCount(count);
+      scrollIntentRef.current = {
+        visibleCount: count,
+        prevCount: 0,
+        align: scrollAlignForCount(count, minVisibleFrames),
+        smooth: false,
+        timing: "after-init",
+      };
+    }
     applyScenarioFrameVisibility(frames, bubbleVisibleCount(count, frames.length));
     return frames;
-  }, [browseMode, collectFrames, hasFinale, minVisibleFrames]);
+  }, [browseMode, collectFrames, hasFinale, minVisibleFrames, restoreFullOnInitRef]);
 
   useLayoutEffect(() => {
     visibleCountRef.current = visibleCount;
@@ -325,9 +369,26 @@ export function useProtoScenarioPlayback({
     }
 
     syncFrames();
+
+    if (restoreFullOnInitRef?.current && framesRef.current.length > 0) {
+      const contentTotal = framesRef.current.length;
+      const target = resolveScenarioEndVisibleCount(contentTotal, hasFinale);
+      visibleCountRef.current = target;
+      scrollIntentRef.current = {
+        visibleCount: target,
+        prevCount: 0,
+        align: scrollAlignForCount(target, minVisibleFrames),
+        smooth: false,
+        timing: "after-init",
+      };
+      setVisibleCount(target);
+    } else if (restoreFullOnInitRef?.current) {
+      refreshFrameList();
+    }
+
     const raf = requestAnimationFrame(() => refreshFrameList());
     return () => cancelAnimationFrame(raf);
-  }, [active, refreshFrameList, syncFrames, stopPlayback]);
+  }, [active, hasFinale, minVisibleFrames, refreshFrameList, restoreFullOnInitRef, syncFrames, stopPlayback]);
 
   useLayoutEffect(() => {
     if (!active) return;
@@ -336,8 +397,14 @@ export function useProtoScenarioPlayback({
     if (frames.length === 0) return;
 
     const pendingInit = scrollIntentRef.current?.visibleCount ?? 0;
-    const effectiveCount =
+    let effectiveCount =
       visibleCount > 0 ? visibleCount : pendingInit > 0 ? pendingInit : 0;
+    if (
+      scrollIntentRef.current?.timing === "after-init" &&
+      pendingInit > effectiveCount
+    ) {
+      effectiveCount = pendingInit;
+    }
 
     if (effectiveCount === 0) {
       applyScenarioFrameVisibility(frames, 0);
@@ -565,6 +632,7 @@ export function useProtoScenarioPlayback({
     const frames = framesRef.current;
     const contentTotal = frames.length;
     const scenarioTotal = scenarioTotalFor(contentTotal, hasFinale);
+    const prevCount = visibleCountRef.current;
 
     if (hasFinale && visibleCountRef.current >= scenarioTotal) {
       playbackStepHooks?.onLeaveFinale?.();
@@ -575,6 +643,9 @@ export function useProtoScenarioPlayback({
     setVisibleCount((count) => {
       const next = clampVisible(count - 1, scenarioTotal, minVisibleFrames);
       const align = scrollAlignForCount(next, minVisibleFrames);
+      if (next < prevCount) {
+        playbackScrollMonitor.noteRetreatSync();
+      }
       queueScroll(next, align, false, count);
       return next;
     });

@@ -24,6 +24,45 @@ describe("protoPlaybackScrollMonitor", () => {
     expect(anomalies).toEqual([]);
   });
 
+  it("suppresses instant scroll jumps during CJM retreat sync", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onPassiveScroll(0);
+    monitor.noteRetreatSync();
+    monitor.onPassiveScroll(750);
+
+    expect(anomalies).toEqual([]);
+  });
+
+  it("suppresses scroll jumps during scenario frame step-back retreat sync", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onPassiveScroll(900);
+    monitor.noteRetreatSync();
+    monitor.onPassiveScroll(820);
+
+    expect(anomalies).toEqual([]);
+  });
+
+  it("suppresses animation cancel during CJM retreat sync", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onAnimationStart({ startTop: 465, targetTop: 599, duration: 720 });
+    monitor.noteRetreatSync();
+    monitor.onAnimationCancelled();
+
+    expect(anomalies).toEqual([]);
+  });
+
   it("still reports jumps when not in navigation grace", () => {
     const anomalies: string[] = [];
     const monitor = createPlaybackScrollMonitor();
@@ -34,6 +73,19 @@ describe("protoPlaybackScrollMonitor", () => {
     monitor.onPassiveScroll(180);
 
     expect(anomalies).toContain("scroll-jump");
+  });
+
+  it("noteScrollPosition resets baseline after layout-driven clamp", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onPassiveScroll(1094);
+    monitor.noteScrollPosition(1034);
+    monitor.onPassiveScroll(1034);
+
+    expect(anomalies).toEqual([]);
   });
 
   it("reports stacked eased scrolls during a director script", () => {

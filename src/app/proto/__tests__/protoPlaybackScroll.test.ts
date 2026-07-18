@@ -206,7 +206,11 @@ describe("animateScrollTo", () => {
 });
 
 describe("prototype page scroll lock", () => {
-  it("skips animateScrollTo when scroll root is locked", async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("skips animateScrollTo when scroll root is popup-locked", async () => {
     const scrollEl = {
       scrollTop: 0,
       scrollHeight: 1200,
@@ -217,6 +221,34 @@ describe("prototype page scroll lock", () => {
 
     await animateScrollTo(scrollEl, 500);
     expect(scrollEl.scrollTop).toBe(0);
+  });
+
+  it("still animates when scroll root is journey-locked (user lock only)", async () => {
+    const scrollEl = {
+      scrollTop: 0,
+      scrollHeight: 1200,
+      clientHeight: 400,
+      classList: {
+        contains: (name: string) => name === "proto-scroll--journey-locked",
+      },
+      dataset: {},
+    } as unknown as HTMLElement;
+
+    let rafCallback: FrameRequestCallback | null = null;
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      rafCallback = cb;
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    let now = 0;
+    vi.stubGlobal("performance", { now: () => now });
+
+    const promise = animateScrollTo(scrollEl, 500, { durationMs: 300 });
+    now = 300;
+    rafCallback!(300);
+    await promise;
+    expect(scrollEl.scrollTop).toBe(500);
   });
 
   it("skips beginDemoTargetPageScroll for overlay targets", async () => {

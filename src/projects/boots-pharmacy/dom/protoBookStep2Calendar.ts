@@ -10,12 +10,30 @@ export const BOOK_STEP2_RETREAT_DEFAULT_DATE = {
   day: 24,
 } as const;
 
+export const BOOK_STEP2_RETREAT_DEFAULT_TIME = "16:30";
+
+/** Default date/time baseline — Book Step 2 date/time beats on step-back. */
 export const BOOK_STEP2_RETREAT_INTENT = "book-step2-default-date";
+
+/** Full slot sync — updates wire React state (month/day/time). */
+export const BOOK_STEP2_RETREAT_SLOT_INTENT = "book-step2-slot";
+
+export type BookStep2CalendarSlot = {
+  month: "June" | "July";
+  day: number;
+  time?: string;
+};
 
 export type BookStep2RetreatDefaultDetail = {
   month: "June" | "July";
   day: number;
   clearTime: boolean;
+};
+
+export type BookStep2RetreatSlotDetail = {
+  month: "June" | "July";
+  day: number;
+  time?: string | null;
 };
 
 /** @deprecated Use PROTO_RETREAT_SYNC_EVENT — kept for tests. */
@@ -71,26 +89,109 @@ export function bookStep2Screen(): HTMLElement | null {
   );
 }
 
-/** Direct DOM selection — does not rely on wire click handlers or meta maps. */
-export function applyBookStep2CalendarRetreatDom(
-  screen: HTMLElement,
-  options?: { clearTime?: boolean }
-): boolean {
-  const { month, day } = BOOK_STEP2_RETREAT_DEFAULT_DATE;
-  const clearTime = options?.clearTime !== false;
+function calCellLabel(cell: HTMLElement): string {
+  return cell.querySelector("p")?.textContent?.trim() ?? "";
+}
 
+function findBookStep2MonthRoots(
+  screen: HTMLElement
+): { month: "June" | "July"; root: HTMLElement }[] {
+  const monthRoots: { month: "June" | "July"; root: HTMLElement }[] = [];
+  Array.from(screen.querySelectorAll("p")).forEach((p) => {
+    const label = (p.textContent ?? "").trim();
+    if (label !== "June" && label !== "July") return;
+    const month = label as "June" | "July";
+    let root: HTMLElement | null = p.parentElement;
+    while (root && root !== screen) {
+      const cells = root.querySelectorAll('[data-name="calendar. date. cell"]')
+        .length;
+      if (cells >= 20) {
+        monthRoots.push({ month, root });
+        break;
+      }
+      root = root.parentElement;
+    }
+  });
+  return monthRoots;
+}
+
+function findBookStep2DateCell(
+  screen: HTMLElement,
+  month: "June" | "July",
+  day: number
+): HTMLElement | null {
+  const byData = screen.querySelector<HTMLElement>(
+    `[data-name="calendar. date. cell"][data-proto-cal-kind="date"][data-proto-cal-month="${month}"][data-proto-cal-value="${day}"]`
+  );
+  if (byData && byData.dataset.protoCalUnavailable !== "true") return byData;
+
+  const monthRoots = findBookStep2MonthRoots(screen);
+  for (const cell of screen.querySelectorAll<HTMLElement>(
+    '[data-name="calendar. date. cell"]'
+  )) {
+    if (calCellLabel(cell) !== String(day)) continue;
+    const monthRoot = monthRoots.find(({ root }) => root.contains(cell));
+    if (monthRoot?.month === month) return cell;
+  }
+  return null;
+}
+
+function findBookStep2TimeCell(
+  screen: HTMLElement,
+  time: string
+): HTMLElement | null {
+  const byData = screen.querySelector<HTMLElement>(
+    `[data-name="calendar. date. cell"][data-proto-cal-kind="time"][data-proto-cal-value="${time}"]`
+  );
+  if (byData && byData.dataset.protoCalUnavailable !== "true") return byData;
+
+  for (const cell of screen.querySelectorAll<HTMLElement>(
+    '[data-name="calendar. date. cell"]'
+  )) {
+    if (calCellLabel(cell) === time) return cell;
+  }
+  return null;
+}
+
+function stripBookStep2CalCellChrome(cell: HTMLElement): void {
+  cell.classList.remove(
+    "bg-white",
+    "bg-[#c6e5e1]",
+    "bg-[#f5f5f5]",
+    "rounded-[4px]"
+  );
+  cell.className = cell.className
+    .replace(/\bdrop-shadow-\[[^\]]+\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  cell.querySelectorAll<HTMLElement>("div, p").forEach((el) => {
+    el.className = el.className
+      .replace(/font-\['Inter:[^']+'\]/g, "font-['Open_Sans:Regular',sans-serif]")
+      .replace(/\bfont-semibold\b/g, "font-normal")
+      .replace(/\bfont-bold\b/g, "font-normal")
+      .replace(/\btext-\[16px\]\b/g, "text-[13px]")
+      .replace(/\bleading-\[16px\]\b/g, "leading-[24px]")
+      .replace(/\s+/g, " ")
+      .trim();
+    el.style.removeProperty("font-weight");
+    el.style.removeProperty("font-size");
+    el.style.removeProperty("font-family");
+  });
+}
+
+/** Apply date/time selection on Book Step 2 — works before wire metadata is attached. */
+export function applyBookStep2CalendarFromSlot(
+  screen: HTMLElement,
+  slot: BookStep2CalendarSlot
+): boolean {
   screen
     .querySelectorAll<HTMLElement>('[data-name="calendar. date. cell"]')
     .forEach((cell) => {
-      const kind = cell.dataset.protoCalKind;
-      if (kind === "date" || (clearTime && kind === "time")) {
-        delete cell.dataset.protoCalSelected;
-      }
+      delete cell.dataset.protoCalSelected;
+      stripBookStep2CalCellChrome(cell);
     });
 
-  const dateCell = screen.querySelector<HTMLElement>(
-    `[data-name="calendar. date. cell"][data-proto-cal-kind="date"][data-proto-cal-month="${month}"][data-proto-cal-value="${day}"]`
-  );
+  const dateCell = findBookStep2DateCell(screen, slot.month, slot.day);
   if (!dateCell || dateCell.dataset.protoCalUnavailable === "true") {
     return false;
   }
@@ -99,10 +200,30 @@ export function applyBookStep2CalendarRetreatDom(
 
   const heading = findBookStep2DateHeading(screen);
   if (heading) {
-    heading.textContent = formatBookStep2DateHeading(month, day);
+    heading.textContent = formatBookStep2DateHeading(slot.month, slot.day);
+  }
+
+  if (slot.time) {
+    const timeCell = findBookStep2TimeCell(screen, slot.time);
+    if (timeCell && timeCell.dataset.protoCalUnavailable !== "true") {
+      timeCell.dataset.protoCalSelected = "true";
+    }
   }
 
   return true;
+}
+
+/** Direct DOM selection — does not rely on wire click handlers or meta maps. */
+export function applyBookStep2CalendarRetreatDom(
+  screen: HTMLElement,
+  options?: { clearTime?: boolean }
+): boolean {
+  const restoreDefaultTime = options?.clearTime !== false;
+  return applyBookStep2CalendarFromSlot(screen, {
+    month: BOOK_STEP2_RETREAT_DEFAULT_DATE.month,
+    day: BOOK_STEP2_RETREAT_DEFAULT_DATE.day,
+    time: restoreDefaultTime ? BOOK_STEP2_RETREAT_DEFAULT_TIME : undefined,
+  });
 }
 
 export function dispatchBookStep2RetreatDefaultEvent(
@@ -112,29 +233,73 @@ export function dispatchBookStep2RetreatDefaultEvent(
     clearTime: true,
   }
 ): void {
-  const payload: ProtoRetreatSyncDetail = {
+  syncBookStep2RetreatSlotDom(
+    {
+      month: detail.month,
+      day: detail.day,
+      time: detail.clearTime ? BOOK_STEP2_RETREAT_DEFAULT_TIME : undefined,
+    },
+    { intent: BOOK_STEP2_RETREAT_INTENT, legacyDefault: detail }
+  );
+}
+
+export function dispatchBookStep2RetreatSlotEvent(
+  slot: BookStep2CalendarSlot,
+  options?: { intent?: string }
+): void {
+  syncBookStep2RetreatSlotDom(slot, {
+    intent: options?.intent ?? BOOK_STEP2_RETREAT_SLOT_INTENT,
+  });
+}
+
+/** Apply calendar DOM + notify wire React state — use for all book step 2 retreat baselines. */
+export function syncBookStep2RetreatSlotDom(
+  slot: BookStep2CalendarSlot,
+  options?: {
+    intent?: string;
+    /** @deprecated Legacy payload for default-date intent tests. */
+    legacyDefault?: BookStep2RetreatDefaultDetail;
+  }
+): boolean {
+  const screen = bookStep2Screen();
+  const ok = screen ? applyBookStep2CalendarFromSlot(screen, slot) : false;
+  const intent = options?.intent ?? BOOK_STEP2_RETREAT_SLOT_INTENT;
+  const data: Record<string, unknown> =
+    options?.legacyDefault != null
+      ? { ...options.legacyDefault }
+      : {
+          month: slot.month,
+          day: slot.day,
+          time: slot.time ?? null,
+        };
+  dispatchProtoRetreatSync({
     beatId: "",
     channel: "book",
-    intent: BOOK_STEP2_RETREAT_INTENT,
-    data: { ...detail },
-  };
-  dispatchProtoRetreatSync(payload);
+    intent,
+    data,
+  });
+  return ok;
 }
 
 export function syncBookStep2RetreatDefaultDom(options?: {
   clearTime?: boolean;
 }): boolean {
-  const screen = bookStep2Screen();
-  if (!screen) return false;
-  const ok = applyBookStep2CalendarRetreatDom(screen, options);
-  if (ok) {
-    dispatchBookStep2RetreatDefaultEvent({
+  const clearTime = options?.clearTime !== false;
+  return syncBookStep2RetreatSlotDom(
+    {
       month: BOOK_STEP2_RETREAT_DEFAULT_DATE.month,
       day: BOOK_STEP2_RETREAT_DEFAULT_DATE.day,
-      clearTime: options?.clearTime !== false,
-    });
-  }
-  return ok;
+      time: clearTime ? BOOK_STEP2_RETREAT_DEFAULT_TIME : undefined,
+    },
+    {
+      intent: BOOK_STEP2_RETREAT_INTENT,
+      legacyDefault: {
+        month: BOOK_STEP2_RETREAT_DEFAULT_DATE.month,
+        day: BOOK_STEP2_RETREAT_DEFAULT_DATE.day,
+        clearTime,
+      },
+    }
+  );
 }
 
 export function isBookStep2RetreatSyncDetail(
@@ -146,6 +311,21 @@ export function isBookStep2RetreatSyncDetail(
   return (
     detail.channel === "book" &&
     detail.intent === BOOK_STEP2_RETREAT_INTENT &&
+    detail.data != null &&
+    typeof detail.data.month === "string" &&
+    typeof detail.data.day === "number"
+  );
+}
+
+export function isBookStep2RetreatSlotDetail(
+  detail: ProtoRetreatSyncDetail
+): detail is ProtoRetreatSyncDetail & {
+  intent: typeof BOOK_STEP2_RETREAT_SLOT_INTENT;
+  data: BookStep2RetreatSlotDetail;
+} {
+  return (
+    detail.channel === "book" &&
+    detail.intent === BOOK_STEP2_RETREAT_SLOT_INTENT &&
     detail.data != null &&
     typeof detail.data.month === "string" &&
     typeof detail.data.day === "number"

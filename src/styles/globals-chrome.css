@@ -15,9 +15,11 @@
   min-height: var(--proto-scroll-min-px, 100%);
 }
 
-.proto-scroll--prototype.proto-scroll--locked {
+.proto-scroll--prototype.proto-scroll--locked,
+.proto-scroll--prototype.proto-scroll--journey-locked {
   overflow: hidden !important;
   overscroll-behavior: contain;
+  touch-action: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

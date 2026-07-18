@@ -6,6 +6,7 @@ import {
   isPrototypePageScrollLocked,
   type PlaybackScrollOptions,
 } from "@/app/proto/protoPlaybackScroll";
+import { notePlaybackDemoClick } from "@/app/shell/protoPlaybackInteractionContext";
 
 const CURSOR_ARROW_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--arrow" src="${defaultCursorUrl}" width="22" height="26" alt="" aria-hidden="true" draggable="false" />`;
 
@@ -1001,6 +1002,7 @@ export async function simulateDemoPointerClick(
   if (dispatchEvents) {
     dispatchDemoPointerEvent(interactionRoot, "pointerup", x, y);
   }
+  notePlaybackDemoClick(interactionRoot);
   target.click();
   settleDemoCursorAfterClick(cursor, interactionRoot);
   await delay(160);
