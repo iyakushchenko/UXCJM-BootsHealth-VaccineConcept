@@ -108,6 +108,33 @@
   white-space: nowrap;
 }
 
+.proto-nav-scenario__label--touchpoint-blink {
+  animation: proto-studio-touchpoint-amber-blink 0.9s ease-out 1;
+}
+
+@keyframes proto-studio-touchpoint-amber-blink {
+  0% {
+    color: #faf0d4;
+    text-shadow:
+      0 0 8px rgba(250, 240, 212, 0.9),
+      0 0 16px rgba(220, 190, 120, 0.55);
+  }
+  35% {
+    color: #ead9ad;
+    text-shadow:
+      0 0 10px rgba(234, 217, 173, 0.75),
+      0 0 20px rgba(204, 181, 127, 0.45);
+  }
+  70% {
+    color: #ccb57f;
+    text-shadow: 0 0 6px rgba(204, 181, 127, 0.35);
+  }
+  100% {
+    color: rgba(255, 255, 255, 0.45);
+    text-shadow: none;
+  }
+}
+
 .proto-nav-journey-menu {
   position: relative;
   display: inline-flex;
@@ -581,6 +608,25 @@
   }
 }
 
+.proto-nav-panel-host--playback-locked .proto-nav-tabs,
+.proto-nav-panel-host--playback-locked .proto-nav-dots,
+.proto-nav-panel-host--playback-locked .proto-nav-reset-state {
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.proto-nav-panel-host--playback-locked
+  .proto-nav-stepper
+  > :not(.proto-nav-stepper__scenario-slot) {
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.proto-nav-journey-menu__trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .proto-nav-tabs {
   display: flex;
   align-items: center;
@@ -717,9 +763,41 @@
   box-shadow: none !important;
 }
 
-.proto-nav-scenario__deck .proto-nav-scenario__btn:focus,
-.proto-nav-scenario__deck .proto-nav-scenario__btn:focus-visible {
+/* Studio control panel — no focus ring on chrome buttons or journey dropdown */
+.proto-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus,
+.proto-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus-visible,
+.proto-nav-panel-host :is(button, [role="listbox"], [role="option"]):active:focus {
   outline: none !important;
+}
+
+.proto-nav-journey-menu__trigger:focus,
+.proto-nav-journey-menu__trigger:focus-visible,
+.proto-nav-journey-menu__panel:focus,
+.proto-nav-journey-menu__panel:focus-visible,
+.proto-nav-journey-menu__option:focus,
+.proto-nav-journey-menu__option:focus-visible {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.proto-nav-journey-menu__option--active:focus,
+.proto-nav-journey-menu__option--active:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.proto-nav-scenario__deck .proto-nav-scenario__btn:focus,
+.proto-nav-scenario__deck .proto-nav-scenario__btn:focus-visible,
+.proto-nav-scenario__deck .proto-nav-scenario__btn:active:focus {
+  outline: none !important;
+}
+
+.proto-nav-zoom-controls .proto-nav-step-btn:focus,
+.proto-nav-zoom-controls .proto-nav-step-btn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .proto-nav-zoom-controls {

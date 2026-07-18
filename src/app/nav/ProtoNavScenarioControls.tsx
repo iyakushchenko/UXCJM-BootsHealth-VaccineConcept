@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type ProtoNavScenarioControlsProps = {
   journeyMenu: ReactNode;
+  segmentLabel?: string;
+  /** Changes whenever the active studio touchpoint changes (beat or popup). */
+  touchpointKey?: string;
   visibleCount: number;
   totalFrames: number;
   isPlaying: boolean;
@@ -80,6 +84,8 @@ function CassetteJumpToEndIcon() {
 /** Nav “control room” — 90s cassette-deck scenario playback. */
 export function ProtoNavScenarioControls({
   journeyMenu,
+  segmentLabel,
+  touchpointKey,
   visibleCount,
   totalFrames,
   isPlaying,
@@ -94,12 +100,36 @@ export function ProtoNavScenarioControls({
   onStepForward,
   onJumpToEnd,
 }: ProtoNavScenarioControlsProps) {
+  const [blinkToken, setBlinkToken] = useState(0);
+  const prevTouchpointKeyRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!touchpointKey) return;
+    if (prevTouchpointKeyRef.current === undefined) {
+      prevTouchpointKeyRef.current = touchpointKey;
+      return;
+    }
+    if (touchpointKey === prevTouchpointKeyRef.current) return;
+    prevTouchpointKeyRef.current = touchpointKey;
+    setBlinkToken((token) => token + 1);
+  }, [touchpointKey]);
+
   return (
     <div
       className={`proto-nav-scenario${isPlaying ? " proto-nav-scenario--on-air" : ""}`}
       role="group"
     >
       {journeyMenu}
+      {segmentLabel ? (
+        <span
+          key={blinkToken}
+          className={`proto-nav-scenario__label${
+            blinkToken > 0 ? " proto-nav-scenario__label--touchpoint-blink" : ""
+          }`}
+        >
+          {segmentLabel}
+        </span>
+      ) : null}
       <span className="proto-nav-scenario__on-air" aria-hidden>
         <span className="proto-nav-scenario__on-air-dot" />
         <span className="proto-nav-scenario__on-air-halo" aria-hidden />

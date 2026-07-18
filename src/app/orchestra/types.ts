@@ -1,13 +1,21 @@
-export type ProtoOrchestraModeId =
-  | "chat-experience"
-  | "agentic-cjm"
-  | "traditional-cjm";
+export type ProtoOrchestraModeId = "agentic-cjm" | "traditional-cjm";
 
 export type JourneyBeatKind = "screen-frames" | "tab-landing" | "overlay";
 
 export type JourneyBeatActionId =
   | "open-availability-start"
-  | "close-availability";
+  | "open-availability-date-chat"
+  | "close-availability"
+  | "apply-demo-location";
+
+export type AvailabilityScriptId =
+  | "continue-from-date"
+  | "select-time-slot"
+  | "book-now";
+
+export type HomeScriptId = "sarah-query-submit";
+
+export type BookScriptId = "reserve-appointment";
 
 export type JourneyBeat = {
   id: string;
@@ -19,6 +27,12 @@ export type JourneyBeat = {
   /** Auto-advance delay when play is active on tab-landing beats. */
   dwellMs?: number;
   onEnter?: JourneyBeatActionId;
+  /** Cursor-guided Availability Tool step (overlay beats). */
+  availScript?: AvailabilityScriptId;
+  /** Agentic home — Sarah types a query and submits to chat. */
+  homeScript?: HomeScriptId;
+  /** Book step 2 — scroll to and click Reserve Appointment. */
+  bookScript?: BookScriptId;
 };
 
 export type ProtoJourneyDefinition = {
@@ -37,6 +51,7 @@ export type JourneyRuntime = {
   goToTab: (screenIndex: number) => void;
   openAvailability: (intent?: unknown) => void;
   closeAvailability: () => void;
+  applyDemoLocation: () => void;
 };
 
 export type OrchestraModeOption = {

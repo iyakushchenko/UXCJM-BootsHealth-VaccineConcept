@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
   applyScenarioFrameVisibility,
+  bumpScenarioScrollGeneration,
   PROTO_SCENARIO_MIN_VISIBLE_FRAMES,
   scheduleScenarioScroll,
   scenarioScrollTiming,
@@ -43,6 +44,11 @@ export type BeforeRevealContext = {
 };
 
 type PlaybackMode = "idle" | "playing";
+
+type AdvanceOptions = {
+  /** Manual step — reveal immediately without typing/thinking preludes. */
+  skipPrelude?: boolean;
+};
 
 type ScrollIntent = {
   visibleCount: number;
@@ -98,6 +104,8 @@ export function useProtoScenarioPlayback({
   const framesRef = useRef<HTMLElement[]>([]);
   const playTimerRef = useRef<number | null>(null);
   const pauseCleanupRef = useRef<(() => void) | null>(null);
+  const pendingRevealRef = useRef<(() => void) | null>(null);
+  const preludeGenerationRef = useRef(0);
   const isPlayingRef = useRef(false);
   const initializedRef = useRef(false);
   const initialScrollDoneRef = useRef(false);
@@ -140,6 +148,7 @@ export function useProtoScenarioPlayback({
   );
 
   const clearPreRevealPause = useCallback(() => {
+    preludeGenerationRef.current += 1;
     if (playTimerRef.current != null) {
       window.clearTimeout(playTimerRef.current);
       playTimerRef.current = null;
@@ -148,8 +157,10 @@ export function useProtoScenarioPlayback({
       pauseCleanupRef.current();
       pauseCleanupRef.current = null;
     }
+    pendingRevealRef.current = null;
     playbackStepHooks?.onPreludeAbort?.();
     setIsPausingBeforeReveal(false);
+    bumpScenarioScrollGeneration();
   }, [playbackStepHooks]);
 
   const retreatFromFinale = useCallback(() => {
@@ -179,12 +190,12 @@ export function useProtoScenarioPlayback({
 
     if (!initializedRef.current && frames.length > 0) {
       initializedRef.current = true;
-      const initialCount = frames.length;
+      const initialCount = clampVisible(minVisibleFrames, frames.length, minVisibleFrames);
       visibleCountRef.current = initialCount;
       scrollIntentRef.current = {
         visibleCount: initialCount,
         prevCount: 0,
-        align: "end",
+        align: "start",
         smooth: true,
         timing: "after-init",
       };
@@ -192,8 +203,10 @@ export function useProtoScenarioPlayback({
     } else if (frames.length > 0) {
       const scenarioTotal = scenarioTotalFor(frames.length, hasFinale);
       setVisibleCount((prev) => {
-        // RAF re-sync can run before the init setState lands — never collapse to min on that frame.
-        if (prev === 0) return frames.length;
+        // RAF re-sync can run before the init setState lands — keep progressive entry.
+        if (prev === 0) {
+          return clampVisible(minVisibleFrames, scenarioTotal, minVisibleFrames);
+        }
         return clampVisible(prev, scenarioTotal, minVisibleFrames);
       });
     }
@@ -209,10 +222,13 @@ export function useProtoScenarioPlayback({
       frame.dataset.protoScenarioFrame = String(index + 1);
     });
     setTotalFrames(scenarioTotalFor(frames.length, hasFinale));
-    const count = visibleCountRef.current || frames.length;
+    const count =
+      visibleCountRef.current > 0
+        ? visibleCountRef.current
+        : clampVisible(minVisibleFrames, frames.length, minVisibleFrames);
     applyScenarioFrameVisibility(frames, bubbleVisibleCount(count, frames.length));
     return frames;
-  }, [collectFrames, hasFinale]);
+  }, [collectFrames, hasFinale, minVisibleFrames]);
 
   useLayoutEffect(() => {
     visibleCountRef.current = visibleCount;
@@ -291,13 +307,30 @@ export function useProtoScenarioPlayback({
 
   useEffect(() => () => stopPlayback(), [stopPlayback]);
 
+  const scheduleNext = useCallback(() => {
+    if (!isPlayingRef.current) return;
+    playTimerRef.current = window.setTimeout(() => {
+      playTimerRef.current = null;
+      if (!isPlayingRef.current) return;
+      if (!advanceOneFrameRef.current(scheduleNext)) {
+        stopPlayback();
+      }
+    }, playbackStepMs);
+  }, [playbackStepMs, stopPlayback]);
+
+  const advanceOneFrameRef = useRef<
+    (onRevealed?: () => void, options?: AdvanceOptions) => boolean
+  >(() => false);
+
   const advanceOneFrame = useCallback(
-    (onRevealed?: () => void): boolean => {
+    (onRevealed?: () => void, options?: AdvanceOptions): boolean => {
       const frames = framesRef.current;
       const current = visibleCountRef.current;
       const contentTotal = frames.length;
       const scenarioTotal = scenarioTotalFor(contentTotal, hasFinale);
-      if (playTimerRef.current != null) return false;
+      if (playTimerRef.current != null && !options?.skipPrelude) return false;
+
+      const skipPrelude = options?.skipPrelude === true;
 
       const runFinale = (): boolean => {
         if (!playbackStepHooks?.onFinale || current >= scenarioTotal) return false;
@@ -337,7 +370,8 @@ export function useProtoScenarioPlayback({
       const frame = frames[next - 1];
       const fromCount = current;
 
-      const revealFrame = () => {
+      const revealFrame = (generation: number) => {
+        if (preludeGenerationRef.current !== generation) return;
         if (visibleCountRef.current !== fromCount) return;
 
         setIsPausingBeforeReveal(false);
@@ -356,18 +390,27 @@ export function useProtoScenarioPlayback({
         onRevealed?.();
       };
 
-      const runPrelude = async () => {
+      const runPrelude = async (generation: number) => {
+        if (preludeGenerationRef.current !== generation) return;
+
         const hasBeforeReveal = Boolean(playbackStepHooks?.beforeReveal);
         const legacyPause =
+          !skipPrelude &&
           !hasBeforeReveal &&
           (playbackStepHooks?.shouldPauseBeforeReveal?.(frame, next) ?? false);
 
-        if (!hasBeforeReveal && !legacyPause) {
-          revealFrame();
+        if (skipPrelude || (!hasBeforeReveal && !legacyPause)) {
+          if (!skipPrelude) {
+            revealFrame(generation);
+            return;
+          }
+          playbackStepHooks?.onPreludeAbort?.();
+          revealFrame(generation);
           return;
         }
 
         setIsPausingBeforeReveal(true);
+        pendingRevealRef.current = () => revealFrame(generation);
         pauseCleanupRef.current = () => {
           playbackStepHooks?.onPreludeAbort?.();
           setIsPausingBeforeReveal(false);
@@ -392,22 +435,27 @@ export function useProtoScenarioPlayback({
             playbackStepHooks?.onPauseBeforeRevealEnd?.();
           }
         } finally {
+          pendingRevealRef.current = null;
           pauseCleanupRef.current = null;
         }
 
+        if (preludeGenerationRef.current !== generation) return;
         if (visibleCountRef.current !== fromCount) return;
-        revealFrame();
+        revealFrame(generation);
       };
 
+      const generation = preludeGenerationRef.current;
       playTimerRef.current = window.setTimeout(() => {
         playTimerRef.current = null;
-        void runPrelude();
+        void runPrelude(generation);
       }, 0);
 
       return true;
     },
     [hasFinale, minVisibleFrames, playbackStepHooks, queueScroll, stopPlayback]
   );
+
+  advanceOneFrameRef.current = advanceOneFrame;
 
   const stepBack = useCallback(() => {
     stopPlayback();
@@ -437,9 +485,45 @@ export function useProtoScenarioPlayback({
   ]);
 
   const stepForward = useCallback(() => {
-    stopPlayback();
-    advanceOneFrame();
-  }, [advanceOneFrame, stopPlayback]);
+    const shouldResumePlay = isPlayingRef.current;
+
+    if (playTimerRef.current != null) {
+      window.clearTimeout(playTimerRef.current);
+      playTimerRef.current = null;
+    }
+
+    if (pendingRevealRef.current) {
+      playbackStepHooks?.onPreludeAbort?.();
+      pauseCleanupRef.current = null;
+      const reveal = pendingRevealRef.current;
+      pendingRevealRef.current = null;
+      setIsPausingBeforeReveal(false);
+      reveal();
+      preludeGenerationRef.current += 1;
+      bumpScenarioScrollGeneration();
+
+      isPlayingRef.current = shouldResumePlay;
+      setPlaybackMode(shouldResumePlay ? "playing" : "idle");
+      if (shouldResumePlay) {
+        scheduleNext();
+      }
+      return;
+    }
+
+    bumpScenarioScrollGeneration();
+    preludeGenerationRef.current += 1;
+
+    playbackStepHooks?.onPreludeAbort?.();
+    pauseCleanupRef.current = null;
+    setIsPausingBeforeReveal(false);
+
+    isPlayingRef.current = shouldResumePlay;
+    setPlaybackMode(shouldResumePlay ? "playing" : "idle");
+
+    advanceOneFrame(shouldResumePlay ? scheduleNext : undefined, {
+      skipPrelude: true,
+    });
+  }, [advanceOneFrame, playbackStepHooks, scheduleNext]);
 
   const play = useCallback(() => {
     if (isPlayingRef.current) {
@@ -459,20 +543,10 @@ export function useProtoScenarioPlayback({
     isPlayingRef.current = true;
     setPlaybackMode("playing");
 
-    const scheduleNext = () => {
-      if (!isPlayingRef.current) return;
-      playTimerRef.current = window.setTimeout(() => {
-        playTimerRef.current = null;
-        if (!advanceOneFrame(scheduleNext)) {
-          stopPlayback();
-        }
-      }, playbackStepMs);
-    };
-
     if (!advanceOneFrame(scheduleNext)) {
       stopPlayback();
     }
-  }, [advanceOneFrame, hasFinale, playbackStepMs, stopPlayback]);
+  }, [advanceOneFrame, hasFinale, scheduleNext, stopPlayback]);
 
   const jumpToStart = useCallback(() => {
     stopPlayback();

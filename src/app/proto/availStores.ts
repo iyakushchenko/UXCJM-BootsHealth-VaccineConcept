@@ -127,6 +127,22 @@ export function findAvailStoreById(id: string): AvailStore | undefined {
   return AVAIL_STORES.find((s) => s.id === id);
 }
 
+export type DemoChosenLocation = {
+  name: string;
+  address: string;
+  storeId: string;
+};
+
+/** Covent Garden — default demo pharmacy for CJM location emulation. */
+export function getDemoChosenLocation(): DemoChosenLocation {
+  const store = findAvailStoreById("covent") ?? AVAIL_STORES[0];
+  return {
+    name: store.name,
+    address: store.address,
+    storeId: store.id,
+  };
+}
+
 /** Map booking / chosen-location state → Availability Tool store id. */
 export function resolveAvailStoreId(chosen: {
   storeId?: string;

@@ -14,6 +14,8 @@ type Props = {
   hubOpen: boolean;
   navLabel: string;
   isProtoPristine: boolean;
+  /** Locks tab strip / dots / prev-next while journey playback is on-air. */
+  navPlaybackLocked?: boolean;
   contentRef: RefObject<HTMLElement | null>;
   tabsScrollRef: RefObject<HTMLDivElement | null>;
   tabBtnRefs: RefObject<(HTMLButtonElement | null)[]>;
@@ -33,6 +35,7 @@ export default function ProtoNavPanel({
   hubOpen,
   navLabel,
   isProtoPristine,
+  navPlaybackLocked = false,
   contentRef,
   tabsScrollRef,
   tabBtnRefs,
@@ -55,24 +58,31 @@ export default function ProtoNavPanel({
   const navIndex = protoNavIndex(hubOpen, current);
 
   const onPrevious = () => {
-    if (hubOpen) return;
+    if (navPlaybackLocked || hubOpen) return;
     if (current === 0) onOpenHub();
     else onGo(current - 1);
   };
 
   const onNext = () => {
+    if (navPlaybackLocked) return;
     if (hubOpen) onGo(0);
     else if (current < screenCount - 1) onGo(current + 1);
   };
 
   return (
-    <div ref={hostRef} className="proto-nav-panel-host">
+    <div
+      ref={hostRef}
+      className={`proto-nav-panel-host${
+        navPlaybackLocked ? " proto-nav-panel-host--playback-locked" : ""
+      }`}
+    >
       <div ref={shellRef} className="proto-nav-panel">
         <div className="proto-nav-chrome">
           <div ref={tabsScrollRef} className="proto-nav-tabs">
             <button
               type="button"
               onClick={onOpenHub}
+              disabled={navPlaybackLocked}
               title={PROTO_HUB_LABEL}
               aria-label={`Open ${PROTO_HUB_LABEL}`}
               aria-current={hubOpen ? "page" : undefined}
@@ -91,6 +101,7 @@ export default function ProtoNavPanel({
                   if (tabBtnRefs.current) tabBtnRefs.current[i] = node;
                 }}
                 onClick={() => onGo(i)}
+                disabled={navPlaybackLocked}
                 className={
                   !hubOpen && i === current
                     ? "proto-nav-tab proto-nav-tab--active"
@@ -113,6 +124,7 @@ export default function ProtoNavPanel({
                 <button
                   type="button"
                   onClick={onOpenHub}
+                  disabled={navPlaybackLocked}
                   aria-label={PROTO_HUB_LABEL}
                   aria-current={hubOpen ? "true" : undefined}
                   className={
@@ -126,6 +138,7 @@ export default function ProtoNavPanel({
                     key={i}
                     type="button"
                     onClick={() => onGo(i)}
+                    disabled={navPlaybackLocked}
                     aria-label={`Screen ${i + 1}`}
                     aria-current={!hubOpen && i === current ? "true" : undefined}
                     className={
@@ -143,6 +156,7 @@ export default function ProtoNavPanel({
                 <button
                   type="button"
                   onClick={onReset}
+                  disabled={navPlaybackLocked}
                   title="Reset page states (stay on this screen)"
                   className="proto-nav-reset-state"
                 >
@@ -170,7 +184,7 @@ export default function ProtoNavPanel({
               <button
                 type="button"
                 onClick={onPrevious}
-                disabled={hubOpen}
+                disabled={navPlaybackLocked || hubOpen}
                 className="proto-nav-step-btn"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -187,7 +201,9 @@ export default function ProtoNavPanel({
               <button
                 type="button"
                 onClick={onNext}
-                disabled={!hubOpen && current === screenCount - 1}
+                disabled={
+                  navPlaybackLocked || (!hubOpen && current === screenCount - 1)
+                }
                 className="proto-nav-step-btn"
               >
                 Next

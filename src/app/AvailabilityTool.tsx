@@ -74,6 +74,7 @@ type Props = {
   onChooseLocation?: (store: AvailStore) => void;
   loggedIn?: boolean;
   onOpenLogin?: () => void;
+  onActiveStepChange?: (step: AvailStep) => void;
 };
 
 const STORES = AVAIL_STORES;
@@ -512,6 +513,7 @@ export default function AvailabilityTool({
   onChooseLocation,
   loggedIn = false,
   onOpenLogin,
+  onActiveStepChange,
 }: Props) {
   const [step, setStep] = useState<AvailStep>("start");
   const [query, setQuery] = useState("");
@@ -543,6 +545,11 @@ export default function AvailabilityTool({
       document.removeEventListener(SAVED_LOCATIONS_CHANGE_EVENT, onSavedChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    onActiveStepChange?.(step);
+  }, [open, onActiveStepChange, step]);
 
   useEffect(() => {
     if (!open) {

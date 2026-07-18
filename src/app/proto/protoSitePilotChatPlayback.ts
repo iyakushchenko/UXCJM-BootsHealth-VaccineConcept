@@ -44,6 +44,7 @@ export function abortSitePilotChatPlaybackPrelude(): void {
   removeDemoCursor();
   clearSimulatedClickRipples();
   clearChatCtaSimStates();
+  endSitePilotChatThinking();
 }
 
 function delay(ms: number): Promise<void> {
@@ -300,7 +301,7 @@ export async function runSitePilotChatBeforeReveal(
 
   if (isSitePilotChatAgentReplyFrame(frame)) {
     const screen = getChatScreen();
-    if (screen) beginSitePilotChatPlaybackThinking(screen);
+    if (screen) beginSitePilotChatPlaybackThinking(screen, frame);
     scrollChatToBottom();
     await delay(SITE_PILOT_CHAT_PLAYBACK_THINK_MS);
     if (!preludeAborted) endSitePilotChatThinking();

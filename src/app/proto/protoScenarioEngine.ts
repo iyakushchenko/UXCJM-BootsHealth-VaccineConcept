@@ -293,6 +293,13 @@ export function anchorScenarioScrollToVisibleEnd(
 }
 
 let activeScrollPinStop: (() => void) | null = null;
+let scenarioScrollGeneration = 0;
+
+/** Drop pending scroll settle timers/pins after a manual transport interrupt. */
+export function bumpScenarioScrollGeneration(): void {
+  scenarioScrollGeneration += 1;
+  activeScrollPinStop?.();
+}
 
 function resolveScrollEl(scrollEl?: HTMLElement | null): HTMLElement | null {
   return (
@@ -405,6 +412,8 @@ export function scheduleScenarioScroll(
   timing: ScenarioScrollTiming = "immediate",
   prevCount = visibleCount
 ): void {
+  const generation = scenarioScrollGeneration;
+
   if (timing === "after-init" && align === "end") {
     scrollPrototypeScrollToBottom(scrollEl, "instant");
     pinScenarioScrollToBottomDuring(scrollEl, SCENARIO_SCROLL_INITIAL_MS);
@@ -421,6 +430,7 @@ export function scheduleScenarioScroll(
 
   pinScenarioScrollToBottomDuring(scrollEl);
   window.setTimeout(() => {
+    if (generation !== scenarioScrollGeneration) return;
     if (steppedForwardOne) {
       settleScrollAfterForwardStep(frames, visibleCount, scrollEl);
       return;

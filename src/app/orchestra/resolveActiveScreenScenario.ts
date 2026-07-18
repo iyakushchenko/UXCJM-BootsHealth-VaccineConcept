@@ -1,6 +1,5 @@
 import {
   getProtoScenarioById,
-  getProtoScenarioForChildIndex,
   type ProtoScenarioScreenConfig,
 } from "@/app/proto/protoScenarioEngine";
 import { protoTabToIndex } from "@/app/proto/protoScreens";
@@ -12,17 +11,11 @@ export function resolveActiveScreenScenario(options: {
   modeId: ProtoOrchestraModeId;
   beatIndex: number;
   currentTabIndex: number;
-  currentChildIndex: number;
   brandPack: ProtoBrandPack;
 }): ProtoScenarioScreenConfig | undefined {
-  const { hubOpen, modeId, beatIndex, currentTabIndex, currentChildIndex, brandPack } =
-    options;
+  const { hubOpen, modeId, beatIndex, currentTabIndex, brandPack } = options;
 
   if (hubOpen) return undefined;
-
-  if (modeId === "chat-experience") {
-    return getProtoScenarioForChildIndex(currentChildIndex);
-  }
 
   const journey = getJourneyForMode(brandPack, modeId);
   const beat = journey?.beats[beatIndex];
@@ -39,18 +32,10 @@ export function orchestraShowControls(options: {
   hubOpen: boolean;
   modeId: ProtoOrchestraModeId;
   brandPack: ProtoBrandPack;
-  screenTotalFrames: number;
-  activeScreenScenario: ProtoScenarioScreenConfig | undefined;
 }): boolean {
-  const { hubOpen, modeId, brandPack, screenTotalFrames, activeScreenScenario } =
-    options;
+  const { hubOpen, modeId, brandPack } = options;
 
   if (hubOpen) return false;
 
-  const isCjmMode = modeId === "agentic-cjm" || modeId === "traditional-cjm";
-  if (isCjmMode) {
-    return (getJourneyForMode(brandPack, modeId)?.beats.length ?? 0) > 0;
-  }
-
-  return activeScreenScenario != null && screenTotalFrames > 0;
+  return (getJourneyForMode(brandPack, modeId)?.beats.length ?? 0) > 0;
 }

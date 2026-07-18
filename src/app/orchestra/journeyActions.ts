@@ -1,4 +1,7 @@
-import type { JourneyBeatActionId, JourneyRuntime } from "@/app/orchestra/types";
+import type { JourneyBeatActionId, JourneyRuntime, AvailabilityScriptId, HomeScriptId, BookScriptId } from "@/app/orchestra/types";
+import { runAvailabilityScript } from "@/app/proto/protoAvailabilityPlayback";
+import { runBookScript } from "@/app/proto/protoBookPlayback";
+import { runSitePilotHomeScript } from "@/app/proto/protoSitePilotHomePlayback";
 
 export function runJourneyBeatAction(
   actionId: JourneyBeatActionId,
@@ -6,12 +9,41 @@ export function runJourneyBeatAction(
 ): void {
   switch (actionId) {
     case "open-availability-start":
-      runtime.openAvailability();
+    case "open-availability-date-chat":
+      runtime.openAvailability(
+        actionId === "open-availability-date-chat"
+          ? { step: "date", storeId: "covent", selectedDate: { month: "June", day: 25 } }
+          : undefined
+      );
       break;
     case "close-availability":
       runtime.closeAvailability();
       break;
+    case "apply-demo-location":
+      runtime.applyDemoLocation();
+      break;
     default:
       break;
   }
+}
+
+export async function runJourneyHomeScript(
+  scriptId: HomeScriptId,
+  options?: { skip?: boolean }
+): Promise<void> {
+  await runSitePilotHomeScript(scriptId, options);
+}
+
+export async function runJourneyAvailScript(
+  scriptId: AvailabilityScriptId,
+  options?: { skip?: boolean }
+): Promise<boolean> {
+  return runAvailabilityScript(scriptId, options);
+}
+
+export async function runJourneyBookScript(
+  scriptId: BookScriptId,
+  options?: { skip?: boolean }
+): Promise<void> {
+  await runBookScript(scriptId, options);
 }

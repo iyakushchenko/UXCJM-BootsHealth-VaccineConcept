@@ -5,6 +5,7 @@ import bootsAdvantageCard from "@/assets/boots-advantage-card.png";
 import AvailabilityTool, {
   PROTO_TODAY_TOOLTIP,
   type AvailOpenIntent,
+  type AvailStep,
   type ChosenBookingSlot,
 } from "@/app/AvailabilityTool";
 import VaccinePickerPopup from "@/app/popups/VaccinePickerPopup";
@@ -17,6 +18,7 @@ import QuickViewPopup from "@/app/popups/QuickViewPopup";
 import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
 import { ProtoNavScenarioControls } from "@/app/nav/ProtoNavScenarioControls";
 import { ProtoNavJourneyMenu } from "@/app/nav/ProtoNavJourneyMenu";
+import { resolveStudioTouchpoint, buildStudioTouchpointPlaylist, resolveStudioTouchpointProgress, DEFAULT_CHAT_SCENARIO_FRAMES } from "@/app/nav/resolveStudioTouchpoint";
 import { useProtoScenarioPlayback, type PlaybackStepHooks } from "@/app/nav/useProtoScenarioPlayback";
 import ProtoHubViewport from "@/app/hub/ProtoHubViewport";
 import { PROTO_HUB_LABEL, PROTO_INDEX_APPOINTMENT_DETAILS, PROTO_INDEX_APPOINTMENT_HISTORY, PROTO_INDEX_PLP, PROTO_SCREENS, protoTabToIndex } from "@/app/proto/protoScreens";
@@ -40,15 +42,17 @@ import {
   runSitePilotChatScenarioFinale,
   stripSitePilotChatDemoCursors,
 } from "@/app/proto/protoSitePilotChatPlayback";
+import { AGENTIC_HOME_DEMO_QUERY } from "@/app/proto/protoSitePilotHomePlayback";
 import {
   beginSitePilotChatThinking,
   endSitePilotChatThinking,
+  isSitePilotChatPlaybackThinking,
   isSitePilotChatSendThinking,
   isSitePilotChatThinking,
   setSitePilotChatSendThinkingMode,
   syncSitePilotChatThinkingHint,
 } from "@/app/proto/protoSitePilotChatThinking";
-import { resolveAvailStoreId } from "@/app/proto/availStores";
+import { resolveAvailStoreId, getDemoChosenLocation } from "@/app/proto/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/app/proto/protoVaccineList";
 import {
@@ -130,8 +134,7 @@ const DEFAULT_CHOSEN_BOOKING_SLOT: ChosenBookingSlot = {
 };
 
 /** Default Agentic home query — Reset hides while this is unchanged. */
-const AGENTIC_HOME_QUERY_DEFAULT =
-  "I need a full course of travel vaccinations for a three-week trip to Southeast Asia (Indonesia) starting next month, specifically looking to book and buy jabs as a bundle if possible.";
+const AGENTIC_HOME_QUERY_DEFAULT = AGENTIC_HOME_DEMO_QUERY;
 
 const AGENTIC_HOME_HEADING_DEFAULT =
   "What health services are you focusing on today?";
@@ -831,6 +834,7 @@ export default function App() {
   const [availIntent, setAvailIntent] = useState<AvailOpenIntent>(
     AVAIL_INTENT.start
   );
+  const [availActiveStep, setAvailActiveStep] = useState<AvailStep | null>(null);
   const [chosenLocation, setChosenLocation] = useState<ChosenLocation | null>(
     DEFAULT_PROTO_UI.chosenLocation
   );
@@ -953,7 +957,6 @@ export default function App() {
     modeId: orchestraModeId,
     setModeId: setOrchestraModeId,
     modes: orchestraModes,
-    isCjmMode,
     beatIndex: journeyBeatIndex,
     setBeatIndex: setJourneyBeatIndex,
     resetBeatIndex,
@@ -973,8 +976,32 @@ export default function App() {
       closeAvailability: () => {
         closeAvailabilityTool();
       },
+      applyDemoLocation: () => {
+        setChosenLocation(getDemoChosenLocation());
+      },
     }),
     []
+  );
+
+  const handleAvailabilityBookNow = useCallback(
+    (store: { id: string; name: string; address: string }, slot: ChosenBookingSlot) => {
+      setChosenLocation({
+        name: store.name,
+        address: store.address,
+        storeId: store.id,
+      });
+      setChosenBookingSlot(slot);
+      closeAvailabilityTool();
+      window.setTimeout(() => {
+        setCurrent(5);
+        const datetimeBeatIndex =
+          activeJourney?.beats.findIndex((beat) => beat.id === "book-datetime") ?? -1;
+        if (datetimeBeatIndex >= 0) {
+          setJourneyBeatIndex(datetimeBeatIndex);
+        }
+      }, 0);
+    },
+    [activeJourney, closeAvailabilityTool, setJourneyBeatIndex]
   );
 
   const activeScreenScenario = useMemo(
@@ -984,11 +1011,19 @@ export default function App() {
         modeId: orchestraModeId,
         beatIndex: journeyBeatIndex,
         currentTabIndex: current,
-        currentChildIndex: SCREENS[current]?.childIndex ?? -1,
         brandPack: BOOTS_SARAH_PACK,
       }),
     [hubOpen, orchestraModeId, journeyBeatIndex, current]
   );
+
+  const journeyBeatIndexRef = useRef(journeyBeatIndex);
+  journeyBeatIndexRef.current = journeyBeatIndex;
+  const setJourneyBeatIndexRef = useRef(setJourneyBeatIndex);
+  setJourneyBeatIndexRef.current = setJourneyBeatIndex;
+  const activeJourneyRef = useRef(activeJourney);
+  activeJourneyRef.current = activeJourney;
+  const scenarioIsPlayingRef = useRef(false);
+  const resumeJourneyPlayRef = useRef<() => void>(() => {});
 
   const collectScenarioFrames = useCallback(() => {
     if (!activeScreenScenario) return [];
@@ -1012,11 +1047,21 @@ export default function App() {
     () => ({
       beforeReveal: runSitePilotChatBeforeReveal,
       onPreludeAbort: abortSitePilotChatPlaybackPrelude,
-      onFinale: () =>
-        runSitePilotChatScenarioFinale(
+      onFinale: async () => {
+        const shouldContinueJourney = scenarioIsPlayingRef.current;
+        await runSitePilotChatScenarioFinale(
           (intent) => openAvailabilityToolRef.current(intent),
           AVAIL_INTENT.dateChat
-        ),
+        );
+        const journey = activeJourneyRef.current;
+        const beat = journey?.beats[journeyBeatIndexRef.current];
+        if (beat?.id === "agentic-chat") {
+          setJourneyBeatIndexRef.current((index) => index + 1);
+          if (shouldContinueJourney) {
+            resumeJourneyPlayRef.current();
+          }
+        }
+      },
       onLeaveFinale: () => closeAvailabilityToolRef.current(),
     }),
     []
@@ -1038,7 +1083,7 @@ export default function App() {
   });
 
   const journeyPlayback = useProtoJourneyPlayback({
-    active: isCjmMode && !hubOpen,
+    active: !hubOpen,
     journey: activeJourney,
     beatIndex: journeyBeatIndex,
     setBeatIndex: setJourneyBeatIndex,
@@ -1048,21 +1093,101 @@ export default function App() {
     screenBeatActive: activeScreenScenario != null,
   });
 
-  const playback = isCjmMode ? journeyPlayback : scenarioPlayback;
+  scenarioIsPlayingRef.current = scenarioPlayback.isPlaying;
+  resumeJourneyPlayRef.current = journeyPlayback.resumeJourneyPlay;
+
+  const transport = journeyPlayback;
+  const navPlaybackLocked = transport.isPlaying;
+  const navPlaybackLockedRef = useRef(navPlaybackLocked);
+  navPlaybackLockedRef.current = navPlaybackLocked;
+
+  const chatFramesForPlaylist =
+    scenarioPlayback.totalFrames > 0
+      ? scenarioPlayback.totalFrames
+      : DEFAULT_CHAT_SCENARIO_FRAMES;
+
+  const studioPlaylist = useMemo(
+    () => buildStudioTouchpointPlaylist(activeJourney, chatFramesForPlaylist),
+    [activeJourney, chatFramesForPlaylist]
+  );
+
+  const studioTouchpoint = useMemo(
+    () => {
+      const childIdx = hubOpen ? null : SCREENS[current]?.childIndex;
+      const beat = activeJourney?.beats[journeyBeatIndex];
+      const popupOnScreen = (...allowed: number[]) =>
+        childIdx != null && allowed.includes(childIdx);
+
+      return resolveStudioTouchpoint({
+        beatId: beat?.id,
+        beatLabel: beat?.label,
+        availabilityOpen: availabilityOpen && childIdx != null,
+        availStep:
+          availActiveStep ?? (availabilityOpen ? availIntent.step : null),
+        vaccinePickerOpen: vaccinePickerOpen && popupOnScreen(7, 4),
+        recipientPickerOpen: recipientPickerOpen && popupOnScreen(7, 4),
+        loginPopupOpen: loginPopupOpen && childIdx != null,
+        quickViewOpen: quickViewOpen && popupOnScreen(9),
+        chatFrameIndex:
+          activeScreenScenario?.id === "site-pilot-chat"
+            ? scenarioPlayback.visibleCount
+            : undefined,
+        chatFrameTotal: chatFramesForPlaylist,
+        chatPausingBeforeReveal:
+          activeScreenScenario?.id === "site-pilot-chat"
+            ? scenarioPlayback.isPausingBeforeReveal
+            : undefined,
+        chatPlaybackThinking:
+          activeScreenScenario?.id === "site-pilot-chat"
+            ? isSitePilotChatPlaybackThinking()
+            : undefined,
+      });
+    },
+    [
+      hubOpen,
+      current,
+      activeJourney,
+      journeyBeatIndex,
+      availabilityOpen,
+      availActiveStep,
+      availIntent.step,
+      vaccinePickerOpen,
+      recipientPickerOpen,
+      loginPopupOpen,
+      quickViewOpen,
+      activeScreenScenario?.id,
+      scenarioPlayback.visibleCount,
+      scenarioPlayback.isPausingBeforeReveal,
+      chatFramesForPlaylist,
+    ]
+  );
+
+  const studioProgress = useMemo(
+    () =>
+      resolveStudioTouchpointProgress(studioPlaylist, studioTouchpoint.key),
+    [studioPlaylist, studioTouchpoint.key]
+  );
+
+  useEffect(() => {
+    if (!availabilityOpen) {
+      setAvailActiveStep(null);
+    }
+  }, [availabilityOpen]);
+
+  const handleAvailabilityStepChange = useCallback((step: AvailStep) => {
+    setAvailActiveStep(step);
+  }, []);
 
   const handleOrchestraModeChange = useCallback(
     (next: ProtoOrchestraModeId) => {
       if (next === orchestraModeId) return;
       journeyPlayback.stopJourneyPlay();
       scenarioPlayback.resetToEnd();
-      if (isCjmMode) {
-        journeyPlayback.resetJourney();
-      }
+      journeyPlayback.resetJourney();
       resetBeatIndex();
       setOrchestraModeId(next);
     },
     [
-      isCjmMode,
       journeyPlayback,
       orchestraModeId,
       resetBeatIndex,
@@ -1075,8 +1200,6 @@ export default function App() {
     hubOpen,
     modeId: orchestraModeId,
     brandPack: BOOTS_SARAH_PACK,
-    screenTotalFrames: scenarioPlayback.totalFrames,
-    activeScreenScenario,
   });
 
   const resetToEndRef = useRef(scenarioPlayback.resetToEnd);
@@ -1098,45 +1221,52 @@ export default function App() {
       wasOpen &&
       !availabilityOpen &&
       activeScreenScenario?.id === "site-pilot-chat" &&
-      playback.visibleCount >= playback.totalFrames
+      scenarioPlayback.visibleCount >= scenarioPlayback.totalFrames
     ) {
       retreatFromFinaleRef.current();
     }
   }, [
     availabilityOpen,
     activeScreenScenario?.id,
-    playback.visibleCount,
-    playback.totalFrames,
+    scenarioPlayback.visibleCount,
+    scenarioPlayback.totalFrames,
   ]);
 
   // Frame 1 ambient thinking hint — shows the chat is live / dynamic.
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 10) return;
+    if (activeScreenScenario?.id !== "site-pilot-chat") {
+      syncSitePilotChatThinkingHint(null, false);
+      return;
+    }
 
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(10)"
     );
     const showHint =
-      playback.visibleCount === 1 &&
-      playback.totalFrames > 1 &&
-      !playback.isPlaying &&
-      !playback.isPausingBeforeReveal;
+      scenarioPlayback.visibleCount === 1 &&
+      scenarioPlayback.totalFrames > 1 &&
+      !scenarioPlayback.isPlaying &&
+      !scenarioPlayback.isPausingBeforeReveal;
     syncSitePilotChatThinkingHint(screen, showHint);
 
     return () => syncSitePilotChatThinkingHint(null, false);
   }, [
     current,
-    playback.visibleCount,
-    playback.totalFrames,
-    playback.isPlaying,
-    playback.isPausingBeforeReveal,
+    activeScreenScenario?.id,
+    scenarioPlayback.visibleCount,
+    scenarioPlayback.totalFrames,
+    scenarioPlayback.isPlaying,
+    scenarioPlayback.isPausingBeforeReveal,
   ]);
 
   // Frame 1 — thread is short; don't let composer pad + min-height fill create a scroll track.
   useLayoutEffect(() => {
     const scrollEl = prototypeScrollElRef.current;
     const atFrameStart =
-      SCREENS[current]?.childIndex === 10 && playback.visibleCount <= 1;
+      SCREENS[current]?.childIndex === 10 &&
+      activeScreenScenario?.id === "site-pilot-chat" &&
+      scenarioPlayback.visibleCount <= 1;
 
     scrollEl?.classList.toggle("proto-chat-scenario-at-start", atFrameStart);
 
@@ -1157,7 +1287,7 @@ export default function App() {
       scrollEl?.classList.remove("proto-chat-scenario-at-start");
       screen?.removeAttribute("data-proto-scenario-at-start");
     };
-  }, [current, playback.visibleCount]);
+  }, [current, activeScreenScenario?.id, scenarioPlayback.visibleCount]);
 
   /** Hide Reset when page states are already pristine (nav position ignored). */
   const isProtoPristine =
@@ -1169,7 +1299,7 @@ export default function App() {
     !homeQueryDirty &&
     !chatComposerDirty &&
     !plpFiltersDirty &&
-    !playback.isDirty;
+    !transport.isDirty;
 
   const saveHubScroll = useCallback(() => {
     if (hubScrollElRef.current) {
@@ -1211,7 +1341,7 @@ export default function App() {
 
   const resetPrototype = () => {
     const scenarioOnlyDirty =
-      playback.isDirty &&
+      transport.isDirty &&
       !availabilityOpen &&
       !vaccinePickerOpen &&
       !recipientPickerOpen &&
@@ -1222,9 +1352,7 @@ export default function App() {
       !plpFiltersDirty;
 
     if (scenarioOnlyDirty) {
-      if (isCjmMode) {
-        journeyPlayback.resetJourney();
-      }
+      journeyPlayback.resetJourney();
       scenarioPlayback.resetToEnd();
       return;
     }
@@ -4169,6 +4297,7 @@ export default function App() {
   }, [current, quickViewOpen]);
 
   const go = (i: number) => {
+    if (navPlaybackLockedRef.current) return;
     const wasHub = hubOpen;
     if (wasHub) saveHubScroll();
     const next = Math.max(0, Math.min(SCREENS.length - 1, i));
@@ -4186,6 +4315,7 @@ export default function App() {
   goRef.current = go;
 
   const openHub = () => {
+    if (navPlaybackLockedRef.current) return;
     if (hubOpen) {
       saveHubScroll();
       setHubOpen(false);
@@ -4200,6 +4330,8 @@ export default function App() {
 
   const { label, childIndex } = SCREENS[current];
   const isScreen1 = childIndex === 11 && !hubOpen;
+  const isScreenChat = childIndex === 10 && !hubOpen;
+  const isViewportLocked = isScreen1 || isScreenChat;
   const navLabel = hubOpen ? PROTO_HUB_LABEL : label;
   const activeChildIndex = hubOpen ? null : childIndex;
   const popupOnScreen = (...allowed: number[]) =>
@@ -4221,7 +4353,8 @@ export default function App() {
       flex: 1 1 auto !important;
       display: flex !important;
       flex-direction: column !important;
-      min-height: var(--proto-scroll-min-px, 100%) !important;
+      min-height: ${isViewportLocked ? "0" : "var(--proto-scroll-min-px, 100%)"} !important;
+      ${isViewportLocked ? "height: 100% !important;" : ""}
     }
 
     /* Frame219 root — override size-full (height:100% breaks % chain when zoomed) */
@@ -4229,8 +4362,8 @@ export default function App() {
       flex: 1 1 auto !important;
       display: flex !important;
       flex-direction: column !important;
-      height: auto !important;
-      min-height: var(--proto-scroll-min-px, 100%) !important;
+      height: ${isViewportLocked ? "100%" : "auto"} !important;
+      min-height: ${isViewportLocked ? "0" : "var(--proto-scroll-min-px, 100%)"} !important;
       width: 100% !important;
     }
 
@@ -4250,13 +4383,28 @@ export default function App() {
       max-width: unset !important;
       left: auto !important;
       top: auto !important;
-      height: ${isScreen1 ? "100%" : "auto"} !important;
-      min-height: var(--proto-scroll-min-px, 100%) !important;
+      height: ${isViewportLocked ? "100%" : "auto"} !important;
+      min-height: ${isViewportLocked ? "0" : "var(--proto-scroll-min-px, 100%)"} !important;
       flex: 1 1 auto !important;
-      overflow: visible !important;
-      overflow-x: visible !important;
-      overflow-y: visible !important;
+      overflow: ${isViewportLocked ? "hidden" : "visible"} !important;
+      overflow-x: ${isViewportLocked ? "hidden" : "visible"} !important;
+      overflow-y: ${isViewportLocked ? "hidden" : "visible"} !important;
       animation: proto-fade 0.25s ease;
+    }
+
+    ${
+      isViewportLocked
+        ? `
+    .proto-scroll--prototype > .proto-viewport {
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+    .proto-viewport > div {
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+    `
+        : ""
     }
 
     /* Push footer to the bottom when the page is shorter than the viewport */
@@ -4366,6 +4514,7 @@ export default function App() {
         hubOpen={hubOpen}
         navLabel={navLabel}
         isProtoPristine={isProtoPristine}
+        navPlaybackLocked={navPlaybackLocked}
         contentRef={appContentRef}
         tabsScrollRef={tabsScrollRef}
         tabBtnRefs={tabBtnRefs}
@@ -4380,22 +4529,24 @@ export default function App() {
                   modes={orchestraModes}
                   value={orchestraModeId}
                   onChange={handleOrchestraModeChange}
-                  isPlaying={playback.isPlaying}
+                  isPlaying={transport.isPlaying}
                 />
               }
-              visibleCount={playback.visibleCount}
-              totalFrames={playback.totalFrames}
-              isPlaying={playback.isPlaying}
-              canStepBack={playback.canStepBack}
-              canStepForward={playback.canStepForward}
-              canJumpToStart={playback.canJumpToStart}
-              canPlay={playback.canPlay}
-              canJumpToEnd={playback.canJumpToEnd}
-              onJumpToStart={playback.jumpToStart}
-              onStepBack={playback.stepBack}
-              onPlay={playback.play}
-              onStepForward={playback.stepForward}
-              onJumpToEnd={playback.jumpToEnd}
+              segmentLabel={studioTouchpoint.label}
+              touchpointKey={studioTouchpoint.key}
+              visibleCount={studioProgress.visibleCount}
+              totalFrames={studioProgress.totalFrames}
+              isPlaying={transport.isPlaying}
+              canStepBack={transport.canStepBack}
+              canStepForward={transport.canStepForward}
+              canJumpToStart={transport.canJumpToStart}
+              canPlay={transport.canPlay}
+              canJumpToEnd={transport.canJumpToEnd}
+              onJumpToStart={transport.jumpToStart}
+              onStepBack={transport.stepBack}
+              onPlay={transport.play}
+              onStepForward={transport.stepForward}
+              onJumpToEnd={transport.jumpToEnd}
             />
           ) : null
         }
@@ -4425,8 +4576,8 @@ export default function App() {
           <div
             className="proto-viewport w-full"
             style={{
-              minHeight: "100%",
-              height: isScreen1 ? "100%" : "auto",
+              minHeight: isViewportLocked ? "0" : "100%",
+              height: isViewportLocked ? "100%" : "auto",
             }}
           >
             <Frame219 />
@@ -4438,6 +4589,7 @@ export default function App() {
         open={availabilityOpen && activeChildIndex != null}
         openIntent={availIntent}
         onClose={closeAvailabilityTool}
+        onActiveStepChange={handleAvailabilityStepChange}
         onChooseLocation={(store) => {
           setChosenLocation({
             name: store.name,
@@ -4446,17 +4598,7 @@ export default function App() {
           });
           closeAvailabilityTool();
         }}
-        onBookNow={(store, slot) => {
-          setChosenLocation({
-            name: store.name,
-            address: store.address,
-            storeId: store.id,
-          });
-          setChosenBookingSlot(slot);
-          closeAvailabilityTool();
-          // Defer nav so this click cannot ghost-hit Step 1 Continue → Step 2.
-          window.setTimeout(() => setCurrent(4), 0);
-        }}
+        onBookNow={handleAvailabilityBookNow}
         loggedIn={loggedInFlag || isProtoHeaderLoggedIn()}
         onOpenLogin={() => {
           setLoginPopupTab("signin");

@@ -16,10 +16,8 @@ export function useOrchestraMode(brandPack: ProtoBrandPack) {
     [brandPack, modeId]
   );
 
-  const isCjmMode = modeId === "agentic-cjm" || modeId === "traditional-cjm";
-
   const modeLabel =
-    PROTO_ORCHESTRA_MODE_OPTIONS.find((m) => m.id === modeId)?.label ?? "Chat experience";
+    PROTO_ORCHESTRA_MODE_OPTIONS.find((m) => m.id === modeId)?.label ?? "Agentic CJM";
 
   const setModeId = useCallback((next: ProtoOrchestraModeId) => {
     setModeIdState(next);
@@ -37,7 +35,6 @@ export function useOrchestraMode(brandPack: ProtoBrandPack) {
     modeLabel,
     modes: PROTO_ORCHESTRA_MODE_OPTIONS,
     journey,
-    isCjmMode,
     beatIndex,
     setBeatIndex,
     resetBeatIndex,

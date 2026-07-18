@@ -15,9 +15,13 @@ export function ProtoNavJourneyMenu({ modes, value, onChange, isPlaying }: Props
   const listId = useId();
 
   const selected =
-    modes.find((mode) => mode.id === value) ?? modes[0] ?? { id: value, label: "Chat experience" };
+    modes.find((mode) => mode.id === value) ?? modes[0] ?? { id: value, label: "Agentic CJM" };
 
   const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (isPlaying) close();
+  }, [close, isPlaying]);
 
   useEffect(() => {
     if (!open) return;
@@ -80,6 +84,7 @@ export function ProtoNavJourneyMenu({ modes, value, onChange, isPlaying }: Props
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
+        disabled={isPlaying}
         onClick={() => setOpen((prev) => !prev)}
         onKeyDown={onTriggerKeyDown}
       >

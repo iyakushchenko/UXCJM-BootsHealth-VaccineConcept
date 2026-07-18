@@ -21,17 +21,70 @@ function resolveSummary(screenOrSummary: ParentNode): HTMLElement | null {
   );
 }
 
-function ensureThinkingBubble(summary: HTMLElement): HTMLElement {
-  let bubble = summary.querySelector<HTMLElement>(`[${THINKING_ATTR}]`);
-  if (bubble) return bubble;
+function insertAfter(newNode: Node, referenceNode: Node): void {
+  const parent = referenceNode.parentNode;
+  if (!parent) return;
+  parent.insertBefore(newNode, referenceNode.nextSibling);
+}
 
-  bubble = document.createElement("div");
-  bubble.setAttribute(THINKING_ATTR, "true");
-  bubble.className = THINKING_CLASS;
-  bubble.hidden = true;
-  bubble.setAttribute("role", "status");
-  bubble.setAttribute("aria-live", "polite");
-  bubble.innerHTML = `
+function positionThinkingBubble(
+  summary: HTMLElement,
+  bubble: HTMLElement,
+  mode: Exclude<SitePilotChatThinkingMode, "none">,
+  anchorFrame?: HTMLElement
+): void {
+  if (mode === "send") {
+    const threadChildren = Array.from(summary.children).filter(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement &&
+        node !== bubble &&
+        !node.hasAttribute("data-proto-chat-thinking")
+    );
+    const last = threadChildren[threadChildren.length - 1];
+    if (last) insertAfter(bubble, last);
+    else summary.appendChild(bubble);
+    return;
+  }
+
+  if (mode === "playback" && anchorFrame?.parentElement === summary) {
+    summary.insertBefore(bubble, anchorFrame);
+    return;
+  }
+
+  if (mode === "hint") {
+    if (anchorFrame?.parentElement === summary) {
+      insertAfter(bubble, anchorFrame);
+      return;
+    }
+    const firstReply = summary.querySelector<HTMLElement>('[data-name="reply"]');
+    if (firstReply?.parentElement === summary) {
+      summary.insertBefore(bubble, firstReply);
+      return;
+    }
+  }
+
+  const firstReply = summary.querySelector<HTMLElement>('[data-name="reply"]');
+  if (firstReply?.parentElement === summary) {
+    summary.insertBefore(bubble, firstReply);
+  } else {
+    summary.appendChild(bubble);
+  }
+}
+
+function ensureThinkingBubble(
+  summary: HTMLElement,
+  mode: Exclude<SitePilotChatThinkingMode, "none">,
+  anchorFrame?: HTMLElement
+): HTMLElement {
+  let bubble = summary.querySelector<HTMLElement>(`[${THINKING_ATTR}]`);
+  if (!bubble) {
+    bubble = document.createElement("div");
+    bubble.setAttribute(THINKING_ATTR, "true");
+    bubble.className = THINKING_CLASS;
+    bubble.hidden = true;
+    bubble.setAttribute("role", "status");
+    bubble.setAttribute("aria-live", "polite");
+    bubble.innerHTML = `
     <div class="proto-chat-thinking-bubble__inner">
       <span class="proto-chat-thinking-dots" aria-hidden="true">
         <span></span><span></span><span></span>
@@ -39,16 +92,10 @@ function ensureThinkingBubble(summary: HTMLElement): HTMLElement {
       <span class="proto-chat-thinking-bubble__sr">SitePilot is thinking</span>
     </div>
   `.trim();
-
-  const composer = summary.querySelector<HTMLElement>(
-    '[data-proto-chat-composer="true"]'
-  );
-  if (composer) {
-    summary.insertBefore(bubble, composer);
-  } else {
     summary.appendChild(bubble);
   }
 
+  positionThinkingBubble(summary, bubble, mode, anchorFrame);
   return bubble;
 }
 
@@ -79,10 +126,11 @@ function restartThinkingAnimation(bubble: HTMLElement): void {
 function showThinkingBubble(
   summary: HTMLElement,
   mode: Exclude<SitePilotChatThinkingMode, "none">,
-  scroll: boolean
+  scroll: boolean,
+  anchorFrame?: HTMLElement
 ): void {
   thinkingMode = mode;
-  const bubble = ensureThinkingBubble(summary);
+  const bubble = ensureThinkingBubble(summary, mode, anchorFrame);
   bubble.hidden = false;
   bubble.classList.toggle("proto-chat-thinking-bubble--hint", mode === "hint" || mode === "playback");
   restartThinkingAnimation(bubble);
@@ -108,7 +156,8 @@ export function isSitePilotChatPlaybackThinking(): boolean {
 /** Ambient hint on frame 1 — indicates the chat is live. */
 export function syncSitePilotChatThinkingHint(
   screenOrSummary: ParentNode | null,
-  show: boolean
+  show: boolean,
+  anchorAfter?: HTMLElement
 ): void {
   if (!show) {
     if (thinkingMode === "hint") endSitePilotChatThinking();
@@ -119,7 +168,7 @@ export function syncSitePilotChatThinkingHint(
   const summary = screenOrSummary ? resolveSummary(screenOrSummary) : null;
   if (!summary) return;
 
-  showThinkingBubble(summary, "hint", false);
+  showThinkingBubble(summary, "hint", false, anchorAfter);
 }
 
 export function beginSitePilotChatThinking(screenOrSummary: ParentNode): void {
@@ -131,13 +180,14 @@ export function beginSitePilotChatThinking(screenOrSummary: ParentNode): void {
 
 /** Pre-reveal pause while scenario play advances onto an agent reply. */
 export function beginSitePilotChatPlaybackThinking(
-  screenOrSummary: ParentNode
+  screenOrSummary: ParentNode,
+  anchorFrame?: HTMLElement
 ): void {
   const summary = resolveSummary(screenOrSummary);
   if (!summary) return;
   if (thinkingMode === "send") return;
 
-  showThinkingBubble(summary, "playback", true);
+  showThinkingBubble(summary, "playback", true, anchorFrame);
 }
 
 export function endSitePilotChatThinking(): void {

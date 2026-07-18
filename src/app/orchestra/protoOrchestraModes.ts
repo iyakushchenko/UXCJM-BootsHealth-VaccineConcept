@@ -1,9 +1,8 @@
 import type { OrchestraModeOption, ProtoOrchestraModeId } from "@/app/orchestra/types";
 
-export const PROTO_ORCHESTRA_DEFAULT_MODE: ProtoOrchestraModeId = "chat-experience";
+export const PROTO_ORCHESTRA_DEFAULT_MODE: ProtoOrchestraModeId = "agentic-cjm";
 
 export const PROTO_ORCHESTRA_MODE_OPTIONS: OrchestraModeOption[] = [
-  { id: "chat-experience", label: "Chat experience" },
   { id: "agentic-cjm", label: "Agentic CJM" },
   { id: "traditional-cjm", label: "Traditional CJM" },
 ];
@@ -13,11 +12,8 @@ const MODE_STORAGE_KEY = "proto-orchestra-mode";
 export function readStoredOrchestraMode(): ProtoOrchestraModeId {
   try {
     const raw = sessionStorage.getItem(MODE_STORAGE_KEY);
-    if (
-      raw === "chat-experience" ||
-      raw === "agentic-cjm" ||
-      raw === "traditional-cjm"
-    ) {
+    if (raw === "chat-experience") return "agentic-cjm";
+    if (raw === "agentic-cjm" || raw === "traditional-cjm") {
       return raw;
     }
   } catch {

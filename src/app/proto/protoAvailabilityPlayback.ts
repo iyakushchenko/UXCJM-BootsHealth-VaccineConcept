@@ -1,0 +1,186 @@
+import {
+  clearSimulatedClickRipples,
+  delay,
+  removeDemoCursor,
+  simulateDemoPointerClick,
+} from "@/app/proto/protoDemoCursor";
+import type { AvailabilityScriptId } from "@/app/orchestra/types";
+
+/** Demo date picked during journey playback on the Availability date step. */
+const PLAYBACK_TARGET_DATE_DAY = 21;
+
+let playbackAborted = false;
+
+export function abortAvailabilityPlayback(): void {
+  playbackAborted = true;
+  removeDemoCursor();
+  clearSimulatedClickRipples();
+}
+
+export function wasAvailabilityPlaybackAborted(): boolean {
+  return playbackAborted;
+}
+
+function shouldAbort(): boolean {
+  return playbackAborted;
+}
+
+function availCard(): HTMLElement | null {
+  return document.querySelector<HTMLElement>(".proto-avail-card");
+}
+
+async function waitForAvailCard(): Promise<HTMLElement | null> {
+  for (let i = 0; i < 100; i++) {
+    const card = availCard();
+    if (card) return card;
+    await delay(50);
+  }
+  return null;
+}
+
+async function waitForSelector(
+  card: HTMLElement,
+  selector: string
+): Promise<HTMLElement | null> {
+  for (let i = 0; i < 80; i++) {
+    const el = card.querySelector<HTMLElement>(selector);
+    if (el) return el;
+    await delay(50);
+  }
+  return null;
+}
+
+async function waitForDateStep(card: HTMLElement): Promise<boolean> {
+  for (let i = 0; i < 80; i++) {
+    if (card.querySelector(".proto-avail-calendars")) return true;
+    await delay(50);
+  }
+  return false;
+}
+
+async function findDateCell(
+  card: HTMLElement,
+  day: number
+): Promise<HTMLElement | null> {
+  for (let i = 0; i < 80; i++) {
+    const cells = Array.from(
+      card.querySelectorAll<HTMLElement>(
+        ".proto-avail-cal-cell:not(.proto-avail-cal-cell--time):not(.proto-avail-cal-cell--disabled)"
+      )
+    );
+    const cell = cells.find((el) => el.textContent?.trim() === String(day));
+    if (cell) return cell;
+    await delay(50);
+  }
+  return null;
+}
+
+async function runContinueFromDate(options?: { skip?: boolean }): Promise<boolean> {
+  const card = await waitForAvailCard();
+  if (!card || shouldAbort()) return false;
+
+  if (!(await waitForDateStep(card))) return false;
+
+  const dateCell = await findDateCell(card, PLAYBACK_TARGET_DATE_DAY);
+  if (!dateCell || shouldAbort()) return false;
+
+  if (!dateCell.classList.contains("proto-avail-cal-cell--selected")) {
+    if (options?.skip) {
+      dateCell.click();
+    } else {
+      await simulateDemoPointerClick(dateCell, { shouldAbort });
+    }
+    if (shouldAbort()) return false;
+    await delay(280);
+  }
+
+  const continueBtn = await waitForSelector(
+    card,
+    ".proto-avail-footer .proto-avail-btn-primary"
+  );
+  if (!continueBtn || shouldAbort()) return false;
+
+  if (options?.skip) {
+    continueBtn.click();
+    return true;
+  }
+
+  await simulateDemoPointerClick(continueBtn, { shouldAbort });
+  await delay(320);
+  return !shouldAbort();
+}
+
+async function runSelectTimeSlot(options?: { skip?: boolean }): Promise<boolean> {
+  const card = await waitForAvailCard();
+  if (!card || shouldAbort()) return false;
+
+  const slots = Array.from(
+    card.querySelectorAll<HTMLElement>(
+      ".proto-avail-cal-cell--time:not(.proto-avail-cal-cell--disabled)"
+    )
+  );
+
+  const preferredTimes = ["15:30", "15:00", "16:15", "16:45"];
+  const slot =
+    preferredTimes
+      .map((time) =>
+        slots.find(
+          (btn) =>
+            btn.textContent?.trim() === time &&
+            !btn.classList.contains("proto-avail-cal-cell--selected")
+        )
+      )
+      .find(Boolean) ??
+    slots.find((btn) => !btn.classList.contains("proto-avail-cal-cell--selected")) ??
+    slots[0];
+
+  if (!slot || shouldAbort()) return false;
+
+  if (options?.skip) {
+    slot.click();
+    return true;
+  }
+
+  await simulateDemoPointerClick(slot, { shouldAbort });
+  await delay(280);
+  return !shouldAbort();
+}
+
+async function runBookNow(options?: { skip?: boolean }): Promise<boolean> {
+  const card = await waitForAvailCard();
+  if (!card || shouldAbort()) return false;
+
+  const bookBtn = Array.from(
+    card.querySelectorAll<HTMLElement>(".proto-avail-btn-primary")
+  ).find((btn) => /book now/i.test(btn.textContent ?? ""));
+
+  if (!bookBtn || shouldAbort()) return false;
+
+  if (options?.skip) {
+    bookBtn.click();
+    return true;
+  }
+
+  await simulateDemoPointerClick(bookBtn, { shouldAbort });
+  await delay(400);
+  return !shouldAbort();
+}
+
+export async function runAvailabilityScript(
+  scriptId: AvailabilityScriptId,
+  options?: { skip?: boolean }
+): Promise<boolean> {
+  playbackAborted = false;
+
+  switch (scriptId) {
+    case "continue-from-date":
+      return runContinueFromDate(options);
+    case "select-time-slot":
+      return runSelectTimeSlot(options);
+    case "book-now":
+      return runBookNow(options);
+    default:
+      return false;
+  }
+}
+
