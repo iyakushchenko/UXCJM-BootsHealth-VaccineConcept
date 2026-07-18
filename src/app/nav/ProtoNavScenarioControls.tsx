@@ -6,7 +6,7 @@ export type ProtoNavScenarioControlsProps = {
   segmentLabel?: string;
   visibleCount: number;
   totalFrames: number;
-  /** False until CJM is on; when off shows `-- / N` with the current playlist total. */
+  /** False until CJM is on; when off shows `STEPS: N` with the current playlist total. */
   stepProgressActive?: boolean;
   /** FL-style switch — journey mode locks screen nav; counter/label always live when on. */
   journeyMode?: boolean;
@@ -107,9 +107,9 @@ function formatStepCounter(
   totalFrames: number,
   stepProgressActive: boolean
 ): string {
-  if (totalFrames <= 0) return "—";
-  if (!stepProgressActive) return `-- / ${totalFrames}`;
-  return `${visibleCount} / ${totalFrames}`;
+  if (totalFrames <= 0) return "STEPS: —";
+  if (!stepProgressActive) return `STEPS: ${totalFrames}`;
+  return `STEPS: ${visibleCount} / ${totalFrames}`;
 }
 
 /** Width-animates touchpoint label so studio menus slide instead of jumping. */

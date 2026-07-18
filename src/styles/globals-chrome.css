@@ -84,6 +84,15 @@
   background: transparent;
 }
 
+/* Chat composer portal — above playback shield, below availability scrim (10000) when suppressed */
+.proto-chat-composer-portal-host {
+  position: absolute;
+  inset: 0;
+  z-index: 10100;
+  pointer-events: none;
+  overflow: visible;
+}
+
 /* Fatal runtime fallback — import/TDZ/render crashes */
 .proto-fatal-error {
   min-height: 100dvh;
@@ -1175,7 +1184,8 @@
 .proto-scroll--prototype.proto-chat-scenario-at-start
   .proto-viewport > div > div:nth-child(10).proto-chat-screen
   > [data-name="body"] > div {
-  min-height: 0 !important;
+  min-height: 100% !important;
+  flex: 1 1 auto !important;
   overflow: visible !important;
 }
 .proto-viewport > div > div:nth-child(10).proto-chat-screen > [data-name="body"] {
@@ -1331,7 +1341,8 @@
 }
 .proto-chat-demo-cursor {
   position: fixed;
-  z-index: 10050;
+  /* Above .proto-avail-scrim (10200) — robo-cursor must show on overlay steps */
+  z-index: 10250;
   width: 37px;
   height: 37px;
   pointer-events: none;
@@ -1347,8 +1358,8 @@
   width: 100%;
   height: 100%;
 }
+.proto-chat-demo-cursor__graphic--arrow,
 .proto-chat-demo-cursor__graphic--hand {
-  display: none;
   width: auto;
   height: 100%;
   max-width: 100%;
@@ -1358,6 +1369,9 @@
   object-position: left top;
   pointer-events: none;
   user-select: none;
+}
+.proto-chat-demo-cursor__graphic--hand {
+  display: none;
 }
 .proto-chat-demo-cursor--pointer {
   transform: translate(0, 0);
@@ -1389,7 +1403,7 @@
 /* Smooth triple ripple on Sarah simulator taps */
 .proto-sim-click {
   position: fixed;
-  z-index: 10051;
+  z-index: 10251;
   width: 0;
   height: 0;
   pointer-events: none;
@@ -1441,11 +1455,57 @@
   transform: scale(0.94) !important;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28) !important;
 }
-/* Portal dock — fixed to viewport bottom, aligned to chat column via JS */
+/* In-place fixed composer — white card + fade; disclaimer pinned below. */
+.proto-site-pilot-composer.proto-chat-composer-dock--in-place {
+  position: fixed !important;
+  z-index: 10101 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: auto !important;
+  background: #fff !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 4.45px rgba(1, 33, 105, 0.1) !important;
+  overflow: visible !important;
+}
+/* Fade above the fixed composer stack (matches portal dock). */
+.proto-chat-screen::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(220px, 38vh);
+  z-index: 10100;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(219, 235, 245, 0) 0%,
+    rgba(219, 235, 245, 0.92) 18%,
+    #dbebf5 32%
+  );
+}
+.proto-chat-composer-disclaimer {
+  position: fixed !important;
+  z-index: 10102 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+  pointer-events: auto !important;
+  color: #3a3a3a !important;
+  font-size: 10px !important;
+  line-height: 12px !important;
+  white-space: nowrap !important;
+}
+.proto-chat-composer-disclaimer span {
+  font-size: 10px !important;
+  line-height: 12px !important;
+}
+/* Portal dock — legacy fallback */
 .proto-chat-composer-dock--portal {
   position: fixed !important;
   bottom: 0 !important;
-  z-index: 1000 !important;
+  z-index: 1 !important;
   box-sizing: border-box !important;
   padding: 12px 0 24px !important;
   pointer-events: none !important;

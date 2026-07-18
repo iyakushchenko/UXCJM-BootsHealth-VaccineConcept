@@ -1,3 +1,4 @@
+import defaultCursorUrl from "@/assets/default-cursor.svg";
 import handIndexCursorUrl from "@/assets/hand-index-cursor.svg";
 import {
   beginDemoTargetPageScroll,
@@ -6,7 +7,7 @@ import {
   type PlaybackScrollOptions,
 } from "@/app/proto/protoPlaybackScroll";
 
-const CURSOR_ARROW_SVG = `<svg class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--arrow" fill="none" viewBox="0 0 22 26" aria-hidden="true"><path fill="#fff" stroke="#4F4F4F" stroke-width="0.6" d="M3.5 2.5 18.5 12 10.5 14.5 12.5 22.5 9.5 23.5 7.5 15.5 3.5 17.5z"/></svg>`;
+const CURSOR_ARROW_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--arrow" src="${defaultCursorUrl}" width="22" height="26" alt="" aria-hidden="true" draggable="false" />`;
 
 const CURSOR_HAND_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--hand" src="${handIndexCursorUrl}" width="24" height="37" alt="" aria-hidden="true" draggable="false" />`;
 
@@ -22,7 +23,7 @@ const CURSOR_REST_RIGHT_INSET_RATIO = 0.08;
 const CURSOR_REST_Y_RATIO = 0.54;
 const CURSOR_PARK_DRIFT_PX = 20;
 const CURSOR_PARK_TRAVEL_MS = 520;
-/** Index fingertip in hand-index-cursor.svg (viewBox 24×37). */
+/** Hotspot — arrow tip in default-cursor.svg; index fingertip in hand-index-cursor.svg. */
 const CURSOR_HOTSPOT_X = 4;
 const CURSOR_HOTSPOT_Y = 1;
 

@@ -28,6 +28,16 @@ describe("protoPlaybackScrollAnomalies", () => {
     expect(anomaly?.kind).toBe("scroll-jump");
   });
 
+  it("skips passive scroll anomalies during scenario prelude (thinking/typing)", () => {
+    expect(
+      shouldReportPassiveScrollAnomaly({
+        isOnAir: true,
+        isPausingBeforeReveal: true,
+        journeyAtEnd: false,
+      })
+    ).toBe(false);
+  });
+
   it("skips passive scroll anomalies at journey end when transport is idle", () => {
     expect(
       shouldReportPassiveScrollAnomaly({

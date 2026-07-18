@@ -213,6 +213,38 @@ async function waitForStoreList(card: HTMLElement): Promise<boolean> {
   return false;
 }
 
+const START_STEP_FAIL =
+  "runSelectLocationStore: stuck on start step — could not reach store list";
+
+async function navigateFromStartToStoreList(
+  card: HTMLElement,
+  options?: { skip?: boolean }
+): Promise<boolean> {
+  if (card.querySelector("[data-proto-avail-store]")) return true;
+  if (card.querySelector(".proto-avail-calendars")) return true;
+
+  const startPanel = card.querySelector(".proto-avail-body--panel");
+  if (!startPanel) return true;
+
+  const searchField = startPanel.querySelector<HTMLElement>(".proto-avail-field");
+  const nearMeBtn = Array.from(startPanel.querySelectorAll<HTMLElement>("button")).find(
+    (btn) =>
+      /see what's available near me/i.test(
+        (btn.textContent ?? "").replace(/\s+/g, " ").trim()
+      )
+  );
+  const target = searchField ?? nearMeBtn;
+  if (!target) return false;
+
+  if (options?.skip) {
+    target.click();
+  } else {
+    await simulateDemoPointerClick(target, { shouldAbort, scroll: false });
+  }
+  await delay(options?.skip ? 160 : 280);
+  return waitForStoreList(card);
+}
+
 async function ensureStoreListVisible(
   card: HTMLElement,
   options?: { skip?: boolean }
@@ -326,15 +358,32 @@ async function runSelectLocation(options?: { skip?: boolean }): Promise<Playback
       : scriptFail("waitForAvailCard: .proto-avail-card missing");
   }
 
-  if (card.querySelector(".proto-avail-calendars")) {
-    return scriptOk();
+  for (let i = 0; i < 60; i++) {
+    if (card.querySelector(".proto-avail-calendars")) {
+      return scriptOk();
+    }
+    await delay(50);
+  }
+
+  if (
+    !card.querySelector("[data-proto-avail-store]") &&
+    card.querySelector(".proto-avail-body--panel")
+  ) {
+    const navigated = await navigateFromStartToStoreList(card, options);
+    if (!navigated) {
+      return shouldAbort() ? scriptAborted() : scriptFail(START_STEP_FAIL);
+    }
   }
 
   const ok = await runSelectLocationStore(options);
   if (ok) return scriptOk();
   return shouldAbort()
     ? scriptAborted()
-    : scriptFail("runSelectLocationStore: store list or Choose location failed");
+    : scriptFail(
+        card.querySelector(".proto-avail-body--panel")
+          ? START_STEP_FAIL
+          : "runSelectLocationStore: store list or Choose location failed"
+      );
 }
 
 export async function runAvailabilityScript(

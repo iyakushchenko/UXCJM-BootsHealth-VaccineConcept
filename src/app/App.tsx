@@ -75,6 +75,8 @@ import {
   collectSitePilotChatScenarioFrames,
   ensureSitePilotChatComposerDock,
   isSitePilotChatAgentReplyFrame,
+  mountSitePilotChatComposerDock,
+  setSitePilotChatComposerDockSuppressed,
   SITE_PILOT_CHAT_PLAYBACK_THINK_MS,
   syncSitePilotChatComposerDock,
 } from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
@@ -704,8 +706,7 @@ export default function App() {
         if (!isActive()) return;
         endSitePilotChatThinking();
         resetToEndRef.current({ smooth: true, force: true });
-        ensureSitePilotChatComposerDock(screen);
-        syncSitePilotChatComposerDock(screen);
+        mountSitePilotChatComposerDock(screen);
       };
 
       const showBrowseThinkingPause = (screen: HTMLElement) => {
@@ -971,25 +972,33 @@ export default function App() {
 
   useLayoutEffect(() => {
     const scrollEl = prototypeScrollElRef.current;
-    const onChatScreen =
-      SCREENS[current]?.childIndex === 10 &&
-      activeScreenScenario?.id === "site-pilot-chat";
+    const onChatTab = SCREENS[current]?.childIndex === 10;
+    const chatScenarioActive = activeScreenScenario?.id === "site-pilot-chat";
+    const onChatScenario = onChatTab && chatScenarioActive;
     const atFrameStart =
-      onChatScreen && studioJourneyMode && scenarioPlayback.visibleCount <= 1;
+      onChatScenario && studioJourneyMode && scenarioPlayback.visibleCount <= 1;
 
     scrollEl?.classList.toggle("proto-chat-scenario-at-start", atFrameStart);
 
-    const screen = document.querySelector<HTMLElement>(
-      ".proto-viewport > div > div:nth-child(10)"
-    );
+    const screen = document.querySelector<HTMLElement>(CHAT_SCREEN_SELECTOR);
     if (screen) {
       if (atFrameStart) screen.setAttribute("data-proto-scenario-at-start", "true");
       else screen.removeAttribute("data-proto-scenario-at-start");
-      if (onChatScreen) {
-        ensureSitePilotChatComposerDock(screen);
-        syncSitePilotChatComposerDock(screen);
+      if (onChatTab || chatScenarioActive) {
+        mountSitePilotChatComposerDock(screen);
       }
     }
+
+    const overlayOpen =
+      (onChatTab || chatScenarioActive) &&
+      Boolean(
+        wire?.availabilityOpen ||
+          wire?.loginPopupOpen ||
+          wire?.quickViewOpen ||
+          wire?.vaccinePickerOpen ||
+          wire?.recipientPickerOpen
+      );
+    setSitePilotChatComposerDockSuppressed(overlayOpen);
 
     if (atFrameStart && scrollEl) {
       scrollEl.scrollTop = 0;
@@ -1006,6 +1015,11 @@ export default function App() {
     scenarioPlayback.visibleCount,
     studioJourneyMode,
     SCREENS,
+    wire?.availabilityOpen,
+    wire?.loginPopupOpen,
+    wire?.quickViewOpen,
+    wire?.vaccinePickerOpen,
+    wire?.recipientPickerOpen,
   ]);
 
   const isProtoPristine =
@@ -1285,7 +1299,14 @@ export default function App() {
           wirePlaybackCursorLocked ? " proto-wire-mount--playback-locked" : ""
         }${navTransitionClass}`}
       >
-        {wireInteractionShield ? <ProtoPlaybackShield /> : null}
+        {wireInteractionShield && !(wire?.availabilityOpen ?? false) ? (
+          <ProtoPlaybackShield />
+        ) : null}
+        <div
+          id="proto-chat-composer-portal-host"
+          className="proto-chat-composer-portal-host"
+          aria-hidden
+        />
         {WireComponent ? (
           <WireComponent bridge={bridge} apiRef={wireApiRef} />
         ) : (

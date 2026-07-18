@@ -18,6 +18,8 @@ import {
   collectSitePilotChatScenarioFrames,
   ensureSitePilotChatComposerDock,
   findSitePilotChatComposerCard,
+  mountSitePilotChatComposerDock,
+  syncSitePilotChatComposerDock,
   teardownSitePilotChatComposerDock,
 } from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
 import {
@@ -37,6 +39,7 @@ import {
   syncSitePilotChatThinkingHint,
 } from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
 import { resolveAvailStoreId, getDemoChosenLocation } from "@/projects/boots-pharmacy/data/availStores";
+import { resolveAvailIntent } from "@/projects/boots-pharmacy/wire/resolveAvailIntent";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
 import type { VaccineItem } from "@/projects/boots-pharmacy/data/protoVaccineList";
 import { setupChosenPageMap } from "@/projects/boots-pharmacy/dom/protoMap";
@@ -285,60 +288,8 @@ function mapChosenToAvailStoreId(chosen: ChosenLocation): string {
   return resolveAvailStoreId(chosen);
 }
 
-/**
- * Location-gated availability intents:
- *   no location  → Find Pharmacy (start)
- *   has location → date / time (or no-slots) with chosen store
- */
-function resolveAvailIntent(
-  intent: AvailOpenIntent,
-  chosen: ChosenLocation | null
-): AvailOpenIntent {
-  if (intent.pickLocation) return intent;
-  if (intent.step === "start") return intent;
-
-  // When logged in, treat as having a location even if none explicitly chosen
-  const hasLocation = !!chosen || isProtoHeaderLoggedIn();
-
-  if (!hasLocation) {
-    // Only skip the location picker when the user has already chosen a store.
-    if (
-      chosen &&
-      intent.storeId &&
-      (intent.step === "date" || intent.step === "time")
-    ) {
-      return {
-        ...intent,
-        storeId: mapChosenToAvailStoreId(chosen),
-      };
-    }
-    if (
-      intent.step === "date" ||
-      intent.step === "time" ||
-      intent.step === "list" ||
-      intent.step === "map"
-    ) {
-      return AVAIL_INTENT.start;
-    }
-    return intent;
-  }
-
-  const storeId = chosen ? mapChosenToAvailStoreId(chosen) : AVAIL_DEMO_STORE;
-
-  if (intent.step === "date" || intent.step === "time") {
-    return { ...intent, storeId };
-  }
-
-  if (intent.step === "list" || intent.step === "map") {
-    return {
-      step: "date",
-      storeId,
-      selectedDate: { month: "June", day: 24 },
-    };
-  }
-
-  return intent;
-}
+/** Re-export for playback/diagnostic tests. */
+export { resolveAvailIntent } from "@/projects/boots-pharmacy/wire/resolveAvailIntent";
 
 /** Hug 1 line when empty; grow/shrink with wrapped lines; max 5 lines then scroll. */
 function syncAgenticQueryHeight(ta: HTMLTextAreaElement) {
@@ -1529,21 +1480,57 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current]);
 
-  // Agentic chat (child 10): fixed composer dock over scrollable bubbles
+  const chatBeatActive =
+    studioJourneyMode &&
+    activeJourney?.beats[journeyBeatIndex]?.id === "agentic-chat";
+
+  // Agentic chat (child 10): fixed composer dock — CJM on/off + chat beat before tab lands.
   useLayoutEffect(() => {
-    if (SCREENS[current]?.childIndex !== 10) return;
+    const onChatTab = SCREENS[current]?.childIndex === 10;
+    if (!onChatTab && !chatBeatActive && activeScreenScenario?.id !== "site-pilot-chat") {
+      return;
+    }
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(10)"
     ) as HTMLElement | null;
     if (!screen) return;
-    ensureSitePilotChatComposerDock(screen);
+    mountSitePilotChatComposerDock(screen);
     stripSitePilotChatDemoCursors();
     const raf = requestAnimationFrame(() => stripSitePilotChatDemoCursors());
     return () => {
       cancelAnimationFrame(raf);
-      teardownSitePilotChatComposerDock(screen);
     };
-  }, [current]);
+  }, [current, chatBeatActive, activeScreenScenario?.id]);
+
+  // Re-sync dock when scenario frames advance (CJM play) — no teardown.
+  useLayoutEffect(() => {
+    const onChatTab = SCREENS[current]?.childIndex === 10;
+    if (!onChatTab && !chatBeatActive && activeScreenScenario?.id !== "site-pilot-chat") {
+      return;
+    }
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(10)"
+    ) as HTMLElement | null;
+    if (!screen) return;
+    mountSitePilotChatComposerDock(screen);
+  }, [
+    current,
+    chatBeatActive,
+    activeScreenScenario?.id,
+    scenarioPlayback.visibleCount,
+    studioJourneyMode,
+  ]);
+
+  useLayoutEffect(() => {
+    const onChatTab = SCREENS[current]?.childIndex === 10;
+    const chatActive =
+      chatBeatActive || activeScreenScenario?.id === "site-pilot-chat";
+    if (onChatTab || chatActive) return;
+    const screen = document.querySelector(
+      ".proto-viewport > div > div:nth-child(10)"
+    ) as HTMLElement | null;
+    if (screen) teardownSitePilotChatComposerDock(screen);
+  }, [current, chatBeatActive, activeScreenScenario?.id]);
 
   // Agentic chat (child 10): composer matches home — textarea, mic/send, chip dynamics
   useEffect(() => {
@@ -1559,6 +1546,13 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
       cleanup?.();
       cleanup = undefined;
+
+      const screen = document.querySelector(
+        ".proto-viewport > div > div:nth-child(10)"
+      ) as HTMLElement | null;
+      if (screen instanceof HTMLElement) {
+        mountSitePilotChatComposerDock(screen);
+      }
 
       const card = findSitePilotChatComposerCard();
       const subtotal = card?.querySelector<HTMLElement>('[data-name="Subtotal"]');
@@ -1738,7 +1732,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       cancelAnimationFrame(raf);
       cleanup?.();
     };
-  }, [current]);
+  }, [current, scenarioPlayback.visibleCount]);
 
   // Agentic chat — product links → PDP; “Go to vaccines catalog” → PLP
   useEffect(() => {

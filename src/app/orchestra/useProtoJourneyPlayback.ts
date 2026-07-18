@@ -886,7 +886,17 @@ export function useProtoJourneyPlayback({
       screenBeatReadyRef.current = readyKey;
     } else if (screenBeatReadyRef.current !== readyKey) {
       screenBeatReadyRef.current = readyKey;
-      screenPlayback.jumpToStart();
+      const scheduleJumpToStart = () => {
+        if (
+          currentBeat.protoTab != null &&
+          currentTabIndexRef.current !== protoTabToIndex(currentBeat.protoTab)
+        ) {
+          requestAnimationFrame(scheduleJumpToStart);
+          return;
+        }
+        screenPlayback.jumpToStart();
+      };
+      scheduleJumpToStart();
     }
 
     let outerHandoffRaf = 0;
@@ -923,6 +933,7 @@ export function useProtoJourneyPlayback({
     screenPlayback.totalFrames,
     screenPlayback.isPlaying,
     screenPlayback.canStepForward,
+    protoTabToIndex,
     scenarioBrowseMode,
   ]);
 
@@ -1333,9 +1344,10 @@ export function useProtoJourneyPlayback({
   const canJumpToStart = isOnAir ? false : canStepBack;
   const canJumpToEnd = atPlaylistEnd || isOnAir ? false : canStepForward;
 
-  const isDirty =
-    active &&
-    (beatIndex > 0 || (onScreenFramesBeat && screenPlayback.isDirty));
+  const isDirty = scenarioBrowseMode
+    ? active && onScreenFramesBeat && screenPlayback.isDirty
+    : active &&
+      (beatIndex > 0 || (onScreenFramesBeat && screenPlayback.isDirty));
 
   return {
     totalFrames,

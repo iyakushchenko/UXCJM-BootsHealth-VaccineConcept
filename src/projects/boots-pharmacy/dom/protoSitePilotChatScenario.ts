@@ -1,10 +1,14 @@
 /**
- * Site Pilot chat — portal composer dock to document.body (escapes scroll clip + transform traps).
+ * Site Pilot chat — in-place fixed composer (stays in React tree during CJM frame steps).
  */
+
+import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
 
 const LEGACY_THREAD_CLASS = "proto-chat-thread";
 const DOCK_CLASS = "proto-chat-composer-dock";
+const DOCK_IN_PLACE_CLASS = "proto-chat-composer-dock--in-place";
 const DOCK_PORTAL_CLASS = "proto-chat-composer-dock--portal";
+const DISCLAIMER_CLASS = "proto-chat-composer-disclaimer";
 const COMPOSER_CARD_CLASS = "proto-site-pilot-composer";
 const COMPOSER_PAD_VAR = "--proto-chat-composer-h";
 const SCREEN_CHILD = 10;
@@ -17,9 +21,10 @@ function getScrollHost(): HTMLElement | null {
   );
 }
 
-/** Body portal — scroll host uses overflow:hidden at scenario frame 1, which clips fixed children. */
-function getComposerDockHost(): HTMLElement {
-  return document.body;
+function getChatSummary(screen: ParentNode): HTMLElement | null {
+  return screen.querySelector<HTMLElement>(
+    '[data-name="component.appointment.summary"]'
+  );
 }
 
 function findPortalDock(): HTMLElement | null {
@@ -28,18 +33,123 @@ function findPortalDock(): HTMLElement | null {
   );
 }
 
-function syncDockGeometry(screen: HTMLElement, dock: HTMLElement): void {
-  const summary = screen.querySelector<HTMLElement>(
-    '[data-name="component.appointment.summary"]'
+function findInPlaceComposer(screen: ParentNode): HTMLElement | null {
+  const summary = getChatSummary(screen);
+  if (!summary) return null;
+  return (
+    summary.querySelector<HTMLElement>(
+      `.${COMPOSER_CARD_CLASS}[data-proto-chat-composer="true"]`
+    ) ?? findSummaryComposer(summary)
   );
-  if (!summary) return;
+}
+
+function findSummaryComposer(summary: HTMLElement): HTMLElement | null {
+  return (
+    Array.from(summary.children).find(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement && isSitePilotChatComposerFrame(child)
+    ) ?? null
+  );
+}
+
+const dockCleanupByScreen = new WeakMap<HTMLElement, () => void>();
+const disclaimerByScreen = new WeakMap<HTMLElement, HTMLParagraphElement>();
+
+const COMPOSER_DOCK_PAD_BOTTOM_PX = 24;
+const COMPOSER_DOCK_PAD_TOP_PX = 12;
+const COMPOSER_DISCLAIMER_GAP_PX = 8;
+
+function syncInPlaceGeometry(
+  screen: HTMLElement,
+  summary: HTMLElement,
+  composer: HTMLElement
+): void {
+  const scrollHost = getScrollHost();
+  const prevMaxScroll =
+    scrollHost != null
+      ? Math.max(0, scrollHost.scrollHeight - scrollHost.clientHeight)
+      : null;
+  const prevTop = scrollHost?.scrollTop ?? null;
+  const nearBottom =
+    scrollHost != null &&
+    prevMaxScroll != null &&
+    prevTop != null &&
+    prevMaxScroll - prevTop < 120;
 
   const rect = summary.getBoundingClientRect();
-  dock.style.left = `${rect.left}px`;
-  dock.style.width = `${rect.width}px`;
+  const disclaimer = disclaimerByScreen.get(screen);
 
-  const h = Math.ceil(dock.getBoundingClientRect().height);
-  screen.style.setProperty(COMPOSER_PAD_VAR, `${h}px`);
+  composer.style.left = `${rect.left}px`;
+  composer.style.width = `${rect.width}px`;
+
+  let disclaimerBlock = 0;
+  if (disclaimer) {
+    disclaimer.style.left = `${rect.left}px`;
+    disclaimer.style.width = `${rect.width}px`;
+    disclaimer.style.bottom = `${COMPOSER_DOCK_PAD_BOTTOM_PX}px`;
+    disclaimerBlock =
+      disclaimer.getBoundingClientRect().height + COMPOSER_DISCLAIMER_GAP_PX;
+  }
+
+  composer.style.bottom = `${COMPOSER_DOCK_PAD_BOTTOM_PX + disclaimerBlock}px`;
+
+  const composerH = composer.getBoundingClientRect().height;
+  const totalH =
+    COMPOSER_DOCK_PAD_TOP_PX +
+    composerH +
+    disclaimerBlock +
+    COMPOSER_DOCK_PAD_BOTTOM_PX;
+  const prevPad = parseFloat(
+    screen.style.getPropertyValue(COMPOSER_PAD_VAR) || "0"
+  );
+  const nextPad = Math.ceil(totalH);
+  screen.style.setProperty(COMPOSER_PAD_VAR, `${nextPad}px`);
+
+  if (scrollHost && prevMaxScroll != null && prevTop != null && prevPad !== nextPad) {
+    const newMaxScroll = Math.max(
+      0,
+      scrollHost.scrollHeight - scrollHost.clientHeight
+    );
+    const maxDelta = newMaxScroll - prevMaxScroll;
+    if (maxDelta !== 0 && nearBottom) {
+      scrollHost.scrollTop = Math.max(0, prevTop + maxDelta);
+    }
+    playbackScrollMonitor.onPinApply(scrollHost.scrollTop);
+  }
+}
+
+function applyComposerDockSuppressed(screen?: ParentNode | null): void {
+  const suppressed = document.body.hasAttribute(
+    "data-proto-chat-composer-suppressed"
+  );
+  const composer = findInPlaceComposer(
+    screen ??
+      document.querySelector<HTMLElement>(
+        ".proto-viewport > div > div:nth-child(10)"
+      ) ??
+      document
+  );
+  if (composer) {
+    composer.hidden = suppressed;
+    const screen = document.querySelector<HTMLElement>(
+      ".proto-viewport > div > div:nth-child(10)"
+    );
+    const disclaimer = screen ? disclaimerByScreen.get(screen) : null;
+    if (disclaimer) disclaimer.hidden = suppressed;
+    return;
+  }
+  const dock = findPortalDock();
+  if (dock) dock.hidden = suppressed;
+}
+
+function clearComposerScenarioStyles(composer: HTMLElement): void {
+  const id = composer.dataset.protoScenarioHideTid;
+  if (id) window.clearTimeout(Number(id));
+  composer.classList.remove("proto-scenario-frame", "proto-scenario-frame--hidden");
+  composer.style.display = "";
+  delete composer.dataset.protoScenarioVisible;
+  delete composer.dataset.protoScenarioFrame;
+  delete composer.dataset.protoScenarioHideTid;
 }
 
 function restoreChatDom(summary: HTMLElement, paddingDiv: HTMLElement): void {
@@ -51,6 +161,27 @@ function restoreChatDom(summary: HTMLElement, paddingDiv: HTMLElement): void {
     thread.remove();
   }
   summary.classList.remove("proto-chat-layout");
+
+  summary
+    .querySelectorAll<HTMLElement>(`.${COMPOSER_CARD_CLASS}[data-proto-chat-composer="true"]`)
+    .forEach((composer) => {
+      composer.classList.remove(COMPOSER_CARD_CLASS, DOCK_IN_PLACE_CLASS);
+      composer.style.removeProperty("left");
+      composer.style.removeProperty("width");
+      composer.style.removeProperty("bottom");
+      composer.hidden = false;
+      delete composer.dataset.protoChatComposer;
+    });
+
+  paddingDiv
+    .querySelectorAll<HTMLParagraphElement>(`.${DISCLAIMER_CLASS}`)
+    .forEach((disclaimer) => {
+      disclaimer.classList.remove(DISCLAIMER_CLASS);
+      disclaimer.style.removeProperty("left");
+      disclaimer.style.removeProperty("width");
+      disclaimer.style.removeProperty("bottom");
+      disclaimer.hidden = false;
+    });
 
   const dock = findPortalDock() ?? paddingDiv.querySelector<HTMLElement>(`.${DOCK_CLASS}`);
   if (dock) {
@@ -76,39 +207,49 @@ function restoreChatDom(summary: HTMLElement, paddingDiv: HTMLElement): void {
 }
 
 export function isSitePilotChatComposerFrame(el: HTMLElement): boolean {
-  const card =
-    el.matches('[data-name="component.co.order.summary"]')
-      ? el
-      : el.querySelector<HTMLElement>('[data-name="component.co.order.summary"]');
+  if (el.dataset.protoChatComposer === "true") return true;
+  if (el.classList.contains(COMPOSER_CARD_CLASS)) return true;
+  if (el.matches('[data-name="query"], [data-name="reply"]')) return false;
+
+  const card = el.matches('[data-name="component.co.order.summary"]')
+    ? el
+    : el.querySelector<HTMLElement>(':scope > [data-name="component.co.order.summary"]');
   if (!card) return false;
-  return /ask boots sitepilot|next dialog options/i.test(card.textContent ?? "");
+
+  const text = card.textContent ?? "";
+  const placeholder =
+    card.querySelector<HTMLTextAreaElement>("textarea.proto-agentic-query")
+      ?.placeholder ?? "";
+  const hasAskPrompt =
+    /ask boots sitepilot/i.test(text) || /ask boots sitepilot/i.test(placeholder);
+
+  return hasAskPrompt && /next dialog options/i.test(text);
 }
 
-/** Composer card — lives in the portal dock after setup (not under the screen root). */
+/** Composer card — fixed in summary after setup. */
 export function findSitePilotChatComposerCard(): HTMLElement | null {
-  const portaled = document.querySelector<HTMLElement>(
-    `.${DOCK_CLASS}.${DOCK_PORTAL_CLASS} [data-name="component.co.order.summary"]`
-  );
-  if (
-    portaled &&
-    /ask boots sitepilot|next dialog options/i.test(portaled.textContent ?? "")
-  ) {
-    return portaled;
-  }
-
   const screen = document.querySelector<HTMLElement>(
     ".proto-viewport > div > div:nth-child(10)"
   );
-  const cards = Array.from(
-    screen?.querySelectorAll<HTMLElement>(
-      '[data-name="component.co.order.summary"]'
-    ) ?? []
+  if (!screen) return null;
+
+  const inPlace = findInPlaceComposer(screen);
+  if (inPlace) {
+    const card =
+      inPlace.querySelector<HTMLElement>('[data-name="component.co.order.summary"]') ??
+      inPlace;
+    return card;
+  }
+
+  const portaled = document.querySelector<HTMLElement>(
+    `.${DOCK_CLASS}.${DOCK_PORTAL_CLASS} [data-name="component.co.order.summary"]`
   );
-  return (
-    cards.find((c) =>
-      /ask boots sitepilot|next dialog options/i.test(c.textContent ?? "")
-    ) ?? null
-  );
+  if (portaled && isSitePilotChatComposerFrame(portaled)) {
+    return portaled;
+  }
+
+  const summary = getChatSummary(screen);
+  return findSummaryComposer(summary ?? screen) ?? null;
 }
 
 function findChatDisclaimer(paddingDiv: HTMLElement): HTMLParagraphElement | null {
@@ -122,36 +263,71 @@ function findChatDisclaimer(paddingDiv: HTMLElement): HTMLParagraphElement | nul
   return null;
 }
 
-const dockCleanupByScreen = new WeakMap<HTMLElement, () => void>();
+/** Hide composer while availability / other overlays are open. */
+export function setSitePilotChatComposerDockSuppressed(suppressed: boolean): void {
+  document.body.toggleAttribute("data-proto-chat-composer-suppressed", suppressed);
+  applyComposerDockSuppressed();
+}
+
+/** Mount / sync the fixed composer dock — same path for CJM on and browse. */
+export function mountSitePilotChatComposerDock(screen: HTMLElement): void {
+  ensureSitePilotChatComposerDock(screen);
+  syncSitePilotChatComposerDock(screen);
+  applyComposerDockSuppressed(screen);
+  requestAnimationFrame(() => {
+    syncSitePilotChatComposerDock(screen);
+    applyComposerDockSuppressed(screen);
+  });
+}
 
 /** Idempotent — safe before scenario frame collection. */
 export function ensureSitePilotChatComposerDock(screen: HTMLElement): void {
-  const existing = findPortalDock();
-  if (existing) {
-    syncDockGeometry(screen, existing);
-    requestAnimationFrame(() => syncDockGeometry(screen, existing));
+  const summary = getChatSummary(screen);
+  const paddingDiv = summary?.parentElement ?? null;
+  const composer = summary ? findInPlaceComposer(screen) : null;
+
+  if (
+    composer?.isConnected &&
+    summary &&
+    composer.classList.contains(COMPOSER_CARD_CLASS)
+  ) {
+    if (paddingDiv) {
+      const disclaimer = findChatDisclaimer(paddingDiv);
+      if (disclaimer && !disclaimer.classList.contains(DISCLAIMER_CLASS)) {
+        disclaimer.classList.add(DISCLAIMER_CLASS);
+        disclaimerByScreen.set(screen, disclaimer);
+      }
+    }
+    clearComposerScenarioStyles(composer);
+    syncInPlaceGeometry(screen, summary, composer);
+    requestAnimationFrame(() => syncInPlaceGeometry(screen, summary, composer));
     return;
   }
+
   dockCleanupByScreen.get(screen)?.();
   dockCleanupByScreen.set(screen, setupSitePilotChatComposerDock(screen));
 }
 
-/** Re-align portal dock after chat layout / scenario frame changes. */
+/** Re-align dock after chat layout / scenario frame changes. */
 export function syncSitePilotChatComposerDock(screen: HTMLElement): void {
-  const dock = findPortalDock();
-  if (!dock) {
-    ensureSitePilotChatComposerDock(screen);
+  const summary = getChatSummary(screen);
+  const composer = findInPlaceComposer(screen);
+  if (composer && summary) {
+    clearComposerScenarioStyles(composer);
+    syncInPlaceGeometry(screen, summary, composer);
+    applyComposerDockSuppressed(screen);
     return;
   }
-  syncDockGeometry(screen, dock);
+  ensureSitePilotChatComposerDock(screen);
 }
 
 export function teardownSitePilotChatComposerDock(screen: HTMLElement): void {
+  disclaimerByScreen.delete(screen);
   dockCleanupByScreen.get(screen)?.();
   dockCleanupByScreen.delete(screen);
 }
 
-/** Portal + fixed bottom; messages scroll underneath. */
+/** In-place fixed bottom — composer stays in React tree (CJM frame steps won't delete it). */
 export function setupSitePilotChatComposerDock(
   screen: HTMLElement
 ): () => void {
@@ -161,35 +337,32 @@ export function setupSitePilotChatComposerDock(
   );
   const paddingDiv = summary?.parentElement ?? null;
   const scrollHost = getScrollHost();
-  const dockHost = getComposerDockHost();
   if (!summary || !paddingDiv) return () => {};
 
   restoreChatDom(summary, paddingDiv);
 
-  const composer = Array.from(summary.children).find(
-    (child): child is HTMLElement =>
-      child instanceof HTMLElement && isSitePilotChatComposerFrame(child)
-  );
+  const composer = findSummaryComposer(summary);
   if (!composer) return () => {};
 
+  clearComposerScenarioStyles(composer);
   composer.dataset.protoChatComposer = "true";
-  composer.classList.add(COMPOSER_CARD_CLASS);
-  const disclaimer = findChatDisclaimer(paddingDiv);
-
-  const dock = document.createElement("div");
-  dock.className = `${DOCK_CLASS} ${DOCK_PORTAL_CLASS}`;
-  dock.dataset.protoChatScreen = String(SCREEN_CHILD);
-  dock.appendChild(composer);
-  if (disclaimer) dock.appendChild(disclaimer);
-  dockHost.appendChild(dock);
-
+  composer.classList.add(COMPOSER_CARD_CLASS, DOCK_IN_PLACE_CLASS);
   screen.classList.add("proto-chat-screen");
 
-  const onReposition = () => syncDockGeometry(screen, dock);
+  const disclaimer = findChatDisclaimer(paddingDiv);
+  if (disclaimer) {
+    disclaimer.classList.add(DISCLAIMER_CLASS);
+    disclaimerByScreen.set(screen, disclaimer);
+  } else {
+    disclaimerByScreen.delete(screen);
+  }
+
+  const onReposition = () => syncInPlaceGeometry(screen, summary, composer);
 
   const ro = new ResizeObserver(onReposition);
-  ro.observe(dock);
+  ro.observe(composer);
   ro.observe(summary);
+  if (disclaimer) ro.observe(disclaimer);
   scrollHost?.addEventListener("scroll", onReposition, { passive: true });
   window.addEventListener("resize", onReposition);
   window.addEventListener("scroll", onReposition, { passive: true });
@@ -208,6 +381,7 @@ export function setupSitePilotChatComposerDock(
     window.removeEventListener("scroll", onReposition);
     screen.classList.remove("proto-chat-screen");
     screen.style.removeProperty(COMPOSER_PAD_VAR);
+    disclaimerByScreen.delete(screen);
     restoreChatDom(summary, paddingDiv);
   };
 }
@@ -215,26 +389,23 @@ export function setupSitePilotChatComposerDock(
 export function collectSitePilotChatScenarioFrames(
   screen: ParentNode
 ): HTMLElement[] {
-  const summary = screen.querySelector<HTMLElement>(
-    '[data-name="component.appointment.summary"]'
-  );
+  const summary = getChatSummary(screen);
   if (!summary) return [];
 
   return Array.from(summary.children).filter(
     (node): node is HTMLElement =>
       node instanceof HTMLElement &&
       !isSitePilotChatComposerFrame(node) &&
+      !node.classList.contains(COMPOSER_CARD_CLASS) &&
       !node.hasAttribute("data-proto-chat-thinking") &&
       !isSitePilotChatFeedbackFrame(node)
   );
 }
 
-/** Agent reply bubbles — show thinking pause before these during play. */
 export function isSitePilotChatAgentReplyFrame(frame: HTMLElement): boolean {
   return frame.matches('[data-name="reply"]');
 }
 
-/** Helpfulness prompt — not part of the stepped chat thread. */
 export function isSitePilotChatFeedbackFrame(frame: HTMLElement): boolean {
   return /was this conversation helpful/i.test(frame.textContent ?? "");
 }
@@ -243,11 +414,8 @@ export const SITE_PILOT_CHAT_PLAYBACK_THINK_MS = 1400;
 
 export const SITE_PILOT_CHAT_FINALE_CTA = /choose different date/i;
 
-/** Keep helpfulness prompt out of the stepped thread (finale ends on date CTA). */
 export function syncSitePilotChatFeedbackFrame(screen: ParentNode): void {
-  const summary = screen.querySelector<HTMLElement>(
-    '[data-name="component.appointment.summary"]'
-  );
+  const summary = getChatSummary(screen);
   if (!summary) return;
 
   Array.from(summary.children).forEach((child) => {

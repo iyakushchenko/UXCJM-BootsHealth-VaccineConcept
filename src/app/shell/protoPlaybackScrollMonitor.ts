@@ -299,7 +299,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       pushSample(scrollTop);
       window.setTimeout(() => {
         pinActive = false;
-      }, 32);
+      }, 120);
     },
     noteScrollPosition(scrollTop) {
       if (!active) return;

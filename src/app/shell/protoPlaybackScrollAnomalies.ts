@@ -114,6 +114,8 @@ export function shouldReportPassiveScrollAnomaly(ctx: {
   isPausingBeforeReveal: boolean;
   journeyAtEnd?: boolean;
 }): boolean {
+  // Thinking / typing preludes resize chat layout (bubble + composer dock) — not user scroll.
+  if (ctx.isPausingBeforeReveal) return false;
   if (
     ctx.journeyAtEnd &&
     !ctx.isOnAir &&
