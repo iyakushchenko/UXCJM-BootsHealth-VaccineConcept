@@ -376,7 +376,9 @@ export function formatPlaybackDiagnostic(error: PlaybackDiagnosticError): Runtim
         title:
           ctx.failureStep === "transport-retreat-mismatch"
             ? "Step back did not match journey beat"
-            : "Viewport did not follow touchpoint",
+            : ctx.failureStep === "transport-retreat-scroll-mismatch"
+              ? "Step back did not restore viewport"
+              : "Viewport did not follow touchpoint",
         summary: ctx.actual ?? ctx.message,
         likelyCauses: [],
         tryThese: [],

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   detectTransportRetreatMismatch,
+  detectTransportRetreatScrollMismatch,
   detectViewportStallAfterAdvance,
   VIEWPORT_MIN_SCROLL_DELTA_PX,
 } from "@/app/shell/protoPlaybackViewportAnomalies";
@@ -172,6 +173,69 @@ describe("detectTransportRetreatMismatch", () => {
         beatProtoTab: 4,
         childIndex: 7,
         screenFramesBeat: false,
+      })
+    ).toBeNull();
+  });
+});
+
+describe("detectTransportRetreatScrollMismatch", () => {
+  it("flags step back when booking DOM goal is not met", () => {
+    const anomaly = detectTransportRetreatScrollMismatch({
+      transportAction: "step-back",
+      beatId: "book-step2-date",
+      beatLabel: "Book — date",
+      screenFramesBeat: false,
+      isScripting: false,
+      isPausingBeforeReveal: false,
+      anchorProminent: true,
+      expectsRetreatAnchor: true,
+      domGoalMet: false,
+    });
+    expect(anomaly?.kind).toBe("transport-retreat-scroll-mismatch");
+    expect(anomaly?.message).toContain("booking UI");
+  });
+
+  it("flags step back when focal anchor is not prominently in view", () => {
+    const anomaly = detectTransportRetreatScrollMismatch({
+      transportAction: "step-back",
+      beatId: "book-step2-date",
+      beatLabel: "Book — date",
+      screenFramesBeat: false,
+      isScripting: false,
+      isPausingBeforeReveal: false,
+      anchorProminent: false,
+      expectsRetreatAnchor: true,
+      domGoalMet: true,
+    });
+    expect(anomaly?.kind).toBe("transport-retreat-scroll-mismatch");
+    expect(anomaly?.message).toContain("focal element");
+  });
+
+  it("passes when DOM goal and anchor are satisfied", () => {
+    expect(
+      detectTransportRetreatScrollMismatch({
+        transportAction: "step-back",
+        beatId: "book-step2-date",
+        screenFramesBeat: false,
+        isScripting: false,
+        isPausingBeforeReveal: false,
+        anchorProminent: true,
+        expectsRetreatAnchor: true,
+        domGoalMet: true,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores beats that do not expect a retreat anchor", () => {
+    expect(
+      detectTransportRetreatScrollMismatch({
+        transportAction: "step-back",
+        beatId: "choose-location",
+        screenFramesBeat: false,
+        isScripting: false,
+        isPausingBeforeReveal: false,
+        anchorProminent: false,
+        expectsRetreatAnchor: false,
       })
     ).toBeNull();
   });

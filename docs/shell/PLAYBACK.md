@@ -232,6 +232,7 @@ Tab/screen changes (e.g. PLP → PDP on Book now) get a **700ms navigation grace
 **Viewport alignment guard** (`useProtoPlaybackViewportGuard`) catches touchpoint advances where the status bar moves but the prototype scroll root does not follow on the **same screen**:
 
 - `viewport-stall` — touchpoint/beat advanced but `scrollTop` moved less than ~48px and the beat focal element is not in view (~520ms after step/script end)
+- `transport-retreat-scroll-mismatch` — step back changed the beat but the prototype scroll anchor or project DOM goal did not restore (~520ms after step-back). Book date/time retreats expect June **24** selected (wire default), not the director playback date **21**; reserve retreat expects date **21** + time **15:30**
 - **Book — time** director step: scroll to time grid **and** select 15:30 with demo cursor (one step). Beat-enter sync only ensures date + clears time — no scroll. Reserve scroll happens on the reserve beat only.
 - **Popup touchpoints** (`popup:*` keys from `resolveStudioTouchpoint`) are excluded — modals/overlays do not use prototype scroll follow
 - Screen-frame scenario beats are excluded (scenario engine owns scroll)

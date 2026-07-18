@@ -2,6 +2,7 @@ import type {
   AvailabilityScriptId,
   BookScriptId,
   HomeScriptId,
+  JourneyBeat,
   JourneyBeatActionId,
   JourneyRuntime,
   TabScriptId,
@@ -9,12 +10,18 @@ import type {
 import { abortAvailabilityPlayback } from "./availability";
 import { runAvailabilityScript } from "./availability";
 import { abortBookPlayback } from "./book";
-import { runBookScript } from "./book";
+import {
+  isBookDefaultDateSelected,
+  isBookPlaybackDateSelected,
+  isBookPlaybackTimeSelected,
+  runBookScript,
+  syncBookStep2LandingRetreat,
+} from "./book";
 import { abortSitePilotHomePlayback } from "./sitePilotHome";
 import { runSitePilotHomeScript } from "./sitePilotHome";
 import { abortTraditionalPlayback } from "./traditional";
 import { runTraditionalScript } from "./traditional";
-import type { ProtoProjectPlayback } from "@/projects/types";
+import type { ProtoProjectPlayback, RetreatViewportGoal } from "@/projects/types";
 
 function runBeatAction(actionId: JourneyBeatActionId, runtime: JourneyRuntime): void {
   switch (actionId) {
@@ -44,6 +51,48 @@ function abortAll(): void {
   abortTraditionalPlayback();
 }
 
+async function syncRetreatState(
+  beat: JourneyBeat,
+  options?: { instant?: boolean }
+): Promise<void> {
+  if (beat.bookScript) {
+    await runBookScript(beat.bookScript as BookScriptId, {
+      skip: true,
+      syncState: true,
+      instant: options?.instant,
+    });
+    return;
+  }
+  if (beat.id === "book-step2") {
+    await syncBookStep2LandingRetreat({ instant: options?.instant });
+  }
+}
+
+function checkRetreatViewportGoal(beat: JourneyBeat): RetreatViewportGoal | null {
+  if (beat.id === "book-step2" || beat.bookScript === "select-book-date") {
+    return {
+      expectsAnchor: true,
+      domGoalMet:
+        isBookDefaultDateSelected() && !isBookPlaybackTimeSelected(),
+    };
+  }
+  if (beat.bookScript === "select-book-time") {
+    return {
+      expectsAnchor: true,
+      domGoalMet:
+        isBookDefaultDateSelected() && !isBookPlaybackTimeSelected(),
+    };
+  }
+  if (beat.bookScript === "reserve-appointment") {
+    return {
+      expectsAnchor: true,
+      domGoalMet:
+        isBookPlaybackDateSelected() && isBookPlaybackTimeSelected(),
+    };
+  }
+  return null;
+}
+
 /** Boots Pharmacy — cursor/type-in scripts for journey beats. */
 export const BOOTS_PHARMACY_PLAYBACK: ProtoProjectPlayback = {
   abortAll,
@@ -52,6 +101,9 @@ export const BOOTS_PHARMACY_PLAYBACK: ProtoProjectPlayback = {
   runAvailScript: (scriptId, options) =>
     runAvailabilityScript(scriptId as AvailabilityScriptId, options),
   runBookScript: (scriptId, options) => runBookScript(scriptId as BookScriptId, options),
+  syncBookStep2LandingRetreat: (options) => syncBookStep2LandingRetreat(options),
+  syncRetreatState,
+  checkRetreatViewportGoal,
   runTabScript: (scriptId, runtime, options) =>
     runTraditionalScript(scriptId as TabScriptId, runtime, options),
 };

@@ -1,5 +1,6 @@
 import {
   detectTransportRetreatMismatch,
+  detectTransportRetreatScrollMismatch,
   detectViewportStallAfterAdvance,
   VIEWPORT_POST_ADVANCE_CHECK_MS,
   type ViewportAnomaly,
@@ -34,6 +35,8 @@ export type ViewportMonitorContext = {
   screenFramesBeat: boolean;
   anchorInView: boolean;
   anchorProminent: boolean;
+  retreatExpectsAnchor?: boolean;
+  retreatDomGoalMet?: boolean;
 };
 
 export type PlaybackViewportMonitor = {
@@ -120,7 +123,22 @@ export function createPlaybackViewportMonitor(): PlaybackViewportMonitor {
       touchpointKey: context.touchpointKey,
       screenFramesBeat: context.screenFramesBeat,
     });
-    if (retreatAnomaly) report(retreatAnomaly);
+    if (retreatAnomaly) {
+      report(retreatAnomaly);
+      return;
+    }
+    const scrollAnomaly = detectTransportRetreatScrollMismatch({
+      transportAction,
+      beatId: context.beatId,
+      beatLabel: context.beatLabel,
+      screenFramesBeat: context.screenFramesBeat,
+      isScripting: context.isScripting,
+      isPausingBeforeReveal: context.isPausingBeforeReveal,
+      anchorProminent: context.anchorProminent,
+      expectsRetreatAnchor: context.retreatExpectsAnchor ?? false,
+      domGoalMet: context.retreatDomGoalMet,
+    });
+    if (scrollAnomaly) report(scrollAnomaly);
   };
 
   const runCheck = (transportAction?: string) => {

@@ -124,6 +124,12 @@ export function shouldChainManualDirectorStepOnAdvance(
   ) {
     return true;
   }
+  if (
+    previousBeat.tabScript === "login-sign-in" &&
+    nextBeat.tabScript === "book-location-pick"
+  ) {
+    return true;
+  }
 
   if (!beatsShareProtoTab(previousBeat, nextBeat)) return false;
   return (

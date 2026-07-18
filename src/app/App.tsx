@@ -30,8 +30,11 @@ import {
 import type { JourneyRuntime, ProtoJourneyDefinition, ProtoOrchestraModeId } from "@/app/orchestra/types";
 import type { ProtoPersonaId, ProtoProjectId, ProtoProjectWireApi } from "@/projects/types";
 import {
+  cancelDemoCursorJourneyEndFade,
   removeDemoCursor,
   resetDemoCursorTravelOrigin,
+  reviveDemoCursorAfterJourneyEndRetreat,
+  scheduleDemoCursorJourneyEndFade,
   setDemoCursorJourneyMode,
 } from "@/app/proto/protoDemoCursor";
 import { useProtoJourneyPlayback } from "@/app/orchestra/useProtoJourneyPlayback";
@@ -344,6 +347,7 @@ export default function App() {
         activeScreenScenario?.id === "site-pilot-chat"
           ? isSitePilotChatPlaybackThinking()
           : undefined,
+      bookConfirmationScreen: childIdx === 3,
     });
   }, [
     hubOpen,
@@ -391,8 +395,7 @@ export default function App() {
   resumeJourneyPlayRef.current = journeyPlayback.resumeJourneyPlay;
 
   const transport = journeyPlayback;
-  const navTransportLocked =
-    transport.isPlaying || transport.isPausingBeforeReveal;
+  const navTransportLocked = transport.isOnAir;
   const navBrowseLocked = navTransportLocked || studioJourneyMode;
   navPlaybackLockedRef.current = navBrowseLocked;
   navTransportLockedRef.current = navTransportLocked;
@@ -461,6 +464,24 @@ export default function App() {
     studioJourneyMode &&
     studioProgress.totalFrames > 0 &&
     studioProgress.visibleCount >= studioProgress.totalFrames;
+
+  const journeyEndIdle = journeyAtEnd && !transport.isOnAir;
+  const prevJourneyEndIdleRef = useRef(false);
+
+  useEffect(() => {
+    const wasEndIdle = prevJourneyEndIdleRef.current;
+    prevJourneyEndIdleRef.current = journeyEndIdle;
+
+    if (journeyEndIdle) {
+      scheduleDemoCursorJourneyEndFade();
+      return () => cancelDemoCursorJourneyEndFade();
+    }
+
+    cancelDemoCursorJourneyEndFade();
+    if (wasEndIdle && studioJourneyMode) {
+      reviveDemoCursorAfterJourneyEndRetreat();
+    }
+  }, [journeyEndIdle, studioJourneyMode]);
 
   const resetStudioPlayback = useCallback(() => {
     journeyPlayback.stopJourneyPlay();
@@ -796,6 +817,7 @@ export default function App() {
     currentBeat,
     scrollRootRef: prototypeScrollElRef,
     onDiagnostic: handlePlaybackDiagnostic,
+    checkRetreatViewportGoal: projectPlayback.checkRetreatViewportGoal,
   });
 
   useLayoutEffect(() => {
@@ -1051,7 +1073,6 @@ export default function App() {
               segmentLabel={
                 studioJourneyMode ? studioTouchpoint.label : undefined
               }
-              touchpointKey={studioTouchpoint.key}
               visibleCount={studioProgress.visibleCount}
               totalFrames={studioProgress.totalFrames}
               stepProgressActive={studioJourneyMode}

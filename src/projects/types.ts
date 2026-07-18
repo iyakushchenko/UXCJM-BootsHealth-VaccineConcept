@@ -47,12 +47,24 @@ export type ProtoPersonaDefinition = {
   journeyHooks?: JourneyPlaybackHooks;
 };
 
+export type RetreatSyncOptions = {
+  /** Beat-enter / step-back sync — snap scroll and DOM with no eased camera moves. */
+  instant?: boolean;
+};
+
+export type RetreatViewportGoal = {
+  expectsAnchor: boolean;
+  domGoalMet: boolean;
+};
+
 /** Project-owned script runners — shell dispatches beats through this, not hardcoded paths. */
 export type BookScriptOptions = {
   /** Apply clicks instantly — no demo cursor animation. */
   skip?: boolean;
   /** Restore cumulative date/time UI for manual beat stepping (no reserve click). */
   syncState?: boolean;
+  /** Beat-enter / step-back sync — snap scroll and DOM with no eased camera moves. */
+  instant?: boolean;
 };
 
 export type ProtoProjectPlayback = {
@@ -72,6 +84,15 @@ export type ProtoProjectPlayback = {
     runtime: JourneyRuntime,
     options?: { skip?: boolean }
   ) => Promise<PlaybackScriptResult>;
+  /** Book Step 2 dwell retreat — snap scroll back to the date section. */
+  syncBookStep2LandingRetreat?: (options?: BookScriptOptions) => Promise<void>;
+  /** CJM step-back — restore DOM/scroll for the target beat without director animation. */
+  syncRetreatState?: (
+    beat: JourneyBeat,
+    options?: RetreatSyncOptions
+  ) => Promise<void>;
+  /** Optional DOM/scroll goal check after step-back (~520ms viewport guard). */
+  checkRetreatViewportGoal?: (beat: JourneyBeat) => RetreatViewportGoal | null;
 };
 
 export type StudioSelectOption<T extends string = string> = {
@@ -113,6 +134,8 @@ export type ProtoProjectWireApi = {
   ) => void;
   handleAvailabilityStepChange: (step: AvailStep) => void;
   applyDemoLocation: () => void;
+  /** CJM step-back — snap Book Step 2 calendar to June 24 wire default. */
+  syncBookStep2RetreatDefault?: (options?: { clearTime?: boolean }) => void;
   activeChildIndex: number | null;
   popupOnScreen: (...allowed: number[]) => boolean;
   childIndex: number;

@@ -1,7 +1,10 @@
 import { isPopupTouchpoint } from "@/app/nav/resolveStudioTouchpoint";
 import { protoScreenAtTab } from "@/projects/boots-pharmacy/screens/protoScreens";
 
-export type ViewportAnomalyKind = "viewport-stall" | "transport-retreat-mismatch";
+export type ViewportAnomalyKind =
+  | "viewport-stall"
+  | "transport-retreat-mismatch"
+  | "transport-retreat-scroll-mismatch";
 
 export type ViewportAnomaly = {
   kind: ViewportAnomalyKind;
@@ -204,6 +207,61 @@ export function detectTransportRetreatMismatch(
       kind: "transport-retreat-mismatch",
       message: `Step back to "${label}" but studio touchpoint is still a popup overlay`,
       detail: formatTransportRetreatDetail(ctx),
+    };
+  }
+
+  return null;
+}
+
+export type TransportRetreatScrollCheckContext = {
+  transportAction?: string;
+  beatId?: string;
+  beatLabel?: string;
+  screenFramesBeat: boolean;
+  isScripting: boolean;
+  isPausingBeforeReveal: boolean;
+  anchorProminent: boolean;
+  expectsRetreatAnchor: boolean;
+  domGoalMet?: boolean;
+};
+
+function formatTransportRetreatScrollDetail(
+  ctx: TransportRetreatScrollCheckContext
+): string {
+  return [
+    ctx.beatId ? `beat=${ctx.beatId}` : "",
+    ctx.expectsRetreatAnchor ? "expectsRetreatAnchor=true" : "",
+    ctx.domGoalMet != null ? `domGoalMet=${ctx.domGoalMet}` : "",
+    ctx.anchorProminent ? "anchorProminent=true" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Step back restored the beat but scroll/DOM did not match the expected retreat anchor. */
+export function detectTransportRetreatScrollMismatch(
+  ctx: TransportRetreatScrollCheckContext
+): ViewportAnomaly | null {
+  if (ctx.transportAction !== "step-back") return null;
+  if (ctx.screenFramesBeat) return null;
+  if (ctx.isScripting || ctx.isPausingBeforeReveal) return null;
+  if (!ctx.beatId || !ctx.expectsRetreatAnchor) return null;
+
+  const label = ctx.beatLabel ?? ctx.beatId;
+
+  if (ctx.domGoalMet === false) {
+    return {
+      kind: "transport-retreat-scroll-mismatch",
+      message: `Step back to "${label}" but booking UI did not restore expected state`,
+      detail: formatTransportRetreatScrollDetail(ctx),
+    };
+  }
+
+  if (!ctx.anchorProminent) {
+    return {
+      kind: "transport-retreat-scroll-mismatch",
+      message: `Step back to "${label}" but viewport did not scroll to the expected focal element`,
+      detail: formatTransportRetreatScrollDetail(ctx),
     };
   }
 

@@ -38,6 +38,21 @@ describe("resolveStudioTouchpoint", () => {
       })
     ).toEqual({ label: "Choose vaccine", key: "popup:vaccine" });
   });
+
+  it("uses book confirmed label on step 3 confirmation screen", () => {
+    expect(
+      resolveStudioTouchpoint({
+        availabilityOpen: false,
+        vaccinePickerOpen: false,
+        recipientPickerOpen: false,
+        loginPopupOpen: false,
+        quickViewOpen: false,
+        beatId: "book-step2-reserve",
+        beatLabel: "Book — reserve",
+        bookConfirmationScreen: true,
+      })
+    ).toEqual({ label: "Book — confirmed", key: "beat:confirmation" });
+  });
 });
 
 describe("buildStudioTouchpointPlaylist", () => {

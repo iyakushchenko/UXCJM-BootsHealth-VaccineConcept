@@ -41,7 +41,7 @@ const bookReserveBeat: JourneyBeat = {
 
 const confirmationBeat: JourneyBeat = {
   id: "confirmation",
-  label: "Confirmation",
+  label: "Book — confirmed",
   kind: "tab-landing",
   protoTab: 7,
   tabScript: "confirmation-open-appointments",
@@ -69,6 +69,14 @@ const chooseLocationBeat: JourneyBeat = {
   kind: "tab-landing",
   protoTab: 5,
   tabScript: "book-location-pick",
+};
+
+const loginBeat: JourneyBeat = {
+  id: "traditional-login",
+  label: "Log in or register",
+  kind: "tab-landing",
+  protoTab: 4,
+  tabScript: "login-sign-in",
 };
 
 describe("journeyBeatDirector", () => {
@@ -105,6 +113,9 @@ describe("journeyBeatDirector", () => {
     ).toBe(true);
     expect(
       shouldChainManualDirectorStepOnAdvance(bookReserveBeat, confirmationBeat)
+    ).toBe(true);
+    expect(
+      shouldChainManualDirectorStepOnAdvance(loginBeat, chooseLocationBeat)
     ).toBe(true);
     expect(
       shouldChainManualDirectorStepOnAdvance(

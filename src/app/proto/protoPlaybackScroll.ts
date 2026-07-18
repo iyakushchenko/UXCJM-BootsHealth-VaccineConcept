@@ -108,6 +108,25 @@ export async function animateDemoTargetIntoView(
   });
 }
 
+/** Instant scroll for CJM step-back beat-enter sync — no eased camera move. */
+export function snapDemoTargetIntoView(
+  target: HTMLElement,
+  options?: {
+    scrollEl?: HTMLElement;
+    align?: PlaybackScrollAlign;
+    padding?: number;
+  }
+): void {
+  const scrollEl = options?.scrollEl ?? getPrototypeScrollRoot(target);
+  if (!scrollEl || shouldSkipPrototypePageScroll(target, scrollEl)) return;
+
+  const align = options?.align ?? DEMO_TARGET_SCROLL_ALIGN;
+  const padding = options?.padding ?? DEMO_TARGET_SCROLL_PADDING;
+  const targetTop = computeScrollTopForElement(scrollEl, target, align, padding);
+  const maxScroll = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+  scrollEl.scrollTop = Math.min(Math.max(0, targetTop), maxScroll);
+}
+
 /**
  * Scroll the prototype pane to frame a demo target, returning the eased duration used.
  * Pair with cursor travel so both finish together.

@@ -43,6 +43,11 @@ let resizeParkListener: (() => void) | null = null;
 let parkGeneration = 0;
 /** Drifted park pose — reused until the cursor leaves rest for a director travel. */
 let parkedRestAnchor: { left: number; top: number } | null = null;
+/** Blue-diode journey end — fade robo-cursor after idle, revive on step back. */
+export const JOURNEY_END_CURSOR_FADE_DELAY_MS = 5000;
+let journeyEndFadeTimer: ReturnType<typeof setTimeout> | null = null;
+let journeyEndFadeGeneration = 0;
+let journeyEndCursorFaded = false;
 
 export function isDemoCursorJourneyModePinned(): boolean {
   return journeyModePinned;
@@ -59,6 +64,69 @@ export function isDemoCursorParked(): boolean {
 
 export function waitForDemoCursorParked(): Promise<void> {
   return parkPromise ?? Promise.resolve();
+}
+
+export function isDemoCursorFadedAtJourneyEnd(): boolean {
+  return journeyEndCursorFaded;
+}
+
+export function cancelDemoCursorJourneyEndFade(): void {
+  if (journeyEndFadeTimer != null) {
+    clearTimeout(journeyEndFadeTimer);
+    journeyEndFadeTimer = null;
+  }
+  journeyEndFadeGeneration += 1;
+}
+
+async function fadeOutDemoCursorAtJourneyEnd(generation: number): Promise<void> {
+  if (!journeyModePinned || generation !== journeyEndFadeGeneration) return;
+
+  cancelDemoCursorParkInFlight();
+  clearDemoCtaStates();
+
+  const cursor = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+  if (!cursor) {
+    journeyEndCursorFaded = true;
+    return;
+  }
+
+  let startX = lastCursorPos?.x ?? window.innerWidth * 0.58;
+  let startY = lastCursorPos?.y ?? window.innerHeight * 0.42;
+  const left = Number.parseFloat(cursor.style.left);
+  const top = Number.parseFloat(cursor.style.top);
+  if (Number.isFinite(left)) startX = left;
+  if (Number.isFinite(top)) startY = top;
+
+  cursor.classList.add("proto-chat-demo-cursor--exit");
+  await animateCursorExit(cursor, startX, startY);
+  if (generation !== journeyEndFadeGeneration || !journeyModePinned) return;
+
+  cursor.remove();
+  journeyEndCursorFaded = true;
+}
+
+/** Start 5s idle timer after blue end diode — then drift/fade robo-cursor off. */
+export function scheduleDemoCursorJourneyEndFade(
+  delayMs = JOURNEY_END_CURSOR_FADE_DELAY_MS
+): void {
+  cancelDemoCursorJourneyEndFade();
+  if (!journeyModePinned) return;
+
+  const generation = journeyEndFadeGeneration;
+  journeyEndFadeTimer = setTimeout(() => {
+    journeyEndFadeTimer = null;
+    void fadeOutDemoCursorAtJourneyEnd(generation);
+  }, delayMs);
+}
+
+/** Step back from journey end — restore parked robo-cursor for the next director beat. */
+export function reviveDemoCursorAfterJourneyEndRetreat(): void {
+  cancelDemoCursorJourneyEndFade();
+  journeyEndCursorFaded = false;
+  if (!journeyModePinned) return;
+
+  parkedRestAnchor = null;
+  void parkDemoCursorAtRest({ animate: false });
 }
 
 function randomInRange(min: number, max: number): number {
@@ -237,6 +305,8 @@ export function setDemoCursorJourneyMode(
   }
 
   if (!active) {
+    cancelDemoCursorJourneyEndFade();
+    journeyEndCursorFaded = false;
     parkedRestAnchor = null;
     return;
   }

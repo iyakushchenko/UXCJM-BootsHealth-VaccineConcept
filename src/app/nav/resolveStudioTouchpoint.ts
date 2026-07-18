@@ -37,7 +37,11 @@ export type StudioTouchpointInput = {
   chatFrameTotal?: number;
   chatPausingBeforeReveal?: boolean;
   chatPlaybackThinking?: boolean;
+  /** Book Step 3 confirmation screen (child 3) — label before beat index catches up. */
+  bookConfirmationScreen?: boolean;
 };
+
+export const BOOK_CONFIRMATION_TOUCHPOINT_LABEL = "Book — confirmed";
 
 /** Agent reply frames in the stepped chat thread (2, 4, 6, 8, …). */
 export function isSitePilotChatAgentReplyFrameIndex(frameIndex: number): boolean {
@@ -150,6 +154,13 @@ export function resolveStudioTouchpoint(
     return {
       label: AVAIL_STEP_LABELS[input.availStep],
       key: `popup:availability:${input.availStep}`,
+    };
+  }
+
+  if (input.bookConfirmationScreen) {
+    return {
+      label: BOOK_CONFIRMATION_TOUCHPOINT_LABEL,
+      key: "beat:confirmation",
     };
   }
 

@@ -65,6 +65,11 @@ import {
   PROTO_PDP_WISHLIST_ID,
 } from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
 import { wireProtoIconHits } from "@/projects/boots-pharmacy/dom/protoIconHitWire";
+import {
+  PROTO_BOOK_STEP2_RETREAT_DEFAULT_EVENT,
+  syncBookStep2RetreatDefaultDom,
+  type BookStep2RetreatDefaultDetail,
+} from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
 import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
 import {
   boosterDoseSummaryLabel,
@@ -896,6 +901,35 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   const [chosenBookingSlot, setChosenBookingSlot] = useState<ChosenBookingSlot>(
     DEFAULT_CHOSEN_BOOKING_SLOT
   );
+
+  const syncBookStep2RetreatDefault = useCallback(
+    (options?: { clearTime?: boolean }) => {
+      syncBookStep2RetreatDefaultDom(options);
+    },
+    []
+  );
+
+  useEffect(() => {
+    const onRetreatDefault = (event: Event) => {
+      const detail = (event as CustomEvent<BookStep2RetreatDefaultDetail>).detail;
+      if (!detail) return;
+      setChosenBookingSlot((prev) => ({
+        month: detail.month,
+        day: detail.day,
+        time: detail.clearTime ? DEFAULT_CHOSEN_BOOKING_SLOT.time : prev.time,
+      }));
+    };
+    window.addEventListener(
+      PROTO_BOOK_STEP2_RETREAT_DEFAULT_EVENT,
+      onRetreatDefault
+    );
+    return () => {
+      window.removeEventListener(
+        PROTO_BOOK_STEP2_RETREAT_DEFAULT_EVENT,
+        onRetreatDefault
+      );
+    };
+  }, []);
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
   const [loginPopupOpen, setLoginPopupOpen] = useState(false);
   const [loginPopupTab, setLoginPopupTab] = useState<"signin" | "create">("signin");
@@ -4267,6 +4301,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       openAvailabilityTool,
       closeAvailabilityTool,
       applyDemoLocation,
+      syncBookStep2RetreatDefault,
       handleAvailabilityBookNow,
       handleAvailabilityStepChange,
       activeChildIndex,

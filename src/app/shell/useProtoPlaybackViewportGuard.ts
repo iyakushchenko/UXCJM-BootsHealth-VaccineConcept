@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import type { JourneyBeat } from "@/app/orchestra/types";
+import type { RetreatViewportGoal } from "@/projects/types";
 import {
   beatExpectsViewportFollow,
   beatExpectsViewportFollowAfterScript,
@@ -43,6 +44,7 @@ type Options = {
   scrollRootRef: RefObject<HTMLElement | null>;
   onDiagnostic: (error: PlaybackDiagnosticError) => void;
   monitor?: PlaybackViewportMonitor;
+  checkRetreatViewportGoal?: (beat: JourneyBeat | undefined) => RetreatViewportGoal | null;
 };
 
 function measureViewportAnchors(
@@ -64,6 +66,7 @@ export function useProtoPlaybackViewportGuard({
   scrollRootRef,
   onDiagnostic,
   monitor = playbackViewportMonitor,
+  checkRetreatViewportGoal,
 }: Options): void {
   const onDiagnosticRef = useRef(onDiagnostic);
   onDiagnosticRef.current = onDiagnostic;
@@ -80,11 +83,15 @@ export function useProtoPlaybackViewportGuard({
   const prevScrollTopRef = useRef(0);
   const prevPausingRef = useRef(false);
 
+  const checkRetreatViewportGoalRef = useRef(checkRetreatViewportGoal);
+  checkRetreatViewportGoalRef.current = checkRetreatViewportGoal;
+
   const pushMonitorContext = (scrollEl: HTMLElement | null) => {
     const snap = snapshotRef.current;
     const beat = currentBeatRef.current;
     const beatId = snap.beatId ?? beat?.id;
     const anchors = measureViewportAnchors(scrollEl);
+    const retreatGoal = checkRetreatViewportGoalRef.current?.(beat);
 
     monitor.setContext({
       scrollTop: scrollEl?.scrollTop ?? 0,
@@ -98,6 +105,8 @@ export function useProtoPlaybackViewportGuard({
       screenFramesBeat: snap.screenFramesBeat,
       anchorInView: anchors.anchorInView,
       anchorProminent: anchors.anchorProminent,
+      retreatExpectsAnchor: retreatGoal?.expectsAnchor,
+      retreatDomGoalMet: retreatGoal?.domGoalMet,
     });
   };
 

@@ -15,7 +15,7 @@ import {
   simulateDemoPointerClick,
   simulateDemoPointerHover,
 } from "@/app/proto/protoDemoCursor";
-import { PROTO_SCREENS, protoTabToIndex } from "@/projects/boots-pharmacy/screens/protoScreens";
+import { PROTO_SCREENS } from "@/projects/boots-pharmacy/screens/protoScreens";
 import {
   scriptAborted,
   scriptFail,
@@ -230,10 +230,6 @@ async function addFirstPlpTileBookmark(
   return true;
 }
 
-function goToBookStep1(runtime: JourneyRuntime): void {
-  runtime.goToTab(protoTabToIndex(5));
-}
-
 function findLoginSignInButton(loginCard: ParentNode): HTMLElement | null {
   return (
     loginCard.querySelector<HTMLElement>(".proto-login-cta") ??
@@ -397,12 +393,6 @@ async function runPdpBookNow(
     await delay(SETTLE_MS);
   }
 
-  if (shouldAbort()) return false;
-
-  if (isProtoHeaderLoggedIn()) {
-    goToBookStep1(runtime);
-  }
-
   return !shouldAbort();
 }
 
@@ -411,7 +401,6 @@ async function runLoginSignIn(
   options?: { skip?: boolean }
 ): Promise<boolean> {
   if (isProtoHeaderLoggedIn()) {
-    goToBookStep1(runtime);
     return true;
   }
 
@@ -424,7 +413,6 @@ async function runLoginSignIn(
 
   if (!(await runLoginPopupSignIn(loginCard, options))) return false;
 
-  goToBookStep1(runtime);
   return !shouldAbort();
 }
 

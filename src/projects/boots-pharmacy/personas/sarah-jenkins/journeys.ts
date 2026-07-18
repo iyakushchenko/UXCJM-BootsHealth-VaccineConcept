@@ -14,7 +14,7 @@ export function shouldSkipTraditionalLoginBeat(
 const POST_CONFIRMATION_BEATS: ProtoJourneyDefinition["beats"] = [
   {
     id: "confirmation",
-    label: "Confirmation",
+    label: "Book — confirmed",
     kind: "tab-landing",
     protoTab: 7,
     tabScript: "confirmation-open-appointments",

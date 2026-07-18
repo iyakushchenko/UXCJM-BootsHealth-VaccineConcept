@@ -31,6 +31,10 @@ import {
 } from "@/app/orchestra/journeyUtils";
 import { resolveStudioTouchpointProgress } from "@/app/nav/resolveStudioTouchpoint";
 import { isPlaybackScrollAnimating } from "@/app/proto/protoPlaybackScroll";
+import {
+  cancelDemoCursorJourneyEndFade,
+  parkDemoCursorAtRest,
+} from "@/app/proto/protoDemoCursor";
 import type { JourneyBeat, JourneyRuntime, ProtoJourneyDefinition } from "@/app/orchestra/types";
 import type { ProtoProjectPlayback } from "@/projects/types";
 import type { StudioTouchpointEntry } from "@/projects/types";
@@ -189,6 +193,8 @@ export function useProtoJourneyPlayback({
   const suppressInitialBeatTabNavRef = useRef(true);
   /** Dwell handoff runs the next director step — skip beat-enter sync for that beat. */
   const suppressBeatEnterSyncRef = useRef(false);
+  /** CJM step-back — snap DOM/scroll on beat enter, director script runs on step forward. */
+  const retreatSyncRef = useRef(false);
   const currentTabIndexRef = useRef(currentTabIndex);
 
   beatIndexRef.current = beatIndex;
@@ -733,10 +739,22 @@ export function useProtoJourneyPlayback({
     lastTabAutoRunRef.current = null;
     lastHomeAutoRunRef.current = null;
     void runBeatEnter(currentBeat);
-    if (currentBeat.bookScript && !isPlayingRef.current && !suppressBeatEnterSyncRef.current) {
+    if (retreatSyncRef.current) {
+      void (playback.syncRetreatState
+        ? playback.syncRetreatState(currentBeat, { instant: true })
+        : Promise.resolve()
+      ).finally(() => {
+        retreatSyncRef.current = false;
+      });
+    } else if (
+      currentBeat.bookScript &&
+      !isPlayingRef.current &&
+      !suppressBeatEnterSyncRef.current
+    ) {
       void playback.runBookScript(currentBeat.bookScript, {
         skip: true,
         syncState: true,
+        instant: false,
       });
     }
     suppressInitialBeatTabNavRef.current = false;
@@ -963,7 +981,17 @@ export function useProtoJourneyPlayback({
     let prev: number;
     let prevBeat: JourneyBeat | undefined;
 
-    if (playlistTarget?.kind === "beat") {
+    const sameTabRetreatIndex = retreatFrom(currentIndex);
+    const sameTabRetreatBeat = beats[sameTabRetreatIndex];
+    if (
+      fromBeat?.protoTab != null &&
+      sameTabRetreatBeat?.protoTab === fromBeat.protoTab &&
+      sameTabRetreatIndex >= 0 &&
+      sameTabRetreatIndex !== currentIndex
+    ) {
+      prev = sameTabRetreatIndex;
+      prevBeat = sameTabRetreatBeat;
+    } else if (playlistTarget?.kind === "beat") {
       prev = playlistTarget.beatIndex;
       prevBeat = playlistTarget.beat;
     } else {
@@ -980,6 +1008,10 @@ export function useProtoJourneyPlayback({
 
     runtime.closeAllPopups();
     runtime.closeAvailability();
+
+    retreatSyncRef.current = true;
+    cancelDemoCursorJourneyEndFade();
+    void parkDemoCursorAtRest({ animate: false });
 
     setBeatIndex(prev);
     beatIndexRef.current = prev;
@@ -1158,6 +1190,9 @@ export function useProtoJourneyPlayback({
   const jumpToStart = useCallback(() => {
     suppressInitialBeatTabNavRef.current = false;
     stopJourneyPlay();
+    retreatSyncRef.current = true;
+    cancelDemoCursorJourneyEndFade();
+    void parkDemoCursorAtRest({ animate: false });
     if (onScreenFramesBeat) {
       screenPlayback.jumpToStart();
     }
@@ -1206,7 +1241,8 @@ export function useProtoJourneyPlayback({
   const canAdvanceBeat =
     beatIndex < beats.length - 1 && advanceFrom(beatIndex) < beats.length;
 
-  const canStepBack = animationBusy
+  /** While on-air, only play/pause is interactive — no step/jump flicker between beats. */
+  const canStepBack = isOnAir
     ? false
     : onScreenFramesBeat
       ? screenPlayback.canStepBack || beatIndex > 0
@@ -1214,7 +1250,7 @@ export function useProtoJourneyPlayback({
         retreatFrom(beatIndex) >= 0;
 
   const canStepForward =
-    atPlaylistEnd || animationBusy
+    atPlaylistEnd || isOnAir
       ? false
       : onScreenFramesBeat
         ? screenPlayback.canStepForward || canAdvanceBeat
@@ -1222,8 +1258,8 @@ export function useProtoJourneyPlayback({
 
   const canPlay = atPlaylistEnd
     ? false
-    : transportPlaying ||
-      animationBusy ||
+    : isOnAir ||
+      transportPlaying ||
       (onScreenFramesBeat
         ? screenPlayback.canStepForward || canAdvanceBeat
         : canAdvanceBeat) ||
@@ -1231,9 +1267,8 @@ export function useProtoJourneyPlayback({
       Boolean(currentBeat?.bookScript) ||
       Boolean(currentBeat?.tabScript);
 
-  const canJumpToStart = animationBusy ? false : canStepBack;
-  const canJumpToEnd =
-    atPlaylistEnd || animationBusy ? false : canStepForward;
+  const canJumpToStart = isOnAir ? false : canStepBack;
+  const canJumpToEnd = atPlaylistEnd || isOnAir ? false : canStepForward;
 
   const isDirty =
     active &&
