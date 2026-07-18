@@ -16,9 +16,10 @@ const DEMO_CURSOR_MARKUP = `${CURSOR_ARROW_SVG}${CURSOR_HAND_SVG}`;
 
 const CTA_TRAVEL_MS = 820;
 const CTA_PRESS_MS = 380;
-const CTA_HOVER_DWELL_MS = 360;
+const CTA_HOVER_DWELL_MS = 220;
 const CURSOR_EXIT_MS = 1600;
 const CURSOR_EXIT_DRIFT_PX = 10;
+const CURSOR_FADE_MS = 480;
 /** Parked robo-cursor in CJM — inset from the right edge, lower-right resting pose. */
 const CURSOR_REST_RIGHT_INSET_RATIO = 0.08;
 const CURSOR_REST_Y_RATIO = 0.54;
@@ -50,6 +51,14 @@ export const JOURNEY_END_CURSOR_FADE_DELAY_MS = 5000;
 let journeyEndFadeTimer: ReturnType<typeof setTimeout> | null = null;
 let journeyEndFadeGeneration = 0;
 let journeyEndCursorFaded = false;
+let cursorFadeGeneration = 0;
+
+export type RemoveDemoCursorOptions = {
+  /** Hard-remove with no fade — aborts, resets, mode teardown. */
+  immediate?: boolean;
+  /** Fade out at the current position instead of parking. */
+  fade?: boolean;
+};
 
 export function isDemoCursorJourneyModePinned(): boolean {
   return journeyModePinned;
@@ -92,15 +101,14 @@ async function fadeOutDemoCursorAtJourneyEnd(generation: number): Promise<void> 
     return;
   }
 
-  let startX = lastCursorPos?.x ?? window.innerWidth * 0.58;
-  let startY = lastCursorPos?.y ?? window.innerHeight * 0.42;
   const left = Number.parseFloat(cursor.style.left);
   const top = Number.parseFloat(cursor.style.top);
-  if (Number.isFinite(left)) startX = left;
-  if (Number.isFinite(top)) startY = top;
+  if (Number.isFinite(left) && Number.isFinite(top)) {
+    lastCursorPos = { x: left, y: top };
+  }
 
   cursor.classList.add("proto-chat-demo-cursor--exit");
-  await animateCursorExit(cursor, startX, startY);
+  await animateCursorFadeOnly(cursor);
   if (generation !== journeyEndFadeGeneration || !journeyModePinned) return;
 
   cursor.remove();
@@ -167,6 +175,7 @@ function cancelDemoCursorParkInFlight(): void {
 }
 
 function prepareDemoCursorForTravel(cursor: HTMLElement): { x: number; y: number } {
+  cursorFadeGeneration += 1;
   parkedRestAnchor = null;
   cursor.classList.remove(
     PROTO_DEMO_CURSOR_PARKED_CLASS,
@@ -292,6 +301,9 @@ export function setDemoCursorJourneyMode(
   active: boolean,
   options?: { parkAfterInteraction?: boolean }
 ): void {
+  const wasActive = journeyModePinned;
+  const wasParkAfterInteraction = parkAfterInteraction;
+
   journeyModePinned = active;
   if (options?.parkAfterInteraction !== undefined) {
     parkAfterInteraction = options.parkAfterInteraction;
@@ -313,10 +325,16 @@ export function setDemoCursorJourneyMode(
     return;
   }
 
-  parkedRestAnchor = null;
-  void parkDemoCursorAtRest();
+  if (!wasActive) {
+    parkedRestAnchor = null;
+    void parkDemoCursorAtRest();
+  } else if (!wasParkAfterInteraction && parkAfterInteraction) {
+    // Cassette stopped — fade in place; do not teleport to the park pose.
+    void fadeOutDemoCursorInPlace();
+  }
+
   resizeParkListener = () => {
-    if (journeyModePinned) {
+    if (journeyModePinned && parkAfterInteraction && !journeyEndCursorFaded) {
       parkedRestAnchor = null;
       void parkDemoCursorAtRest();
     }
@@ -448,6 +466,23 @@ async function animateCursorTravel(
   cursor.style.top = `${finalEnd.y}px`;
   lastCursorPos = { x: finalEnd.x, y: finalEnd.y };
   return true;
+}
+
+async function animateCursorFadeOnly(cursor: HTMLElement): Promise<void> {
+  cursor.style.transition = "none";
+  cursor.style.opacity = "1";
+  const start = performance.now();
+
+  await new Promise<void>((resolve) => {
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / CURSOR_FADE_MS);
+      const eased = easeOutCubic(t);
+      cursor.style.opacity = String(Math.max(0, 1 - eased));
+      if (t < 1) requestAnimationFrame(tick);
+      else resolve();
+    };
+    requestAnimationFrame(tick);
+  });
 }
 
 async function animateCursorExit(
@@ -619,31 +654,70 @@ function setDemoInteractionHover(root: HTMLElement | null, active: boolean): voi
   }
 }
 
-export function removeDemoCursor(): void {
-  if (journeyModePinned) {
-    if (parkAfterInteraction) {
-      void parkDemoCursorAtRest({ animate: true });
-    } else {
-      retainDemoCursorInPlace();
-    }
-    return;
-  }
-
+function clearDemoCursorImmediate(): void {
+  cancelDemoCursorJourneyEndFade();
+  cancelDemoCursorParkInFlight();
+  cursorFadeGeneration += 1;
   document
     .querySelectorAll<HTMLElement>(".proto-chat-demo-cursor")
     .forEach((el) => el.remove());
   clearDemoCtaStates();
-  lastCursorPos = null;
+  if (!journeyModePinned) {
+    lastCursorPos = null;
+    parkedRestAnchor = null;
+  }
+}
+
+/** Fade the robo-cursor out at its current position — no park teleport. */
+export async function fadeOutDemoCursorInPlace(): Promise<void> {
+  const generation = ++cursorFadeGeneration;
+  cancelDemoCursorParkInFlight();
+  clearDemoCtaStates();
+
+  const cursor = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+  if (!cursor) return;
+
+  const left = Number.parseFloat(cursor.style.left);
+  const top = Number.parseFloat(cursor.style.top);
+  if (Number.isFinite(left) && Number.isFinite(top)) {
+    lastCursorPos = { x: left, y: top };
+  }
+
+  cursor.classList.add("proto-chat-demo-cursor--exit");
+  await animateCursorFadeOnly(cursor);
+  if (generation !== cursorFadeGeneration) return;
+
+  cursor.remove();
+  if (!journeyModePinned) {
+    lastCursorPos = null;
+    parkedRestAnchor = null;
+  }
+}
+
+export function removeDemoCursor(options?: RemoveDemoCursorOptions): void {
+  if (options?.immediate) {
+    clearDemoCursorImmediate();
+    return;
+  }
+  if (options?.fade) {
+    void fadeOutDemoCursorInPlace();
+    return;
+  }
+  if (journeyModePinned) {
+    if (parkAfterInteraction) {
+      void parkDemoCursorAtRest({ animate: true });
+      return;
+    }
+    void fadeOutDemoCursorInPlace();
+    return;
+  }
+  void fadeOutDemoCursorInPlace();
 }
 
 /** End of a director script — await before advancing beats in manual CJM. */
 export async function releaseDemoCursorAfterScript(): Promise<void> {
   if (!journeyModePinned) {
-    document
-      .querySelectorAll<HTMLElement>(".proto-chat-demo-cursor")
-      .forEach((el) => el.remove());
-    clearDemoCtaStates();
-    lastCursorPos = null;
+    await fadeOutDemoCursorInPlace();
     return;
   }
   if (parkAfterInteraction) {
@@ -673,35 +747,18 @@ export function settleDemoCursorAfterClick(
   }
 }
 
-/** Scripted playback end — drift cursor off-screen and fade out (unless CJM pins it). */
+/** Scripted playback end — fade cursor out in place (unless CJM manual park applies). */
 export async function exitDemoCursor(): Promise<void> {
   if (journeyModePinned) {
     if (parkAfterInteraction) {
-      await parkDemoCursorAtRest({ animate: true });
-    } else {
-      retainDemoCursorInPlace();
+      await fadeOutDemoCursorInPlace();
+      return;
     }
+    retainDemoCursorInPlace();
     return;
   }
 
-  clearDemoCtaStates();
-
-  const cursor = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
-  if (!cursor) {
-    resetDemoCursorTravelOrigin();
-    return;
-  }
-
-  let startX = lastCursorPos?.x ?? window.innerWidth * 0.58;
-  let startY = lastCursorPos?.y ?? window.innerHeight * 0.42;
-  const left = Number.parseFloat(cursor.style.left);
-  const top = Number.parseFloat(cursor.style.top);
-  if (Number.isFinite(left)) startX = left;
-  if (Number.isFinite(top)) startY = top;
-
-  cursor.classList.add("proto-chat-demo-cursor--exit");
-  await animateCursorExit(cursor, startX, startY);
-  cursor.remove();
+  await fadeOutDemoCursorInPlace();
   resetDemoCursorTravelOrigin();
 }
 
@@ -768,30 +825,6 @@ function tapDemoCursor(cursor: HTMLElement): void {
   cursor.classList.remove("proto-chat-demo-cursor--tap");
   void cursor.offsetWidth;
   cursor.classList.add("proto-chat-demo-cursor--tap");
-}
-
-function spawnSimulatedClickRipple(x: number, y: number): void {
-  const hit = document.createElement("div");
-  hit.className = "proto-sim-click";
-  hit.style.left = `${x}px`;
-  hit.style.top = `${y}px`;
-  hit.innerHTML = [
-    '<span class="proto-sim-click__ring proto-sim-click__ring--1" aria-hidden="true"></span>',
-    '<span class="proto-sim-click__ring proto-sim-click__ring--2" aria-hidden="true"></span>',
-    '<span class="proto-sim-click__ring proto-sim-click__ring--3" aria-hidden="true"></span>',
-  ].join("");
-  document.body.appendChild(hit);
-
-  const remove = () => hit.remove();
-  hit.addEventListener("animationend", (event) => {
-    if (
-      event.target instanceof HTMLElement &&
-      event.target.classList.contains("proto-sim-click__ring--3")
-    ) {
-      remove();
-    }
-  });
-  window.setTimeout(remove, 1600);
 }
 
 export function isClickableTarget(target: HTMLElement): boolean {
@@ -895,7 +928,7 @@ export async function moveDemoCursorTo(
   if (applyHover) {
     setDemoInteractionHover(interactionRoot, true);
   }
-  await delay(randomInRange(40, 110));
+  await delay(randomInRange(20, 60));
   if (options?.shouldAbort?.()) return bail();
   return cursor;
 }
@@ -983,7 +1016,6 @@ export async function simulateDemoPointerClick(
     return false;
   }
 
-  spawnSimulatedClickRipple(x, y);
   tapDemoCursor(cursor);
 
   interactionRoot.classList.remove("proto-chat-cta--hover");

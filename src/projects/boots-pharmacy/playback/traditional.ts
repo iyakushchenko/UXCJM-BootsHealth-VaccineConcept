@@ -44,7 +44,7 @@ export function abortTraditionalPlayback(): void {
   playbackGeneration += 1;
   playbackAborted = true;
   resetDemoCursorTravelOrigin();
-  removeDemoCursor();
+  removeDemoCursor({ immediate: true });
   clearSimulatedClickRipples();
 }
 

@@ -5,7 +5,6 @@ import {
   notifyStudioDemoClick,
   removeDemoCursor as removeSharedDemoCursor,
   settleDemoCursorAfterClick,
-  targetCenter,
 } from "@/app/proto/protoDemoCursor";
 import {
   pinScenarioScrollToBottomDuring,
@@ -14,6 +13,7 @@ import {
 import {
   beginSitePilotChatPlaybackThinking,
   endSitePilotChatThinking,
+  fadeOutSitePilotChatThinking,
 } from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
 import {
   findSitePilotChatComposerCard,
@@ -42,7 +42,7 @@ let preludeAborted = false;
 
 export function abortSitePilotChatPlaybackPrelude(): void {
   preludeAborted = true;
-  removeSharedDemoCursor();
+  removeSharedDemoCursor({ immediate: true });
   clearSimulatedClickRipples();
   endSitePilotChatThinking();
 }
@@ -110,37 +110,13 @@ function findCtaInAgentFrame(
 }
 
 function removeDemoCursor(): void {
-  removeSharedDemoCursor();
+  removeSharedDemoCursor({ fade: true });
 }
 
 function tapDemoCursor(cursor: HTMLElement): void {
   cursor.classList.remove("proto-chat-demo-cursor--tap");
   void cursor.offsetWidth;
   cursor.classList.add("proto-chat-demo-cursor--tap");
-}
-
-function spawnSimulatedClickRipple(x: number, y: number): void {
-  const hit = document.createElement("div");
-  hit.className = "proto-sim-click";
-  hit.style.left = `${x}px`;
-  hit.style.top = `${y}px`;
-  hit.innerHTML = [
-    '<span class="proto-sim-click__ring proto-sim-click__ring--1" aria-hidden="true"></span>',
-    '<span class="proto-sim-click__ring proto-sim-click__ring--2" aria-hidden="true"></span>',
-    '<span class="proto-sim-click__ring proto-sim-click__ring--3" aria-hidden="true"></span>',
-  ].join("");
-  document.body.appendChild(hit);
-
-  const remove = () => hit.remove();
-  hit.addEventListener("animationend", (event) => {
-    if (
-      event.target instanceof HTMLElement &&
-      event.target.classList.contains("proto-sim-click__ring--3")
-    ) {
-      remove();
-    }
-  });
-  window.setTimeout(remove, 1600);
 }
 
 async function simulateSarahCtaClick(button: HTMLElement): Promise<void> {
@@ -151,8 +127,6 @@ async function simulateSarahCtaClick(button: HTMLElement): Promise<void> {
 
   button.classList.add("proto-chat-cta--hover");
 
-  const { x, y } = targetCenter(button);
-  spawnSimulatedClickRipple(x, y);
   tapDemoCursor(cursor);
   notifyStudioDemoClick();
 
@@ -169,8 +143,6 @@ async function simulateSarahSendClick(sendBtn: HTMLElement): Promise<void> {
   const cursor = await moveDemoCursorTo(sendBtn, { syncPageScroll: true });
   if (!cursor || preludeAborted) return;
 
-  const { x, y } = targetCenter(sendBtn);
-  spawnSimulatedClickRipple(x, y);
   tapDemoCursor(cursor);
   notifyStudioDemoClick();
 
@@ -253,8 +225,8 @@ export async function runSitePilotChatBeforeReveal(
     }
     await delay(SITE_PILOT_CHAT_PLAYBACK_THINK_MS);
     if (!preludeAborted) {
-      endSitePilotChatThinking();
-      scrollChatToBottom(true);
+      await fadeOutSitePilotChatThinking();
+      scrollChatToBottom();
     }
     return;
   }

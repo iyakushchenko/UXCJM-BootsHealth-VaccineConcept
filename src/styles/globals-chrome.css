@@ -47,6 +47,19 @@
   cursor: not-allowed;
 }
 
+/* Scripted clicks — suppress native hover/active hit circles; cursor carries the touch cue */
+.proto-wire-mount--playback-locked .proto-icon-hit::before,
+.proto-wire-mount--playback-locked
+  .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p))::before,
+.proto-wire-mount--playback-locked .proto-icon-hit:hover::before,
+.proto-wire-mount--playback-locked .proto-icon-hit:active::before,
+.proto-wire-mount--playback-locked
+  .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):hover::before,
+.proto-wire-mount--playback-locked
+  .proto-viewport [data-name="component.input.button"][class*="h-[32px]"]:not(:has(p)):active::before {
+  background: transparent !important;
+}
+
 /* Screen / hub navigation — crossfade on wire mount (see useProtoNavTransition) */
 .proto-wire-mount--nav-cross {
   animation: proto-wire-nav-cross 280ms ease forwards;
@@ -1220,6 +1233,10 @@
   padding-bottom: var(--proto-chat-composer-h, 0px) !important;
   box-sizing: border-box !important;
 }
+.proto-viewport > div > div:nth-child(10).proto-chat-screen {
+  --proto-scenario-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --proto-scenario-frame-duration: 0.48s;
+}
 /* Scenario frames — smooth reveal / hide; clip only while collapsing */
 .proto-viewport > div > div:nth-child(10) .proto-scenario-frame {
   overflow: visible !important;
@@ -1229,14 +1246,14 @@
   transform: translateY(0) scale(1);
   transform-origin: top center;
   transition:
-    opacity 0.34s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.34s cubic-bezier(0.4, 0, 0.2, 1),
-    max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-    margin-block 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity var(--proto-scenario-frame-duration, 0.48s) var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform var(--proto-scenario-frame-duration, 0.48s) var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    max-height 0.52s var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    margin-block var(--proto-scenario-frame-duration, 0.48s) var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 .proto-viewport > div > div:nth-child(10) .proto-scenario-frame.proto-scenario-frame--hidden {
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
+  transform: translateY(8px) scale(0.99);
   max-height: 0;
   margin-block: 0;
   pointer-events: none;
@@ -1268,16 +1285,31 @@
   box-sizing: border-box;
 }
 .proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble--reveal .proto-chat-thinking-bubble__inner {
-  animation: proto-chat-thinking-reveal 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: proto-chat-thinking-reveal var(--proto-scenario-frame-duration, 0.48s)
+    var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
 }
 @keyframes proto-chat-thinking-reveal {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(8px) scale(0.99);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+.proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble--exit .proto-chat-thinking-bubble__inner {
+  animation: proto-chat-thinking-exit 0.36s
+    var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+@keyframes proto-chat-thinking-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
   }
 }
 .proto-viewport > div > div:nth-child(10) .proto-chat-thinking-dots {
@@ -1313,7 +1345,7 @@
   }
   40% {
     opacity: 1;
-    transform: translateY(-4px);
+    transform: translateY(-3px);
   }
 }
 .proto-viewport > div > div:nth-child(10) .proto-chat-thinking-bubble__sr {
@@ -1388,9 +1420,27 @@
   display: block;
 }
 .proto-chat-demo-cursor--tap {
-  transform: scale(0.88);
-  filter: drop-shadow(0 0 8px rgba(1, 33, 105, 0.4))
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+  transform: scale(0.9);
+}
+.proto-chat-demo-cursor--pointer.proto-chat-demo-cursor--tap::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 11px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(1, 33, 105, 0.22);
+  pointer-events: none;
+  animation: proto-cursor-touch-flash 0.34s ease-out forwards;
+}
+@keyframes proto-cursor-touch-flash {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
+  }
 }
 .proto-chat-demo-cursor--parked {
   opacity: 0.94;
@@ -1401,50 +1451,6 @@
 }
 .proto-chat-demo-cursor--exit {
   will-change: left, top, opacity;
-}
-/* Smooth triple ripple on Sarah simulator taps */
-.proto-sim-click {
-  position: fixed;
-  z-index: 10251;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.proto-sim-click__ring {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  border: 2.5px solid rgba(1, 33, 105, 0.82);
-  background: transparent;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
-  animation: proto-sim-click-ring 1.28s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-}
-.proto-sim-click__ring--2 {
-  animation-delay: 0.16s;
-  border-color: rgba(1, 33, 105, 0.62);
-}
-.proto-sim-click__ring--3 {
-  animation-delay: 0.32s;
-  border-color: rgba(1, 33, 105, 0.42);
-  box-shadow: 0 0 12px rgba(1, 33, 105, 0.18);
-}
-@keyframes proto-sim-click-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(0.35);
-    opacity: 0;
-  }
-  12% {
-    opacity: 0.95;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(5.2);
-    opacity: 0;
-  }
 }
 .proto-viewport > div > div:nth-child(10)
   [data-name="component.input.button"].proto-chat-cta--pressed {

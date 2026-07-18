@@ -27,7 +27,7 @@ let playbackAborted = false;
 
 export function abortAvailabilityPlayback(): void {
   playbackAborted = true;
-  removeDemoCursor();
+  removeDemoCursor({ immediate: true });
   clearSimulatedClickRipples();
 }
 

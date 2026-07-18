@@ -27,7 +27,7 @@ let playbackAborted = false;
 
 export function abortSitePilotHomePlayback(): void {
   playbackAborted = true;
-  removeDemoCursor();
+  removeDemoCursor({ immediate: true });
 }
 
 export function wasSitePilotHomePlaybackAborted(): boolean {

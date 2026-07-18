@@ -251,7 +251,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
         actualTop: scrollTop,
         now,
       });
-      if (deviation) report(deviation);
+      if (deviation && !inScriptWatch) report(deviation);
 
       animation.lastFrameTime = now;
       lastScrollTop = scrollTop;

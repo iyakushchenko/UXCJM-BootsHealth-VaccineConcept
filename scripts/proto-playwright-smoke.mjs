@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.PROTO_SMOKE_URL ?? "http://localhost:5173";
 const outDir = path.join(__dirname, "playwright-out");
-const evaluateTimeoutMs = 120_000;
+const evaluateTimeoutMs = 600_000;
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -35,6 +35,10 @@ async function main() {
     return window.__protoRunRetreatSmoke?.({ timeoutMs: 90_000 });
   });
 
+  const stepForward = await page.evaluate(async () => {
+    return window.__protoRunAgenticStepForwardSmoke?.({ timeoutMs: 240_000 });
+  });
+
   const diagnosticOpen = await page.evaluate(
     () => document.querySelector(".proto-playback-diagnostic") != null
   );
@@ -45,10 +49,12 @@ async function main() {
     baseline,
     homePlay,
     retreat,
+    stepForward,
     diagnosticOpen,
     pass:
       Boolean(homePlay?.pass) &&
       Boolean(retreat?.pass) &&
+      Boolean(stepForward?.pass) &&
       !diagnosticOpen,
   };
 
@@ -65,6 +71,13 @@ async function main() {
     const failed = retreat?.checks?.filter((c) => !c.pass) ?? [];
     if (!homePlay?.pass) {
       console.error("homePlay failed:", homePlay?.reason);
+    }
+    if (!stepForward?.pass) {
+      console.error(
+        "stepForward failed:",
+        stepForward?.reason,
+        `after ${stepForward?.steps?.length ?? 0} steps`
+      );
     }
     if (failed.length > 0) {
       console.error("retreat checks failed:", failed);

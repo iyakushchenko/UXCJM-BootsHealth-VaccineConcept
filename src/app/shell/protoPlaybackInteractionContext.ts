@@ -3,6 +3,11 @@
  * agents can see whether a failure followed Step forward, a director script, etc.
  */
 
+import {
+  notifyRecordingDemoClick,
+  notifyRecordingFromInteraction,
+} from "@/app/recording/protoRecordingCapture";
+
 export type PlaybackInteractionKind =
   | "transport"
   | "director-manual"
@@ -39,6 +44,7 @@ function record(
     ...entry,
     atMs: entry.atMs ?? performance.now(),
   };
+  notifyRecordingFromInteraction(lastInteraction);
 }
 
 export type ManualTransportAction =
@@ -136,11 +142,13 @@ export function describePlaybackElement(el: HTMLElement): string {
 }
 
 export function notePlaybackDemoClick(target: HTMLElement): void {
+  const element = describePlaybackElement(target);
   record({
     kind: "demo-click",
     label: "Robo-cursor click",
-    element: describePlaybackElement(target),
+    element,
   });
+  notifyRecordingDemoClick(target, element);
 }
 
 export function formatPlaybackInteraction(

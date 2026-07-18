@@ -53,7 +53,7 @@ const TRADITIONAL_BOOKING_BEATS: ProtoJourneyDefinition["beats"] = [
   },
   {
     id: "book-step2",
-    label: "Book — date and time",
+    label: "Book - Step 2",
     kind: "tab-landing",
     protoTab: 6,
     dwellMs: 2800,
@@ -86,7 +86,7 @@ const TRADITIONAL_BOOKING_BEATS: ProtoJourneyDefinition["beats"] = [
 const AGENTIC_POST_AVAIL_BEATS: ProtoJourneyDefinition["beats"] = [
   {
     id: "book-step2",
-    label: "Book — date and time",
+    label: "Book - Step 2",
     kind: "tab-landing",
     protoTab: 6,
     onEnter: "apply-demo-location",

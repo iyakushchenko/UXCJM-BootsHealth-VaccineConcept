@@ -246,15 +246,15 @@ export default function ProtoNavPanel({
               <span className="text-white/45 text-[10px] shrink-0">
                 {navIndex} / {screenCount}
               </span>
-              {!isProtoPristine && !journeyMode ? (
+              {!isProtoPristine ? (
                 <button
                   type="button"
                   onClick={handleReset}
                   disabled={navResetLocked}
-                  title="Reset interactions on this screen (may reload the page)"
+                  title="Reset prototype to defaults"
                   className="proto-nav-reset-state"
                 >
-                  Reset page
+                  Reset
                 </button>
               ) : null}
             </div>

@@ -60,6 +60,11 @@ import {
   registerControlPanelSnapshotProvider,
 } from "@/app/shell/protoControlPanelLog";
 import { registerProtoStudioMcpHelpers } from "@/app/shell/protoStudioMcpHelpers";
+import {
+  captureTouchpointChange,
+  registerRecordingSnapshotProvider,
+} from "@/app/recording/protoRecordingCapture";
+import { registerProtoRecordingMcpHelpers } from "@/app/recording/protoRecordingMcpHelpers";
 import { useProtoPlaybackGuard } from "@/app/shell/useProtoPlaybackGuard";
 import { useProtoPlaybackScrollGuard } from "@/app/shell/useProtoPlaybackScrollGuard";
 import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
@@ -276,7 +281,7 @@ export default function App() {
   const sitePilotChatPlaybackHooks = useMemo<PlaybackStepHooks>(
     () => ({
       beforeReveal: runSitePilotChatBeforeReveal,
-      revealScrollSmooth: (frame) => !isSitePilotChatAgentReplyFrame(frame),
+      revealScrollSmooth: () => true,
       onPreludeAbort: abortSitePilotChatPlaybackPrelude,
       onFinale: async () => {
         const shouldContinueJourney = scenarioIsPlayingRef.current;
@@ -443,7 +448,7 @@ export default function App() {
       parkAfterInteraction: studioJourneyMode && !transport.isPlaying,
     });
     if (!studioJourneyMode) {
-      removeDemoCursor();
+      removeDemoCursor({ immediate: true });
       resetDemoCursorTravelOrigin();
     }
   }, [studioJourneyMode, transport.isPlaying]);
@@ -530,7 +535,7 @@ export default function App() {
     setChatRetreatRestoreActive(false);
     scenarioRestoreFullOnInitRef.current = false;
     wireApiRef.current?.resetWireInteractionState();
-    removeDemoCursor();
+    removeDemoCursor({ immediate: true });
     resetDemoCursorTravelOrigin();
   }, [journeyPlayback, resetBeatIndex, scenarioPlayback]);
 
@@ -615,7 +620,7 @@ export default function App() {
     journeyPlayback.resetJourney();
     wireApiRef.current?.closeAllPopups();
     wireApiRef.current?.resetWireInteractionState();
-    removeDemoCursor();
+    removeDemoCursor({ immediate: true });
     resetDemoCursorTravelOrigin();
     applyJourneyStartTab(activeJourney);
   }, [
@@ -969,6 +974,7 @@ export default function App() {
   useProtoPlaybackScrollGuard({
     snapshot: {
       isOnAir: transport.isOnAir,
+      isScripting: transport.isScripting,
       isPausingBeforeReveal: transport.isPausingBeforeReveal,
       journeyMode: studioJourneyMode,
       journeyAtEnd,
@@ -1064,6 +1070,24 @@ export default function App() {
     checkRetreatViewportGoal: projectPlayback.checkRetreatViewportGoal,
     checkRetreatSelectionGoal: projectPlayback.checkRetreatSelectionGoal,
   });
+
+  useEffect(() => {
+    if (!studioJourneyMode || hubOpen) return;
+    captureTouchpointChange({
+      touchpointKey: studioTouchpoint.key,
+      beatId: currentBeat?.id,
+      label: studioTouchpoint.label,
+      counter: `${studioProgress.visibleCount}/${studioProgress.totalFrames}`,
+    });
+  }, [
+    studioJourneyMode,
+    hubOpen,
+    studioTouchpoint.key,
+    studioTouchpoint.label,
+    currentBeat?.id,
+    studioProgress.visibleCount,
+    studioProgress.totalFrames,
+  ]);
 
   useLayoutEffect(() => {
     const scrollEl = prototypeScrollElRef.current;
@@ -1188,6 +1212,30 @@ export default function App() {
     }));
     return () => registerControlPanelSnapshotProvider(null);
   }, []);
+
+  useEffect(() => {
+    registerRecordingSnapshotProvider(() => ({
+      ...playbackSnapshotRef.current,
+      journeyMode: studioJourneyModeRef.current,
+      orchestraMode: orchestraModeId,
+      counter: document
+        .querySelector(".proto-nav-scenario__counter")
+        ?.textContent?.trim() ?? null,
+    }));
+    return () => registerRecordingSnapshotProvider(null);
+  }, [orchestraModeId]);
+
+  useEffect(() => {
+    return registerProtoRecordingMcpHelpers({
+      getDefaultStartOptions: () => ({
+        projectId: playbackSnapshotRef.current.projectId,
+        personaId: playbackSnapshotRef.current.personaId,
+        journeyId: playbackSnapshotRef.current.journeyId,
+        orchestraMode: orchestraModeId,
+        metadata: { recordedFrom: "mcp" },
+      }),
+    });
+  }, [orchestraModeId]);
 
   useEffect(() => {
     return registerProtoStudioMcpHelpers({

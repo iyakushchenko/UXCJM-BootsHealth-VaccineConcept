@@ -183,7 +183,8 @@ function buildBookDirectorOutcomeReport(
     usedDemoCursor,
     usedSkipClick,
     cursorRequired: true,
-    outcomeAppliedThisRun: interactionPerformed || usedSkipClick,
+    outcomeAppliedThisRun:
+      usedSkipClick || (interactionPerformed && usedDemoCursor),
     domGoalMet,
   };
 }
@@ -205,7 +206,7 @@ export function abortBookPlayback(): void {
   playbackAborted = true;
   cancelPlaybackScroll("abort");
   resetDemoCursorTravelOrigin();
-  removeDemoCursor();
+  removeDemoCursor({ immediate: true });
   clearSimulatedClickRipples();
 }
 
@@ -505,6 +506,10 @@ async function runSelectBookTime(options?: {
   if (!timeCell || shouldAbort()) return false;
 
   if (timeCell.dataset.protoCalSelected === "true") {
+    if (!options?.skip && !options?.instant) {
+      await animateDemoTargetIntoView(timeCell, { shouldAbort });
+      if (shouldAbort()) return false;
+    }
     if (options?.afterSelectScroll === "reserve") {
       await scrollBookStep2ToReserve(screen, scrollOpts);
     }
@@ -551,6 +556,7 @@ async function runReserveAppointment(options?: {
 
   if (options?.skip) {
     reserveBtn.click();
+    bookRunTelemetry.selectionViaSkip = true;
     bookRunTelemetry.interactionPerformed = true;
     return true;
   }

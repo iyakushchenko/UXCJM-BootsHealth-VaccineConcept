@@ -40,7 +40,7 @@ export function getProtoScenarioById(
 /** @deprecated Import scenario list from active project content instead. */
 export { BOOTS_PHARMACY_SCENARIO_SCREENS as PROTO_SCENARIO_SCREENS } from "@/projects/boots-pharmacy/screens/scenarios";
 
-export const PROTO_SCENARIO_FRAME_ANIM_MS = 320;
+export const PROTO_SCENARIO_FRAME_ANIM_MS = 480;
 export const PROTO_SCENARIO_FRAME_MAX_PX = 3200;
 
 function clearFrameHideTimer(frame: HTMLElement): void {
@@ -158,6 +158,7 @@ export function scenarioScrollTiming(
   // Step-back hides a bubble — defer scroll until collapse finishes so scrollHeight
   // shrink does not clamp scrollTop outside eased animation (scroll-jump diagnostic).
   if (nextCount < prevCount) return "after-exit";
+  if (nextCount > prevCount) return "after-enter";
   return "immediate";
 }
 
@@ -482,6 +483,7 @@ export function scheduleScenarioScroll(
 ): void {
   const generation = scenarioScrollGeneration;
   const el = resolveScrollEl(scrollEl);
+  const steppedForwardOne = visibleCount === prevCount + 1;
 
   if (timing === "after-init" && align === "end") {
     if (smooth && el) {
@@ -505,6 +507,21 @@ export function scheduleScenarioScroll(
     return;
   }
 
+  if (timing === "after-enter") {
+    pinScenarioScrollToBottomDuring(scrollEl, SCENARIO_SCROLL_ANIM_PIN_MS * 2);
+    window.setTimeout(() => {
+      if (generation !== scenarioScrollGeneration) return;
+      if (steppedForwardOne) {
+        settleScrollAfterForwardStep(frames, visibleCount, scrollEl, smooth);
+      } else if (align === "end" && el) {
+        if (smooth) animateScrollToBottom(el);
+        else scrollPrototypeScrollToBottom(scrollEl, "instant");
+      }
+      pinScenarioScrollToBottomDuring(scrollEl);
+    }, SCENARIO_SCROLL_ANIM_PIN_MS);
+    return;
+  }
+
   if (align === "start") {
     if (smooth && el) {
       void animateScrollTo(el, 0);
@@ -514,8 +531,6 @@ export function scheduleScenarioScroll(
     pinScenarioScrollToTopDuring(scrollEl);
     return;
   }
-
-  const steppedForwardOne = visibleCount === prevCount + 1;
 
   if (!smooth) {
     if (steppedForwardOne) {

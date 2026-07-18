@@ -25,6 +25,7 @@ import {
 
 type Snapshot = {
   isOnAir: boolean;
+  isScripting?: boolean;
   isPausingBeforeReveal: boolean;
   journeyMode?: boolean;
   journeyAtEnd?: boolean;
@@ -62,6 +63,8 @@ export function useProtoPlaybackScrollGuard({
   currentBeatRef.current = currentBeat;
 
   const prevPausingRef = useRef(false);
+  const prevScriptingRef = useRef(false);
+  const manualScriptLabelRef = useRef<string | undefined>(undefined);
   const activeScriptLabelRef = useRef<string | undefined>(undefined);
 
   const scrollGuardActive =
@@ -115,6 +118,27 @@ export function useProtoPlaybackScrollGuard({
 
     prevPausingRef.current = pausing;
   }, [monitor, snapshot.isPausingBeforeReveal]);
+
+  useLayoutEffect(() => {
+    const scripting = Boolean(snapshot.isScripting);
+    const scriptLabel = beatDirectorScriptLabel(currentBeatRef.current);
+
+    if (scripting && !prevScriptingRef.current) {
+      if (scriptLabel && directorScriptScrollsViewport(scriptLabel)) {
+        manualScriptLabelRef.current = scriptLabel;
+        monitor.noteDirectorScriptStart({ scriptLabel });
+      }
+    }
+    if (!scripting && prevScriptingRef.current) {
+      const endedLabel = manualScriptLabelRef.current;
+      manualScriptLabelRef.current = undefined;
+      if (endedLabel && directorScriptScrollsViewport(endedLabel)) {
+        monitor.noteDirectorScriptEnd({ scriptLabel: endedLabel });
+      }
+    }
+
+    prevScriptingRef.current = scripting;
+  }, [monitor, snapshot.isScripting]);
 
   useLayoutEffect(() => {
     if (!scrollGuardActive) {

@@ -29,6 +29,7 @@ import {
   stripSitePilotChatDemoCursors,
 } from "@/projects/boots-pharmacy/playback/sitePilotChat";
 import { AGENTIC_HOME_DEMO_QUERY } from "@/projects/boots-pharmacy/playback/sitePilotHome";
+import { removeDemoCursor } from "@/app/proto/protoDemoCursor";
 import {
   beginSitePilotChatThinking,
   endSitePilotChatThinking,
@@ -1012,17 +1013,23 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       });
       setChosenBookingSlot(slot);
       closeAvailabilityTool();
+      if (studioJourneyMode) {
+        // Journey transport + beat-enter own tab/beat — no deferred wire timeline hacks.
+        return;
+      }
       window.setTimeout(() => {
         setCurrent(5);
         const datetimeBeatIndex =
           activeJourney?.beats.findIndex((beat) => beat.id === "book-step2") ??
           -1;
         if (datetimeBeatIndex >= 0) {
-          setJourneyBeatIndex(datetimeBeatIndex);
+          setJourneyBeatIndex((current) =>
+            current < datetimeBeatIndex ? datetimeBeatIndex : current
+          );
         }
       }, 0);
     },
-    [activeJourney, setCurrent, setJourneyBeatIndex]
+    [activeJourney, setCurrent, setJourneyBeatIndex, studioJourneyMode]
   );
 
   useEffect(() => {
@@ -1098,31 +1105,18 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, []);
 
   const resetPrototype = () => {
-    const scenarioOnlyDirty =
-      transport.isDirty &&
-      !availabilityOpen &&
-      !vaccinePickerOpen &&
-      !recipientPickerOpen &&
-      !quickViewOpen &&
-      chosenLocation === null &&
-      !homeQueryDirty &&
-      !chatComposerDirty &&
-      !plpFiltersDirty;
-
-    if (scenarioOnlyDirty) {
-      if (!studioJourneyMode && SCREENS[current]?.childIndex === 10) {
-        scenarioPlayback.cancelPreRevealPause();
-        triggerChatBrowseRevealRef.current();
-        return;
-      }
-
-      transport.resetJourney();
-      scenarioPlayback.jumpToStart();
-      return;
-    }
+    cancelPreRevealPauseRef.current?.();
+    scenarioPlayback.abortPlayback();
+    transport.stopJourneyPlay();
+    removeDemoCursor({ immediate: true });
 
     resetWireInteractionState();
-    window.location.reload();
+    transport.resetJourney();
+    scenarioPlayback.jumpToStart();
+
+    if (SCREENS[current]?.childIndex === 10 && !studioJourneyMode) {
+      window.setTimeout(() => triggerChatBrowseRevealRef.current(), 0);
+    }
   };
 
   useEffect(() => {

@@ -51,6 +51,20 @@ export type ProtoHomePlaySmokeResult = {
   state?: ProtoStudioMcpState;
 };
 
+export type ProtoStepForwardSmokeStep = {
+  index: number;
+  before: ProtoStudioMcpState;
+  after: ProtoStudioMcpState;
+  ms: number;
+};
+
+export type ProtoStepForwardSmokeResult = {
+  pass: boolean;
+  reason?: string;
+  steps: ProtoStepForwardSmokeStep[];
+  finalState?: ProtoStudioMcpState;
+};
+
 declare global {
   interface Window {
     /** Dismiss playback diagnostic overlay if open. Returns whether one was open. */
@@ -75,6 +89,11 @@ declare global {
     __protoRunRetreatSmoke?: (options?: {
       timeoutMs?: number;
     }) => Promise<ProtoRetreatSmokeResult>;
+    /** Manual step-forward through the full agentic CJM playlist (dev-only). */
+    __protoRunAgenticStepForwardSmoke?: (options?: {
+      timeoutMs?: number;
+      maxSteps?: number;
+    }) => Promise<ProtoStepForwardSmokeResult>;
   }
 }
 
@@ -178,6 +197,91 @@ function isOnAgenticChatBeat(state: ProtoStudioMcpState): boolean {
 function chatRetreatCounterPass(state: ProtoStudioMcpState): boolean {
   const { visible } = parseStudioStepCounter(state.counter);
   return visible >= 10 && visible !== 2;
+}
+
+function stateFingerprint(state: ProtoStudioMcpState | undefined | null): string {
+  if (!state) return "";
+  return [state.counter, state.beatId, state.label, state.availStep].join("|");
+}
+
+function stepSettleMsForState(state: ProtoStudioMcpState | undefined): number {
+  if (!state) return 4000;
+  if (state.beatId === "agentic-home") return 50_000;
+  if (state.beatId === "agentic-chat") return 12_000;
+  if (state.label?.toLowerCase().includes("thinking")) return 12_000;
+  if (state.beatId?.startsWith("book-step2")) return 22_000;
+  if (state.beatId?.startsWith("avail-")) return 10_000;
+  return 6000;
+}
+
+async function waitForTransportProgress(
+  beforeFingerprint: string,
+  deadlineMs: number
+): Promise<{
+  progressed: boolean;
+  state?: ProtoStudioMcpState;
+  diagnostic?: boolean;
+}> {
+  const deadline = Date.now() + deadlineMs;
+  while (Date.now() < deadline) {
+    const state = window.__protoStudioState?.();
+    if (state?.diagnosticOpen) {
+      return { progressed: false, diagnostic: true, state };
+    }
+    if (stateFingerprint(state) !== beforeFingerprint) {
+      return { progressed: true, state };
+    }
+    await delay(200);
+  }
+  const state = window.__protoStudioState?.();
+  return {
+    progressed: stateFingerprint(state) !== beforeFingerprint,
+    state,
+  };
+}
+
+/** Let cursor director scripts finish before the next manual step. */
+async function waitForDirectorSettle(
+  state: ProtoStudioMcpState,
+  maxMs: number
+): Promise<ProtoStudioMcpState | undefined> {
+  const needsSettle =
+    state.beatId?.startsWith("book-step2") ||
+    state.beatId?.startsWith("avail-") ||
+    state.beatId === "agentic-home";
+  if (!needsSettle || maxMs <= 0) return window.__protoStudioState?.();
+
+  const stableMs = state.beatId?.startsWith("book-step2") ? 4500 : 1800;
+  const minSettleMs = state.beatId?.startsWith("book-step2") ? 3000 : 0;
+  const progressAt = Date.now();
+  const deadline = Date.now() + maxMs;
+  let stableSince: number | null = null;
+  let lastFingerprint = stateFingerprint(state);
+
+  while (Date.now() < deadline && Date.now() - progressAt < minSettleMs) {
+    const current = window.__protoStudioState?.();
+    if (current?.diagnosticOpen) return current;
+    await delay(250);
+  }
+
+  while (Date.now() < deadline) {
+    const current = window.__protoStudioState?.();
+    if (current?.diagnosticOpen) {
+      return current;
+    }
+    const fingerprint = stateFingerprint(current);
+    if (fingerprint !== lastFingerprint) {
+      lastFingerprint = fingerprint;
+      stableSince = null;
+    } else if (stableSince == null) {
+      stableSince = Date.now();
+    } else if (Date.now() - stableSince >= stableMs) {
+      return current;
+    }
+    await delay(250);
+  }
+
+  return window.__protoStudioState?.();
 }
 
 export function registerProtoStudioMcpHelpers(options: {
@@ -412,6 +516,112 @@ export function registerProtoStudioMcpHelpers(options: {
     };
   };
 
+  window.__protoRunAgenticStepForwardSmoke = async (smokeOptions) => {
+    const timeoutMs = smokeOptions?.timeoutMs ?? 600_000;
+    const maxSteps = smokeOptions?.maxSteps ?? 28;
+    const steps: ProtoStepForwardSmokeStep[] = [];
+    const deadline = Date.now() + timeoutMs;
+
+    const fail = (
+      reason: string,
+      state?: ProtoStudioMcpState
+    ): ProtoStepForwardSmokeResult => ({
+      pass: false,
+      reason,
+      steps,
+      finalState: state ?? window.__protoStudioState?.(),
+    });
+
+    window.__protoEnsureCleanStudio?.();
+    window.__protoSetOrchestraMode?.("agentic-cjm");
+    await delay(120);
+    if (!window.__protoSetJourneyMode?.(true)) {
+      return fail("set-journey-mode-unavailable");
+    }
+    await delay(800);
+    if (!window.__protoTriggerTransport?.("jump-to-start")) {
+      return fail("jump-to-start-unavailable");
+    }
+    await delay(1200);
+
+    let startState = window.__protoStudioState?.();
+    if (!startState) {
+      return fail("no-initial-state");
+    }
+    const { total } = parseStudioStepCounter(startState.counter);
+    if (total <= 0) {
+      return fail("invalid-step-total", startState);
+    }
+
+    for (let index = 0; index < maxSteps; index++) {
+      if (Date.now() > deadline) {
+        return fail("timeout-before-step", window.__protoStudioState?.());
+      }
+
+      const before = window.__protoStudioState?.();
+      if (!before) {
+        return fail("missing-state-before-step");
+      }
+      if (before.diagnosticOpen) {
+        return fail(`diagnostic-before-step-${index + 1}`, before);
+      }
+
+      const { visible, total: stepTotal } = parseStudioStepCounter(before.counter);
+      if (stepTotal > 0 && visible >= stepTotal) {
+        return { pass: true, steps, finalState: before };
+      }
+
+      const beforeFingerprint = stateFingerprint(before);
+      if (!window.__protoTriggerTransport?.("step-forward")) {
+        return fail(`step-forward-unavailable-${index + 1}`, before);
+      }
+
+      const stepStart = Date.now();
+      const settleMs = Math.min(
+        stepSettleMsForState(before),
+        Math.max(1200, deadline - Date.now())
+      );
+      const outcome = await waitForTransportProgress(
+        beforeFingerprint,
+        settleMs
+      );
+      const after = outcome.state ?? window.__protoStudioState?.();
+      const elapsed = Date.now() - stepStart;
+
+      if (!after) {
+        return fail(`missing-state-after-step-${index + 1}`);
+      }
+      if (outcome.diagnostic || after.diagnosticOpen) {
+        return fail(`diagnostic-on-step-${index + 1}`, after);
+      }
+      if (!outcome.progressed) {
+        return fail(
+          `transport-no-progress step ${index + 1} (${before.label ?? before.beatId ?? "?"})`,
+          after
+        );
+      }
+
+      const settleBudget = Math.max(0, deadline - Date.now());
+      const settled = await waitForDirectorSettle(
+        after,
+        Math.min(stepSettleMsForState(after), settleBudget)
+      );
+      if (settled?.diagnosticOpen) {
+        return fail(`diagnostic-on-step-${index + 1}`, settled);
+      }
+      const settledAfter = settled ?? after;
+
+      steps.push({
+        index: index + 1,
+        before,
+        after: settledAfter,
+        ms: Date.now() - stepStart,
+      });
+    }
+
+    return fail("max-steps-reached", window.__protoStudioState?.());
+  };
+
   return () => {
     delete window.__protoDismissPlaybackDiagnostic;
     delete window.__protoStudioState;
@@ -422,5 +632,6 @@ export function registerProtoStudioMcpHelpers(options: {
     delete window.__protoTriggerTransport;
     delete window.__protoRunHomePlaySmoke;
     delete window.__protoRunRetreatSmoke;
+    delete window.__protoRunAgenticStepForwardSmoke;
   };
 }

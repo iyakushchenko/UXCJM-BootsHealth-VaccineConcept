@@ -727,8 +727,11 @@ export function useProtoJourneyPlayback({
     const attempt = transportStepAttemptRef.current;
     if (!active || !attempt || transportStepToken === 0) return;
 
-    const timer = window.setTimeout(() => {
-      if (!transportStepAttemptRef.current) return;
+    let cancelled = false;
+    let retryTimer: number | null = null;
+
+    const finishCheck = (retry = 0) => {
+      if (cancelled || !transportStepAttemptRef.current) return;
       if (transportStepAttemptRef.current.beatIndex !== beatIndexRef.current) {
         transportStepAttemptRef.current = null;
         return;
@@ -742,6 +745,14 @@ export function useProtoJourneyPlayback({
         return;
       }
       if (isScriptingNow()) return;
+      if (
+        isScreenFramesBeat(beats[beatIndexRef.current]) &&
+        screenPlayback.isPausingBeforeReveal &&
+        retry < 8
+      ) {
+        retryTimer = window.setTimeout(() => finishCheck(retry + 1), 600);
+        return;
+      }
       const beatRunId = `${beatIndexRef.current}:${beats[beatIndexRef.current]?.id}`;
       if (
         shouldSuppressTransportNoOpForBeat({
@@ -769,15 +780,24 @@ export function useProtoJourneyPlayback({
           scriptId: script?.id,
         })
       );
-    }, TRANSPORT_STEP_NO_OP_MS);
+    };
 
-    return () => window.clearTimeout(timer);
+    const timer = window.setTimeout(() => finishCheck(0), TRANSPORT_STEP_NO_OP_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (retryTimer != null) {
+        window.clearTimeout(retryTimer);
+      }
+    };
   }, [
     active,
     beatIndex,
     beats,
     isScripting,
     journey?.id,
+    screenPlayback.isPausingBeforeReveal,
     screenPlayback.visibleCount,
     transportStepToken,
   ]);
@@ -803,7 +823,7 @@ export function useProtoJourneyPlayback({
       return;
     }
     if (beat.bookScript) {
-      void runBookScriptBeat(beat, true, { skip: true });
+      void runBookScriptBeat(beat, true, { skip: true, syncState: true });
     }
   }, [abortActiveScripts, beats, runAvailScriptBeat, runBookScriptBeat, runHomeScriptBeat, runTabScriptBeat]);
 
@@ -919,12 +939,15 @@ export function useProtoJourneyPlayback({
       !isPlayingRef.current &&
       !suppressBeatEnterSyncRef.current
     ) {
-      noteDirectorScriptInteraction(currentBeat, { syncState: true });
-      void playback.runBookScript(currentBeat.bookScript, {
-        skip: true,
-        syncState: true,
-        instant: false,
-      });
+      const bookRunId = `${beatIndexRef.current}:${currentBeat.id}`;
+      if (lastBookAutoRunRef.current !== bookRunId) {
+        noteDirectorScriptInteraction(currentBeat, { syncState: true });
+        void playback.runBookScript(currentBeat.bookScript, {
+          skip: true,
+          syncState: true,
+          instant: false,
+        });
+      }
     }
     suppressInitialBeatTabNavRef.current = false;
     if (
@@ -1294,6 +1317,11 @@ export function useProtoJourneyPlayback({
       if (onScreenFramesBeat) {
         stopAutoPlayOnly();
         stepScenarioFrameForward();
+        return;
+      }
+      if (isDwellLandingBeat(currentBeat)) {
+        stopAutoPlayOnly();
+        advanceFromDwellLanding(currentBeat);
         return;
       }
       skipActiveScriptingBeat();

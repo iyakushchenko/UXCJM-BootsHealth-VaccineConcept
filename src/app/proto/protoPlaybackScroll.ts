@@ -51,6 +51,11 @@ export function easeInOutCubic(progress: number): number {
     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 }
 
+/** Softer deceleration — chat / scenario scroll (not demo cursor travel). */
+export function easeOutCubic(progress: number): number {
+  return 1 - Math.pow(1 - progress, 3);
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -63,7 +68,7 @@ function isAborted(options?: PlaybackScrollOptions): boolean {
 
 function computeDuration(distance: number, durationMs?: number): number {
   if (durationMs != null) return durationMs;
-  return Math.min(900, Math.max(450, Math.abs(distance) * 0.55));
+  return Math.min(1050, Math.max(520, Math.abs(distance) * 0.62));
 }
 
 /** Demo robot targets — slightly longer, always centers the CTA in the pane. */
@@ -348,7 +353,7 @@ export function animateScrollTo(
       const progress = Math.min(1, (now - startTime) / duration);
       const currentTarget = resolveTargetTop?.() ?? top;
       scrollEl.scrollTop =
-        startTop + (currentTarget - startTop) * easeInOutCubic(progress);
+        startTop + (currentTarget - startTop) * easeOutCubic(progress);
 
       const frameMs = now - lastFrameTime;
       lastFrameTime = now;

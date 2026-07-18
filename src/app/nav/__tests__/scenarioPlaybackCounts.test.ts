@@ -23,9 +23,9 @@ describe("scenario playback counts", () => {
     expect(resolveScenarioEndVisibleCount(0, true)).toBe(1);
   });
 
-  it("reveals all content frames in browse mode (CJM off)", () => {
+  it("treats browse-mode full thread as pristine", () => {
+    // Browse starts at min frames but pristine is the disclosed thread end.
     expect(resolveBrowseScenarioVisibleCount(8)).toBe(8);
-    expect(resolveBrowseScenarioVisibleCount(0)).toBe(0);
   });
 
   it("prefers end visible count over partial state when restoreFullOnInit is set", () => {

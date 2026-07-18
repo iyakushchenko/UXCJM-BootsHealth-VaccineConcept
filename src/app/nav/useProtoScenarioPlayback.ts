@@ -172,9 +172,14 @@ export function useProtoScenarioPlayback({
     : totalFrames;
   const atFinaleFrame =
     hasFinale && totalFrames > 0 && visibleCount >= totalFrames;
-  /** Default landing position — content end for finale scenarios, full end otherwise. */
-  const pristineVisibleCount =
-    hasFinale && contentFrameCount > 0 ? contentFrameCount : totalFrames;
+  /** Default landing — browse collapsed vs disclosed; CJM stepped chat starts at min frames. */
+  const pristineVisibleCount = browseMode
+    ? visibleCount <= minVisibleFrames
+      ? minVisibleFrames
+      : contentFrameCount
+    : hasFinale && contentFrameCount > 0
+      ? minVisibleFrames
+      : totalFrames;
 
   const queueScroll = useCallback(
     (
@@ -733,22 +738,31 @@ export function useProtoScenarioPlayback({
       retreatFromFinale();
     }
 
-    if (frames.length > 0 && visibleCountRef.current > minVisibleFrames) {
+    const targetCount = browseMode
+      ? clampVisible(
+          resolveBrowseScenarioVisibleCount(contentTotal),
+          scenarioTotal,
+          minVisibleFrames
+        )
+      : minVisibleFrames;
+
+    if (frames.length > 0 && visibleCountRef.current > targetCount) {
       const prev = visibleCountRef.current;
-      queueScroll(minVisibleFrames, "start", false, prev);
-      setVisibleCount(minVisibleFrames);
+      queueScroll(targetCount, browseMode ? "end" : "start", false, prev);
+      setVisibleCount(targetCount);
       return;
     }
     scheduleScenarioScroll(
       frames,
-      minVisibleFrames,
-      "start",
+      targetCount,
+      browseMode ? "end" : "start",
       scrollRootRef?.current,
       false,
       "immediate",
       visibleCountRef.current
     );
   }, [
+    browseMode,
     hasFinale,
     minVisibleFrames,
     playbackStepHooks,

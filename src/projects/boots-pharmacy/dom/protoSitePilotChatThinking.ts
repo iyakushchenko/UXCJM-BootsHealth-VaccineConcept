@@ -198,12 +198,40 @@ export function endSitePilotChatThinking(): void {
     bubble.hidden = true;
     bubble.classList.remove(
       "proto-chat-thinking-bubble--reveal",
-      "proto-chat-thinking-bubble--hint"
+      "proto-chat-thinking-bubble--hint",
+      "proto-chat-thinking-bubble--exit"
     );
     bubble
       .querySelector(".proto-chat-thinking-dots")
       ?.classList.remove("proto-chat-thinking-dots--run");
   });
+}
+
+const THINKING_EXIT_MS = 360;
+
+/** Fade thinking bubble out before the agent reply frame reveals (same motion language). */
+export async function fadeOutSitePilotChatThinking(): Promise<void> {
+  const bubbles = Array.from(
+    document.querySelectorAll<HTMLElement>(`[${THINKING_ATTR}]`)
+  ).filter((bubble) => !bubble.hidden);
+
+  if (bubbles.length === 0) {
+    endSitePilotChatThinking();
+    return;
+  }
+
+  bubbles.forEach((bubble) => {
+    bubble.classList.remove("proto-chat-thinking-bubble--reveal");
+    bubble.classList.add("proto-chat-thinking-bubble--exit");
+    bubble
+      .querySelector(".proto-chat-thinking-dots")
+      ?.classList.remove("proto-chat-thinking-dots--run");
+  });
+
+  await new Promise<void>((resolve) => {
+    window.setTimeout(resolve, THINKING_EXIT_MS);
+  });
+  endSitePilotChatThinking();
 }
 
 export function setSitePilotChatSendThinkingMode(

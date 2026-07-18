@@ -168,6 +168,7 @@ describe("protoStudioMcpHelpers", () => {
     expect(transports).toEqual(["play"]);
     expect(typeof win.__protoRunHomePlaySmoke).toBe("function");
     expect(typeof win.__protoRunRetreatSmoke).toBe("function");
+    expect(typeof win.__protoRunAgenticStepForwardSmoke).toBe("function");
   });
 
   it("parses STEPS counter format", () => {

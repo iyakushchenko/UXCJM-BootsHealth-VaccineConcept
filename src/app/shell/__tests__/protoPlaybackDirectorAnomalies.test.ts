@@ -57,7 +57,7 @@ const appointmentHistoryBeat: JourneyBeat = {
 
 const bookLandingBeat: JourneyBeat = {
   id: "book-step2",
-  label: "Book — date and time",
+  label: "Book - Step 2",
   kind: "tab-landing",
   protoTab: 6,
   dwellMs: 2800,

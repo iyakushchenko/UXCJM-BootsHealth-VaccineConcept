@@ -7,8 +7,12 @@ describe("scenarioScrollTiming", () => {
     expect(scenarioScrollTiming(3, 1)).toBe("after-exit");
   });
 
-  it("keeps immediate timing on step-forward and no-op", () => {
-    expect(scenarioScrollTiming(10, 11)).toBe("immediate");
+  it("defers scroll after frame enter on step-forward (after-enter)", () => {
+    expect(scenarioScrollTiming(10, 11)).toBe("after-enter");
+    expect(scenarioScrollTiming(1, 2)).toBe("after-enter");
+  });
+
+  it("keeps immediate timing when count unchanged", () => {
     expect(scenarioScrollTiming(5, 5)).toBe("immediate");
   });
 });
