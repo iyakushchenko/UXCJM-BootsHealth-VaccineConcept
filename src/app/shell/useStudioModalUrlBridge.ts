@@ -1,9 +1,10 @@
-import { useCallback, useEffect, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, type MutableRefObject } from "react";
 import {
   applyStudioModalFromUrl,
   resolveStudioModalIdFromFlags,
   type StudioModalOpenFlags,
 } from "@/app/shell/studioModalRegistry";
+import { planStudioModalUrlBridgeApply } from "@/app/shell/studioModalUrlBridgePlan";
 import { parseStudioUrl } from "@/app/shell/studioUrl";
 import type { ProjectWireApi } from "@/projects/types";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
@@ -56,6 +57,9 @@ export function useStudioModalUrlBridge(options: Options): {
     studioModalFlagsFromWire(wireForModal)
   );
 
+  const prevLiveModalIdRef = useRef<string | undefined>(undefined);
+  const closingModalIdRef = useRef<string | undefined>(undefined);
+
   const applyModalFromUrl = useCallback(
     (modalId: string | undefined) => {
       const wire = wireApiRef.current;
@@ -93,14 +97,20 @@ export function useStudioModalUrlBridge(options: Options): {
 
   // Deep-link / boot may apply modal before Boots wire mounts — re-open when ready.
   // Only open from URL → live (never close here: that races open→URL write).
+  // Suppress URL→open while intentional close waits for `&modal=` to clear.
   useEffect(() => {
     const wire = wireApiRef.current;
     if (!wire) return;
-    const modalId = parseStudioUrl().modalId;
-    if (!modalId) return;
-    const live = resolveStudioModalIdFromFlags(studioModalFlagsFromWire(wire));
-    if (modalId !== live) {
-      applyModalFromUrl(modalId);
+    const plan = planStudioModalUrlBridgeApply({
+      urlModalId: parseStudioUrl().modalId,
+      liveModalId: resolveStudioModalIdFromFlags(studioModalFlagsFromWire(wire)),
+      prevLiveModalId: prevLiveModalIdRef.current,
+      closingModalId: closingModalIdRef.current,
+    });
+    prevLiveModalIdRef.current = plan.nextPrevLiveModalId;
+    closingModalIdRef.current = plan.nextClosingModalId;
+    if (plan.applyModalId) {
+      applyModalFromUrl(plan.applyModalId);
     }
   }, [wireTick, applyModalFromUrl, wireApiRef]);
 
