@@ -4,7 +4,7 @@
 **Date:** 2026-07-19  
 **Owner:** Uma (UI/UX)  
 **Status:** **PROVEN**  
-**Tip at PROVEN:** _(filled at commit)_ · parent tip `c961e1b` · ship fix share flip · **v0.0.24**  
+**Tip at PROVEN:** `553e29c` · parent tip `c961e1b` · ship fix share flip · **v0.0.24**  
 **React:** `src/projects/boots-pharmacy/screens/pdp/*` (L1–L20 RTB + below-fold)  
 **Make truth:** `frame/index.tsx` `ModuleBreadcrumbs` / `Body6` / `Body7` / `ModulePdpRtb` / `ComponentPdpRtb` / `ComponentPdpAccordion` · `globals-screens` child-8 · `globals-chrome` checkbox/CTA/icon hits  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
