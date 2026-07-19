@@ -1,5 +1,6 @@
 import type {
   ProtoRecordedEvent,
+  ProtoRecordingJourneyCatalogEntry,
   ProtoRecordingSession,
   ProtoRecordingSessionMetadata,
   ProtoRecordingSnapshot,
@@ -70,6 +71,7 @@ export type StartRecordingOptions = {
   personaId?: string;
   journeyId?: string;
   orchestraMode?: ProtoRecordingSession["orchestraMode"];
+  journeyCatalog?: ProtoRecordingJourneyCatalogEntry[];
   metadata?: ProtoRecordingSessionMetadata;
 };
 
@@ -82,6 +84,7 @@ export function startRecording(options: StartRecordingOptions = {}): ProtoRecord
     personaId: options.personaId,
     journeyId: options.journeyId,
     orchestraMode: options.orchestraMode ?? null,
+    journeyCatalog: options.journeyCatalog,
     events: [],
     metadata: {
       userAgent:

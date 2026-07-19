@@ -28,6 +28,7 @@ import {
   requestMcpTestAbort,
   throwIfMcpTestAborted,
 } from "@/app/shell/protoMcpTestGuard";
+import { isRecordingActive } from "@/app/recording/protoRecordingSession";
 
 export type ProtoStudioMcpState = {
   diagnosticOpen: boolean;
@@ -700,11 +701,11 @@ export function registerProtoStudioMcpHelpers(options: {
   };
 
   window.__protoTriggerTransport = (action) => {
-    if (!getMcpTestSession()) {
+    if (!getMcpTestSession() && !isRecordingActive()) {
       logControlPanel(`transport:${action}`, {
         source: "mcp-helper",
         blocked: true,
-        blockReason: "no-active-mcp-session — call a __protoRun* test first",
+        blockReason: "no-active-mcp-session — call a __protoRun* test or __protoStartRecording first",
       });
       return false;
     }

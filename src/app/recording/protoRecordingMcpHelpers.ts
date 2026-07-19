@@ -11,6 +11,7 @@ import {
 import type { ProtoRecordingSession } from "@/app/recording/protoRecordingTypes";
 import {
   compileRecordingToBeatTimeline,
+  replayRecordingSession,
   summarizeRecordingSession,
 } from "@/app/recording/protoRecordingReplay";
 import type { StartRecordingOptions } from "@/app/recording/protoRecordingSession";
@@ -25,16 +26,20 @@ declare global {
     __protoResumeRecording?: () => boolean;
     __protoIsRecording?: () => boolean;
     __protoGetRecording?: () => ProtoRecordingSession | null;
-    __protoExportRecording?: () => string | null;
+    __protoExportRecording?: (session?: ProtoRecordingSession) => string | null;
     __protoImportRecording?: (json: string) => ProtoRecordingSession;
     __protoCompileRecording?: (
       session?: ProtoRecordingSession
     ) => ReturnType<typeof compileRecordingToBeatTimeline>;
+    __protoReplayRecording?: (
+      session?: ProtoRecordingSession
+    ) => Promise<import("@/app/recording/protoRecordingTypes").ProtoRecordingReplayResult>;
   }
 }
 
 export function registerProtoRecordingMcpHelpers(options?: {
   getDefaultStartOptions?: () => StartRecordingOptions;
+  triggerTransport?: (action: import("@/app/shell/protoPlaybackInteractionContext").ManualTransportAction) => void;
 }): () => void {
   if (typeof window === "undefined") return () => {};
 
@@ -53,10 +58,10 @@ export function registerProtoRecordingMcpHelpers(options?: {
 
   window.__protoGetRecording = () => getActiveRecordingSession();
 
-  window.__protoExportRecording = () => {
-    const session = getActiveRecordingSession();
-    if (!session) return null;
-    return serializeRecordingSession(session);
+  window.__protoExportRecording = (session) => {
+    const target = session ?? getActiveRecordingSession();
+    if (!target) return null;
+    return serializeRecordingSession(target);
   };
 
   window.__protoImportRecording = (json) => deserializeRecordingSession(json);
@@ -69,6 +74,20 @@ export function registerProtoRecordingMcpHelpers(options?: {
     return compileRecordingToBeatTimeline(target);
   };
 
+  window.__protoReplayRecording = async (session) => {
+    const target = session ?? getActiveRecordingSession();
+    if (!target) {
+      throw new Error("No recording session to replay");
+    }
+    if (!options?.triggerTransport) {
+      throw new Error("triggerTransport not available");
+    }
+    return replayRecordingSession(target, {
+      triggerTransport: options.triggerTransport,
+      stepDelayMs: 200,
+    });
+  };
+
   return () => {
     delete window.__protoStartRecording;
     delete window.__protoStopRecording;
@@ -79,6 +98,7 @@ export function registerProtoRecordingMcpHelpers(options?: {
     delete window.__protoExportRecording;
     delete window.__protoImportRecording;
     delete window.__protoCompileRecording;
+    delete window.__protoReplayRecording;
   };
 }
 

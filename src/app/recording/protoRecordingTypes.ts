@@ -102,6 +102,13 @@ export type ProtoRecordedEvent =
   | ProtoRecordedDirectorEvent
   | ProtoRecordedBeatEnterEvent;
 
+export type ProtoRecordingJourneyCatalogEntry = {
+  id: string;
+  label: string;
+  beatCount: number;
+  beatIds: string[];
+};
+
 export type ProtoRecordingSessionMetadata = {
   userAgent?: string;
   recordedFrom?: "mcp" | "dev" | "ui";
@@ -117,6 +124,8 @@ export type ProtoRecordingSession = {
   personaId?: string;
   journeyId?: string;
   orchestraMode?: ProtoOrchestraModeId | null;
+  /** Persona journey catalog at record start — for compile/replay context. */
+  journeyCatalog?: ProtoRecordingJourneyCatalogEntry[];
   paused?: boolean;
   events: ProtoRecordedEvent[];
   metadata?: ProtoRecordingSessionMetadata;

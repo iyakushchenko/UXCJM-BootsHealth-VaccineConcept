@@ -74,6 +74,8 @@ import {
   registerRecordingSnapshotProvider,
 } from "@/app/recording/protoRecordingCapture";
 import { registerProtoRecordingMcpHelpers } from "@/app/recording/protoRecordingMcpHelpers";
+import { registerProtoJourneyMcpHelpers } from "@/app/journey/protoJourneyMcpHelpers";
+import { summarizeJourney } from "@/app/journey/protoJourneyFile";
 import { useProtoPlaybackGuard } from "@/app/shell/useProtoPlaybackGuard";
 import { useProtoPlaybackScrollGuard } from "@/app/shell/useProtoPlaybackScrollGuard";
 import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
@@ -1262,10 +1264,41 @@ export default function App() {
         personaId: playbackSnapshotRef.current.personaId,
         journeyId: playbackSnapshotRef.current.journeyId,
         orchestraMode: orchestraModeId,
+        journeyCatalog: studioPersona.journeys.map((journey) =>
+          summarizeJourney(journey)
+        ),
         metadata: { recordedFrom: "mcp" },
       }),
+      triggerTransport: (action) => {
+        switch (action) {
+          case "play":
+            transportActionsRef.current.play();
+            break;
+          case "step-back":
+            transportActionsRef.current.stepBack();
+            break;
+          case "step-forward":
+            transportActionsRef.current.stepForward();
+            break;
+          case "jump-to-start":
+            transportActionsRef.current.jumpToStart();
+            break;
+          case "jump-to-end":
+            transportActionsRef.current.jumpToEnd();
+            break;
+        }
+      },
     });
-  }, [orchestraModeId]);
+  }, [orchestraModeId, studioPersona.journeys]);
+
+  useEffect(() => {
+    return registerProtoJourneyMcpHelpers({
+      projectId: studioProjectId,
+      personaId: studioPersonaId,
+      getJourneys: () => studioPersona.journeys,
+      getActiveJourneyId: () => activeJourney?.id,
+    });
+  }, [activeJourney?.id, studioPersona.journeys, studioPersonaId, studioProjectId]);
 
   useEffect(() => {
     return registerProtoStudioMcpHelpers({
