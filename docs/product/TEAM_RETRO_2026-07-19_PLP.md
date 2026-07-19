@@ -173,8 +173,32 @@ Format per callsign: **Pain** / **Worked** / **Keep** (2–4 bullets each). Dial
 
 ---
 
+---
+
+## Arch micro-retro — overlay / QV close HARD-GREEN (2026-07-19 · tip `f28693c`)
+
+**Stream close:** v0.0.19 `1624f79` (QV URL close race) → v0.0.20 `de2edf0` (overlay pre-arm / PASS-FAIL / forceClear / probe `reload:false`) → Quinn PASS/PROVEN `f28693c` (stay-closed + full PLP matrix).  
+**Knowledge used:** Arch section + TEAM_RETRO Keep #1/#4 + LESSONS modal URL bridge + RECORDING crash-safe reload.
+
+**What broke**
+- Closing QV cleared live state before `&modal=` stripped → URL bridge re-applied open → modal thrash (FAIL on `43c1ec8`).
+- Probe default `reload: true` + mid-settle re-arm nested reload timers → tab crash / reload loop under agent automation.
+- Sticky agent overlay after sitrep eroded PO trust in PASS/FAIL chrome.
+
+**What we learned**
+- Modal URL sync is incomplete without **intentional-close suppress** (`studioModalUrlBridgePlan`) — open+close both must stay closed under probe timing.
+- Overlay lifecycle is a prove surface: **pre-arm → steps → green/red sitrep → forceClear**; probe defaults **`reload: false`**.
+- Quinn re-prove on tip after Knowledge/docs stamps — PASS/PROVEN only when `plp-quick-view-close` stay-closed samples hold.
+
+**What’s next**
+- **Hold PDP** until PO `+`. PLP Final Pass already HARD-GREEN; overlay/QV close now proven on tip.
+- Residual (non-urgent): journey / `withMcpTestSession` may still do **one** post-sitrep reload when explicitly opted in — not a loop; page probe stays `reload: false`.
+- Pages tip OK; no sticky overlay expected after forceClear settle.
+
+---
+
 ## Related
 
 - [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) · [TEAM.md](./TEAM.md) · [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md)  
 - [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)  
-- Audits: [FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md) · rage trail `FE_AUDIT_PLP_2026-07-19_RAGE*.md`
+- Audits: [FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md) · rage trail `FE_AUDIT_PLP_2026-07-19_RAGE*.md` · [FE_AUDIT_QV_MODAL_URL_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_QV_MODAL_URL_2026-07-19.md) · [FE_AUDIT_OVERLAY_PREARM_SITREP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_OVERLAY_PREARM_SITREP_2026-07-19.md)
