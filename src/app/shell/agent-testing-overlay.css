@@ -60,6 +60,36 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.studio-agent-testing-overlay__badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: #101218;
+  background: #d0d4dc;
+}
+
+.studio-agent-testing-overlay__badge[data-result="pass"],
+.studio-agent-testing-overlay[data-result="pass"]
+  .studio-agent-testing-overlay__badge {
+  color: #06280f;
+  background: #3dd68c;
+}
+
+.studio-agent-testing-overlay__badge[data-result="fail"],
+.studio-agent-testing-overlay[data-result="fail"]
+  .studio-agent-testing-overlay__badge {
+  color: #2a0606;
+  background: #ff6b6b;
 }
 
 .studio-agent-testing-overlay__title {
@@ -70,6 +100,26 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.35;
+}
+
+.studio-agent-testing-overlay[data-result="pass"]
+  .studio-agent-testing-overlay__title {
+  color: #3dd68c;
+}
+
+.studio-agent-testing-overlay[data-result="fail"]
+  .studio-agent-testing-overlay__title {
+  color: #ff8a8a;
+}
+
+.studio-agent-testing-overlay[data-result="pass"][data-settling="true"]
+  .studio-agent-testing-overlay__hint {
+  color: #9ee6c0;
+}
+
+.studio-agent-testing-overlay[data-result="fail"][data-settling="true"]
+  .studio-agent-testing-overlay__hint {
+  color: #ffb3b3;
 }
 
 .studio-agent-testing-overlay__dismiss {

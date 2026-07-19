@@ -79,7 +79,30 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 ### Agent DONE sitrep must countdown; clear dismisses robo-cursor
 
 - **Symptom:** Sitrep sat silent/stale; robo-cursor lingered after overlay cleared.
-- **Gate:** Hint = `Done — auto-closes in Xs` (live tick); `finishSettle` / `forceClear` call `removeDemoCursor({ immediate: true })`; idle → sitrep still honest.
+- **Gate:** Hint = `PASS|FAIL — Auto-closes in Xs` (live tick); big green/red badge; `finishSettle` / `forceClear` call `removeDemoCursor({ immediate: true })` + **hard-remove** overlay DOM; idle → sitrep still honest.
+
+### Agent testing overlay: pre-arm before steps; no stale popup after test
+
+- **Symptom:** Probe clicks started before PO could see the BR panel; after stop, sitrep/overlay sometimes stuck or left a stale panel.
+- **Gate (GLOBAL):**
+  1. MCP probe/sanity/`withMcpTestSession`: `start()` → **pre-arm** (~2.5s `preparing…`) → then steps.
+  2. `stop({ result: "pass"|"fail" })` → green/red sitrep (~9s) + FINAL `PASS|FAIL n/m` summary line.
+  3. After settle (or interrupt): `forceClear` path — cancel timers, dismiss cursor, clear persist, strip ephemeral URL, **hard-remove** DOM. Probe `finally` schedules ensure-clear at settle+1s.
+
+### MCP page probe must not reload-loop / URL-fight (Chrome crash class)
+
+- **Symptom / class:** Browser tab crashed or endlessly reloaded during agent MCP testing on localhost (overlay + probe + modal URL bridge).
+- **Root cause hypotheses (proven gates):**
+  1. Page probe defaulted `reload: true` → sitrep → reload → probe re-arm → reload loop under agent automation.
+  2. Mid-settle `start`/`touch` abandoned sitrep without cancelling a deferred `location.reload()` timer.
+  3. QV/`&modal=` close raced URL→open re-apply (wire cleared live before URL stripped) → modal thrash + re-renders.
+  4. Uncapped `scrollIntoView` / reveal storms + overlay DOM thrash under rapid probe steps.
+- **Gate (GLOBAL HARD FAIL — Finn + Quinn + Ben):**
+  1. `__studioRunMcpPageProbe` defaults **`reload: false`**. At most one reload at end, and only when explicitly `{ reload: true }`.
+  2. `forceClear` / mid-settle re-arm **cancels** pending reload timers (`cancelPendingReload`); never nest start/stop loops.
+  3. Modal URL bridge suppresses URL→open while intentional close waits for `&modal=` clear (`studioModalUrlBridgePlan`).
+  4. Cap probe reveal/scroll calls per run; overlay `forceClear` hard-removes DOM + all timers.
+- **PO recovery:** refresh once → `window.__studioAgentTestingOverlay?.forceClear()` → do not re-run probe with `reload: true` in a loop.
 
 ### Overlay eyes — MCP/robo must not click through open dialogs (PO rage)
 

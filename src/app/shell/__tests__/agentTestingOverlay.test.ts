@@ -7,11 +7,14 @@ vi.mock("@/app/scenario/demoCursor", () => ({
 import {
   DEFAULT_SETTLE_MS,
   forceClearAgentTestingOverlay,
+  formatPreArmHint,
   formatSitrepHint,
+  formatSitrepTitle,
   IDLE_MS,
   isAgentTestingOverlayActive,
   isAgentTestingOverlaySettling,
   resolveAgentTestingOverlayTitle,
+  scheduleAgentTestingOverlayEnsureClear,
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
@@ -75,6 +78,29 @@ describe("agentTestingOverlay", () => {
     expect(isAgentTestingOverlaySettling()).toBe(true);
     forceClearAgentTestingOverlay();
     expect(isAgentTestingOverlayActive()).toBe(false);
+    expect(isAgentTestingOverlaySettling()).toBe(false);
+  });
+
+  it("scheduleEnsureClear force-clears stuck settle", () => {
+    vi.useFakeTimers();
+    startAgentTestingOverlay();
+    stopAgentTestingOverlay({ result: "fail" });
+    expect(isAgentTestingOverlaySettling()).toBe(true);
+    scheduleAgentTestingOverlayEnsureClear(100);
+    vi.advanceTimersByTime(100);
+    expect(isAgentTestingOverlayActive()).toBe(false);
+    expect(isAgentTestingOverlaySettling()).toBe(false);
+  });
+
+  it("forceClear during settle clears without leaving stuck state", () => {
+    vi.useFakeTimers();
+    startAgentTestingOverlay();
+    stopAgentTestingOverlay({ result: "pass" });
+    expect(isAgentTestingOverlaySettling()).toBe(true);
+    forceClearAgentTestingOverlay();
+    expect(isAgentTestingOverlayActive()).toBe(false);
+    expect(isAgentTestingOverlaySettling()).toBe(false);
+    vi.advanceTimersByTime(DEFAULT_SETTLE_MS + 2000);
     expect(isAgentTestingOverlaySettling()).toBe(false);
   });
 
@@ -191,12 +217,21 @@ describe("agentTestingOverlay", () => {
     );
   });
 
-  it("sitrep hint copy is Done — auto-closes countdown (not stale silent)", () => {
-    expect(formatSitrepHint(5, false)).toBe("Done — auto-closes in 5s");
-    expect(formatSitrepHint(5, true)).toBe(
-      "Done — auto-closes in 5s (then reload)"
+  it("sitrep hint copy is Auto-closes countdown with PASS/FAIL flag", () => {
+    expect(formatSitrepHint(9, false)).toBe("Auto-closes in 9s");
+    expect(formatSitrepHint(9, true)).toBe(
+      "Auto-closes in 9s (then reload)"
     );
-    expect(formatSitrepHint(0, false)).toBe("Done — auto-closes in 0s");
+    expect(formatSitrepHint(9, false, "pass")).toBe("PASS - Auto-closes in 9s");
+    expect(formatSitrepHint(9, true, "fail")).toBe(
+      "FAIL - Auto-closes in 9s (then reload)"
+    );
+    expect(formatSitrepHint(0, false)).toBe("Auto-closes in 0s");
+    expect(formatSitrepTitle("pass")).toBe("AGENT DONE - PASS");
+    expect(formatSitrepTitle("fail")).toBe("AGENT DONE - FAIL");
+    expect(formatSitrepTitle("neutral")).toBe("AGENT DONE - SITREP");
+    expect(formatPreArmHint(3)).toBe("Preparing - starting in 3s");
+    expect(DEFAULT_SETTLE_MS).toBeGreaterThanOrEqual(8000);
   });
 
   it("manual stop defaults to settle without reload and stays on screen", () => {

@@ -12,7 +12,9 @@ While an agent drives localhost, Studio shows a **compact bottom-right status pa
 
 **Click guard (active only):** an invisible full-viewport capture layer (`pointer-events: auto`, transparent) plus `#root { pointer-events: none }` blocks PO clicks into the concept UI. The BR panel itself stays interactive (log + **Dismiss**).
 
-**Sitrep settle (DONE):** on `stop()` (nest → 0), the panel does **not** vanish instantly. It enters a short **AGENT DONE — SITREP** state (~5s, configurable `settleMs` clamped 4–6s): final status + last log lines stay readable; click guard is **released** so the PO can use the page while reading. After the settle delay the panel clears; if `reload: true`, reload runs **after** settle (not during). Manual **Dismiss** / `stop({ force: true })` still clears **instantly**. A tiny recent-session stack (max 5, `sessionStorage`) may show under the log during settle — keep it simple, not a notification center product.
+**Pre-arm (PO prepare):** MCP page probe / sanity / `withMcpTestSession` call `start()` first, show **AGENT TESTING — preparing…** with a ~2.5s countdown (configurable `preArmMs`), then run steps. BR panel must be visible before the first click.
+
+**Sitrep settle (DONE):** on `stop()` (nest → 0), the panel does **not** vanish instantly. It enters **AGENT DONE — PASS** (green) or **AGENT DONE — FAIL** (red) when `result` is set (~9s default, configurable `settleMs` clamped 5–12s): big PASS/FAIL badge + **Auto-closes in Xs** countdown; click guard is **released**. After settle the panel is **hard-removed** from the DOM (not merely hidden); if `reload: true`, reload runs **after** settle. Manual **Dismiss** / `forceClear()` / `stop({ force: true })` clear **instantly** (timers + cursor + persist + ephemeral URL). A tiny recent-session stack (max 5, `sessionStorage`) may show under the log during settle — keep it simple, not a notification center product.
 
 **Post-test reset (mandatory):** on `stop()` (nest → 0) and again immediately before any `reload`, Studio runs `resetStudioAfterAgentTest()`:
 
@@ -27,10 +29,10 @@ Journey proves hub: retreat/robot-qa sessions pass `resetToHub: true`.
 ### Visible page probe (Quinn + Ben — screen ships)
 
 ```js
-await window.__studioRunMcpPageProbe?.() // current ?screen=
+await window.__studioRunMcpPageProbe?.() // current ?screen=; reload defaults false
 await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
 // optional: { resetToHub: true } — only for journey clean slate
-// prove without reload: { screenId: "plp", reload: false }
+// optional one clean-tab reload after sitrep: { screenId: "plp", reload: true }
 ```
 
 Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each recipe target and logs **PASS** / **FAIL** on the AGENT TESTING panel. Prefer this over silent `evaluate_script` clicks for every React screen ship.
@@ -38,10 +40,11 @@ Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each r
 **HARD FAIL (Quinn + Finn — LESSONS 2026-07-19):** Before every probe interact, **scroll the target into view**. The agent testing overlay **must be visible on every probe step** — if absent/hidden → that step and the probe **FAIL**. Do not stamp PASS without overlay chrome the PO can see.
 
 **Code gate (shipped):**
-1. Probe start → `overlay-arm` (`start` + `ensureAgentTestingOverlayDomArmed`) — BR panel must paint.
+1. Probe start → `start` + **pre-arm** countdown (`preparing…`) + `overlay-arm` — BR panel must paint **before** first click.
 2. Click/hover → `revealDemoTargetForAgent` + robo-cursor sync scroll on `.studio-scroll--prototype` (REC demo-click also `scroll: true`).
 3. PLP `plp-below-fold-scroll` (`action: "reveal"`) → `button[data-studio-probe-below-fold="true"]` (last tile Quick View): park top → scroll into view with overlay still visible.
 4. Re-arm mid-sitrep abandons settle **without** firing a deferred `reload` from the prior stop.
+5. Probe `finally` → `stop({ result, settleMs })` then `scheduleAgentTestingOverlayEnsureClear(settle+1s)` — overlay DOM **absent** after settle; `forceClear()` always wired.
 
 **PLP recipe includes** `overlay-arm`, `plp-search-icons` (icon end + single clear), `plp-filter-view-all`, `plp-filter-option-counters`, `plp-below-fold-scroll`, overlay-eyes. Source contracts: [PARITY_RATCHETS.md](../product/PARITY_RATCHETS.md).
 
@@ -49,11 +52,11 @@ Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each r
 window.__studioAgentTestingOverlay?.start("optional title") // prefer __studio*; __proto* alias OK
 window.__studioAgentTestingOverlay?.touch() // arm if inactive; no nest bump; title stays "AGENT TESTING"
 window.__studioAgentTestingOverlay?.log("clicked Book Step 2")
-window.__studioAgentTestingOverlay?.stop() // nest-aware → DONE settle ~5s; no reload
+window.__studioAgentTestingOverlay?.stop() // nest-aware → DONE settle ~9s; no reload
 window.__studioAgentTestingOverlay?.stop({ force: true }) // clear immediately
-window.__studioAgentTestingOverlay?.forceClear() // Dismiss / stuck recovery — always works
-window.__studioAgentTestingOverlay?.stop({ reload: true }) // settle ~5s, then location.reload()
-window.__studioAgentTestingOverlay?.stop({ settleMs: 5000, reload: true })
+window.__studioAgentTestingOverlay?.forceClear() // Dismiss / stuck recovery — always works; hard-removes DOM
+window.__studioAgentTestingOverlay?.stop({ reload: true, result: "pass" }) // green PASS sitrep ~9s, then reload
+window.__studioAgentTestingOverlay?.stop({ settleMs: 9000, reload: true, result: "fail" })
 window.__studioAgentTestingOverlay?.isActive() // false during settle
 ```
 
@@ -61,21 +64,23 @@ window.__studioAgentTestingOverlay?.isActive() // false during settle
 
 | Event | Behavior |
 |-------|----------|
-| `__studioRunMcpPageProbe` / sanity `finally` | `stop({ reload: true })` — sitrep **Done — auto-closes in Xs**, then reload; clears robo-cursor |
-| CJM/journey `__protoRun*` session `finally` | `stop({ reload: true, resetToHub: true })` — sitrep countdown, hub URL, then reload; clears robo-cursor |
+| `__studioRunMcpPageProbe` / sanity `finally` | Pre-arm → steps → `stop({ reload, result, settleMs })` — green/red sitrep **Auto-closes in Xs**, then hard-remove + optional reload; `scheduleEnsureClear(settle+1s)` failsafe |
+| CJM/journey `__protoRun*` session `finally` | Pre-arm → `stop({ reload: true, resetToHub: true, result })` — sitrep countdown, hub URL, hard-clear, then reload |
 | Mutating `__proto*` / `__studio*` helpers | Auto-`touch()` + log helper name (read-only getters + `EnsureCleanStudio` / `AbortAll` skipped) |
 | DevTools MCP clicks only | Agent **must** call `touch()` at session start (or rely on idle auto-stop) |
-| `stop()` nest → 0 | Enter DONE/SITREP settle (default **5s**); release click guard; stay-on-page reset (or hub if `resetToHub`); keep log visible |
-| Settle timer fires | Hide panel; re-assert URL; if `reload: true`, deferred `location.reload()` (~120ms) after URL strip |
+| `stop()` nest → 0 | Enter DONE settle (default **9s**); PASS/FAIL badge when `result` set; release click guard; stay-on-page reset (or hub if `resetToHub`); keep log visible |
+| Settle timer fires | **Hard-remove** overlay DOM + dismiss robo-cursor; re-assert URL; if `reload: true`, deferred `location.reload()` (~120ms) |
 | Idle timeout | Auto `stop()` → sitrep after **~45s** without log/touch (abandoned touch-only sessions) |
 | Safety timeout | Auto `stop({ force: true })` after **3 min** (skips settle) |
 | `beforeunload` | Clears active/settle state + sessionStorage persist |
 | Page load / overlay install / stop | Strip ephemeral; stay on current screen unless `resetToHub` — never leave `?proof=*` |
 | Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
-| Dismiss / `forceClear()` / `stop({ force: true })` | Immediate clear (no settle) + clean slate; no reload unless `reload: true` |
-| Titles | Always clean `AGENT TESTING` / `AGENT DONE — SITREP` — never raw `__studio*` names |
+| Dismiss / `forceClear()` / `stop({ force: true })` | Immediate hard-clear (no settle): timers, cursor, persist, ephemeral URL, DOM remove |
+| Titles | Clean `AGENT TESTING` / `AGENT DONE — PASS\|FAIL` — never raw `__studio*` names |
 
-Manual console experiments should omit reload (default `false`). Auto-shown for `__protoRun*` MCP sessions and any mutating `__proto*` helper. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/agentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
+**Crash-safe reload rule:** `__studioRunMcpPageProbe` defaults **`reload: false`**. Do not pass `reload: true` in a tight agent loop — at most one reload after sitrep when the PO wants a clean tab. If the tab misbehaves: refresh once, then `window.__studioAgentTestingOverlay?.forceClear()`.
+
+Manual console experiments should omit reload (default `false`). Journey/`__protoRun*` MCP sessions may still reload once after sitrep. `__protoAbortAll` force-clears the overlay. Shell-only (`src/app/shell/agentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
 
 **Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 

@@ -33,10 +33,16 @@ import {
 } from "@/app/shell/mcpTestGuard";
 import { isRecordingActive } from "@/app/recording/recordingSession";
 import {
+  DEFAULT_PREARM_MS,
+  DEFAULT_SETTLE_MS,
+  forceClearAgentTestingOverlay,
   installAgentTestingOverlayApi,
   logAgentTestingOverlay,
+  preArmAgentTestingOverlay,
+  scheduleAgentTestingOverlayEnsureClear,
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
+  touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/agentTestingOverlay";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
@@ -743,26 +749,37 @@ export function registerStudioMcpHelpers(options: {
 
   window.__protoRunMcpSanityCheck = async () => {
     window.__protoAbortAll?.();
-    startAgentTestingOverlay("AGENT TESTING — mcp-sanity");
-    logAgentTestingOverlay("sanity: start");
+    let pass = false;
+    startAgentTestingOverlay("AGENT TESTING - preparing...");
     try {
+      await preArmAgentTestingOverlay({
+        preArmMs: DEFAULT_PREARM_MS,
+        title: "AGENT TESTING - preparing...",
+      });
+      touchAgentTestingOverlay("AGENT TESTING - mcp-sanity");
+      logAgentTestingOverlay("sanity: start");
       logAgentTestingOverlay("sanity: retreat baseline");
       const baseline = runSmokeRetreatChecks();
       logAgentTestingOverlay(
         `sanity: retreat ${baseline.pass ? "PASS" : "FAIL"}`
       );
-      logAgentTestingOverlay("sanity: REC⊗CJM xor");
+      logAgentTestingOverlay("sanity: REC xor CJM");
       const xor = await runRecCjmXorSanityChecks();
       for (const check of xor.checks) {
         logAgentTestingOverlay(
           `${check.pass ? "PASS" : "FAIL"}  ${check.id}${
-            check.detail ? ` — ${check.detail}` : ""
+            check.detail ? ` - ${check.detail}` : ""
           }`
         );
       }
       const checks = [...baseline.checks, ...xor.checks];
-      const pass = checks.every((check) => check.pass);
-      logAgentTestingOverlay(`FINAL  ${pass ? "PASS" : "FAIL"}`);
+      const passCount = checks.filter((c) => c.pass).length;
+      const failCount = checks.length - passCount;
+      pass = failCount === 0 && checks.length > 0;
+      logAgentTestingOverlay(
+        `FINAL  ${pass ? "PASS" : "FAIL"}  ${passCount}/${checks.length} passed` +
+          (failCount > 0 ? ` (${failCount} failed)` : "")
+      );
       logControlPanel("qa:run", { source: "sanity-check", pass });
       return {
         pass,
@@ -770,8 +787,19 @@ export function registerStudioMcpHelpers(options: {
         state: window.__protoStudioState?.(),
       };
     } finally {
-      // Stay on current screen — do not bounce to hub after chrome sanity.
-      stopAgentTestingOverlay({ reload: true, resetToHub: false });
+      try {
+        // Stay on current screen - do not bounce to hub after chrome sanity.
+        // Default no reload (crash-safe); pass reload:true only when needed.
+        stopAgentTestingOverlay({
+          reload: false,
+          resetToHub: false,
+          settleMs: DEFAULT_SETTLE_MS,
+          result: pass ? "pass" : "fail",
+        });
+      } catch {
+        forceClearAgentTestingOverlay();
+      }
+      scheduleAgentTestingOverlayEnsureClear(DEFAULT_SETTLE_MS + 1000);
     }
   };
 

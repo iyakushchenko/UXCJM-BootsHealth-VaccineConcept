@@ -9,8 +9,13 @@ vi.mock("@/app/scenario/demoCursor", () => ({
 }));
 
 vi.mock("@/app/shell/agentTestingOverlay", () => ({
+  DEFAULT_PREARM_MS: 0,
+  DEFAULT_SETTLE_MS: 9000,
   startAgentTestingOverlay: vi.fn(),
   stopAgentTestingOverlay: vi.fn(),
+  forceClearAgentTestingOverlay: vi.fn(),
+  scheduleAgentTestingOverlayEnsureClear: vi.fn(),
+  preArmAgentTestingOverlay: vi.fn(async () => {}),
   logAgentTestingOverlay: vi.fn(),
   touchAgentTestingOverlay: vi.fn(),
   ensureAgentTestingOverlayDomArmed: vi.fn(() => true),

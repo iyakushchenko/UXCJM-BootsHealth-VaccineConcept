@@ -13,9 +13,14 @@ import {
   revealDemoTargetForAgent,
 } from "@/app/scenario/playbackScroll";
 import {
+  DEFAULT_PREARM_MS,
+  DEFAULT_SETTLE_MS,
   ensureAgentTestingOverlayDomArmed,
+  forceClearAgentTestingOverlay,
   isAgentTestingOverlayDomVisible,
   logAgentTestingOverlay,
+  preArmAgentTestingOverlay,
+  scheduleAgentTestingOverlayEnsureClear,
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
@@ -55,9 +60,23 @@ export type McpPageProbeOptions = {
   screenId?: string;
   /** Force hub after stop (CJM/journey only). Default false — stay on page. */
   resetToHub?: boolean;
-  /** Sitrep then reload. Default true for MCP helpers. */
+  /**
+   * Sitrep then reload. Default **false** (crash-safe — no reload loop).
+   * Pass `reload: true` only when the PO wants one clean-tab reload after sitrep.
+   */
   reload?: boolean;
+  /**
+   * Pre-arm countdown before first probe step (ms).
+   * Default ~2500; BR panel shows "preparing…" so PO can watch.
+   */
+  preArmMs?: number;
+  /** Sitrep visible duration (ms). Default ~9000. */
+  settleMs?: number;
 };
+
+/** Cap reveal/scroll calls per probe run — prevents scrollIntoView storms. */
+const MAX_PROBE_REVEALS = 24;
+let probeRevealCount = 0;
 
 type ProbeStep = {
   id: string;
@@ -107,10 +126,13 @@ function requireOverlayVisible(stepId: string): McpPageProbeStepResult | null {
 async function revealTargetForProbe(
   el: HTMLElement
 ): Promise<{ scrolled: boolean; inView: boolean }> {
-  const scrollEl = getPrototypeScrollRoot(el);
-  if (scrollEl && scrollEl.scrollTop > 0) {
-    // Optional: leave as-is; reveal centers the target from current offset.
+  if (probeRevealCount >= MAX_PROBE_REVEALS) {
+    return {
+      scrolled: false,
+      inView: isDemoTargetInPrototypeView(el),
+    };
   }
+  probeRevealCount += 1;
   return revealDemoTargetForAgent(el);
 }
 
@@ -118,7 +140,21 @@ async function revealTargetForProbe(
 async function postStepReveal(el: HTMLElement | null): Promise<void> {
   if (!el?.isConnected) return;
   if (isDemoTargetInPrototypeView(el)) return;
+  if (probeRevealCount >= MAX_PROBE_REVEALS) return;
+  probeRevealCount += 1;
   await revealDemoTargetForAgent(el, { instant: true });
+}
+
+function logFinalSummary(checks: McpPageProbeStepResult[]): boolean {
+  const passCount = checks.filter((c) => c.pass).length;
+  const failCount = checks.length - passCount;
+  const pass = failCount === 0 && checks.length > 0;
+  const flag = pass ? "PASS" : "FAIL";
+  logAgentTestingOverlay(
+    `FINAL  ${flag}  ${passCount}/${checks.length} passed` +
+      (failCount > 0 ? ` (${failCount} failed)` : "")
+  );
+  return pass;
 }
 
 function resolveScreenId(options?: McpPageProbeOptions): string {
@@ -556,6 +592,10 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
 /**
  * Run the visible page probe for the current (or given) React screen.
  * Always uses AGENT TESTING overlay + robo-cursor. Stays on page by default.
+ *
+ * Lifecycle: start overlay → pre-arm countdown (PO prepare) → steps →
+ * sitrep PASS/FAIL → settle → hard-clear DOM (forceClear failsafe).
+ * Default `reload: false` — never reload-loop the tab during agent testing.
  */
 export async function runMcpPageProbe(
   options?: McpPageProbeOptions
@@ -563,6 +603,16 @@ export async function runMcpPageProbe(
   const screenId = resolveScreenId(options);
   const steps = stepsForScreen(screenId);
   const checks: McpPageProbeStepResult[] = [];
+  let probePass = false;
+  probeRevealCount = 0;
+  const settleMs =
+    typeof options?.settleMs === "number" && Number.isFinite(options.settleMs)
+      ? options.settleMs
+      : DEFAULT_SETTLE_MS;
+  const preArmMs =
+    typeof options?.preArmMs === "number" && Number.isFinite(options.preArmMs)
+      ? options.preArmMs
+      : DEFAULT_PREARM_MS;
 
   const prior = getMcpTestSession();
   if (prior) {
@@ -571,11 +621,11 @@ export async function runMcpPageProbe(
   }
   const sessionId = beginMcpTestSession(`page-probe-${screenId}`);
   enableCursorQaEyes();
+  // Pre-arm FIRST — BR panel visible before any click so PO can prepare.
   // Single start (not touch+start) — avoids nest>1 so stop() always enters sitrep.
-  // ensure* repairs settle/orphan DOM races without bumping nest again.
-  startAgentTestingOverlay(`AGENT TESTING — ${screenId} probe`);
+  startAgentTestingOverlay("AGENT TESTING — preparing…");
   const overlayArmed = ensureAgentTestingOverlayDomArmed(
-    `AGENT TESTING — ${screenId} probe`
+    "AGENT TESTING — preparing…"
   );
 
   try {
@@ -583,7 +633,7 @@ export async function runMcpPageProbe(
       const detail = "overlay failed to arm at probe start";
       logAgentTestingOverlay(`FAIL  overlay-arm — ${detail}`);
       checks.push({ id: "overlay-arm", pass: false, detail });
-      logAgentTestingOverlay("FINAL  FAIL");
+      probePass = logFinalSummary(checks);
       logControlPanel("qa:run", {
         source: "page-probe",
         screenId,
@@ -598,17 +648,45 @@ export async function runMcpPageProbe(
     }
     logAgentTestingOverlay("PASS  overlay-arm — BR panel visible");
     checks.push({ id: "overlay-arm", pass: true, detail: "BR panel visible" });
+
+    await preArmAgentTestingOverlay({
+      preArmMs,
+      title: "AGENT TESTING — preparing…",
+    });
+    // Re-title without nest bump so finally stop() still enters sitrep once.
+    touchAgentTestingOverlay(`AGENT TESTING — ${screenId} probe`);
+
+    if (!ensureAgentTestingOverlayDomArmed(`AGENT TESTING — ${screenId} probe`)) {
+      const detail = "overlay vanished during pre-arm";
+      logAgentTestingOverlay(`FAIL  overlay-arm — ${detail}`);
+      checks.push({ id: "overlay-prearm", pass: false, detail });
+      probePass = logFinalSummary(checks);
+      logControlPanel("qa:run", {
+        source: "page-probe",
+        screenId,
+        pass: false,
+      });
+      return {
+        pass: false,
+        screenId,
+        checks,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+      };
+    }
     logAgentTestingOverlay(`probe: ${screenId}`);
 
     if (!steps) {
       const detail = `no probe recipe for screen "${screenId}"`;
       logStep("probe-recipe", false, detail);
       checks.push({ id: "probe-recipe", pass: false, detail });
-      const pass = false;
-      logAgentTestingOverlay(`FINAL  ${pass ? "PASS" : "FAIL"}`);
-      logControlPanel("qa:run", { source: "page-probe", screenId, pass });
+      probePass = logFinalSummary(checks);
+      logControlPanel("qa:run", {
+        source: "page-probe",
+        screenId,
+        pass: false,
+      });
       return {
-        pass,
+        pass: false,
         screenId,
         checks,
         url: typeof window !== "undefined" ? window.location.href : undefined,
@@ -643,20 +721,31 @@ export async function runMcpPageProbe(
       urlOk ? `screen=${screenId}` : `expected ${screenId}, got ${urlScreen ?? "?"}`
     );
 
-    const pass = checks.every((c) => c.pass);
-    logAgentTestingOverlay(`FINAL  ${pass ? "PASS" : "FAIL"}`);
-    logControlPanel("qa:run", { source: "page-probe", screenId, pass });
+    probePass = logFinalSummary(checks);
+    logControlPanel("qa:run", {
+      source: "page-probe",
+      screenId,
+      pass: probePass,
+    });
     return {
-      pass,
+      pass: probePass,
       screenId,
       checks,
       url: typeof window !== "undefined" ? window.location.href : undefined,
     };
   } finally {
-    stopAgentTestingOverlay({
-      reload: options?.reload !== false,
-      resetToHub: options?.resetToHub === true,
-    });
+    try {
+      stopAgentTestingOverlay({
+        // Default false — agent testing must not reload-loop Chrome.
+        reload: options?.reload === true,
+        resetToHub: options?.resetToHub === true,
+        settleMs,
+        result: probePass ? "pass" : "fail",
+      });
+    } catch {
+      forceClearAgentTestingOverlay();
+    }
+    scheduleAgentTestingOverlayEnsureClear(settleMs + 1000);
     disableCursorQaEyes();
     endMcpTestSession(sessionId);
   }
