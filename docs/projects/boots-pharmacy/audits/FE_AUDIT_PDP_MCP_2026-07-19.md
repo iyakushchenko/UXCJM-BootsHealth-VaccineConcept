@@ -3,7 +3,7 @@
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Quinn (QA) — Chrome DevTools MCP localhost  
-**Ship tip (prove):** `1dc7f28` · base tip `2bd6941` · **v0.0.22**  
+**Ship tip (prove):** `eaf9aa3` · ancestor `≥2bd6941` · **v0.0.22**  
 **Policy:** [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md) · [RECORDING.md](../../../shell/RECORDING.md) · recipe `12a0423`
 
 ---
