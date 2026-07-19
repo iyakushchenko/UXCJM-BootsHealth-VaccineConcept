@@ -1454,6 +1454,8 @@ html {
 }
 .proto-chat-demo-cursor__graphic--hand {
   display: none;
+  /* Fingertip sits ~7px right of arrow tip at height:100%; shift so tips share hotspot. */
+  left: -7px;
 }
 .proto-chat-demo-cursor--pointer {
   transform: none;
@@ -1474,8 +1476,9 @@ html {
 .proto-chat-demo-cursor--pointer.proto-chat-demo-cursor--tap::after {
   content: "";
   position: absolute;
-  left: 9px;
-  top: 11px;
+  /* Flash at shared tip hotspot (arrow tip / CSS-aligned fingertip). */
+  left: 1px;
+  top: 0;
   width: 5px;
   height: 5px;
   border-radius: 50%;

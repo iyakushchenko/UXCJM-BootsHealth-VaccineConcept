@@ -49,8 +49,11 @@ const CURSOR_REST_RIGHT_INSET_RATIO = 0.08;
 const CURSOR_REST_Y_RATIO = 0.54;
 const CURSOR_PARK_DRIFT_PX = 20;
 const CURSOR_PARK_TRAVEL_MS = 520;
-/** Hotspot — arrow tip in default-cursor.svg; index fingertip in hand-index-cursor.svg. */
-const CURSOR_HOTSPOT_X = 4;
+/**
+ * Shared tip hotspot — hand graphic is CSS-shifted so fingertip lands here
+ * (same as arrow tip). Switching arrow↔hand must not move left/top.
+ */
+const CURSOR_HOTSPOT_X = 3;
 const CURSOR_HOTSPOT_Y = 1;
 
 export const DEMO_CLICK_EVENT = "studio-demo-click";
@@ -1372,10 +1375,9 @@ export async function simulateDemoPointerClick(
     animated: true,
     detail: options?.scroll === false ? "scroll-disabled" : "scroll-enabled",
   });
-  // Default arrow immediately after click / unfocus — not stuck on hand.
+  // Default arrow after click — CSS tip-align keeps left/top (no tip teleport).
   settleDemoCursorAfterClick(cursor, interactionRoot);
   if (Number.isFinite(lockedLeft) && Number.isFinite(lockedTop)) {
-    // Re-assert lock pose (settle must not drift).
     writeDemoCursorPos(cursor, lockedLeft, lockedTop, { force: true });
     cursorPosLocked = true;
     noteCursorPathSample("post-click", lockedLeft, lockedTop);

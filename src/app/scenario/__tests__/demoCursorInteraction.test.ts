@@ -313,6 +313,27 @@ describe("demoCursor interaction contract", () => {
     expect(isDemoCursorPointerMode()).toBe(false);
   });
 
+  it("stays at click pose after hand→arrow settle (no teleport)", async () => {
+    const btn = mountButton();
+    const clickPromise = simulateDemoPointerClick(btn, { scroll: false });
+    let pressPose: string | null = null;
+    for (let i = 0; i < 30; i++) {
+      await vi.advanceTimersByTimeAsync(40);
+      const el = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+      if (!el) continue;
+      if (el.classList.contains("proto-chat-demo-cursor--pointer")) {
+        pressPose = `${el.style.left}|${el.style.top}`;
+      }
+    }
+    await vi.runAllTimersAsync();
+    expect(await clickPromise).toBe(true);
+    const el = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+    expect(el).not.toBeNull();
+    expect(isDemoCursorPointerMode()).toBe(false);
+    expect(pressPose).not.toBeNull();
+    expect(`${el!.style.left}|${el!.style.top}`).toBe(pressPose);
+  });
+
   it("does not re-flood enter/move when hover already active", async () => {
     const btn = mountButton();
     const seen: string[] = [];

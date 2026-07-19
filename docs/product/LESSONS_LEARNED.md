@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Robo-cursor hand↔arrow tip jump — CSS-align hotspots (PO / Finn + Uma)
+
+- **Symptom / class:** After press/release, default arrow appeared to teleport vs hand; hand↔default felt like a flicker/jump even when `left`/`top` stayed locked.
+- **Root cause:** Arrow tip (~3px) and hand fingertip (~10px) differ inside the 37×37 box; toggling `--pointer` swapped graphics without shared tip.
+- **Gate:** CSS-shift `.proto-chat-demo-cursor__graphic--hand { left: -7px }` so tips share one hotspot; keep `left`/`top` locked through settle; R10 prove `onTargetStable` + `maxPostSettleDriftPx=0`. Do **not** re-write post-click pose from a different hotspot math.
+
 ### Fixed localhost + reuse tab — no port bump / no new Chrome windows (PO / Arch + Finn + Ben)
 
 - **Symptom / class:** Agents start extra `npm run dev` → Vite silently moves to `5182`/`5185`/`5186`…; Chrome DevTools MCP opens `new_page` / new windows; PO loses the Studio tab context.

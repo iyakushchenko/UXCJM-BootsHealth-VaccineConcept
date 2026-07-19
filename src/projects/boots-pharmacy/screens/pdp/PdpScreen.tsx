@@ -16,7 +16,7 @@ import {
   PDP_PRICE_WITH_BOOSTER,
   PDP_PRICE_WITHOUT_BOOSTER,
 } from "@/projects/boots-pharmacy/data/orderPricing";
-import { ButtonPrimary } from "@/uxds/components";
+import { ButtonPrimary, PromoMessageStrip } from "@/uxds/components";
 import {
   Accordion,
   AccordionChevron,
@@ -261,16 +261,14 @@ function PdpBelowFold() {
           ))}
         </Accordion>
 
-        <div className="pdp__gp-promo" data-name="Week Schedule">
-          <div className="pdp__gp-promo-row">
-            <img
-              className="pdp__gp-logo"
-              src={gpPromoLogo}
-              alt=""
-              width={230}
-              height={48}
-            />
-            <p className="pdp__gp-copy">{GP_PROMO_COPY}</p>
+        <PromoMessageStrip
+          data-name="Week Schedule"
+          data-studio-promo="online-doctor"
+          logo={
+            <img src={gpPromoLogo} alt="" width={230} height={48} />
+          }
+          text={GP_PROMO_COPY}
+          cta={
             <TertiaryCta
               compact
               soft
@@ -284,8 +282,8 @@ function PdpBelowFold() {
             >
               Find out more
             </TertiaryCta>
-          </div>
-        </div>
+          }
+        />
       </div>
     </section>
   );

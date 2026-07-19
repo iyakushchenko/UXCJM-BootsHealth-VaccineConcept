@@ -18,3 +18,7 @@ export {
   type SearchFieldIconPosition,
   type SearchFieldProps,
 } from "./SearchField";
+export {
+  PromoMessageStrip,
+  type PromoMessageStripProps,
+} from "./PromoMessageStrip";

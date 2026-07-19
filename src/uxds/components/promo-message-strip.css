@@ -1,0 +1,46 @@
+/**
+ * Soft mint promo strip — logo + copy + CTA slot.
+ * CTA chrome belongs to the TertiaryCta kit — not styled in this file.
+ */
+
+.uxds-promo-message-strip {
+  width: 100%;
+  max-width: 864px;
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--uxds-surface-accent-soft);
+  box-sizing: border-box;
+}
+
+.uxds-promo-message-strip__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  width: 100%;
+}
+
+.uxds-promo-message-strip__logo {
+  flex-shrink: 0;
+}
+
+.uxds-promo-message-strip__logo img {
+  display: block;
+  width: 230px;
+  height: 48px;
+  object-fit: cover;
+}
+
+.uxds-promo-message-strip__text {
+  margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--uxds-text-text-primary);
+}
+
+.uxds-promo-message-strip__cta {
+  flex-shrink: 0;
+}
