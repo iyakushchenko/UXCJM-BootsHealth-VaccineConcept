@@ -10,6 +10,17 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Typical DS checks mandatory before screen PROVEN (PO)
+
+- **Symptom / class:** Screens stamped **PROVEN** while UXDS controls (SearchField, Button, checkbox, link) were flat at rest — missing kit/Make **hover / focus / active / disabled**.
+- **PO callout:** **Missing DS hover = fidelity FAIL class** — not a polish nicety.
+- **Gate (GLOBAL rule of thumb):**
+  1. Before any screen **PROVEN**, for **each** UXDS control used: verify hover/focus/active/disabled vs **UXDS kit + Make**.
+  2. **Uma (UI/UX)** signs `typical DS checks — PASS|FAIL` in audit + **team check**.
+  3. **Quinn (QA)** MCP-hovers **≥1 SearchField** (and the rest of the interaction matrix).
+  4. Arch **rejects** **PROVEN** if typical DS checks FAIL or MCP hover evidence is missing.
+- **Process:** Parallel callsigns still required for serious streams — DS checks do not collapse the team into one mega-agent ([TEAM.md](./TEAM.md), doctrine §0.2).
+
 ### Filter search parity — icon side, double X, View all, counters (PO rage)
 
 - **Symptom:** PLP filter search had **two X** clears; magnifier on the **LEFT** (PO: original RIGHT); no **10-cap / View all**; no option **counters**; invented filter `border-bottom` separator; bespoke input instead of UXDS.

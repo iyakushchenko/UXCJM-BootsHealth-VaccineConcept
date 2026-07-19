@@ -2,6 +2,8 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+- **docs:** Mandate typical DS state checks (hover/focus/active/disabled vs kit+Make) before screen PROVEN; Uma signs; Quinn MCP-hovers SearchField; missing DS hover = FAIL; parallel callsigns still required
+
 ## v0.0.14 - 190726
 - PLP: restore region→country filter cascade (Make wire parity)
 

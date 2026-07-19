@@ -92,19 +92,30 @@ Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, or to sk
 
 | Callsign | Must report |
 |----------|-------------|
-| **Uma (UI/UX)** | Fidelity checklist PASS/FAIL + failed items ([UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md)). **Also mandatory on every migrated screen:** `loading states — PASS\|FAIL` and `checkbox/radio hover — PASS\|FAIL` |
+| **Uma (UI/UX)** | Fidelity checklist PASS/FAIL + failed items ([UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md)). **Also mandatory on every migrated screen:** `loading states — PASS\|FAIL`, `checkbox/radio hover — PASS\|FAIL`, and **`typical DS checks — PASS\|FAIL`** (below) |
 | **Bea (BA)** | Register complete? Any Missing P0? (every Make band listed before Finn coded). **Loading / empty / updating states must be P0 rows** when Make has them — mechanism + layout, not copy-only |
-| **Quinn (QA)** | Interaction matrix PASS/FAIL — **cannot PASS** without unchecked-P0-free register **and** a **MCP localhost real-user evidence log** for the screen matrix. **Always** use `__studioRunMcpPageProbe` (robo-cursor + overlay PASS/FAIL) for screen ships; cite MCP steps in team check. Gate: `check:parity-proven`. |
+| **Quinn (QA)** | Interaction matrix PASS/FAIL — **cannot PASS** without unchecked-P0-free register **and** a **MCP localhost real-user evidence log** for the screen matrix. **Always** use `__studioRunMcpPageProbe` (robo-cursor + overlay PASS/FAIL) for screen ships; cite MCP steps in team check. Gate: `check:parity-proven`. **Must MCP-hover at least one SearchField** (or every search on the screen when few) and prove hover/focus vs kit + Make |
 | **Ben (BE)** | Owns MCP session hygiene with Quinn (vite up, page probe overlay start/stop, stay-on-page prove); `gh` sitrep after push; keeps `PARITY_PROVEN.json` honest |
 | **Finn (FE)** | Gaps fixed or blocked |
+
+**Typical DS checks (mandatory rule of thumb — before any screen PROVEN):**
+
+For **each** UXDS control used on the screen (at minimum **SearchField**, **Button** / primary CTA, **checkbox** / radio, **link** / text-link): verify **hover / focus / active / disabled** against the **UXDS kit** and **Make** parity — not rest-state only.
+
+| Who | Owns |
+|-----|------|
+| **Uma (UI/UX)** | Signs `typical DS checks — PASS\|FAIL` in team check + audit; Nazi-hovers every control role used |
+| **Quinn (QA)** | MCP-hovers **≥1 search field** (and the rest of the interaction matrix); missing DS hover = **FAIL** |
 
 **Hard rules:**
 
 - After big ships, Arch auto-runs **team check** before “done” — green tests alone do not skip it.  
 - Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**.  
 - Blank listing + lone “Updating results…” (or equivalent) **without** Make’s spinner/overlay/skeleton = automatic Uma + Quinn **FAIL**.  
+- **Missing DS hover = fidelity FAIL class** (PO called out) — flat dead SearchField / Button / checkbox / link vs kit+Make blocks **PROVEN**.  
 - **Forbidden to invent** hover/loading chrome not in Make.  
 - **MCP real-user matrix mandatory for every screen ship** (Quinn + Ben). Prefer `__studioRunMcpPageProbe` so the PO sees the robo-cursor + overlay PASS/FAIL. Arch **rejects** audit **PROVEN** without MCP evidence log.  
+- **Parallel callsigns still required** for serious streams — do not skip sibling dispatch because DS checks exist ([§ Parallel dispatch](#parallel-dispatch-arch-must-spawn-siblings)).  
 - **No merge** without `npm run check:parity-proven` green (`PARITY_PROVEN.json` + audit PROVEN + MCP section).  
 - **Parity ratchets (GLOBAL HARD FAIL):** `npm run check:parity-ratchets` — typical Make→React misses (search icon + **icon-pos end**, single clear, View all / 10-cap, filter counters, no filter hr, bookmark copy, empty-heart fuchsia, Advantage bar, Book now primary, loader dup, make-retired). Every new typical fail class → Arch/Ben add a ratchet ([PARITY_RATCHETS.md](./PARITY_RATCHETS.md)). Overlay registry stays in `check:felonies`.  
 
