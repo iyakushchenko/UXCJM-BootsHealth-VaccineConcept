@@ -345,12 +345,16 @@ function StoreCard({
           <DisclosureTrigger
             open={hoursOpen}
             onToggle={onToggleHours}
-            className="proto-avail-link"
+            className="uxds-link proto-avail-link"
             data-proto-avail-hours-trigger={store.id}
           >
             {hoursOpen ? "Hide working hours" : "See working hours"}
           </DisclosureTrigger>
-          <button type="button" className="proto-avail-link" onClick={onShowMap}>
+          <button
+            type="button"
+            className="uxds-link proto-avail-link"
+            onClick={onShowMap}
+          >
             Show on map
           </button>
         </div>

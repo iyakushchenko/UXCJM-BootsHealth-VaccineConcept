@@ -341,7 +341,7 @@ export function BookStep1LocationScreen({
                     <DisclosureTrigger
                       open={open}
                       onToggle={toggle}
-                      className="book-step1__learn-more"
+                      className="uxds-link book-step1__learn-more"
                     >
                       Learn more
                     </DisclosureTrigger>
@@ -373,7 +373,9 @@ export function BookStep1LocationScreen({
           >
             <p>
               Speak to our dedicated customer service team on{" "}
-              <a href="tel:03451253752">0345 125 3752</a>
+              <a className="uxds-link" href="tel:03451253752">
+                0345 125 3752
+              </a>
             </p>
             <p>
               We&apos;re here for you

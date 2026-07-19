@@ -170,7 +170,7 @@ export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Prop
                 )}
                 <button
                   type="button"
-                  className="proto-avail-link"
+                  className="uxds-link proto-avail-link"
                   style={{ alignSelf: "center", marginTop: 8 }}
                   onClick={() => switchTab("signin")}
                 >
@@ -234,7 +234,7 @@ export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Prop
                   <label className="proto-login-label">
                     <span className="proto-login-label-text">
                       <span className="proto-login-required">*</span> Password
-                      <span className="proto-avail-link proto-login-forgot" onClick={(e) => { e.preventDefault(); switchTab("forgot"); }}>Forgot Password?</span>
+                      <span className="uxds-link proto-avail-link proto-login-forgot" onClick={(e) => { e.preventDefault(); switchTab("forgot"); }}>Forgot Password?</span>
                     </span>
                     <div className="proto-avail-field proto-avail-field--flex proto-login-input-wrap">
                       <input
@@ -276,7 +276,7 @@ export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Prop
               {createError && (
                 <div className="proto-login-error">
                   Sorry, we are unable to create your account. Please try again. If the issue continues, please contact our{" "}
-                  <span className="proto-avail-link">Customer Service</span>
+                  <span className="uxds-link proto-avail-link">Customer Service</span>
                 </div>
               )}
 

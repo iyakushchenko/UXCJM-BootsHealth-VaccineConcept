@@ -1,0 +1,55 @@
+/**
+ * UXDS regular text link — Boots Make / Book Step 1 “Learn more” baseline.
+ *
+ * Rest: navy + underline. Hover: darker navy, underline off.
+ * Focus-visible: 2px navy ring (React / a11y). Make `.proto-link` still strips
+ * underline globally — migrate those surfaces to `.uxds-link` when touched.
+ *
+ * Not for tertiary icon+text CTAs (Change location, near-me) or crumb teal links.
+ */
+
+.uxds-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #012169;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.uxds-link:hover {
+  color: #01318f;
+  text-decoration: none;
+}
+
+.uxds-link:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
+}
+
+/* Make / overlay aliases — same family, keep legacy class names working */
+.proto-avail-link,
+.proto-recipient-picker__link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #012169;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.proto-avail-link:hover,
+.proto-recipient-picker__link:hover {
+  color: #01318f;
+  text-decoration: none;
+}
+
+.proto-avail-link:focus-visible,
+.proto-recipient-picker__link:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
+}

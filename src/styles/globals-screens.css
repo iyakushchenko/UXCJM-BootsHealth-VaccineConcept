@@ -373,8 +373,10 @@
   line-height: 28px !important;
 }
 
-/* ── Global text links — match Locations popup “Show on map” ───────────────
- * No underline; Boots primary navy (#012169); hover #01318f.
+/* ── Global text links (Make wire under .proto-viewport) ────────────────────
+ * Legacy strip: no underline; navy #012169; hover #01318f; no focus ring.
+ * React / overlays use `.uxds-link` (underline at rest) — see FE_STANDARDS §2.
+ * Make target: when migrating a surface, prefer `.uxds-link` over this strip.
  * Covers <a>, Figma underline spans/ps, and anything tagged .proto-link.
  */
 .proto-viewport a,
@@ -2140,19 +2142,11 @@
   flex-wrap: wrap;
   gap: 16px;
 }
+/* Link chrome: shared `.uxds-link` / `.proto-avail-link` in text-link.css */
 .proto-avail-link {
-  border: none;
-  background: none;
-  padding: 0;
   font-family: inherit;
   font-size: 13px;
   line-height: 24px;
-  color: #012169;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.proto-avail-link:hover {
-  color: #01318f;
 }
 .proto-avail-hours {
   display: flex;
@@ -2769,9 +2763,8 @@
   gap: 8px;
   white-space: nowrap;
 }
+/* Link chrome: shared `.proto-recipient-picker__link` in text-link.css */
 .proto-recipient-picker__link {
-  color: #012169;
-  text-decoration: underline;
   cursor: default;
 }
 .proto-recipient-picker__or {

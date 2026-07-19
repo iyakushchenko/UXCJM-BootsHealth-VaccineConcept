@@ -572,29 +572,12 @@
   font-weight: 700;
 }
 
+/* Link chrome: shared `.uxds-link` (text-link.css). Layout only here. */
 .book-step1__learn-more {
   align-self: flex-start;
   margin-left: 40px;
-  border: none;
-  background: none;
-  padding: 0;
-  color: #012169;
-  text-decoration: underline;
-  font: inherit;
   font-size: 13px;
   line-height: 24px;
-  cursor: pointer;
-  transition: color 0.18s ease;
-}
-
-.book-step1__learn-more:hover {
-  color: #01318f;
-  text-decoration: none;
-}
-
-.book-step1__learn-more:focus-visible {
-  outline: 2px solid #012169;
-  outline-offset: 2px;
 }
 
 .book-step1__learn-body {
@@ -648,13 +631,4 @@
   margin: 0;
 }
 
-.book-step1__help a {
-  color: #305854;
-  text-decoration: underline;
-  transition: color 0.18s ease;
-}
-
-.book-step1__help a:hover {
-  color: #01318f;
-  text-decoration: none;
-}
+/* Help tel uses `.uxds-link` — do not invent a teal/navy one-off here. */

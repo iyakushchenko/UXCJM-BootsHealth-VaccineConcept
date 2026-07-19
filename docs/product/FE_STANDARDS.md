@@ -46,7 +46,29 @@ Secondary pills (**All locations** / **Slots available**): inactive = quiet outl
 
 ---
 
-## 2. Content column / logo alignment
+## 2. Regular text links (CRITICAL)
+
+Typical underline / blue body links (**Learn more**, **Show on map**, **See working hours**, help tel, forgot-password style) **must** share one pattern. Do not invent per-screen link colors.
+
+| Token | Value |
+|-------|--------|
+| **Class** | `.uxds-link` (`src/uxds/components/text-link.css`) |
+| **Baseline** | Boots Make / Book Step 1 booster **Learn more** |
+| **Rest** | `#012169`, `text-decoration: underline`, weight inherit |
+| **Hover** | `#01318f`, underline **off** |
+| **Focus-visible** | `outline: 2px solid #012169`, `outline-offset: 2px` |
+
+Legacy aliases (same rules): `.proto-avail-link`, `.proto-recipient-picker__link`.
+
+| Family | Do not force into `.uxds-link` |
+|--------|--------------------------------|
+| Tertiary icon+text CTAs | Change location, near-me — §1 |
+| Breadcrumb Home | Teal `#305854` crumb chrome (Make) |
+| Make `.proto-link` globals | Still strip underline under `.proto-viewport` — **Make target:** adopt `.uxds-link` when a surface is migrated; do not weaken React parity to match the strip |
+
+---
+
+## 3. Content column / logo alignment
 
 Boots (and matching Studio chrome) use:
 
@@ -62,7 +84,7 @@ Same grid as header logo container and `ProtoFooter` (`.proto-footer__shell` / `
 
 ---
 
-## 3. Visual fidelity
+## 4. Visual fidelity
 
 Concept L&F is mandatory. See [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md).
 
@@ -71,19 +93,19 @@ Concept L&F is mandatory. See [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md).
 
 ---
 
-## 4. Behavior parity
+## 5. Behavior parity
 
 Screen rebuild = visual + behavior. Migrate every Make interaction that already worked. See [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1 and [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md).
 
 ---
 
-## 5. Hover / focus / active
+## 6. Hover / focus / active
 
 Migrate Make `:hover`, `:focus-visible`, and `:active` (and short transitions) into kit or **co-located screen CSS**. Do not ship flat CTAs/inputs/chips that only paint the resting state.
 
 ---
 
-## 6. Scoped CSS
+## 7. Scoped CSS
 
 | Do | Do not |
 |----|--------|
@@ -93,7 +115,7 @@ Migrate Make `:hover`, `:focus-visible`, and `:active` (and short transitions) i
 
 ---
 
-## 7. Short labels & pills
+## 8. Short labels & pills
 
 Use `nowrap` for short CTAs, chips, crumb current labels, and tertiary pills unless the concept shows multi-line text.
 
@@ -106,7 +128,8 @@ Use `nowrap` for short CTAs, chips, crumb current labels, and tertiary pills unl
 3. Sibling tertiary CTAs share one icon language (baseline chosen and applied).  
 4. Same CTA string/role → one shared component (near-me → `NearMeCta`).  
 5. Availability secondary filter selected state uses primary brand colors.  
-6. Hover/focus/active ported from Make.  
-7. Design-delta table written (fills in scope).  
-8. Behavior parity verified.  
-9. CSS scoped to the screen/kit — build still passes.
+6. Regular text links use `.uxds-link` (one navy/underline pattern — §2).  
+7. Hover/focus/active ported from Make.  
+8. Design-delta table written (fills in scope).  
+9. Behavior parity verified.  
+10. CSS scoped to the screen/kit — build still passes.
