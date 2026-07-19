@@ -121,21 +121,21 @@
     {
       "screenId": "pdp",
       "status": "proven",
-      "hardGreen": true,
+      "hardGreen": false,
       "stampedAt": {
         "sha": "d7ce01c",
         "date": "2026-07-19",
-        "note": "Finn structure/naming final pass — header crumbs + main RTB/below; BEM pdp; data-studio-react-screen + make-retired; ButtonPrimary Book now; no SearchField (N/A); static Make accordion (no invent UXDS Accordion kit); specs/accordion borders Make-parity."
+        "note": "Structure stamp retained (BEM/landmarks/mount). Interactive FAQ Accordion + download CTA hover shipped after HARD-GREEN — Quinn must re-prove MCP matrix + Uma §0a extras before hardGreen again."
       },
       "mcpFinalPass": {
-        "status": "HARD-GREEN",
-        "pass": true,
+        "status": "NEEDS-REPROVE",
+        "pass": false,
         "stampedAt": {
           "sha": "d7ce01c",
           "date": "2026-07-19",
           "version": "0.0.24",
           "auditor": "Quinn (QA)",
-          "note": "MCP __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) full matrix PASS on tip d7ce01c (≥ share flip 553e29c); overlay-arm + overlay-eyes + below-fold; landmarks header+main+section; make-retired; share matrix(1,0,0,-1,0,0). Uma PROVEN. Audit: FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md"
+          "note": "Prior HARD-GREEN @ d7ce01c invalidated by PO-go FAQ Accordion kit + download CTA DS hover (new probe steps pdp-faq-accordion-* / pdp-download-cta-hover). Do not false-PROVEN — re-run __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false })."
         },
         "url": "http://127.0.0.1:5186/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",

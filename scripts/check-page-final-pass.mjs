@@ -297,15 +297,15 @@ for (const screenId of required) {
   }
 
   // PDP: Book now uses ButtonPrimary (above); no SearchField required.
-  // Accordion is static Make B1 — do not require UXDS Accordion kit.
+  // FAQ accordion — PO go: must use shared UXDS Accordion kit (same as PLP filters).
   // Specs/accordion borders are Make-parity — do not invent separator bans.
   if (screenId === "pdp") {
     if (
-      /from\s+["']@\/uxds\/interactions["']/.test(src) &&
-      /\bAccordion\b/.test(code)
+      !/from\s+["']@\/uxds\/interactions["']/.test(src) ||
+      !/<Accordion[\s>]/.test(code)
     ) {
       fail(
-        `${screenId}: must not invent UXDS Accordion kit (Make accordion is static B1)`
+        `${screenId}: FAQ band must use UXDS <Accordion> kit (PO interactive; was B1 static)`
       );
     }
   }

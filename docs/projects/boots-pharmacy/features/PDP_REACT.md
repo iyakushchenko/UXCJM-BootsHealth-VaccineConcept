@@ -2,9 +2,9 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted · Uma **PROVEN** · Quinn MCP **PASS** · **PAGE FINAL PASS HARD-GREEN**  
+**Status:** L1–L20 mounted · FAQ Accordion interactive (PO go) · download CTA DS hover · Final Pass **NEEDS-REPROVE**  
 **Updated:** 2026-07-19  
-**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md)
+**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) · Convention [../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md](../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md)
 
 ---
 
@@ -12,7 +12,7 @@
 
 Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** PDP PAGE FINAL PASS **HARD-GREEN** @ tip `d7ce01c` / v0.0.24. **Home waits PO `+`.**
+**Gate:** Prior HARD-GREEN @ `d7ce01c` **stale** after FAQ/CTA interaction ship — Quinn re-prove before Home. **Home waits PO `+`.**
 
 ## Business logic
 
@@ -29,7 +29,7 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 | Wishlist | `PDP_WISHLIST_ID` (`chickenpox`) — shared with Quick View + header |
 | Breadcrumb Vaccination | → PLP |
 | Loading / empty | **None** on Make — static page; do not invent loader |
-| Accordion | Make = **static** Figma (one FAQ body visible); no wire — PO clarify before interactive |
+| Accordion | PO go — UXDS Accordion kit; default open “Who is at risk?” (only Make body); other headers toggle chevron only |
 
 ## Acceptance (Bea → Quinn)
 
@@ -38,15 +38,15 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 - [x] URL `?project=boots-pharmacy&screen=pdp` restores tab; recording `kind: "screen"` `pdp` unchanged
 - [x] No new styles in `globals-screens` LEGACY for React path — `screens/pdp/*.css` + UXDS + theme only
 - [x] Scaffold P0 bands L1–L13 + interactions I5–I12, I8–I10 per register
-- [x] Below-fold P0 bands L14–L20 (static accordion B1; download/GP CTAs decorative)
+- [x] Below-fold P0 bands L14–L20 (interactive Accordion; download/GP CTAs live + DS hover)
 - [x] Modal URL sync: `login`, `choose-pharmacy` from PDP CTAs ([URL.md](../../../shell/URL.md)) — wire reuses existing modals
 - [x] PAGE FINAL PASS: landmarks `header`+`main`, BEM=`pdp`; stamp + `mcpFinalPass` HARD-GREEN + `check:page-final-pass` ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
 - [x] `npm test` green on L14–L20 contract; Uma audit **PROVEN** ([UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md))
-- [x] Honest residual: Make Frame child 8 in DOM until delete phase; accordion B1 static-only until PO (**accepted** for Uma PROVEN + Final Pass)
+- [x] Honest residual: Make Frame child 8 in DOM until delete phase; FAQ panels without Make body have no invented copy
 
 ## Chrome / fidelity (Uma)
 
-- [x] Concept L&F vs Make child 8 — RTB 50/50, Advantage mint bar, specs table, accordion static layout
+- [x] Concept L&F vs Make child 8 — RTB 50/50, Advantage mint bar, specs table, accordion kit + download tertiary hover
 - [x] 1440/64/1312 grid; icon+text nowrap on secondary CTAs
 - [x] Studio chrome XOR / counters intact
 - [x] DS state matrix §0a: Book now, Check availability, checkbox, toggle, heart / share — **no invent hover**; share Make flip proven
@@ -75,16 +75,18 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 - [ ] User-visible? → bump patch? **Y** (when React page ships)
 - [ ] Push? **Arch call**
 - [ ] Notes/CHANGELOG when bump
-- [ ] Resolve B1 accordion static vs interactive before accepting FAQ behavior
+- [x] Resolve B1 accordion — PO go interactive (2026-07-19)
+- [ ] Quinn re-prove MCP matrix + Uma §0a for FAQ/download before HARD-GREEN again
 
 ## Honest residual (expected)
 
-| Residual | Why OK for scaffold |
-|----------|---------------------|
+| Residual | Why OK |
+|----------|--------|
 | Make Frame child 8 in bundle | Hidden + wire-gated until delete phase |
 | `globals-screens` child-8 rules | Dead while React mounted; shrink on Make delete |
-| Accordion no wire (B1) | Match static Figma until PO says otherwise |
-| Download / share / GP Find out more CTAs | Decorative in Make — P1 |
+| FAQ panels without Make body | Expand/collapse + a11y only — **no invented FAQ copy** |
+| Download / GP CTAs | DS hover shipped; no file URL journey wire |
 | Single chickenpox SKU | CJM scope |
+| Final Pass HARD-GREEN | **NEEDS-REPROVE** after this interaction ship |
 
 **Parity P0 for full page L&F:** L1–L20 bands + journey CTAs + booster/price + wishlist + modals URL + no invented loader — see register.

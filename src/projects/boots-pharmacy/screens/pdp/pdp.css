@@ -744,6 +744,7 @@
   gap: 8px;
 }
 
+/* Make Frame126 download CTAs — tertiary 32px icon+label; DS hover like chrome tertiary. */
 .pdp__pill {
   display: inline-flex;
   align-items: center;
@@ -751,18 +752,23 @@
   gap: 8px;
   height: 32px;
   padding: 8px 12px;
+  border: none;
   border-radius: 360px;
   box-sizing: border-box;
   white-space: nowrap;
+  font: inherit;
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
   letter-spacing: -0.36px;
   color: var(--uxds-text-text-secondary);
   background: transparent;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
 .pdp__pill--bordered {
+  /* Make leaflet label #2e2e2e + border #c7e4ff */
   color: #2e2e2e;
   box-shadow: inset 0 0 0 2px #c7e4ff;
 }
@@ -776,12 +782,49 @@
 .pdp__pill-icon {
   display: inline-flex;
   flex-shrink: 0;
-  /* Make download glyphs fill #012169 */
+  /* Make download glyphs fill #012169 at rest */
   color: var(--project-brand-cta-navy);
+  transition: color 0.18s ease;
 }
 
 .pdp__pill-label {
   display: inline-flex;
+  transition: color 0.18s ease;
+}
+
+/* Tertiary hover: label → black, icon → navy link (globals-chrome h-[32px]:has(p)). */
+.pdp__pill:hover:not(:disabled) {
+  color: #000000;
+}
+
+.pdp__pill:hover:not(:disabled) .pdp__pill-icon {
+  color: var(--uxds-text-link-link);
+}
+
+.pdp__pill--bordered:hover:not(:disabled) {
+  color: #000000;
+  box-shadow: inset 0 0 0 2px #c7e4ff;
+}
+
+/* Mint GP CTA — secondary-style mint deepen on hover. */
+.pdp__pill--mint:hover:not(:disabled) {
+  color: var(--project-brand-cta-navy-hover);
+  background: var(--uxds-surface-accent-soft);
+  box-shadow: inset 0 0 0 2px var(--project-brand-primary-light);
+}
+
+.pdp__pill--mint:hover:not(:disabled) .pdp__pill-icon {
+  color: var(--project-brand-cta-navy-hover);
+}
+
+.pdp__pill:focus-visible {
+  outline: 2px solid var(--uxds-border-border-focus);
+  outline-offset: 2px;
+}
+
+.pdp__pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .pdp__accordion {
@@ -804,6 +847,31 @@
   align-items: center;
   gap: 8px;
   width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.pdp__accordion-header:hover .pdp__accordion-title {
+  color: var(--uxds-text-link-link);
+}
+
+.pdp__accordion-header:hover .pdp__accordion-chevron {
+  color: var(--uxds-text-link-link);
+}
+
+.pdp__accordion-header:focus-visible {
+  outline: 2px solid var(--uxds-border-border-focus);
+  outline-offset: 2px;
+}
+
+.pdp__accordion-header:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .pdp__accordion-title-wrap {
@@ -822,6 +890,7 @@
   line-height: 32px;
   font-weight: 600;
   color: var(--uxds-text-text-primary);
+  transition: color 0.18s ease;
 }
 
 .pdp__accordion-chevron {
@@ -832,6 +901,11 @@
   align-items: center;
   justify-content: center;
   color: var(--uxds-icon-icon-primary);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.pdp__accordion-header[data-state="open"] .pdp__accordion-chevron {
+  transform: rotate(180deg);
 }
 
 .pdp__accordion-body {

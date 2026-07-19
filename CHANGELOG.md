@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.27 - 190726
+- PDP FAQ Accordion + download CTA DS hover (PO go)
+
 ## v0.0.26 - 190726
 - **shell:** Auto-Rule `agent-teardown-clean` — probe/sitrep/forceClear strips `&modal=`, closes dialogs, hard-removes overlay (sticky choose-pharmacy felony)
 - **engine:** `studioAgentTeardownContract` + `STUDIO_AUTO_RULES` catalog; `check:felonies` §9–10 (teardown + auth-ssot); MCP `__studioWaitAgentTeardownClean`

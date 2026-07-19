@@ -504,6 +504,19 @@ describe("runMcpPageProbe", () => {
         name === "data-studio-avail-step" ? "start" : null,
     };
     const availTitle = { tagName: "H2", textContent: "Find Pharmacy" };
+    let faqExpanded = true;
+    const faqTrigger = {
+      tagName: "BUTTON",
+      getAttribute: (name: string) =>
+        name === "aria-expanded" ? String(faqExpanded) : null,
+    };
+    const faqBody = {
+      tagName: "DIV",
+      textContent:
+        "Chickenpox can affect any age, but complications are more likely in adults, pregnant women, newborn babies and people with a weakened immune system.",
+    };
+    const downloadGuide = { tagName: "BUTTON" };
+    const downloadLeaflet = { tagName: "BUTTON" };
 
     let modalOpen = false;
     let modalKind: "login" | "choose-pharmacy" | null = null;
@@ -577,6 +590,10 @@ describe("runMcpPageProbe", () => {
           "http://localhost:5173/?project=boots-pharmacy&screen=pdp";
         return true;
       }
+      if (el === faqTrigger) {
+        faqExpanded = !faqExpanded;
+        return true;
+      }
       return true;
     });
     isElementBlockedByModal.mockImplementation(
@@ -598,6 +615,15 @@ describe("runMcpPageProbe", () => {
       cssText:
         ".pdp__checkbox-row:hover .pdp__checkbox-box{background:var(--uxds-surface-accent-soft)}",
     };
+    const pillHoverRule = {
+      selectorText: ".pdp__pill:hover:not(:disabled)",
+      cssText: ".pdp__pill:hover:not(:disabled){color:#000000}",
+    };
+    const pillIconHoverRule = {
+      selectorText: ".pdp__pill:hover:not(:disabled) .pdp__pill-icon",
+      cssText:
+        ".pdp__pill:hover:not(:disabled) .pdp__pill-icon{color:var(--uxds-text-link-link)}",
+    };
 
     vi.stubGlobal("window", {
       location: locationState,
@@ -608,7 +634,13 @@ describe("runMcpPageProbe", () => {
     vi.stubGlobal("document", {
       styleSheets: [
         {
-          cssRules: [hoverRule, washRule, checkboxHoverRule],
+          cssRules: [
+            hoverRule,
+            washRule,
+            checkboxHoverRule,
+            pillHoverRule,
+            pillIconHoverRule,
+          ],
         },
       ],
       querySelector: (sel: string) => {
@@ -635,6 +667,15 @@ describe("runMcpPageProbe", () => {
         if (sel.includes('data-studio-modal="choose-pharmacy"')) return availClose;
         if (sel === "#proto-avail-title") return availTitle;
         if (sel.includes("data-studio-probe-below-fold")) return belowFold;
+        if (sel.includes('data-studio-action="pdp-faq-who-is-at-risk"'))
+          return faqTrigger;
+        if (sel.includes('data-studio-accordion-open="who-is-at-risk"')) {
+          return faqExpanded ? faqBody : null;
+        }
+        if (sel.includes('data-studio-action="pdp-download-guide"'))
+          return downloadGuide;
+        if (sel.includes('data-studio-action="pdp-download-leaflet"'))
+          return downloadLeaflet;
         return null;
       },
       querySelectorAll: () => [],
@@ -687,6 +728,15 @@ describe("runMcpPageProbe", () => {
     const below = result.checks.find((c) => c.id === "pdp-below-fold-scroll");
     expect(below?.pass).toBe(true);
     expect(below?.detail ?? "").not.toMatch(/soft-skip/);
+    expect(
+      result.checks.find((c) => c.id === "pdp-faq-accordion-toggle")?.pass
+    ).toBe(true);
+    expect(
+      result.checks.find((c) => c.id === "pdp-faq-accordion-reopen")?.pass
+    ).toBe(true);
+    expect(
+      result.checks.find((c) => c.id === "pdp-download-cta-hover")?.pass
+    ).toBe(true);
     expect(result.checks.find((c) => c.id === "url-screen")?.pass).toBe(true);
     expect(result.pass).toBe(true);
     // HARD teardown: PDP avail probe must not leave &modal=choose-pharmacy

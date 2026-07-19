@@ -147,7 +147,8 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
-| **PDP PAGE FINAL PASS HARD-GREEN** — tip `d7ce01c` / v0.0.24; re-prove after share flip (prior Quinn on `cbbd97d` insufficient alone); B1 static accordion accepted; Home waits PO `+` | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass (5 screens) |
+| **PDP FAQ Accordion + download CTA hover (PO go)** — B1 closed; UXDS Accordion + `pdp__pill` DS hover; Final Pass demoted NEEDS-REPROVE; Home still waits PO `+` | Arch, Bea, Finn, Uma, Quinn, Pax | PDP_MAKE_PARITY_REGISTER · FE_AUDIT_PDP_PLP_CONVENTIONS · PAGE_FINAL_PASS.json |
+| **PDP PAGE FINAL PASS HARD-GREEN** — tip `d7ce01c` / v0.0.24 (**stale** after FAQ/CTA ship); prior B1 static accepted then PO go | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass (5 screens) |
 | **PDP RTB vertical rhythm** — LEGACY Make `module.pdp.rtb > div > div` stole React column gap (48≠32) + forced title-block 1:1; Uma must MCP-measure section gaps before fidelity IN PROGRESS; Quinn PASS ≠ rhythm done | Uma, Finn, Arch | UMA_FIDELITY_NOTES §0b · UMA_FIDELITY_PDP · globals-screens `:not(.pdp__rtb-card)` |
 | **PDP kickoff** — Bea register before code; Finn L1–L13 mount; Uma fidelity IN PROGRESS; Quinn probe criteria prep (no false PROVEN); accordion B1 static | Arch, Bea, Finn, Uma, Quinn, Ben | [PDP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PDP_MAKE_PARITY_REGISTER.md) · screens/pdp |
 | **PAGE FINAL PASS** — no new migrated page until previous hard-green; Finn/Uma checklist + check; parallel callsigns + Knowledge used still required | Arch, Finn, Uma, Bea | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · TEAM · doctrine · NEXT_STEPS |

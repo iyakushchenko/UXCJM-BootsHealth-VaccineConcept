@@ -17,6 +17,13 @@ import {
 } from "@/projects/boots-pharmacy/data/orderPricing";
 import { ButtonPrimary } from "@/uxds/components";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/uxds/interactions";
+import {
+  PDP_ACCORDION_DEFAULT_OPEN,
   PDP_ACCORDION_PANELS,
   PDP_INTRO_PARAGRAPHS,
   PDP_REACT_SCREEN_ID,
@@ -45,11 +52,9 @@ const DOWNLOAD_GLYPH_BAR =
 const DOWNLOAD_GLYPH_ARROW =
   "M6.26167 0L6.26167 7.92269L2.38333 4.5891L1.25667 5.90955L6.565 10.4554C6.89 10.7368 7.36667 10.7368 7.69167 10.4554L13 5.90955L11.8733 4.5891L7.995 7.92269L7.995 0.0216467L6.26167 0.0216465V0Z";
 
-/** Accordion chevron — collapsed (down) / expanded (up). Static Make only. */
+/** Accordion chevron (down) — open state rotates 180° via CSS (PLP kit pattern). */
 const CHEVRON_DOWN =
   "M16 1.43879L8 10L0 1.43879L1.34448 0L8 7.12242L14.6555 0L16 1.43879Z";
-const CHEVRON_UP =
-  "M16 8.56121L8 0L0 8.56121L1.34448 10L8 2.87758L14.6555 10L16 8.56121Z";
 
 export type PdpScreenProps = {
   includeBoosterDose: boolean;
@@ -143,13 +148,10 @@ function DownloadGlyph() {
   );
 }
 
-function ChevronGlyph({ expanded }: { expanded: boolean }) {
+function ChevronGlyph() {
   return (
     <svg width="16" height="10" viewBox="0 0 16 10" fill="none" aria-hidden>
-      <path
-        d={expanded ? CHEVRON_UP : CHEVRON_DOWN}
-        fill="currentColor"
-      />
+      <path d={CHEVRON_DOWN} fill="currentColor" />
     </svg>
   );
 }
@@ -208,15 +210,22 @@ function PdpBelowFold() {
             </div>
             <hr className="pdp__specs-divider" />
             <div className="pdp__specs-downloads">
-              <span className="pdp__pill" data-name="component.input.button">
+              <button
+                type="button"
+                className="pdp__pill"
+                data-name="component.input.button"
+                data-studio-action="pdp-download-guide"
+              >
                 <span className="pdp__pill-icon" data-name="icon=download">
                   <DownloadGlyph />
                 </span>
                 <span className="pdp__pill-label">Chickenpox Guide</span>
-              </span>
-              <span
+              </button>
+              <button
+                type="button"
                 className="pdp__pill pdp__pill--bordered"
                 data-name="component.input.button"
+                data-studio-action="pdp-download-leaflet"
               >
                 <span className="pdp__pill-icon" data-name="icon=download">
                   <DownloadGlyph />
@@ -224,45 +233,57 @@ function PdpBelowFold() {
                 <span className="pdp__pill-label">
                   Vaccine Information Leaflet
                 </span>
-              </span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div
+        <Accordion
+          type="single"
+          defaultValue={[...PDP_ACCORDION_DEFAULT_OPEN]}
           className="pdp__accordion"
           data-name="component.pdp.accordion"
         >
           {PDP_ACCORDION_PANELS.map((panel) => (
-            <div key={panel.title}>
-              <div
-                className="pdp__accordion-item"
-                data-name="component.gse.accordion"
+            <AccordionItem
+              key={panel.id}
+              id={panel.id}
+              className="pdp__accordion-item"
+              data-name="component.gse.accordion"
+              data-studio-accordion-item={panel.id}
+            >
+              <AccordionTrigger
+                id={panel.id}
+                className="pdp__accordion-header"
+                data-studio-action={`pdp-faq-${panel.id}`}
               >
-                <div className="pdp__accordion-header" data-name="wrapper">
-                  <div
-                    className="pdp__accordion-title-wrap"
-                    data-name="title wrapper"
-                  >
-                    <p className="pdp__accordion-title">{panel.title}</p>
-                  </div>
-                  <span
-                    className="pdp__accordion-chevron"
-                    data-name="icon / input / field"
-                    aria-hidden
-                  >
-                    <ChevronGlyph expanded={panel.expanded} />
-                  </span>
-                </div>
-              </div>
+                <span
+                  className="pdp__accordion-title-wrap"
+                  data-name="title wrapper"
+                >
+                  <span className="pdp__accordion-title">{panel.title}</span>
+                </span>
+                <span
+                  className="pdp__accordion-chevron"
+                  data-name="icon / input / field"
+                  aria-hidden
+                >
+                  <ChevronGlyph />
+                </span>
+              </AccordionTrigger>
               {panel.body ? (
-                <div className="pdp__accordion-body" data-name="Description">
+                <AccordionContent
+                  id={panel.id}
+                  className="pdp__accordion-body"
+                  data-name="Description"
+                  data-studio-accordion-open={panel.id}
+                >
                   <p>{panel.body}</p>
-                </div>
+                </AccordionContent>
               ) : null}
-            </div>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
 
         <div className="pdp__gp-promo" data-name="Week Schedule">
           <div className="pdp__gp-promo-row">
@@ -274,15 +295,17 @@ function PdpBelowFold() {
               height={48}
             />
             <p className="pdp__gp-copy">{GP_PROMO_COPY}</p>
-            <span
+            <button
+              type="button"
               className="pdp__pill pdp__pill--mint"
               data-name="component.input.button"
+              data-studio-action="pdp-gp-find-out-more"
             >
               <span className="pdp__pill-icon" data-name="icon=download">
                 <DownloadGlyph />
               </span>
               <span className="pdp__pill-label">Find out more</span>
-            </span>
+            </button>
           </div>
         </div>
       </div>

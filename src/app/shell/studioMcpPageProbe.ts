@@ -815,6 +815,81 @@ function pdpProbeSteps(): ProbeStep[] {
         '.pdp[data-studio-react-screen="pdp"] [data-studio-probe-below-fold="true"]',
       action: "reveal",
     },
+    {
+      id: "pdp-faq-accordion-toggle",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-who-is-at-risk"]',
+      action: "click",
+      settleMs: 350,
+      assert: () => {
+        const trigger = document.querySelector<HTMLElement>(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-who-is-at-risk"]'
+        );
+        if (!trigger) return "FAQ trigger missing";
+        if (trigger.getAttribute("aria-expanded") !== "false") {
+          return "expected Who is at risk? collapsed after toggle click";
+        }
+        if (
+          document.querySelector(
+            '.pdp[data-studio-react-screen="pdp"] [data-studio-accordion-open="who-is-at-risk"]'
+          )
+        ) {
+          return "FAQ body still mounted while collapsed";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-faq-accordion-reopen",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-who-is-at-risk"]',
+      action: "click",
+      settleMs: 350,
+      assert: () => {
+        const trigger = document.querySelector<HTMLElement>(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-who-is-at-risk"]'
+        );
+        if (trigger?.getAttribute("aria-expanded") !== "true") {
+          return "expected Who is at risk? expanded after reopen";
+        }
+        const body = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] [data-studio-accordion-open="who-is-at-risk"]'
+        );
+        if (!body || !/weakened immune system/i.test(normalizeText(body))) {
+          return "FAQ open body missing Make copy";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-download-cta-hover",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-download-guide"]',
+      action: "hover",
+      settleMs: 320,
+      assert: () => {
+        const guide = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-download-guide"]'
+        );
+        const leaflet = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-download-leaflet"]'
+        );
+        if (!guide || !leaflet) return "download CTAs missing";
+        if (
+          !stylesheetHasRule(".pdp__pill:hover") &&
+          !stylesheetHasRule(".pdp__pill:hover:not(:disabled)")
+        ) {
+          return "missing download CTA hover CSS (.pdp__pill:hover)";
+        }
+        if (
+          !stylesheetHasRule(".pdp__pill:hover:not(:disabled) .pdp__pill-icon") &&
+          !stylesheetHasRule(".pdp__pill:hover .pdp__pill-icon")
+        ) {
+          return "missing download CTA icon hover CSS";
+        }
+        return true;
+      },
+    },
   ];
 }
 

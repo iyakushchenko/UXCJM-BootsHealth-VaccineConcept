@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) owns register truth · Quinn (QA) owns prove · Finn/Uma restore gaps  
-**Updated:** 2026-07-19 (Quinn MCP matrix **PASS** — [FE_AUDIT_PDP_MCP_2026-07-19.md](../audits/FE_AUDIT_PDP_MCP_2026-07-19.md); Uma fidelity **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md); **PAGE FINAL PASS HARD-GREEN** — [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))  
+**Updated:** 2026-07-19 (PO go: FAQ Accordion interactive + download CTA DS hover; B1 closed; Final Pass **NEEDS-REPROVE** — prior HARD-GREEN @ `d7ce01c` stale)  
 **Make source:** Frame child **8** (`PDP. Vaccine Details Page` / `BTS-PHRM.Product - Deal Details Page`, `screenId: "pdp"`) + `globals-screens` child-8 rules + `BootsPharmacyProjectView` wire + `frame/index.tsx`  
 **React target:** `src/projects/boots-pharmacy/screens/pdp/*`  
 **Refs:** [PDP_REACT.md](./PDP_REACT.md) · [PLP_MAKE_PARITY_REGISTER.md](./PLP_MAKE_PARITY_REGISTER.md) (format) · [URL.md](../../../shell/URL.md) (modal ids)  
@@ -11,7 +11,7 @@
 **Status legend:** Present · Partial · Missing · Fixed · N/A
 
 **Make column:** inventory truth from Frame + wire + LEGACY CSS (2026-07-19).  
-**React column:** L1–L20 mounted (RTB + below-fold static accordion); Quinn MCP interaction matrix **PASS**; Uma **PROVEN**; **PAGE FINAL PASS HARD-GREEN** @ tip `d7ce01c`.
+**React column:** L1–L20 mounted; FAQ = UXDS Accordion kit (default open Who is at risk?); download CTAs = live buttons + tertiary/mint hover; Quinn matrix + Final Pass **NEEDS-REPROVE** after this ship.
 
 **Bea rule:** Every band before Finn codes — including loading/empty/updating as **P0** when Make has them. No invented bands.
 
@@ -38,25 +38,26 @@
 | L15 | **Content hero** — centered “Chickenpox” 39px + teal accent bar 14×3px | **Present** | **Present** | `pdp__content-hero` |
 | L16 | **Intro copy** — two paragraphs, 864px max text width | **Present** | **Present** | `PDP_INTRO_PARAGRAPHS` / `pdp__intro` |
 | L17 | **Appointment time strip** — `#e5f1f8` pill “Typical appointment takes around 15 minutes” + icon | **Present** | **Present** | `pdp__appt-strip` |
-| L18 | **Laptop specs table** — bordered white card 864px; Vaccine / Course / Administration / Eligibility / Price / Availability rows + divider + download CTAs | **Present** | **Present** | `PDP_SPECS_ROWS` / `pdp__specs` (downloads static) |
-| L19 | **FAQ accordion band** (`component.pdp.accordion`) — six `component.gse.accordion` headers; **static** “Who is at risk?” body visible | **Present** (static) | **Present** (static) | `PDP_ACCORDION_PANELS` — B1 no click wire |
-| L20 | **GP online promo card** — mint `#c6e5e1` rounded 24px “Book your doctor appointment online…” + CTA | **Present** | **Present** | `pdp__gp-promo` (Find out more static) |
+| L18 | **Laptop specs table** — bordered white card 864px; Vaccine / Course / Administration / Eligibility / Price / Availability rows + divider + download CTAs | **Present** | **Present** | `PDP_SPECS_ROWS` / `pdp__specs` + live download buttons |
+| L19 | **FAQ accordion band** (`component.pdp.accordion`) — six `component.gse.accordion` headers; default open “Who is at risk?” body | **Present** (static Figma) | **Present** (interactive) | UXDS `Accordion` + `PDP_ACCORDION_PANELS` — PO go |
+| L20 | **GP online promo card** — mint `#c6e5e1` rounded 24px “Book your doctor appointment online…” + CTA | **Present** | **Present** | `pdp__gp-promo` + live Find out more button |
 | L21 | **Header / footer chrome** — `boots-pharmacy.module.header` + `boots-pharmacy.module.footer` (engine-mounted, not page-owned) | **N/A** (engine) | **N/A** | Frame child 8 includes them; React page owns `body` bands only per PAGE_BUILD_CONTRACT |
 
-### L19 — Accordion (static Make)
+### L19 — Accordion (PO interactive)
 
-**Source:** `ComponentPdpAccordion` in `frame/index.tsx` L7301–7320.
+**Source:** `ComponentPdpAccordion` in `frame/index.tsx` L7301–7320.  
+**React:** shared UXDS Accordion kit (`type="single"`, default open `who-is-at-risk`) — same pattern as PLP filters.
 
-| Panel | Make static state |
-|-------|-------------------|
-| How can Boots help? | Header + chevron only (collapsed) |
-| Who is at risk? | Header + **expanded** `Description` body paragraph |
-| What happens at the appointment? | Header only |
-| Can I get vaccinated on the NHS? | Header only |
-| What if I already have chickenpox? | Header only |
-| How we use your personal data | Header only |
+| Panel | Make Figma state | React |
+|-------|------------------|-------|
+| How can Boots help? | Header + chevron only | Trigger + chevron; **no body copy in Make** — expand flips chevron only |
+| Who is at risk? | Header + **expanded** `Description` body | Default open + Make body paragraph |
+| What happens at the appointment? | Header only | Trigger only (no invented body) |
+| Can I get vaccinated on the NHS? | Header only | Trigger only |
+| What if I already have chickenpox? | Header only | Trigger only |
+| How we use your personal data | Header only | Trigger only |
 
-**Wire today:** no accordion click handler in `BootsPharmacyProjectView` or `inputControls`. **Do not invent** expand/collapse until PO clarifies CJM need vs static Figma.
+**PO go (2026-07-19):** interactive open/close + focus/hover/a11y. B1 closed — no longer “static accepted”.
 
 ---
 
@@ -93,8 +94,8 @@
 | I14 | **Primary Book now hover** — navy lift `#01318f`, shadow, translateY | **Present** | **Missing** | `globals-chrome` L714–747 |
 | I15 | **Secondary Check availability hover** — mint wash on bordered secondary CTA | **Present** | **Missing** | `globals-chrome` L809–834 |
 | I16 | **Breadcrumb Vaccination** → PLP | **Present** | **Missing** | Wire L2310–2316 `data-studio-crumb="vaccination"` |
-| I17 | **Accordion headers** — **no** click wire in Make today | **N/A** (static) | **Missing** | See L19 — clarify before inventing UXDS Accordion behavior |
-| I18 | **Download guide / leaflet CTAs** — static in prototype (decorative Figma cursor on leaflet) | **Present** (static) | **Missing** | `Frame126` — no wire |
+| I17 | **Accordion headers** — Make Figma static; PO asks interactive React | **N/A** (static Make) | **Present** | UXDS Accordion; probes `pdp-faq-accordion-*` |
+| I18 | **Download guide / leaflet CTAs** — Make decorative; PO asks DS hover | **Present** (static) | **Present** | `pdp__pill` buttons + tertiary hover; probe `pdp-download-cta-hover` |
 | I19 | **Someone else tab** — **does not** open `recipient-picker` on PDP (visual only); picker opens from Book Step “Change recipient” | **Present** (wire truth) | **Missing** | Toggle wire activates index only; `recipient-picker` wired on book steps L3865–3935 |
 | I20 | **Figma playback cursor** hidden on PDP | **Present** | **N/A** | `globals-screens` L714–715 `nth-child(8) [data-name=".utility / cursor"]` |
 
@@ -142,8 +143,8 @@
 | P0 | I14 / I15 Primary + secondary CTA DS hover matrix | Uma §0a |
 | P0 | I16 Breadcrumb Vaccination → PLP | Nav parity |
 | P0 | L3 Breadcrumbs full chain | Visual |
-| P1 | I17 Accordion interaction | **Blocked** — no Make wire; PO clarify static vs interactive |
-| P1 | I18 Download CTAs | Static/decorative unless PO wires |
+| P0 | I17 Accordion interaction | **PO go** — UXDS Accordion kit |
+| P0 | I18 Download CTAs | Live buttons + DS hover (no journey download URL yet) |
 | P1 | I13 Share | Hover-only OK for CJM |
 | P2 | L21 Footer/header | Engine-owned |
 
@@ -177,9 +178,9 @@
 
 | # | Issue | Owner |
 |---|-------|-------|
-| B1 | **Accordion** — Figma static (one body visible); no expand/collapse wire. React must not ship invented accordion until PO accepts static vs interactive. | Pax / Bea |
+| B1 | ~~**Accordion** static~~ — **CLOSED** (PO go 2026-07-19). Interactive UXDS Accordion shipped; only “Who is at risk?” has Make body. | Bea |
 | B2 | **Someone else** on PDP — visual toggle only; `recipient-picker` is Book-step “Change recipient”. Do not wire picker to PDP toggle without PO. | Bea → Finn |
-| B3 | **Download / share CTAs** — no journey wire; confirm residual vs wire later. | Pax |
+| B3 | **Download / share CTAs** — DS hover shipped; **no** file/URL journey wire yet (decorative click OK). | Pax |
 | B4 | **Book now initial price** — Figma shows `£150` with booster default checked (`DEFAULT_INCLUDE_BOOSTER_DOSE = true`); list price row stays `£75.00` single-dose. | Documented — match wire |
 | B5 | **Single SKU** — chickenpox only today; multi-SKU PDP out of scope until catalog expands. | Arch |
 

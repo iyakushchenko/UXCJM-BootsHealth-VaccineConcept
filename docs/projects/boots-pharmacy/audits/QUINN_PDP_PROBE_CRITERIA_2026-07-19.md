@@ -1,8 +1,8 @@
 # Quinn (QA) — PDP MCP prove criteria
 
-**Status:** **MCP matrix PASS** (2026-07-19) — see [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**Not** PAGE FINAL PASS HARD-GREEN / Uma §0a PROVEN.  
-**Updated:** 2026-07-19 (Quinn MCP localhost prove)  
+**Status:** Prior MCP matrix PASS @ `d7ce01c` — **stale** after FAQ Accordion + download CTA hover ship. **Re-prove required.**  
+**PAGE FINAL PASS:** **NEEDS-REPROVE** (`hardGreen: false`).  
+**Updated:** 2026-07-19 (PO go interactive FAQ / download CTAs)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
 **Refs:** [RECORDING.md](../../../shell/RECORDING.md) · LESSONS overlay/scroll · PLP probe pattern in `studioMcpPageProbe.ts`
@@ -57,6 +57,9 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 | 13 | `pdp-crumb-plp` | click Vaccination crumb | `screen=plp` (React PLP) | |
 | 14 | `plp-to-pdp` | Book now from PLP | returns `screen=pdp` React host | |
 | 15 | `pdp-below-fold-scroll` | `reveal` | Scroll-into-view + overlay visible | **HARD** — compact below-fold stamp required |
+| 16 | `pdp-faq-accordion-toggle` | click Who is at risk? | `aria-expanded=false`; body unmounted | UXDS Accordion |
+| 17 | `pdp-faq-accordion-reopen` | click again | `aria-expanded=true` + Make body copy | |
+| 18 | `pdp-download-cta-hover` | hover Chickenpox Guide | `.pdp__pill:hover` CSS present | stylesheet rule (demo cursor ≠ CSS :hover) |
 | — | `url-screen` | assert | ends on `screen=pdp` | auto after recipe |
 
 Logged-in Book now → `screen=book-step-1` — prove in a second session or after login helper (document in evidence log).
