@@ -64,4 +64,17 @@ export {
   type AgentTestingDumpReason,
 } from "@/app/shell/agent-testing/agentTestingDump";
 
+export {
+  PO_SIGNAL_EVENT,
+  latchPoSignal,
+  peekPoSignal,
+  consumePoSignal,
+  clearPoSignal,
+  installPoSignalWindowApis,
+  uninstallPoSignalWindowApis,
+  type AgentTestingPoSignal,
+  type AgentTestingPoSignalType,
+  type AgentTestingPoSignalCode,
+} from "@/app/shell/agent-testing/agentTestingPoSignal";
+
 export { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";

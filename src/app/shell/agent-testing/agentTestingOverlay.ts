@@ -1,27 +1,7 @@
 /**
- * Compact bottom-right agent-testing status panel.
- * Invisible full-viewport capture blocks page clicks; page stays visible.
- *
- *   window.__studioAgentTestingOverlay?.start()
- *   window.__studioAgentTestingOverlay?.touch() // arm if inactive (no nest bump)
- *   window.__studioAgentTestingOverlay?.log("clicked Book Step 2")
- *   window.__studioAgentTestingOverlay?.stop() // nest-aware -> DONE settle ~9s; no reload
- *   window.__studioAgentTestingOverlay?.stop({ force: true, reload: true })
- *   window.__studioAgentTestingOverlay?.forceClear() // always dismiss (Dismiss button)
- *   window.__studioAgentTestingOverlay?.stop({ result: "pass"|"fail" }) // green/red sitrep
- *
- * MCP helpers should call stop({ reload: true }) so the PO gets a clean tab
- * after the sitrep settle window (reload runs after settle, not instantly).
- * Manual console experiments default to reload: false.
- * Post-test default: stay on current project+screen (strip ephemeral only).
- * Pass resetToHub: true for CJM/journey hub clean slate.
- *
- * Touch-only / DevTools sessions without stop(): idle auto-stop (~45s) -> sitrep,
- * plus hard safety timeout (3 min force clear). Titles stay clean ("AGENT TESTING").
- *
- * Teardown contract: finishSettle / forceClear hard-remove overlay DOM + robo-cursor,
- * cancel all timers, clear sessionStorage persist, strip ephemeral URL keys.
- * Never leave settle stuck - interrupt always clears.
+ * Mid-flight AGENT TESTING panel (bottom-right). Capture blocks clicks; page stays visible.
+ * PO Alarm/Cursor/Scroll → live `__studioAgentTestingTakeover` (primary); dump secondary.
+ * See RECORDING.md · PLAYBACK_DIAG.md · agentTestingPoSignal.ts.
  */
 import {
   resetStudioAfterAgentTest,
@@ -48,6 +28,15 @@ import {
   downloadAgentTestingDump,
   pushAgentTestingDump,
 } from "@/app/shell/agent-testing/agentTestingDump";
+import {
+  clearPoSignal,
+  consumePoSignal,
+  installPoSignalWindowApis,
+  latchPoSignal,
+  peekPoSignal,
+  uninstallPoSignalWindowApis,
+  type AgentTestingPoSignal,
+} from "@/app/shell/agent-testing/agentTestingPoSignal";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 import type {
   AgentTestingLogEntry,
@@ -118,10 +107,15 @@ type OverlayApi = {
   logStep: (input: LogAgentTestingStepInput) => void;
   /** Helper call with sitrep context + coalesce. */
   logHelper: (suffix: string) => void;
+  /** PO: sequence / expected-steps mismatch — latches live takeover signal. */
   ringAlarm: (note?: string) => void;
   flagCursorWeird: (note?: string) => void;
-  /** PO mid-flight scroll problem report (amber + dump + PLAYBACK_DIAG). */
+  /** PO mid-flight scroll problem report (amber + live latch + dump). */
   flagScrollIssue: (note?: string) => void;
+  /** Peek live PO latch (does not clear). */
+  peekPoSignal: () => AgentTestingPoSignal | null;
+  /** Consume + clear live PO latch. */
+  consumePoSignal: () => AgentTestingPoSignal | null;
   setTimeline: (keys: string[]) => void;
   markTimeline: (key: string, outcome: AgentTestingStepOutcome) => void;
   downloadDump: () => boolean;
@@ -382,7 +376,8 @@ function readScrollSnapshot(): {
 }
 
 function saveDump(
-  reason: "fail" | "alarm" | "cursor" | "scroll" | "manual"
+  reason: "fail" | "alarm" | "cursor" | "scroll" | "manual",
+  extras?: { code?: string; poSignal?: AgentTestingPoSignal | null }
 ): void {
   try {
     const dump = buildAgentTestingDump({
@@ -391,59 +386,94 @@ function saveDump(
       elapsedMs: sessionStartedAt ? Date.now() - sessionStartedAt : 0,
       sitrepLine: lastSitrepLine,
       log: logEntries,
+      code: extras?.code,
+      timeline: timelineKeys.map((t) => ({
+        key: t.key,
+        outcome: String(t.outcome),
+      })),
+      poSignal: extras?.poSignal ?? peekPoSignal(),
     });
     pushAgentTestingDump(dump);
     console.info(
-      "[AGENT_TESTING] dump saved",
+      "[AGENT_TESTING] dump saved (secondary)",
       reason,
+      dump.code ?? "",
       dump.atIso,
-      "— window.__studioDownloadAgentTestingDump()"
+      "— primary: window.__studioConsumePoSignal() · dump: __studioDownloadAgentTestingDump()"
     );
   } catch {
     /* never block overlay */
   }
 }
 
+/**
+ * PO Alarm = sequence / expected-steps mismatch (not vague “something weird”).
+ * Primary: latch `__studioAgentTestingTakeover` for mid-flight MCP poll.
+ * Secondary: session dump for postmortem.
+ */
 export function ringAgentTestingAlarm(note?: string): void {
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
+  const signal = latchPoSignal({
+    type: "alarm",
+    code: "ALARM_SEQUENCE_MISMATCH",
+    note,
+    sitrepLine: lastSitrepLine,
+    timeline: timelineKeys,
+  });
   pushLogEntry(
     buildLogEntryFromStep({
       kind: "alarm",
       outcome: "soft-fail",
-      label: `ALARM${detail}`,
+      label: `ALARM · ALARM_SEQUENCE_MISMATCH${detail} · consume __studioConsumePoSignal()`,
+      beatId: signal.beat ?? undefined,
     })
   );
   try {
-    console.warn("[AGENT_TESTING] PO alarm", note ?? "", {
-      sitrep: lastSitrepLine,
-      diag: "window.__studioPlaybackDiag()",
-    });
+    console.warn(
+      "[AGENT_TESTING] sequence / expected-steps mismatch",
+      "ALARM_SEQUENCE_MISMATCH",
+      "→ window.__studioConsumePoSignal() (primary) · dump secondary",
+      {
+        sitrep: lastSitrepLine,
+        beat: signal.beat,
+        screen: signal.screen,
+        counter: signal.counter,
+      }
+    );
   } catch {
     /* ignore */
   }
-  saveDump("alarm");
+  saveDump("alarm", { code: "ALARM_SEQUENCE_MISMATCH", poSignal: signal });
 }
 
 export function flagAgentTestingCursorWeird(note?: string): void {
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
+  const signal = latchPoSignal({
+    type: "cursor",
+    code: "CURSOR_WEIRD_FLAG",
+    note,
+    sitrepLine: lastSitrepLine,
+    timeline: timelineKeys,
+  });
   pushLogEntry(
     buildLogEntryFromStep({
       kind: "cursor",
       outcome: "soft-fail",
-      label: `cursor issue detected · CURSOR_WEIRD_FLAG${detail} · see __studioPlaybackDiag`,
+      label: `cursor issue detected · CURSOR_WEIRD_FLAG${detail} · consume __studioConsumePoSignal()`,
+      beatId: signal.beat ?? undefined,
     })
   );
   try {
     console.warn(
       "[AGENT_TESTING] cursor issue detected",
       "CURSOR_WEIRD_FLAG",
-      "→ window.__studioPlaybackDiag() / __studioCursorDiagnostics()",
+      "→ window.__studioConsumePoSignal() (primary)",
       note ?? ""
     );
   } catch {
     /* ignore */
   }
-  saveDump("cursor");
+  saveDump("cursor", { code: "CURSOR_WEIRD_FLAG", poSignal: signal });
 }
 
 export function flagAgentTestingScrollIssue(note?: string): void {
@@ -453,11 +483,19 @@ export function flagAgentTestingScrollIssue(note?: string): void {
     snap.host != null
       ? ` · host=${snap.host} scrollTop=${snap.scrollTop ?? "?"}`
       : " · host=none";
+  const signal = latchPoSignal({
+    type: "scroll",
+    code: "SCROLL_ISSUE_REPORTED",
+    note,
+    sitrepLine: lastSitrepLine,
+    timeline: timelineKeys,
+  });
   pushLogEntry(
     buildLogEntryFromStep({
       kind: "scroll",
       outcome: "soft-fail",
-      label: `scroll issue detected · SCROLL_ISSUE_REPORTED${detail}${snapLabel} · see __studioPlaybackDiag`,
+      label: `scroll issue detected · SCROLL_ISSUE_REPORTED${detail}${snapLabel} · consume __studioConsumePoSignal()`,
+      beatId: signal.beat ?? undefined,
     })
   );
   try {
@@ -476,7 +514,7 @@ export function flagAgentTestingScrollIssue(note?: string): void {
     console.warn(
       "[AGENT_TESTING] scroll issue detected",
       "SCROLL_ISSUE_REPORTED",
-      "→ window.__studioPlaybackDiag()",
+      "→ window.__studioConsumePoSignal() (primary)",
       snap,
       note ?? ""
     );
@@ -489,7 +527,7 @@ export function flagAgentTestingScrollIssue(note?: string): void {
   } catch {
     /* ignore */
   }
-  saveDump("scroll");
+  saveDump("scroll", { code: "SCROLL_ISSUE_REPORTED", poSignal: signal });
 }
 
 function maybeAutoFlagCursorIssue(): void {
@@ -820,10 +858,10 @@ function ensureRoot(): HTMLElement | null {
       <p class="studio-agent-testing-overlay__sitrep">sitrep — waiting for control panel</p>
       <div class="studio-agent-testing-overlay__timeline" hidden aria-label="Script timeline"></div>
       <div class="studio-agent-testing-overlay__actions">
-        <button type="button" class="studio-agent-testing-overlay__alarm" title="Ring alarm — something looks wrong">Alarm</button>
-        <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird">Cursor</button>
-        <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem">Scroll</button>
-        <button type="button" class="studio-agent-testing-overlay__dump" title="Download last FAIL/alarm dump JSON">Dump</button>
+        <button type="button" class="studio-agent-testing-overlay__alarm" title="Sequence / expected-steps mismatch — latches live PO signal for the running agent">Alarm</button>
+        <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird — latches live PO signal">Cursor</button>
+        <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
+        <button type="button" class="studio-agent-testing-overlay__dump" title="Download last dump JSON (secondary — prefer __studioConsumePoSignal)">Dump</button>
       </div>
       <ol class="studio-agent-testing-overlay__log"></ol>
     </div>
@@ -1489,12 +1527,15 @@ export function installAgentTestingOverlayApi(): void {
     ringAlarm: ringAgentTestingAlarm,
     flagCursorWeird: flagAgentTestingCursorWeird,
     flagScrollIssue: flagAgentTestingScrollIssue,
+    peekPoSignal,
+    consumePoSignal,
     setTimeline: setAgentTestingTimeline,
     markTimeline: markAgentTestingTimeline,
     downloadDump: () => downloadAgentTestingDump(),
     isActive: isAgentTestingOverlayActive,
   };
   bindOverlayApi(api);
+  installPoSignalWindowApis();
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
@@ -1524,6 +1565,8 @@ export function uninstallAgentTestingOverlayApi(): void {
     }
     setAgentTestingHtmlFlag(false);
   }
+  clearPoSignal();
+  uninstallPoSignalWindowApis();
   if (typeof window !== "undefined") {
     delete window.__protoAgentTestingOverlay;
     delete window.__studioAgentTestingOverlay;

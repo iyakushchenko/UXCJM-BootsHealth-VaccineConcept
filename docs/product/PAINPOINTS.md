@@ -47,7 +47,7 @@ Lean ship (this stream). Residuals stay OPEN until proven on `:5173`.
 | 2 | Outcome colors | fail red-ish · soft-fail/unexpected amber · ok default/white | COMPLETE (MVP) |
 | 3 | Elapsed timer | Mid-flight elapsed + cheap per-step duration | COMPLETE (MVP) |
 | 4 | Control-panel sitrep | Mode / CJM / experience / screen / beat counter in panel | COMPLETE (MVP) |
-| 5 | Alarm bell CTA | PO rings → log event + optional dump hook | COMPLETE (MVP) |
+| 5 | Alarm bell CTA | PO rings **sequence / expected-steps mismatch** → **live latch** `__studioAgentTestingTakeover` / `__studioConsumePoSignal` (primary) + dump secondary | COMPLETE (MVP) |
 | 6 | Cursor weird flag | Clickable flag + auto-log known parks/issues → `__studioPlaybackDiag` error code | COMPLETE (MVP) |
 | 6b | Scroll issue flag | Clickable **Scroll** CTA → amber `SCROLL_ISSUE_REPORTED` + host/`scrollTop` + dump; optional auto scrollIntoView/path-deviation | COMPLETE (MVP) |
 | 7 | Script timeline strip | Touchpoint keys; white/amber/red after step | COMPLETE (MVP) |
@@ -56,10 +56,16 @@ Lean ship (this stream). Residuals stay OPEN until proven on `:5173`.
 
 **PP-10 COMPLETE** (2026-07-20): Quinn mid-flight prove on R11 `:5173` — BR panel active with named coalesced steps, outcome colors, elapsed, control-panel sitrep, Alarm/Cursor/Dump, timeline chips, console START/END, FAIL/alarm dumps. Residual wishlist rows remain OPEN.
 
-### Dump policy (Arch — locked for MVP)
+### Live PO signal (Arch — primary mid-flight path)
+
+- **Alarm meaning:** sequence / expected-steps mismatch (e.g. progressive bubbles disclosure broken) — **not** vague “something weird.”
+- **Primary:** Alarm / Cursor / Scroll latch `window.__studioAgentTestingTakeover` + `CustomEvent("studio-agent-testing-po-signal")`. MCP agents **MUST poll/consume each beat** via `__studioConsumePoSignal()` / `__studioPeekPoSignal()` and branch (pause / investigate) — do **not** wait for dump download.
+- **Shape:** `{ type:'alarm'|'cursor'|'scroll', code, at, beat, screen, counter, sitrepLine, timeline, diagSnapshot }`. Alarm code = `ALARM_SEQUENCE_MISMATCH`.
+
+### Dump policy (Arch — secondary / postmortem)
 
 - **When:** FAIL sitrep (`stop({ result: "fail" })`) or PO **Alarm** / **Cursor weird** / **Scroll** (explicit).
-- **What:** last-N (default 5) JSON blobs in `sessionStorage` (`studioAgentTestingDumps`) + downloadable via overlay / `__studioDownloadAgentTestingDump`.
+- **What:** last-N (default 5) JSON blobs in `sessionStorage` (`studioAgentTestingDumps`) + downloadable via overlay / `__studioDownloadAgentTestingDump`. Includes `code`, `currentBeat`, timeline chips, last-N PLAYBACK_DIAG, typeIn/scroll/cursor summaries.
 - **Why not every step:** noisy, hangs the tab, floods storage; mid-flight UI already shows steps. Diag-first ≠ spam-first.
 - **Rejected overkill:** no heavy APM (Sentry/Datadog/full session replay). Prefer Motion (existing) + PLAYBACK_DIAG + this shell. Tiny util only if ROI is obvious.
 

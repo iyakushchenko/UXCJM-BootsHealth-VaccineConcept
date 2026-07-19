@@ -68,6 +68,7 @@
 | [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) | No near-dups; BASE→THEME→PANEL→LEGACY |
 | [NAMING.md](./NAMING.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) | `data-studio-*`, domain folders |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Co-own checklist + `check:page-final-pass` with Uma; no next mount until previous hard-green |
+| [../shell/PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · R15 | Mid-smoke: poll `__studioConsumePoSignal` each beat; Alarm = sequence mismatch — branch before more steps |
 | LESSONS: hybrid mount, createRoot unmount, search/icon, DS hover · invent chrome | Do not re-ship known fail classes; under-match Make |
 | Screen brief + register for the page | Mount gates / Make-retired |
 | [../shell/URL.md](../shell/URL.md) + modal guard | **Modal URL registry** + `data-studio-modal` before any dialog ship |
@@ -97,9 +98,10 @@
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty — no PROVEN without MCP log |
 | [VERSIONING.md](./VERSIONING.md) DoD when bump | Chip = package.json |
 | [../shell/URL.md](../shell/URL.md) modal ids + **canonical `localhost:5173`** | Prove deep-link / overlay registry; never invent ports |
-| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · R13 | `list_pages` → reuse tab; PLAYBACK_DIAG assertTypeIn on CJM ships |
+| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · R13 · **R15** | `list_pages` → reuse tab; PLAYBACK_DIAG assertTypeIn; **poll `__studioConsumePoSignal` each beat** |
+| **PO Alarm / Cursor / Scroll mid-flight** | Alarm = sequence mismatch. **Live latch first** (`__studioAgentTestingTakeover`) — dump secondary. On alarm: pause + investigate (e.g. progressive bubbles) |
 
-**Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
+**Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + **R15 PO signal consume** + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
 
 ### Ben (BE)
 
@@ -143,6 +145,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Ben (BE): <gate/version/CI> — applied: <script/check>
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
+
+**Knowledge improved** (2026-07-20 · stream: PO Alarm live latch · R15 · R12):
+- Arch (Director): Alarm = sequence mismatch; **live consume primary**, dump secondary; R15 Auto-Rule — applied: STUDIO_AUTO_RULES · PAINPOINTS · PLAYBACK_DIAG
+- Finn (FE): `__studioAgentTestingTakeover` / `__studioConsumePoSignal` + richer alarm dump — applied: agentTestingPoSignal · agentTestingDump · overlay
+- Quinn (QA): Poll/consume each beat mid-smoke; prove latch flips on Alarm + clears on consume — applied: agentTestingPoSignal.test · R11 `:5173`
+- Pax (PO sim): Mid-flight agent owns window → immediate live signal required — applied: process note
 
 **Knowledge improved** (2026-07-20 · stream: agent-testing mid-flight QA shell · PP-10 COMPLETE · R12):
 - Arch (Director): Locked dump policy (FAIL/alarm last-N only; reject heavy APM); painpoints board; PP-10 COMPLETE after `:5173` prove — applied: PAINPOINTS.md · PRODUCT_FORECAST §10 · NEXT_STEPS NOW 0

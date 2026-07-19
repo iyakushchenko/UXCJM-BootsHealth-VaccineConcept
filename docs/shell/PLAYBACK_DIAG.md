@@ -101,10 +101,23 @@ Filter DevTools console: `[PLAYBACK_DIAG]`.
 | `__protoRunTraditionalStepForwardSmoke` | Traditional step matrix |
 | `__protoRunRetreatSmoke` / `__protoRunTraditionalRetreatSmoke` | Retreat |
 | `__studioAgentTestingOverlay` | Mid-flight QA shell — steps/colors/timer/sitrep/alarm/timeline ([RECORDING.md](./RECORDING.md) · `src/app/shell/agent-testing/`) |
-| `__studioDownloadAgentTestingDump` | Last FAIL/alarm dump JSON (sessionStorage last-N — not every step) |
+| `__studioAgentTestingTakeover` | **Live** PO latch peek (`null` \| signal) — primary mid-flight path |
+| `__studioPeekPoSignal` / `__studioConsumePoSignal` | Peek / consume+clear live latch (poll each beat) |
+| `__studioDownloadAgentTestingDump` | Dump JSON (secondary — persistence/postmortem; last-N sessionStorage) |
 | `__studioCursorDiagnostics` + scroll reveal | Camera / scroll host |
 
-**Overlay ↔ diag:** PO **Alarm** / **Cursor** / **Scroll** flags and auto `CURSOR_UNEXPECTED_DWELL` / optional scrollIntoView·path-deviation soft-fails log here (`[AGENT_TESTING] … issue detected` + dump). Scroll CTA code: `SCROLL_ISSUE_REPORTED` (+ host/`scrollTop` snapshot via `playbackDiagScroll`). Filter console: `[PLAYBACK_DIAG]` + `[AGENT_TESTING]`. Painpoints: [PAINPOINTS.md](../product/PAINPOINTS.md) PP-10.
+**Overlay ↔ diag:** PO **Alarm** = sequence / expected-steps mismatch (`ALARM_SEQUENCE_MISMATCH`). **Alarm / Cursor / Scroll** latch a live takeover signal first; dump is secondary. Auto `CURSOR_UNEXPECTED_DWELL` / optional scrollIntoView·path-deviation soft-fails log here. Scroll CTA code: `SCROLL_ISSUE_REPORTED`. Filter: `[PLAYBACK_DIAG]` + `[AGENT_TESTING]`. Painpoints: [PAINPOINTS.md](../product/PAINPOINTS.md) PP-10.
+
+**Mid-smoke poll (Quinn/Finn — mandatory):**
+
+```js
+// each beat / step of MCP smoke:
+const sig = window.__studioConsumePoSignal?.() // or peek via __studioAgentTestingTakeover
+if (sig?.type === "alarm") {
+  // pause play / investigate progressive disclosure — do NOT keep stepping blind
+  console.warn("PO Alarm", sig.code, sig.beat, sig.diagSnapshot)
+}
+```
 
 **Note:** `__protoTriggerTransport` requires an active MCP session (`__protoRun*` / recording). UI Step buttons always work; for console step use a smoke runner or click the nav button. Helper arm coalesces identical transport rows on the overlay (no monotonous spam).
 

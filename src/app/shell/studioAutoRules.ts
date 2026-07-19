@@ -86,6 +86,13 @@ export const STUDIO_AUTO_RULES: readonly StudioAutoRule[] = [
       "AGENT TESTING mid-flight QA shell (readable steps/colors/timer/sitrep/alarm/timeline/dumps) — not helper spam",
     ciGate: "vitest",
   },
+  {
+    id: "po-signal-consume",
+    title:
+      "PO Alarm/Cursor/Scroll latch __studioAgentTestingTakeover; agents MUST __studioConsumePoSignal each beat (live primary, dump secondary)",
+    ciGate: "vitest",
+    mcpAssert: "__studioConsumePoSignal",
+  },
 ] as const;
 
 /** Ids Arch/Ben expect wired — felony scan fails if catalog drops one. */

@@ -93,10 +93,14 @@ window.__studioExportJourneyBundle?.()        // journey.json
 window.__studioSaveRecordingAsJourney?.()     // REC → ephemeral CJM journey
 window.__studioApplyJourneyBundle?.(json)     // runtime import
 window.__studioStartRecording?.()             // recording session
+// Mid-flight PO signals (HARD — poll each beat; dump is secondary):
+window.__studioAgentTestingTakeover           // peek live latch (null | { type, code, beat, screen, diagSnapshot })
+window.__studioConsumePoSignal?.()            // consume + clear — branch on Alarm (sequence mismatch)
+window.__studioDownloadAgentTestingDump?.()   // secondary postmortem dump
 // Legacy stable aliases (same functions): window.__proto*
 ```
 
-Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates.
+Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates. **R15:** mid-smoke agents MUST poll/consume PO signals each step — [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R15.
 
 ## CI
 

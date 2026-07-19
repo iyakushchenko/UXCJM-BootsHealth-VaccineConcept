@@ -2,13 +2,21 @@
  * Console dump policy (Arch — PP-10):
  * Save last-N dumps to sessionStorage + downloadable JSON on FAIL or PO alarm.
  * Never dump every step (noise / hang risk). Prefer overlay rows + PLAYBACK_DIAG.
+ *
+ * PO signal latch (`__studioAgentTestingTakeover` / `__studioConsumePoSignal`)
+ * is the **primary** mid-flight path — dumps are secondary persistence/postmortem.
  */
 
 import type { AgentTestingLogEntry } from "@/app/shell/agent-testing/agentTestingTypes";
+import type { AgentTestingPoSignal } from "@/app/shell/agent-testing/agentTestingPoSignal";
 import { getControlPanelLogEntries } from "@/app/shell/controlPanelLog";
+import { getPlaybackDiagBundle } from "@/app/shell/playbackDiag";
+import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 
 export const AGENT_TESTING_DUMP_KEY = "studioAgentTestingDumps";
 export const AGENT_TESTING_DUMP_MAX = 5;
+/** Last-N PLAYBACK_DIAG events embedded in dump / alarm payload. */
+export const AGENT_TESTING_DUMP_DIAG_EVENTS = 40;
 
 export type AgentTestingDumpReason =
   | "fail"
@@ -20,9 +28,36 @@ export type AgentTestingDumpReason =
 export type AgentTestingDump = {
   atIso: string;
   reason: AgentTestingDumpReason;
+  /** Explicit machine code — Alarm = ALARM_SEQUENCE_MISMATCH. */
+  code?: string;
   title: string;
   elapsedMs: number;
   sitrepLine?: string;
+  currentBeat?: {
+    beatId?: string | null;
+    counter?: string | null;
+    screenId?: string | null;
+    touchpointKey?: string | null;
+  };
+  timeline?: Array<{ key: string; outcome: string }>;
+  recentPlaybackDiagEvents?: unknown[];
+  summaries?: {
+    typeIn?: {
+      starts: number;
+      ends: number;
+      skips: number;
+      samples: number;
+    };
+    scroll?: { events: number; retreatIntoView: number };
+    cursor?: {
+      events: number;
+      parks: number;
+      lastParkReason: string | null;
+    };
+    click?: { ok: number; fail: number };
+  };
+  /** Copy of live latch at dump time (if any). */
+  poSignal?: AgentTestingPoSignal | null;
   log: Array<{
     time: string;
     label: string;
@@ -67,16 +102,28 @@ export function pushAgentTestingDump(dump: AgentTestingDump): AgentTestingDump[]
   return next;
 }
 
+function reasonDefaultCode(reason: AgentTestingDumpReason): string | undefined {
+  if (reason === "alarm") return "ALARM_SEQUENCE_MISMATCH";
+  if (reason === "cursor") return "CURSOR_WEIRD_FLAG";
+  if (reason === "scroll") return "SCROLL_ISSUE_REPORTED";
+  return undefined;
+}
+
 export function buildAgentTestingDump(options: {
   reason: AgentTestingDumpReason;
   title: string;
   elapsedMs: number;
   sitrepLine?: string;
   log: AgentTestingLogEntry[];
+  code?: string;
+  timeline?: Array<{ key: string; outcome: string }>;
+  poSignal?: AgentTestingPoSignal | null;
 }): AgentTestingDump {
   let playbackDiag: unknown;
   let cursorDiag: unknown;
   let controlPanel: unknown;
+  let recentPlaybackDiagEvents: unknown[] | undefined;
+  let summaries: AgentTestingDump["summaries"];
   try {
     playbackDiag =
       typeof window !== "undefined"
@@ -84,6 +131,36 @@ export function buildAgentTestingDump(options: {
         : undefined;
   } catch {
     playbackDiag = { error: "playbackDiag unavailable" };
+  }
+  try {
+    const bundle = getPlaybackDiagBundle();
+    recentPlaybackDiagEvents = bundle.events.slice(
+      -AGENT_TESTING_DUMP_DIAG_EVENTS
+    );
+    summaries = {
+      typeIn: {
+        starts: bundle.typeIn.starts,
+        ends: bundle.typeIn.ends,
+        skips: bundle.typeIn.skips,
+        samples: bundle.typeIn.progressSamples.length,
+      },
+      scroll: {
+        events: bundle.scroll.events,
+        retreatIntoView: bundle.scroll.retreatIntoView,
+      },
+      cursor: {
+        events: bundle.cursor.events,
+        parks: bundle.cursor.parks,
+        lastParkReason: bundle.cursor.lastParkReason,
+      },
+      click: {
+        ok: bundle.click.ok,
+        fail: bundle.click.fail,
+      },
+    };
+  } catch {
+    recentPlaybackDiagEvents = undefined;
+    summaries = undefined;
   }
   try {
     cursorDiag =
@@ -100,12 +177,25 @@ export function buildAgentTestingDump(options: {
     controlPanel = { error: "controlPanel unavailable" };
   }
 
+  const sitrep = readAgentTestingSitrep();
+
   return {
     atIso: new Date().toISOString(),
     reason: options.reason,
+    code: options.code ?? reasonDefaultCode(options.reason),
     title: options.title,
     elapsedMs: options.elapsedMs,
-    sitrepLine: options.sitrepLine,
+    sitrepLine: options.sitrepLine ?? sitrep.line,
+    currentBeat: {
+      beatId: sitrep.beat ?? null,
+      counter: sitrep.counter ?? null,
+      screenId: sitrep.screenId ?? null,
+      touchpointKey: sitrep.touchpointKey ?? null,
+    },
+    timeline: options.timeline,
+    recentPlaybackDiagEvents,
+    summaries,
+    poSignal: options.poSignal ?? null,
     log: options.log.map((e) => ({
       time: e.timeLabel,
       label: e.label,
@@ -119,7 +209,7 @@ export function buildAgentTestingDump(options: {
   };
 }
 
-/** Download latest (or provided) dump as JSON — hang-safe. */
+/** Download latest (or provided) dump as JSON — hang-safe. Secondary to live latch. */
 export function downloadAgentTestingDump(dump?: AgentTestingDump): boolean {
   if (typeof document === "undefined") return false;
   const payload = dump ?? readAgentTestingDumps()[0];

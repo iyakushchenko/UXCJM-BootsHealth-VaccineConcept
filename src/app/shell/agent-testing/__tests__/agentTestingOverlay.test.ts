@@ -12,9 +12,12 @@ import {
   formatSitrepHint,
   formatSitrepTitle,
   IDLE_MS,
+  installAgentTestingOverlayApi,
   isAgentTestingOverlayActive,
   isAgentTestingOverlaySettling,
+  peekPoSignal,
   resolveAgentTestingOverlayTitle,
+  ringAgentTestingAlarm,
   scheduleAgentTestingOverlayEnsureClear,
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
@@ -30,6 +33,69 @@ describe("agentTestingOverlay", () => {
     vi.useRealTimers();
   });
 
+  it("ringAlarm latches ALARM_SEQUENCE_MISMATCH for live consume", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const listeners = new Map<string, Set<EventListener>>();
+    vi.stubGlobal("window", {
+      __studioAgentTestingTakeover: null as unknown,
+      setTimeout: (fn: TimerHandler, ms?: number) =>
+        globalThis.setTimeout(fn as () => void, ms),
+      clearTimeout: (id: ReturnType<typeof setTimeout>) =>
+        globalThis.clearTimeout(id),
+      setInterval: (fn: TimerHandler, ms?: number) =>
+        globalThis.setInterval(fn as () => void, ms),
+      clearInterval: (id: ReturnType<typeof setInterval>) =>
+        globalThis.clearInterval(id),
+      addEventListener: (type: string, fn: EventListener) => {
+        if (!listeners.has(type)) listeners.set(type, new Set());
+        listeners.get(type)!.add(fn);
+      },
+      removeEventListener: (type: string, fn: EventListener) => {
+        listeners.get(type)?.delete(fn);
+      },
+      dispatchEvent: (ev: Event) => {
+        const set = listeners.get(ev.type);
+        if (set) for (const fn of set) fn(ev);
+        return true;
+      },
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=chat",
+        pathname: "/",
+        search: "?project=boots-pharmacy&screen=chat",
+        hash: "",
+      },
+      history: { state: null, replaceState: vi.fn(), pushState: vi.fn() },
+    });
+    if (typeof globalThis.CustomEvent === "undefined") {
+      vi.stubGlobal(
+        "CustomEvent",
+        class CustomEvent extends Event {
+          detail: unknown;
+          constructor(type: string, init?: CustomEventInit) {
+            super(type, init);
+            this.detail = init?.detail;
+          }
+        }
+      );
+    }
+    installAgentTestingOverlayApi();
+    startAgentTestingOverlay("alarm-latch");
+    ringAgentTestingAlarm("progressive bubbles broken");
+    expect(peekPoSignal()?.code).toBe("ALARM_SEQUENCE_MISMATCH");
+    expect(window.__studioAgentTestingTakeover?.type).toBe("alarm");
+    expect(
+      warn.mock.calls.some(
+        (c) =>
+          String(c[0]).includes("[AGENT_TESTING]") &&
+          String(c[1]).includes("ALARM_SEQUENCE_MISMATCH")
+      )
+    ).toBe(true);
+    const consumed = window.__studioConsumePoSignal?.();
+    expect(consumed?.code).toBe("ALARM_SEQUENCE_MISMATCH");
+    expect(peekPoSignal()).toBeNull();
+    stopAgentTestingOverlay({ force: true });
+  });
+
   it("flagScrollIssue soft-fails with SCROLL_ISSUE_REPORTED when active", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     startAgentTestingOverlay("scroll-flag");
@@ -41,6 +107,7 @@ describe("agentTestingOverlay", () => {
           String(c[1]).includes("SCROLL_ISSUE_REPORTED")
       )
     ).toBe(true);
+    expect(peekPoSignal()?.code).toBe("SCROLL_ISSUE_REPORTED");
     stopAgentTestingOverlay({ force: true });
   });
 

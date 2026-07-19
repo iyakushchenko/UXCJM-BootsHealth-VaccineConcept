@@ -62,10 +62,12 @@ window.__studioAgentTestingOverlay?.touch() // arm if inactive; no nest bump; ti
 window.__studioAgentTestingOverlay?.log("clicked Book Step 2") // plain line (outcome inferred)
 window.__studioAgentTestingOverlay?.logStep?.({ label: "step-forward · traditional-plp", beatId: "traditional-plp", outcome: "ok" })
 window.__studioAgentTestingOverlay?.setTimeline?.(["tp:a", "tp:b"])
-window.__studioAgentTestingOverlay?.ringAlarm?.("PO spotted drift")
+window.__studioAgentTestingOverlay?.ringAlarm?.("progressive bubbles broken") // ALARM_SEQUENCE_MISMATCH + live latch
 window.__studioAgentTestingOverlay?.flagCursorWeird?.()
 window.__studioAgentTestingOverlay?.flagScrollIssue?.("camera stuck mid-flight")
-window.__studioDownloadAgentTestingDump?.() // last FAIL/alarm/scroll dump (not every step)
+window.__studioAgentTestingTakeover // peek live PO signal (primary)
+window.__studioConsumePoSignal?.() // consume + clear — poll each beat mid-smoke
+window.__studioDownloadAgentTestingDump?.() // secondary dump (postmortem)
 window.__studioAgentTestingOverlay?.stop() // nest-aware → DONE settle ~9s; no reload
 window.__studioAgentTestingOverlay?.stop({ force: true }) // clear immediately
 window.__studioAgentTestingOverlay?.forceClear() // Dismiss / stuck recovery — always works; hard-removes DOM
@@ -74,7 +76,7 @@ window.__studioAgentTestingOverlay?.stop({ settleMs: 9000, reload: true, result:
 window.__studioAgentTestingOverlay?.isActive() // false during settle
 ```
 
-**Mid-flight QA shell (2026-07-20 · PP-10):** code under `src/app/shell/agent-testing/`. Readable coalesced steps (beat/touchpoint/action), ok/amber/red rows, elapsed timer, control-panel sitrep, Alarm + Cursor + Scroll + Dump CTAs, script timeline strip, console `AGENT TEST START/END` separators. **Dump policy:** last-N JSON in `sessionStorage` (`studioAgentTestingDumps`) on FAIL sitrep or PO alarm/cursor/scroll only — never every step (noise/hang). Track: [PAINPOINTS.md](../product/PAINPOINTS.md).
+**Mid-flight QA shell (2026-07-20 · PP-10):** code under `src/app/shell/agent-testing/`. Readable coalesced steps (beat/touchpoint/action), ok/amber/red rows, elapsed timer, control-panel sitrep, Alarm + Cursor + Scroll + Dump CTAs, script timeline strip, console `AGENT TEST START/END` separators. **Alarm** = sequence / expected-steps mismatch. **Primary mid-flight path:** live latch `__studioAgentTestingTakeover` / `__studioConsumePoSignal` (agents MUST poll each beat). **Dump secondary:** last-N JSON in `sessionStorage` (`studioAgentTestingDumps`) on FAIL/alarm/cursor/scroll — never every step. Track: [PAINPOINTS.md](../product/PAINPOINTS.md).
 
 ### Lifecycle (must not stick)
 
