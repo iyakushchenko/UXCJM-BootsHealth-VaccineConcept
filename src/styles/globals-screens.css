@@ -376,9 +376,10 @@
 /* ── Global text links (Make wire under .proto-viewport) ────────────────────
  * Rest: no underline; navy #012169. Hover: underline + #01318f.
  * SAME contract as `.uxds-link` (footer-like) — FE_STANDARDS §2.
- * Covers <a>, Figma underline spans/ps, and anything tagged .proto-link.
+ * Covers Make <a> / Figma underline spans / `.proto-link` only.
+ * Migrated React links use `.uxds-link` (text-link.css) — excluded so kit tokens win.
  */
-.proto-viewport a,
+.proto-viewport a:not(.uxds-link),
 .proto-viewport .proto-link,
 .proto-viewport p.underline,
 .proto-viewport p[class*="underline"],
@@ -392,7 +393,7 @@
   color: #012169 !important;
   user-select: none;
 }
-.proto-viewport a:hover,
+.proto-viewport a:not(.uxds-link):hover,
 .proto-viewport .proto-link:hover,
 .proto-viewport p.underline:hover,
 .proto-viewport p[class*="underline"]:hover,
@@ -422,10 +423,10 @@
   color: inherit !important;
 }
 
-/* Global links — no focus ring/outline (prototype) */
-.proto-viewport a:focus,
-.proto-viewport a:focus-visible,
-.proto-viewport a:active:focus,
+/* Global links — no focus ring/outline (prototype). `.uxds-link` keeps kit focus-visible. */
+.proto-viewport a:not(.uxds-link):focus,
+.proto-viewport a:not(.uxds-link):focus-visible,
+.proto-viewport a:not(.uxds-link):active:focus,
 .proto-viewport .proto-link:focus,
 .proto-viewport .proto-link:focus-visible,
 .proto-viewport .proto-link:active:focus,

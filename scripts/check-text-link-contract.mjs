@@ -27,6 +27,7 @@ const BOOK_STEP1_CSS = path.join(
   ROOT,
   "src/projects/boots-pharmacy/screens/book-step1/book-step1-location.css"
 );
+const GLOBALS_SCREENS_CSS = path.join(ROOT, "src/styles/globals-screens.css");
 
 let failed = false;
 
@@ -181,6 +182,31 @@ for (const dir of SCAN_DIRS) {
   }
 }
 ok("no competing .uxds-link rest-underline in screen/kit CSS");
+
+// ── 5. Make viewport must not steal `.uxds-link` with !important hex ────────
+if (fs.existsSync(GLOBALS_SCREENS_CSS)) {
+  const screens = stripCssComments(fs.readFileSync(GLOBALS_SCREENS_CSS, "utf8"));
+  const excludesKit =
+    /\.proto-viewport\s+a:not\(\.uxds-link\)/.test(screens) &&
+    /\.proto-viewport\s+a:not\(\.uxds-link\):hover/.test(screens);
+  if (!excludesKit) {
+    fail(
+      "globals-screens.css must scope Make link chrome as `a:not(.uxds-link)` so kit tokens own migrated links"
+    );
+  } else {
+    ok("Make viewport link rules exclude `.uxds-link`");
+  }
+  // Footer-like contract still present for `.proto-link` (may share a multi-selector block)
+  const protoLinkRest =
+    /\.proto-viewport\s+\.proto-link[\s\S]{0,400}?\{[^}]*text-decoration(?:-line)?\s*:\s*none/.test(
+      screens
+    );
+  if (!protoLinkRest) {
+    fail("globals-screens.css `.proto-link` rest must remain no-underline (footer-like)");
+  } else {
+    ok("Make `.proto-link` rest = no underline (footer-like)");
+  }
+}
 
 if (failed) {
   console.error(

@@ -69,7 +69,7 @@ Boots content grid (header logo + `ProtoFooter`):
 | **Booster interactions** | Toggle `includeBoosterDose`; Continue gating elsewhere | React-owned input + props (141234b+) | **match** | Do not regress |
 | **Learn more** | Make: body copy always visible + inline “Learn More” underline `#012169` | UXDS `Disclosure` + `.uxds-link` (closed by default) | **intentional** | Shared text-link baseline; kit disclosure vs always-open Make copy |
 | **Continue CTA** | `#012169` pill 360, min-w 230, h 48, 16/16 semibold, tracking -0.32; pt 24 wrap | Same + Make hover/active navy darken | **match** | — |
-| **Help / phone block** | 13/24 center; phone link `#305854` (Make) | `.uxds-link` navy `#012169` underline | **intentional** | Regular text-link family (FE_STANDARDS §2); crumb stays teal |
+| **Help / phone block** | 13/24 center; phone link `#305854` (Make) | `.uxds-link` navy `#012169` (no underline rest → underline hover) | **intentional** | Regular text-link family (FE_STANDARDS §2); crumb stays teal |
 | **Figma cursor affordance** | Hidden via CSS on child 7 | Not rendered in React | **intentional** | Demo cursor not needed |
 | **Decorative bands outside body** | None on Step 4 beyond body fill + white crumbs | Same | **match** | — |
 
