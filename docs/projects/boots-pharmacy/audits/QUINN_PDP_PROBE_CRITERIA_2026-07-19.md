@@ -1,8 +1,8 @@
 # Quinn (QA) — PDP MCP prove criteria
 
-**Status:** MCP matrix **PASS** @ tip `76e2433` / v0.0.30 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
+**Status:** MCP matrix **PASS** @ tip `7bce2b3` / v0.0.31 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
 **PAGE FINAL PASS:** Quinn `mcpFinalPass: PASS` — Arch HARD-GREEN pending (`hardGreen: false`). Uma §0a PROVEN @ `76e2433`.  
-**Updated:** 2026-07-19 (FAQ 6/6 + Accordion grid motion + TertiaryCta soft + muted chevrons)  
+**Updated:** 2026-07-19 (hang-guard re-prove after v0.0.30 FAQ/Accordion/TertiaryCta)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
 **Refs:** [RECORDING.md](../../../shell/RECORDING.md) · LESSONS overlay/scroll · PLP probe pattern in `studioMcpPageProbe.ts`
@@ -17,6 +17,7 @@
 - Click-through under open modal = felony FAIL.
 - Invented PDP loader/spinner = FAIL (LE1–LE3 N/A).
 - Soft-skip on `pdp-below-fold-scroll` = **not** fidelity PROVEN for Body7 (hook must be present + reveal PASS).
+- Probe must use `{ reload: false }`. Do **not** run unbounded robo prove that navigates away.
 
 ---
 
@@ -65,13 +66,13 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 
 Logged-in Book now → `screen=book-step-1` — prove in a second session or after login helper (document in evidence log).
 
-**Optional spot (v0.0.30):** Accordion CSSOM `0fr`↔`1fr` + `__clip`; Find out more `.studio-tertiary-cta--soft`; `__studioProveRoboCursorFeedback(".proto-avail-header .proto-popup-close")` for R10.
+**Optional spot (v0.0.31 hang):** bounded `__studioProveRoboCursorFeedback(".proto-avail-header .proto-popup-close")` under 8s; Accordion CSSOM `0fr`↔`1fr` + `__clip`; Find out more `.studio-tertiary-cta--soft`.
 
 ---
 
 ## Evidence required for PROVEN / Final Pass later
 
-1. Localhost tip SHA + version chip match `package.json`. ✅ `76e2433` / v0.0.30  
+1. Localhost tip SHA + version chip match `package.json`. ✅ `7bce2b3` / v0.0.31  
 2. MCP panel step log (PASS/FAIL) or probe JSON with overlay-arm + overlay-eyes — **done:** [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md) (**23/23**).  
 3. Register scaffold P0 rows marked Fixed/Present.  
 4. Uma fidelity §0a DS matrix **PASS** for FAQ Accordion + download CTA hover — **done** @ `76e2433`.  

@@ -125,19 +125,19 @@
       "stampedAt": {
         "sha": "c6e8931",
         "date": "2026-07-19",
-        "note": "Structure stamp retained. Quinn MCP PASS @ 76e2433 / v0.0.30 (Uma §0a PROVEN @ 331998b). hardGreen false until Arch restore."
+        "note": "Structure stamp retained. Quinn MCP PASS @ 7bce2b3 / v0.0.31 (Uma §0a PROVEN @ 76e2433 / 331998b). hardGreen false until Arch restore."
       },
       "mcpFinalPass": {
         "status": "PASS",
         "pass": true,
         "stampedAt": {
-          "sha": "bacc4d6",
+          "sha": "7bce2b3",
           "date": "2026-07-19",
-          "version": "0.0.30",
+          "version": "0.0.31",
           "auditor": "Quinn (QA)",
-          "note": "MCP __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) 23/23 PASS @ code tip 76e2433 / v0.0.30; FAQ 6/6 + Accordion 0fr↔1fr CSS + TertiaryCta soft + muted chevron tokens; robo R10 avail-close PASS. Uma §0a PROVEN @ 76e2433. hardGreen false until Arch restore. Audit: FE_AUDIT_PDP_MCP_2026-07-19.md"
+          "note": "MCP __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) 23/23 PASS @ code tip 7bce2b3 / v0.0.31 hang guards; teardown clean; hang residual none (bounded R10 only — no unbounded robo). Uma §0a PROVEN @ 76e2433. hardGreen false until Arch restore. Audit: FE_AUDIT_PDP_MCP_2026-07-19.md"
         },
-        "url": "http://127.0.0.1:5188/?project=boots-pharmacy&screen=pdp",
+        "url": "http://127.0.0.1:5193/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
         "matrix": [
           { "id": "overlay-arm", "pass": true, "detail": "BR panel visible" },

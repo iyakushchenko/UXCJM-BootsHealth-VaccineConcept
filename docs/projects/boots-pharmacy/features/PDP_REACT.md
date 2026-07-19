@@ -12,7 +12,7 @@
 
 Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** Quinn MCP **PASS** + Uma §0a **PROVEN** @ `76e2433` / v0.0.30 — Arch restores HARD-GREEN next. **Home waits PO `+`.**
+**Gate:** Quinn MCP **PASS** @ `7bce2b3` / v0.0.31 + Uma §0a **PROVEN** @ `76e2433` / v0.0.30 — Arch restores HARD-GREEN next. **Home waits PO `+`.**
 
 ## Business logic
 
