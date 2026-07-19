@@ -242,6 +242,9 @@ export function handleProtoInputClick(target: HTMLElement): boolean {
   );
   if (!radioRow) return false;
 
+  // React screens own radio state — never Make-mutate them.
+  if (isReactOwnedInputRow(radioRow)) return false;
+
   ensureRadioRow(radioRow);
 
   const list = radioRow.closest<HTMLElement>('[data-name="list"]');

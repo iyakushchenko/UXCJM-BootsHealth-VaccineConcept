@@ -34,11 +34,14 @@ Agentic CJM still lands on Book Step 2 after Availability Tool; this pilot prove
 
 | Screen | Stack |
 |--------|--------|
+| **PLP — Vaccinations** | **React + UXDS** (Make child **9** retired via `data-studio-make-retired`; delete deferred) |
 | **Book Step 1 — Location** | **React + UXDS** (Make HTML hidden for this child only) |
 | **Book Step 2 — Date and Time** | **React + UXDS** (Make HTML hidden for Frame child **4** only) |
 | **Book Step 3 — Confirmation** | **React + UXDS** (Make HTML hidden for Frame child **3** only) |
 | All other Boots screens | Make wire (+ overlays/popups as before) |
 | Availability Tool | React overlay (prior enrichment) |
+
+Erase-Make order: **PLP → PDP → Home → Chat → History/Details → delete Book Make children**. See [features/PLP_REACT.md](./features/PLP_REACT.md).
 
 ---
 

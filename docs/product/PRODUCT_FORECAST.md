@@ -13,6 +13,8 @@ This is the engine-level map of what must exist before UX Studio is a real produ
 
 Ship the **control room** first: deep-linkable screens, recordable interactions, clean agent chrome, slim CI, multi-project registry, domain-named surfaces. Concept pages (Boots) are the rabbit; they do not define the product ceiling.
 
+**Boots erase-Make program (Director lock):** migrate remaining Make screens to React in order **PLP → PDP → Home → Chat → History/Details**, then **delete Book Step 1–3 Make children**. Page DONE = React-mounted **and** Make child retired from view with wire gates; prefer delete when safe, else `data-studio-make-retired` + no LEGACY growth — document honest residual.
+
 ---
 
 ## NOW → NEXT → LATER (Director lock)
@@ -21,14 +23,18 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 | Work | Why | Status |
 |------|-----|--------|
-| Post-agent clean slate | Sticky Choose Pharmacy after MCP sitrep/reload rage | **LANDED** — hub home + strip modal + sync lock |
+| **PDP React migration** | Next erase-Make rabbit after PLP | **NOW** |
 | Versioning habit | notes + consider patch on named demos | Habit — every ship |
-| Recording compile→journeys | Ephemeral Save as journey → CJM catalog landed; durable `journeys.ts` later | **LANDED (vertical)** |
+| Post-agent clean slate | Sticky Choose Pharmacy after MCP sitrep/reload rage | **LANDED** |
+| Recording compile→journeys | Ephemeral Save as journey → CJM catalog | **LANDED (vertical)** |
+| **PLP React migration** | Listing CJM entry | **LANDED** — [PLP_REACT.md](../projects/boots-pharmacy/features/PLP_REACT.md) |
 
 ### NEXT
 
 | Work | Why |
 |------|-----|
+| **Home → Chat → History/Details** React | Continue erase-Make sequence ([NEXT_STEPS.md](./NEXT_STEPS.md)) |
+| **Delete Book 1–3 Make children** | Only after sequence above + CJM green |
 | LEGACY retirement by screen | No LEGACY growth; shrink `globals-screens` + Make wire as React pages land |
 | Concept `.proto-*` class debt | Boots wire/footer/chat/avail cards still `.proto-*` in LEGACY — retire with page migrate |
 | Engine monster splits | `App.tsx` / `useJourneyPlayback.ts` — extract by domain when next touched |
@@ -56,7 +62,7 @@ Shareable `?project=&screen=` (+ `&modal=` for blocking lightboxes e.g. `choose-
 
 ### 2. Recording fidelity — v2 MATRIX + COMPILE VERTICAL LANDED
 
-`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay (`isTrusted` capture → same selector chain). **Director-script** + **retreat-sync** via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind`. Wire-intent for known `JourneyBeatActionId`. **Compile→journeys:** `compileRecordingToJourney` / Save as journey overlays the CJM slot in `journeyRuntimeStore` (playable; not a durable `journeys.ts` write). Still open: beat-enter / scroll / typed-text **replay**; free journey ids beyond two CJM slots.
+`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay. **Director-script** + **retreat-sync**. **Compile→journeys** overlays CJM slot. Capture gaps (beat-enter / scroll / typed-text) largely closed at tip; compile still gaps scroll/typed.
 
 ### 3. Interaction fidelity — ONGOING
 
@@ -67,8 +73,8 @@ Shared kits in `src/uxds/interactions/`. Dead CTAs forbidden. Fake data OK.
 | Surface | Rule |
 |---------|------|
 | Filenames / modules | `studio*` / domain verbs — done; `check:felonies` locks proto* basenames |
-| PANEL/chrome CSS | `.studio-nav-*`, `.studio-*`, `.studio-agent-testing-*` — this tip |
-| DOM attrs | `data-studio-*` (+ `dataset.studio*`) — this tip |
+| PANEL/chrome CSS | `.studio-nav-*`, `.studio-*`, `.studio-agent-testing-*` |
+| DOM attrs | `data-studio-*` (+ `dataset.studio*`) |
 | Window APIs | Prefer `__studio*`; keep `__proto*` aliases |
 | Beat JSON | `protoTab` stays until beat-schema migration |
 | Storage / events | `studio-nav:` / `studio-hub:` / `studio-*-sync` with legacy read |
@@ -86,7 +92,7 @@ Extract on second use. Theme remaps only. Hex→token = hygiene.
 
 Default push = unit + build (+ cheap contracts). Playwright = `workflow_dispatch` / local. **No auto marathon.**
 
-### 8. File hygiene — LOCKED (this tip)
+### 8. File hygiene — LOCKED
 
 `npm run check:hygiene` in `npm test`. Default 1600 LOC; allowlist LEGACY + current monsters. Prefer domain splits over ceiling bumps ([HYGIENE.md](./HYGIENE.md)).
 
@@ -100,11 +106,20 @@ BR **AGENT TESTING** + invisible click guard; `touch()`; MCP `stop({ reload: tru
 
 ### 11. Versioning — HABIT THEN AUTOMATION
 
-Local notes + CHANGELOG. Release CI later.
+Local notes + CHANGELOG. Release CI later. Version chip must match `package.json` (felony if lie).
 
 ### 12. X-Suite — SEAM ONLY
 
 Documented handshake; do not build a second studio inside Summarizer.
+
+### 13. Erase-Make (Boots rabbit) — PROGRAM
+
+| Gate | Rule |
+|------|------|
+| DONE | React mount + Make retired from view + wire gates + no LEGACY growth + honest residual |
+| Retire mode | Delete Make child when safe; else `data-studio-make-retired` |
+| Order | **PLP → PDP → Home → Chat → History/Details → delete Book 1–3 Make** |
+| Audit | Nazi QA under `docs/projects/boots-pharmacy/audits/` before PO |
 
 ---
 
@@ -121,6 +136,7 @@ Documented handshake; do not build a second studio inside Summarizer.
 | Subagent “done” | Parent verifies §6–§7 |
 | `proto` identity drift | No new `.proto-*` / `data-proto-*`; hygiene + naming rules |
 | Monster / micro-file extremes | Hygiene ratchet + domain cohesion |
+| Make residual forgotten | Honest residual in brief/audit; delete at sequence end |
 
 ---
 
@@ -129,12 +145,12 @@ Documented handshake; do not build a second studio inside Summarizer.
 1. URL + overlay + clean bar — landed  
 2. Recording screen markers → replay — landed  
 3. Domain CSS/attrs + hygiene — landed  
-4. Version chip + agent felony gate — **this tip**  
-5. Recording compile→journeys vertical — landed; durable journeys.ts + REC capture gaps next  
-
-6. LEGACY shrink by screen + UXDS extract-on-second-use  
-7. Second project rabbit  
-8. Release CI + broader CSS contracts  
-9. X-Suite handshake  
+4. Version chip + agent felony gate — landed  
+5. Recording compile→journeys vertical — landed  
+6. **Erase-Make: PLP landed → PDP (NOW) → Home → Chat → History/Details → delete Book Make children**  
+7. LEGACY shrink by screen + UXDS extract-on-second-use  
+8. Second project rabbit  
+9. Release CI + broader CSS contracts  
+10. X-Suite handshake  
 
 PO accept/reject is on product outcomes. Tech path above is not optional shopping.

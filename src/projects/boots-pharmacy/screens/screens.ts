@@ -33,9 +33,19 @@ export function studioScreenAtTab(tab: number): ProjectScreen | undefined {
   return PROJECT_SCREENS[studioTabToIndex(tab)];
 }
 
+/** Zero-based `current` index for Agentic Site Pilot Home (child 11). */
+export const INDEX_HOME = PROJECT_SCREENS.findIndex(
+  (screen) => screen.childIndex === 11,
+);
+
 /** Zero-based `current` index for PLP. Vaccinations (child 9). */
 export const INDEX_PLP = PROJECT_SCREENS.findIndex(
   (screen) => screen.childIndex === 9,
+);
+
+/** Zero-based `current` index for PDP. Vaccine Details (child 8). */
+export const INDEX_PDP = PROJECT_SCREENS.findIndex(
+  (screen) => screen.childIndex === 8,
 );
 
 /** Zero-based `current` index for Book Step 1 — Location (child 7). */

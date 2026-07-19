@@ -117,7 +117,11 @@ import {
   mountBookStep3Screen,
   unmountBookStep3Screen,
 } from "@/projects/boots-pharmacy/screens/book-step-3/mountBookStep3Screen";
-
+import {
+  isPlpReactMounted,
+  mountPlpScreen,
+  unmountPlpScreen,
+} from "@/projects/boots-pharmacy/screens/plp/mountPlpScreen";
 
 /**
  * DOM child order inside Frame219's root div (JSX order = DOM order):
@@ -857,6 +861,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     INDEX_BOOK_STEP1,
     INDEX_BOOK_STEP2,
     INDEX_BOOK_STEP3,
+    INDEX_HOME,
+    INDEX_PDP,
     INDEX_PLP,
     studioTabToIndex,
     ProjectFrame,
@@ -1509,6 +1515,29 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   useEffect(() => {
     return () => unmountBookStep3Screen();
+  }, []);
+
+  // PLP — React + UXDS migration (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== 9) {
+      unmountPlpScreen();
+      return;
+    }
+
+    mountPlpScreen({
+      onBookNow: () => setCurrent(INDEX_PDP),
+      onQuickView: () => openQuickView(),
+      onGoHome: () => goRef.current(INDEX_HOME),
+      onFiltersDirtyChange: setPlpFiltersDirty,
+    });
+
+    setupFooters({
+      onGoToPlp: () => goRef.current(INDEX_PLP),
+    });
+  }, [current, INDEX_HOME, INDEX_PDP, INDEX_PLP, openQuickView]);
+
+  useEffect(() => {
+    return () => unmountPlpScreen();
   }, []);
 
   // Book – Step 1 (child 7): breadcrumb rewrite — Make path only
@@ -2286,23 +2315,26 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current, loginPopupOpen, loggedInFlag]);
 
-  // Wire wishlist heart icons on all pages
+  // Wire wishlist heart icons on all pages (React PLP owns its own hearts)
   useEffect(() => {
     const viewport = document.querySelector(".studio-viewport");
     if (!viewport) return;
     const hearts = viewport.querySelectorAll<HTMLElement>('[data-name="icon=add to wishlist"]');
     const handlers: Array<[HTMLElement, () => void]> = [];
+    const plpReact = isPlpReactMounted();
 
     hearts.forEach((heart, i) => {
       // PDP / Quick View chickenpox heart uses PDP_WISHLIST_ID (cross-experience).
       if (heart.closest('[data-name="module.pdp.rtb"]')) return;
+      // React PLP tiles — skip Make wire (handlers live in PlpScreen).
+      if (plpReact && heart.closest('[data-studio-react-screen="plp"]')) return;
 
       const btn = heart.closest('[data-name="component.input.button"]') as HTMLElement | null;
       const target = btn || heart;
       const plpScreen = heart.closest(".studio-viewport > div > div:nth-child(9)");
       const tile = heart.closest('[data-name="boots-pharmacy.service.tile"]');
       let id = `vaccine-${i}`;
-      if (tile && plpScreen) {
+      if (tile && plpScreen && !plpReact) {
         const tiles = Array.from(
           plpScreen.querySelectorAll<HTMLElement>('[data-name="boots-pharmacy.service.tile"]')
         );
@@ -2345,6 +2377,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     initProtoInputControls();
     initSearchFields();
+    // React PLP owns filter dirty via onFiltersDirtyChange — skip Make DOM sync.
+    if (isPlpReactMounted()) return;
     ensurePlpFiltersDefault(document);
     const plpFilters = document.querySelector('[data-name="module.plp.filters"]');
     if (plpFilters) initProtoInputControls(plpFilters);
@@ -2353,13 +2387,16 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, [current, syncPlpFiltersDirty]);
 
   useEffect(() => {
-    const onPlpFiltersChange = () => syncPlpFiltersDirty();
+    const onPlpFiltersChange = () => {
+      if (isPlpReactMounted()) return;
+      syncPlpFiltersDirty();
+    };
     document.addEventListener(PLP_FILTERS_CHANGE_EVENT, onPlpFiltersChange);
-    syncPlpFiltersDirty();
+    if (!isPlpReactMounted()) syncPlpFiltersDirty();
     return () => {
       document.removeEventListener(PLP_FILTERS_CHANGE_EVENT, onPlpFiltersChange);
     };
-  }, [syncPlpFiltersDirty]);
+  }, [current, syncPlpFiltersDirty]);
 
   // Figma search rows — hide in-field clear (X) when value is empty / placeholder.
   useEffect(() => {
@@ -2424,6 +2461,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   // PLP (child 9) — Quick View → RTB popup (PDP clone, no Check availability)
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 9) return;
+    if (isPlpReactMounted()) return;
     const screen = document.querySelector(
       ".studio-viewport > div > div:nth-child(9)"
     ) as HTMLElement | null;
@@ -2488,6 +2526,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   // PLP (child 9) — all “Book now” CTAs → page 4 (PDP)
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 9) return;
+    if (isPlpReactMounted()) return;
     const screen = document.querySelector(
       ".studio-viewport > div > div:nth-child(9)"
     ) as HTMLElement | null;
@@ -2499,7 +2538,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       if ("stopImmediatePropagation" in e) {
         (e as Event).stopImmediatePropagation();
       }
-      setCurrent(3); // PDP. Vaccine Details Page
+      setCurrent(INDEX_PDP);
     };
 
     const bookBtns = Array.from(
@@ -2531,6 +2570,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   // PLP (child 9) — tile titles → PDP
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 9) return;
+    if (isPlpReactMounted()) return;
     const screen = document.querySelector(
       ".studio-viewport > div > div:nth-child(9)"
     ) as HTMLElement | null;
@@ -2544,7 +2584,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       if ("stopImmediatePropagation" in e) {
         (e as Event).stopImmediatePropagation();
       }
-      setCurrent(3); // PDP. Vaccine Details Page
+      setCurrent(INDEX_PDP);
     };
 
     const onClick = (e: MouseEvent) => {

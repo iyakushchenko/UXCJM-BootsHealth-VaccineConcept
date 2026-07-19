@@ -7,49 +7,61 @@
 
 ---
 
+## Done definition — React page (erase-Make program)
+
+A screen is **DONE** only when **all** are true:
+
+1. **React-mounted** under UXDS + project chrome (`data-studio-react-screen=<screenId>`).
+2. **Make child retired from view** with wire gates:
+   - Prefer **deleting** the Make Frame child when safe (no CJM/playback regress).
+   - Else hide via `data-studio-make-retired=<screenId>` + `display:none`; Make wire effects **must** early-return when React is mounted.
+3. **No LEGACY growth** for the React path (screen CSS / UXDS / theme only).
+4. **Honest residual** documented in the feature brief / audit (what Make still exists in DOM, what fidelity is Partial).
+5. Uma audit **PROVEN** (or honest FAIL with blockers) + Quinn prove (tests + localhost).
+
+---
+
 ## NOW
 
-1. [x] **Post-agent clean slate** — sticky Choose Pharmacy after MCP/agent tests: `stop({ reload: true })` → hub URL + dismiss modal before reload ([RECORDING.md](../shell/RECORDING.md)). Quinn proved localhost 2026-07-19.
-2. [x] **REC capture gaps** — beat-enter / scroll / typed-text capture+replay (v3); journey compile still gaps scroll/typed ([RECORDING.md](../shell/RECORDING.md), [REC_CAPTURE_GAPS.md](../projects/boots-pharmacy/features/REC_CAPTURE_GAPS.md)).
+1. [x] **PLP React migration** — DONE by erase-Make definition. Brief: [PLP_REACT.md](../projects/boots-pharmacy/features/PLP_REACT.md) · audit [FE_AUDIT_PLP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19.md).
+2. [ ] **PDP React migration** — same DONE definition; retire Make child 8. Order lock continues: **PDP → Home → Chat → History/Details**, then delete Book 1–3 Make children.
 3. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
 
 ---
 
-## NEXT
+## NEXT (erase-Make sequence)
 
-4. [ ] **LEGACY retirement (by screen)** — no LEGACY growth; shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
-5. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain (recording bridge / beat advance) — not micro-files.
-6. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
-7. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
+4. [ ] **Home React migration** — Site Pilot Home (child 11).
+5. [ ] **Chat React migration** — Site Pilot Chat (child 10).
+6. [ ] **Appointment History + Details** — children 2 + 1.
+7. [ ] **Delete Book Step 1–3 Make children** — after PDP…Details React DONE and CJM/playback green; until then keep `data-studio-make-retired` residual.
+8. [ ] **LEGACY retirement (by screen)** — shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
+9. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain — not micro-files.
+10. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+11. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
 
 ---
 
 ## LATER
 
-8. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
-9. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
-10. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
-11. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
+12. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
+13. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
+14. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
+15. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
 
 ---
 
 ## Done recently (context)
 
-- [x] **REC capture gaps (v3)** — beat-enter / scroll / typed-text capture+replay; compile still gaps scroll/typed; brief `REC_CAPTURE_GAPS.md`.
-- [x] **Post-agent clean slate** — `resetStudioAfterAgentTest()` → `?project=…&screen=hub` (no modal) on overlay stop + pre-reload; sync lock; Quinn localhost PROVEN ([RECORDING.md](../shell/RECORDING.md)).
-- [x] **Lean UX team OS + modal URL + sitrep z-index** — Arch/Bea/Finn/Uma/Quinn/Ben/Pax; `&modal=choose-pharmacy`; overlay above avail ([TEAM.md](./TEAM.md), [URL.md](../shell/URL.md)).
-- [x] **Recording compile→journeys (vertical)** — `compileRecordingToJourney` + REC **Save as journey** / `__studioSaveRecordingAsJourney` merges into `journeyRuntimeStore`; play via CJM ([RECORDING.md](../shell/RECORDING.md)).
-- [x] **Recording v2 gaps (human + scripts)** — trusted human REC clicks → `demo-click`; `applyDirectorScript` + `retreat-sync` via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind` ([RECORDING.md](../shell/RECORDING.md)).
-- [x] **Version chip + felony gate** — tabs-row `vX.Y.Z` + channel; `check:felonies` + `check:version` in `npm test`; proto filename leftovers → 0 in src/scripts/docs ([VERSIONING.md](./VERSIONING.md)).
-- [x] **Recording v2 demo-click replay** — `resolvePlaybackSelectorChain` + `applyDemoClick` / partial `applyWireIntent`; book CTA `data-studio-action`.
-- [x] **Domain CSS/attrs phase 2** — `.proto-nav-*` / shell chrome → `.studio-*`; `data-proto-*` → `data-studio-*`; events/storage migrate with legacy read ([NAMING.md](./NAMING.md)).
-- [x] **Hygiene gate** — Summarizer-lean LOC ratchet; LEGACY allowlisted.
-- [x] **Retire `proto*` filenames** — modules → `studio*` / domain; `__studio*` + `__proto*` aliases.
-- [x] **Naming + hard guardrails** — screen folders = `screenId`; director + `naming.mdc` / `ci-sitrep.mdc`.
-- [x] **Recording replay from `screen` events** — `applyStudioScreen` shared with deep-link/popstate.
-- [x] **Studio URL + agent overlay** — `?project=&screen=`; strip `proof`; overlay touch + sitrep.
-- [x] **Fidelity debt (high-ROI)** + UXDS book kits — PROVEN audits under `docs/projects/boots-pharmacy/audits/`.
-- [x] **REC ⊗ CJM** + slim CI + Book Steps 1–3 React pilots — PROVEN.
+- [x] **PLP React migration** — erase-Make DONE; audit PROVEN; Make child 9 retired (delete deferred).
+- [x] **Honest version chip + unstick agent overlay** — tip `6c5c911`.
+- [x] **REC capture gaps (v3)** — beat-enter / scroll / typed-text capture+replay; compile still gaps scroll/typed.
+- [x] **Post-agent clean slate** — hub home + strip modal; Quinn localhost PROVEN.
+- [x] **Lean UX team OS + modal URL + sitrep z-index**.
+- [x] **Recording compile→journeys (vertical)**.
+- [x] **Version chip + felony gate**.
+- [x] **Book Steps 1–3 React pilots** — Make retired via `data-studio-make-retired` (delete Make children deferred to end of erase-Make sequence).
+- [x] **Domain CSS/attrs + hygiene + naming pack**.
 
 ---
 
@@ -57,6 +69,8 @@
 
 | Lock | Rule |
 |------|------|
+| **Erase-Make DONE** | React mount + Make retired + wire gates + no LEGACY growth + honest residual |
+| **Sequence** | PLP → PDP → Home → Chat → History/Details → delete Book Make children |
 | **REC ⊗ CJM ⊗ AIR** | REC off when journey mode on; XOR; AIR locks both |
 | **No LEGACY growth** | New React page styles → screen CSS / UXDS / theme only |
 | **No new `.proto-*` / `data-proto-*`** | PANEL/chrome/attrs use `.studio-*` / `data-studio-*` |
@@ -64,9 +78,8 @@
 | **CI budget** | No auto marathon Playwright on every push |
 | **Post-push sitrep** | `gh run list` after push |
 | **Hygiene** | `check:hygiene` must stay green |
-| **Felonies** | `check:felonies` + `check:version` in `npm test` — CI/test fail = agent felony |
+| **Felonies** | `check:felonies` + `check:version` in `npm test` |
 | **Naming** | [NAMING.md](./NAMING.md); folder = `screenId` |
-| **Lessons** | Append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) |
 | **Clean URL** | No sticky `?proof=*` |
 | **Workspace** | `E:\UX\ux-studio` only |
 
