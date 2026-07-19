@@ -23,6 +23,7 @@ const REACT_MIGRATED_SCREENS = [
   "book-step-2",
   "book-step-3",
   "plp",
+  "pdp",
 ];
 
 const MCP_EVIDENCE_RE =

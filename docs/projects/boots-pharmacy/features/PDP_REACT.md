@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted (not PROVEN / not Final Pass)  
+**Status:** L1–L20 mounted · Uma **PROVEN** · Quinn MCP **PASS** · not Final Pass  
 **Updated:** 2026-07-19  
 **Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn [../audits/QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](../audits/QUINN_PDP_PROBE_CRITERIA_2026-07-19.md)
 
@@ -12,7 +12,7 @@
 
 Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** PLP PAGE FINAL PASS **HARD-GREEN** satisfied (2026-07-19). React L1–L20 mounted (RTB + below-fold); Quinn MCP + Uma PROVEN still open.
+**Gate:** PLP PAGE FINAL PASS **HARD-GREEN** satisfied (2026-07-19). React L1–L20 mounted; Quinn MCP **PASS**; Uma **PROVEN** — Arch may run PDP PAGE FINAL PASS.
 
 ## Business logic
 
@@ -41,16 +41,16 @@ Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Fra
 - [x] Below-fold P0 bands L14–L20 (static accordion B1; download/GP CTAs decorative)
 - [x] Modal URL sync: `login`, `choose-pharmacy` from PDP CTAs ([URL.md](../../../shell/URL.md)) — wire reuses existing modals
 - [ ] PAGE FINAL PASS: landmarks `header`+`main`, BEM=`pdp` present; stamp + `check:page-final-pass` after Quinn MCP
-- [x] `npm test` green on L14–L20 contract; Uma audit **not PROVEN** until full matrix + Quinn MCP
-- [ ] Honest residual: Make Frame child 8 in DOM until delete phase; accordion B1 static-only until PO
+- [x] `npm test` green on L14–L20 contract; Uma audit **PROVEN** ([UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md))
+- [ ] Honest residual: Make Frame child 8 in DOM until delete phase; accordion B1 static-only until PO (**accepted** for Uma PROVEN)
 
 ## Chrome / fidelity (Uma)
 
-- [ ] Concept L&F vs Make child 8 — RTB 50/50, Advantage mint bar, specs table, accordion static layout
-- [ ] 1440/64/1312 grid; icon+text nowrap on secondary CTAs
-- [ ] Studio chrome XOR / counters intact
-- [ ] DS state matrix §0a: Book now, Check availability, checkbox, toggle, heart — **no invent hover**
-- [ ] Loading/empty/updating §0: **N/A** documented — fail if spinner invented
+- [x] Concept L&F vs Make child 8 — RTB 50/50, Advantage mint bar, specs table, accordion static layout
+- [x] 1440/64/1312 grid; icon+text nowrap on secondary CTAs
+- [x] Studio chrome XOR / counters intact
+- [x] DS state matrix §0a: Book now, Check availability, checkbox, toggle, heart / share — **no invent hover**; share Make flip proven
+- [x] Loading/empty/updating §0: **N/A** documented — fail if spinner invented
 
 ## Mount / FE notes (Finn)
 
@@ -67,7 +67,7 @@ Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Fra
 - **MCP matrix PASS** 2026-07-19 — [FE_AUDIT_PDP_MCP_2026-07-19.md](../audits/FE_AUDIT_PDP_MCP_2026-07-19.md) (`__studioRunMcpPageProbe({ screenId:"pdp", reload:false })`)
 - Localhost: mount + Make leak=0; PLP→PDP; Book now login gate; Check availability modal URL; overlay-arm + overlay-eyes
 - Booster £150↔£75; empty-heart hover; below-fold reveal (compact title stamp)
-- **Not** PAGE FINAL PASS HARD-GREEN until Uma §0a PROVEN + manifest stamp
+- Uma **PROVEN** clears fidelity blocker — **PAGE FINAL PASS** still needs Arch manifest stamp + Quinn HARD-GREEN follow-up
 - Register prove matrix: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
 
 ## Pax

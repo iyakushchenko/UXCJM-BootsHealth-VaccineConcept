@@ -539,6 +539,11 @@
   transition: color 0.18s ease;
 }
 
+/* Make `icon=share` wrapper: `-rotate-180 -scale-x-100` */
+.pdp__share-icon {
+  transform: rotate(-180deg) scaleX(-1);
+}
+
 .pdp__icon-hit:hover .pdp__share-icon {
   color: var(--project-brand-cta-navy-hover);
 }
