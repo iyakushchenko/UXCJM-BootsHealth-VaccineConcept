@@ -918,12 +918,28 @@ function pdpProbeSteps(): ProbeStep[] {
           '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-download-leaflet"]'
         );
         if (!guide || !leaflet) return "download CTAs missing";
-        if (leaflet.classList.contains("pdp__pill--bordered")) {
+        if (
+          leaflet.classList.contains("pdp__pill--bordered") ||
+          guide.classList.contains("pdp__pill--bordered")
+        ) {
           return "leaflet still has stub bordered class (Make hover mock)";
         }
+        // Product tertiary unify — ignore demo-cursor hover/pressed classes
+        // (`proto-chat-cta--hover`) that land on the hovered CTA during assert.
+        const productPillClasses = (el: Element) =>
+          String((el as HTMLElement).className || "")
+            .split(/\s+/)
+            .filter((c) => c.startsWith("pdp__"))
+            .sort()
+            .join(" ");
+        const guideProduct = productPillClasses(guide);
+        const leafletProduct = productPillClasses(leaflet);
         if (
-          guide.className !== leaflet.className ||
-          !guide.classList.contains("pdp__pill")
+          !/\bpdp__pill\b/.test(guideProduct) ||
+          !/\bpdp__pill\b/.test(leafletProduct) ||
+          guideProduct !== leafletProduct ||
+          /\bpdp__pill--mint\b/.test(guideProduct) ||
+          /\bpdp__pill--mint\b/.test(leafletProduct)
         ) {
           return "download CTAs must share the same tertiary .pdp__pill class";
         }

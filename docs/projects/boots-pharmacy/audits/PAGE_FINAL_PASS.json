@@ -128,14 +128,14 @@
         "note": "Structure stamp retained. User-visible FAQ body / download CTA / accordion focus polish after HARD-GREEN — Quinn + Uma must re-prove before hardGreen again."
       },
       "mcpFinalPass": {
-        "status": "NEEDS-REPROVE",
-        "pass": false,
+        "status": "PASS",
+        "pass": true,
         "stampedAt": {
-          "sha": "1fc6ce3",
+          "sha": "PENDING_COMMIT",
           "date": "2026-07-19",
-          "version": "0.0.27",
-          "auditor": "Bea+Uma+Finn (demote)",
-          "note": "Demoted after PO polish: FAQ Make-sourced bodies (3/6) + residual headers; download CTAs unified tertiary (no leaflet stub border); accordion focus outline removed. Prior HARD-GREEN @ 828ab2b superseded until Quinn MCP + Uma §0a re-prove."
+          "version": "0.0.28",
+          "auditor": "Quinn (QA)",
+          "note": "MCP __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) 23/23 PASS @ code tip bf59041 / v0.0.28; faq-help-body + download tertiary unify (no --bordered) + accordion focus-none; overlay-eyes + teardown clean. Uma §0a PROVEN @ 8d80d5f. hardGreen false until Arch restore. Audit: FE_AUDIT_PDP_MCP_2026-07-19.md"
         },
         "url": "http://127.0.0.1:5188/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
@@ -160,7 +160,8 @@
           { "id": "pdp-below-fold-scroll", "pass": true, "detail": "already in view + overlay visible" },
           { "id": "pdp-faq-accordion-toggle", "pass": true },
           { "id": "pdp-faq-accordion-reopen", "pass": true },
-          { "id": "pdp-download-cta-hover", "pass": true },
+          { "id": "pdp-faq-help-body", "pass": true },
+          { "id": "pdp-download-cta-hover", "pass": true, "detail": "same tertiary .pdp__pill; no --bordered" },
           { "id": "url-screen", "pass": true }
         ],
         "landmarks": {

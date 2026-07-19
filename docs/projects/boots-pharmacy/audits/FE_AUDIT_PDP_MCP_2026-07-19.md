@@ -3,10 +3,12 @@
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Quinn (QA) — Chrome DevTools MCP localhost  
-**Ship tip (latest prove):** `d6e4951` · **v0.0.27** — **STALE** after v0.0.28 FAQ/CTA/focus polish  
-**Prior prove (superseded):** `d7ce01c` · **v0.0.24**  
+**Ship tip (latest prove):** `bf59041` · **v0.0.28** — FAQ Make bodies + download CTA unify + accordion focus-none  
+**Probe tip (CTA assert fix):** this stamp commit — ignore `proto-chat-cta--hover` on download class compare  
+**Uma §0a:** **PROVEN** @ `8d80d5f` (code tip `bf59041`)  
+**Prior prove (superseded):** `d6e4951` · **v0.0.27**  
 **Policy:** [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md) · [RECORDING.md](../../../shell/RECORDING.md) · recipe `studioMcpPageProbe.ts`  
-**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — **NEEDS-REPROVE**
+**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — Arch may restore HARD-GREEN
 
 ---
 
@@ -14,35 +16,37 @@
 
 | Field | Value |
 |-------|-------|
-| **Quinn MCP matrix** | **NEEDS-REPROVE** (prior PASS @ `d6e4951` stale) |
-| **New steps (v0.0.28)** | `pdp-faq-help-body` + download CTA same-class / no `--bordered` asserts — re-prove required |
-| **Uma fidelity §0a (FAQ/CTA extras)** | **NEEDS-REPROVE** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) |
-| **PAGE FINAL PASS HARD-GREEN?** | **NEEDS-REPROVE** (`hardGreen: false`) |
-| **PO green-light / Home?** | **Blocked** — wait Quinn + Uma + Arch restore + PO `+` |
+| **Quinn MCP matrix** | **PASS** — **23/23** |
+| **v0.0.28 steps** | `pdp-faq-help-body` + download CTA tertiary unify / no `--bordered` + accordion focus-none CSS |
+| **Uma fidelity §0a** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) @ `8d80d5f` |
+| **PAGE FINAL PASS HARD-GREEN?** | **Pending Arch** (`hardGreen: false` until Arch restore) |
+| **PO green-light / Home?** | **Blocked** — wait Arch HARD-GREEN + PO `+` |
 
-**Team check line:** `Quinn MCP — pdp — NEEDS-REPROVE` (re-prove after v0.0.28 polish)
+**Team check line:** `Quinn MCP — pdp — PASS` (23/23 @ v0.0.28 / `bf59041`; Arch unblocked for HARD-GREEN)
 
-**Knowledge used:** QUINN_PDP_PROBE_CRITERIA · RECORDING.md (overlay + scroll-into-view + overlay-eyes + teardown) · PAGE_FINAL_PASS.md (Quinn does not stamp HARD-GREEN) · TEAM_KNOWLEDGE Quinn § · FE_AUDIT_PDP_PLP_CONVENTIONS (new probe steps)
+**Knowledge used:** QUINN_PDP_PROBE_CRITERIA · RECORDING.md (overlay + scroll-into-view + overlay-eyes + teardown) · PAGE_FINAL_PASS.md (Quinn matrix PASS; Arch HARD-GREEN) · TEAM_KNOWLEDGE Quinn § · demo-cursor `proto-chat-cta--hover` false-fail lesson
 
 ---
 
-## MCP evidence (FAQ/CTA re-prove · `d6e4951` / v0.0.27)
+## MCP evidence (v0.0.28 re-prove · `bf59041` + probe CTA fix)
 
 **Session:** Chrome DevTools MCP · `http://127.0.0.1:5188/?project=boots-pharmacy&screen=pdp`  
-**Version chip:** `v0.0.27`  
+**Version chip:** `v0.0.28`  
 **Helper:** `await window.__studioRunMcpPageProbe({ screenId: "pdp", reload: false })`  
-**Result:** `{ pass: true, screenId: "pdp" }` · `failed: []` · **22/22** checks  
+**Result:** `{ pass: true, screenId: "pdp" }` · `failed: []` · **23/23** checks  
 **Overlay:** AGENT TESTING armed (`overlay-arm`) and visible through matrix including below-fold reveal  
-**Prep (mandatory for honest logged-out / empty-heart):** `__studioSetLoggedIn(false)` → `loggedIn === false`; wishlist `["probe-dummy"]` so chickenpox empty; Book now **£150** (booster default on) before probe
+**Prep (mandatory for honest logged-out / empty-heart):** `__studioSetLoggedIn(false)`; wishlist `["probe-dummy"]` so chickenpox empty; Book now **£150** (booster default on) before probe  
+**Teardown:** login + choose-pharmacy closes clear `modal`; end `screen=pdp`
 
 ### Landmarks / host (spot-check)
 
 | Check | Result |
 |-------|--------|
 | `.pdp[data-studio-react-screen=pdp]` + `header`/`main` | **PASS** |
-| `data-studio-make-retired=pdp` | **PASS** (5 retired children) |
-| FAQ “Who is at risk?” Accordion present | **PASS** (post-probe `aria-expanded=true` after reopen) |
-| Download CTA `.pdp__pill` Chickenpox Guide | **PASS** |
+| `data-studio-make-retired=pdp` | **PASS** |
+| FAQ “Who is at risk?” Accordion | **PASS** (toggle/reopen + Make body) |
+| FAQ “How can Boots help?” body | **PASS** (Make RTB blurb + focus-none CSS) |
+| Download CTAs both `.pdp__pill` (no `--bordered`) | **PASS** |
 
 ### Full matrix
 
@@ -68,7 +72,8 @@
 | pdp-below-fold-scroll | **PASS** | already in view + overlay visible |
 | pdp-faq-accordion-toggle | **PASS** | Who is at risk? → `aria-expanded=false`; body unmounted |
 | pdp-faq-accordion-reopen | **PASS** | click again → `aria-expanded=true` + Make body copy |
-| pdp-download-cta-hover | **PASS** | `.pdp__pill:hover` CSS present (stylesheet rule) |
+| pdp-faq-help-body | **PASS** | How can Boots help? Make RTB blurb + accordion focus-none CSS |
+| pdp-download-cta-hover | **PASS** | both tertiary `.pdp__pill`; no `--bordered` stub/CSS; hover rules present |
 | url-screen | **PASS** | ends `screen=pdp` |
 
 ---
@@ -77,7 +82,8 @@
 
 | Tip | Version | Matrix | Note |
 |-----|---------|--------|------|
-| `d7ce01c` | v0.0.24 | **PASS** | Final Pass HARD-GREEN then demoted after FAQ/CTA ship — **superseded** |
+| `d6e4951` | v0.0.27 | **PASS** 22/22 | stale after v0.0.28 polish |
+| `d7ce01c` | v0.0.24 | **PASS** | Final Pass then demoted — **superseded** |
 | `cbbd97d` / `87c0fc8` | v0.0.24 | **PASS** | RTB rhythm — superseded |
 | `eaf9aa3` / `03687d3` | v0.0.22 | **PASS** | compact below-fold stamp |
 
@@ -87,10 +93,10 @@
 
 | Gate | Status |
 |------|--------|
-| Quinn MCP interaction matrix | **PASS** (this re-prove · `d6e4951` / v0.0.27) |
-| Uma §0a extras (Accordion + download hover) | **PROVEN** (`c037d19`) |
-| `PAGE_FINAL_PASS.json` `mcpFinalPass` HARD-GREEN | **NEEDS-REPROVE** — demoted after v0.0.28 polish |
-| `hardGreen` | **true** |
+| Quinn MCP interaction matrix | **PASS** (this re-prove · 23/23 · `bf59041` / v0.0.28) |
+| Uma §0a (FAQ/CTA/focus) | **PROVEN** (`8d80d5f`) |
+| `PAGE_FINAL_PASS.json` `mcpFinalPass` HARD-GREEN | **Pending Arch** |
+| `hardGreen` | **false** until Arch restore |
 
 ---
 
@@ -100,4 +106,5 @@
 2. Empty chickenpox heart before probe (`aria-label="Add to wishlist"`); avoid empty wishlist array (reseeds chickenpox).  
 3. Confirm booster default checked + £150 **before** `__studioRunMcpPageProbe`.  
 4. Re-prove after any tip that lands after the last MCP stamp.  
-5. Do not stamp `PAGE_FINAL_PASS.json` HARD-GREEN from Quinn — Arch after Uma §0a.
+5. Download CTA assert compares **product** `pdp__*` classes only (demo hover adds `proto-chat-cta--hover`).  
+6. Do not stamp `hardGreen: true` from Quinn — Arch after this PASS + Uma §0a.

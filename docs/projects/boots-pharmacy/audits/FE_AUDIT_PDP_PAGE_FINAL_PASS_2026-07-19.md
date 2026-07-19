@@ -1,12 +1,12 @@
-# PAGE FINAL PASS — PDP NEEDS-REPROVE
+# PAGE FINAL PASS — PDP (Quinn PASS · Arch HARD-GREEN pending)
 
-> Prior HARD-GREEN @ `828ab2b` demoted after user-visible FAQ/CTA/focus polish. Re-prove before restore.
+> Prior HARD-GREEN @ `828ab2b` demoted after user-visible FAQ/CTA/focus polish. Quinn + Uma re-proved; Arch restore next.
 
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Arch (Director) stamp · Quinn (QA) MCP matrix · Uma (UI/UX) §0a  
-**Ship tip (demote):** v0.0.28 polish — FAQ Make bodies / download tertiary unify / accordion focus-none  
-**Prior HARD-GREEN (superseded):** `828ab2b` / v0.0.27 — demoted NEEDS-REPROVE after user-visible polish  
+**Ship tip:** v0.0.28 polish — FAQ Make bodies / download tertiary unify / accordion focus-none (`bf59041`)  
+**Prior HARD-GREEN (superseded):** `828ab2b` / v0.0.27 — demoted then re-proved  
 **Policy:** [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · manifest [PAGE_FINAL_PASS.json](./PAGE_FINAL_PASS.json) · criteria [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md)
 
 ---
@@ -15,15 +15,15 @@
 
 | Field | Value |
 |-------|-------|
-| **PAGE FINAL PASS** | **NEEDS-REPROVE** |
-| **mcpFinalPass** | **NEEDS-REPROVE** (`hardGreen: false`) |
-| **Quinn interaction matrix** | **STALE** — prior 22/22 @ `d6e4951` superseded; re-prove required (new `pdp-faq-help-body` + CTA class assert) |
-| **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `bf59041` / v0.0.28) |
-| **PARITY_PROVEN `pdp`** | **proven** (structure; MCP note demoted) |
+| **PAGE FINAL PASS** | **Pending Arch HARD-GREEN** (`hardGreen: false`) |
+| **mcpFinalPass** | **PASS** (Quinn 23/23) — Arch may stamp HARD-GREEN |
+| **Quinn interaction matrix** | **PASS** — 23/23 @ `bf59041` / v0.0.28 — [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md) |
+| **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `bf59041` / stamp `8d80d5f`) |
+| **PARITY_PROVEN `pdp`** | **proven** (MCP note updated) |
 | **Accordion gate** | **PASS** — UXDS `<Accordion>` in `PdpScreen.tsx`; `check:page-final-pass` Accordion contract green |
-| **Home unblocked?** | **No** — wait Final Pass HARD-GREEN restore + PO `+` |
+| **Home unblocked?** | **No** — wait Arch HARD-GREEN + PO `+` |
 
-**Team check line:** `PAGE FINAL PASS — pdp — NEEDS-REPROVE`
+**Team check line:** `Quinn MCP — pdp — PASS` · `PAGE FINAL PASS — pdp — pending Arch HARD-GREEN`
 
 **Knowledge used:** TEAM_KNOWLEDGE Quinn § (RECORDING overlay/scroll/overlay-eyes + LESSONS false-PROVEN) · PAGE_FINAL_PASS.md · RECORDING.md MCP page-probe · QUINN_PDP_PROBE_CRITERIA · FE_AUDIT_PDP_MCP · UMA_FIDELITY_PDP · check:page-final-pass Accordion requirement
 

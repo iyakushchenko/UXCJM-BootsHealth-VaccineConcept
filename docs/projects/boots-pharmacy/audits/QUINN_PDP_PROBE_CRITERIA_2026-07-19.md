@@ -1,7 +1,7 @@
 # Quinn (QA) — PDP MCP prove criteria
 
-**Status:** MCP matrix **PASS** @ tip `d6e4951` / v0.0.27 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**PAGE FINAL PASS:** **NEEDS-REPROVE** (`hardGreen: false`) — user-visible FAQ/CTA/focus polish; Quinn must re-prove; Arch after Uma §0a.  
+**Status:** MCP matrix **PASS** @ tip `bf59041` / v0.0.28 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
+**PAGE FINAL PASS:** **Pending Arch HARD-GREEN** (`hardGreen: false`) — Uma §0a PROVEN @ `8d80d5f`; Quinn 23/23 PASS; Arch restore next.  
 **Updated:** 2026-07-19 (FAQ Make bodies + download tertiary unify + accordion focus-none)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
@@ -60,7 +60,7 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 | 16 | `pdp-faq-accordion-toggle` | click Who is at risk? | `aria-expanded=false`; body unmounted | UXDS Accordion |
 | 17 | `pdp-faq-accordion-reopen` | click again | `aria-expanded=true` + Make body; 3 residual headers | |
 | 18 | `pdp-faq-help-body` | click How can Boots help? | Make RTB service blurb body; focus-none CSS | |
-| 19 | `pdp-download-cta-hover` | hover Chickenpox Guide | both CTAs same `.pdp__pill`; no `--bordered` | |
+| 19 | `pdp-download-cta-hover` | hover Chickenpox Guide | both CTAs same product `.pdp__pill` classes; no `--bordered` / mint; ignore demo `proto-chat-cta--hover` | |
 | — | `url-screen` | assert | ends on `screen=pdp` | auto after recipe |
 
 Logged-in Book now → `screen=book-step-1` — prove in a second session or after login helper (document in evidence log).
@@ -69,10 +69,10 @@ Logged-in Book now → `screen=book-step-1` — prove in a second session or aft
 
 ## Evidence required for PROVEN / Final Pass later
 
-1. Localhost tip SHA + version chip match `package.json`. ✅ `d6e4951` / v0.0.27  
-2. MCP panel step log (PASS/FAIL) or probe JSON with overlay-arm + overlay-eyes — **done:** [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
+1. Localhost tip SHA + version chip match `package.json`. ✅ `bf59041` / v0.0.28  
+2. MCP panel step log (PASS/FAIL) or probe JSON with overlay-arm + overlay-eyes — **done:** [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md) (**23/23**).  
 3. Register scaffold P0 rows marked Fixed/Present.  
-4. Uma fidelity §0a DS matrix **PASS** for FAQ Accordion + download CTA hover (**still open**).  
+4. Uma fidelity §0a DS matrix **PASS** for FAQ Accordion + download CTA hover — **done** @ `8d80d5f`.  
 5. Arch team check with **Knowledge used** per role + PAGE FINAL PASS HARD-GREEN stamp.
 
-**Until Uma + Arch Final Pass:** interaction matrix **PASS**; page status remains **NOT PAGE FINAL PASS HARD-GREEN**.
+**Until Arch Final Pass:** interaction matrix **PASS**; page status remains **NOT PAGE FINAL PASS HARD-GREEN**.

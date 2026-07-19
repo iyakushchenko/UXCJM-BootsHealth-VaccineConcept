@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted · FAQ Make bodies (3/6) · download tertiary unify · accordion focus-none · Final Pass **NEEDS-REPROVE**  
+**Status:** L1–L20 mounted · FAQ Make bodies (3/6) · download tertiary unify · accordion focus-none · Quinn MCP **PASS** · Arch HARD-GREEN pending  
 **Updated:** 2026-07-19  
 **Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) · Convention [../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md](../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md)
 
@@ -12,7 +12,7 @@
 
 Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** PAGE FINAL PASS **NEEDS-REPROVE** after FAQ/CTA/focus polish (prior HARD-GREEN @ `828ab2b` demoted). **Home waits PO `+` + Final Pass restore.**
+**Gate:** Quinn MCP **23/23 PASS** + Uma §0a **PROVEN** @ `bf59041` / v0.0.28 — Arch may restore HARD-GREEN. **Home waits PO `+` + Final Pass HARD-GREEN.**
 
 ## Business logic
 
@@ -40,7 +40,8 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 - [x] Scaffold P0 bands L1–L13 + interactions I5–I12, I8–I10 per register
 - [x] Below-fold P0 bands L14–L20 (interactive Accordion; download/GP CTAs live + DS hover)
 - [x] Modal URL sync: `login`, `choose-pharmacy` from PDP CTAs ([URL.md](../../../shell/URL.md)) — wire reuses existing modals
-- [ ] PAGE FINAL PASS: landmarks/structure stamp retained; `mcpFinalPass` **NEEDS-REPROVE** after polish ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
+- [x] Quinn MCP: `__studioRunMcpPageProbe` 23/23 PASS ([FE_AUDIT_PDP_MCP_2026-07-19.md](../audits/FE_AUDIT_PDP_MCP_2026-07-19.md))
+- [ ] PAGE FINAL PASS: Arch HARD-GREEN restore ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
 - [x] `npm test` green on L14–L20 contract; Uma audit **PROVEN** ([UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md))
 - [x] Honest residual: Make Frame child 8 in DOM until delete phase; 3 FAQ panels still lack Make Description (no invented copy)
 
@@ -65,7 +66,7 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 ## Prove notes (Quinn)
 
 - **MCP matrix** — prior PASS @ `d6e4951` / 22/22 **stale** after FAQ body + CTA + focus ship; Quinn must re-prove (now includes `pdp-faq-help-body` + matched download CTAs)
-- Final Pass **NEEDS-REPROVE** — demoted honestly after user-visible polish
+- Quinn MCP **PASS** (23/23) — Arch HARD-GREEN pending after v0.0.28 polish re-prove
 - Register: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
 
 ## Pax

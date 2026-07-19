@@ -57,9 +57,9 @@
       "status": "proven",
       "auditPath": "docs/projects/boots-pharmacy/audits/UMA_FIDELITY_PDP_2026-07-19.md",
       "mcpMatrixAt": {
-        "sha": "bf59041",
+        "sha": "PENDING_COMMIT",
         "date": "2026-07-19",
-        "note": "Uma §0a re-PROVEN @ v0.0.28: FAQ Make bodies×3 + residual headers; download CTAs unified .pdp__pill; accordion focus-none. PAGE FINAL PASS still NEEDS-REPROVE until Quinn MCP + Arch."
+        "note": "Quinn MCP 23/23 PASS @ bf59041 / v0.0.28 (faq-help-body + download tertiary unify + focus-none); Uma §0a PROVEN @ 8d80d5f. Arch may restore PAGE FINAL PASS HARD-GREEN."
       },
       "requireMcp": true
     }
