@@ -19,6 +19,7 @@ export type PlaybackDiagKind =
   | "step-back"
   | "retreat-sync"
   | "transport"
+  | "play-end"
   | "info";
 
 export type PlaybackDiagEvent = {
@@ -154,12 +155,17 @@ export type PlaybackDiagBundle = {
     backs: number;
     retreatSyncs: number;
   };
+  playEnd: {
+    count: number;
+    last?: PlaybackDiagEvent;
+  };
 };
 
 export function getPlaybackDiagBundle(): PlaybackDiagBundle {
   const typeStarts = events.filter((e) => e.kind === "type-in-start");
   const typeEnds = events.filter((e) => e.kind === "type-in-end");
   const typeSkips = events.filter((e) => e.kind === "type-in-skip");
+  const playEnds = events.filter((e) => e.kind === "play-end");
   const progressSamples = events
     .filter((e) => e.kind === "type-in-progress" && typeof e.chars === "number")
     .map((e) => e.chars as number);
@@ -180,7 +186,132 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
       backs: events.filter((e) => e.kind === "step-back").length,
       retreatSyncs: events.filter((e) => e.kind === "retreat-sync").length,
     },
+    playEnd: {
+      count: playEnds.length,
+      last: playEnds[playEnds.length - 1],
+    },
   };
+}
+
+/** Play finished → CJM start (not hub / not stuck on last beat). */
+export function playbackDiagPlayEnd(options: {
+  fromBeatId?: string | null;
+  toBeatId?: string | null;
+  counter?: string | null;
+  detail?: string;
+}): void {
+  push({
+    kind: "play-end",
+    detail: options.detail ?? "play-end → journey-start",
+    beatId: options.toBeatId ?? options.fromBeatId,
+    counter: options.counter,
+    surface: options.fromBeatId
+      ? `${options.fromBeatId}→${options.toBeatId ?? "start"}`
+      : undefined,
+  });
+}
+
+export type PlayEndAtStartAssertOptions = {
+  /** Expected first playable beat id (e.g. traditional-plp / agentic-home). */
+  startBeatId: string;
+  /** URL screen id that must match start (e.g. plp / site-pilot). */
+  startScreenId?: string;
+};
+
+export type PlayEndAtStartAssertResult = {
+  pass: boolean;
+  reason?: string;
+  bundle: PlaybackDiagBundle;
+  beatId?: string | null;
+  screenId?: string | null;
+};
+
+export function assertPlaybackPlayEndedAtStart(
+  options: PlayEndAtStartAssertOptions
+): PlayEndAtStartAssertResult {
+  const bundle = getPlaybackDiagBundle();
+  const state = (
+    window as Window & {
+      __protoStudioState?: () => {
+        beatId?: string | null;
+        isPlaying?: boolean;
+        isOnAir?: boolean;
+      };
+    }
+  ).__protoStudioState?.();
+  const beatId = state?.beatId ?? null;
+  const screenId =
+    typeof location !== "undefined"
+      ? new URLSearchParams(location.search).get("screen")
+      : null;
+
+  if (bundle.playEnd.count < 1) {
+    const result = {
+      pass: false,
+      reason: "no play-end diag — Play did not return to CJM start",
+      bundle,
+      beatId,
+      screenId,
+    };
+    console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart FAIL", result.reason);
+    return result;
+  }
+
+  if (state?.isPlaying || state?.isOnAir) {
+    const result = {
+      pass: false,
+      reason: "transport still on-air/playing after play-end",
+      bundle,
+      beatId,
+      screenId,
+    };
+    console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart FAIL", result.reason);
+    return result;
+  }
+
+  if (beatId !== options.startBeatId) {
+    const result = {
+      pass: false,
+      reason: `beatId=${beatId ?? "null"} expected start ${options.startBeatId}`,
+      bundle,
+      beatId,
+      screenId,
+    };
+    console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart FAIL", result.reason);
+    return result;
+  }
+
+  if (screenId === "hub") {
+    const result = {
+      pass: false,
+      reason: "screen=hub after play-end — must stay on CJM start, not hub",
+      bundle,
+      beatId,
+      screenId,
+    };
+    console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart FAIL", result.reason);
+    return result;
+  }
+
+  if (options.startScreenId && screenId !== options.startScreenId) {
+    const result = {
+      pass: false,
+      reason: `screen=${screenId ?? "null"} expected ${options.startScreenId}`,
+      bundle,
+      beatId,
+      screenId,
+    };
+    console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart FAIL", result.reason);
+    return result;
+  }
+
+  const result = { pass: true, bundle, beatId, screenId };
+  console.info("[PLAYBACK_DIAG]", "assertPlayEndAtStart PASS", {
+    beatId,
+    screenId,
+    playEndCount: bundle.playEnd.count,
+  });
+  return result;
 }
 
 export type TypeInAssertOptions = {
@@ -262,21 +393,31 @@ export function installPlaybackDiagWindowApis(): void {
     __studioPlaybackDiag?: () => PlaybackDiagBundle;
     __studioPlaybackDiagClear?: () => void;
     __studioAssertTypeIn?: (options?: TypeInAssertOptions) => TypeInAssertResult;
+    __studioAssertPlayEndedAtStart?: (
+      options: PlayEndAtStartAssertOptions
+    ) => PlayEndAtStartAssertResult;
     __protoPlaybackDiag?: () => PlaybackDiagBundle;
     __protoPlaybackDiagClear?: () => void;
     __protoAssertTypeIn?: (options?: TypeInAssertOptions) => TypeInAssertResult;
+    __protoAssertPlayEndedAtStart?: (
+      options: PlayEndAtStartAssertOptions
+    ) => PlayEndAtStartAssertResult;
   };
   w.__studioPlaybackDiag = getPlaybackDiagBundle;
   w.__studioPlaybackDiagClear = playbackDiagClear;
   w.__studioAssertTypeIn = assertPlaybackTypeIn;
+  w.__studioAssertPlayEndedAtStart = assertPlaybackPlayEndedAtStart;
   w.__protoPlaybackDiag = getPlaybackDiagBundle;
   w.__protoPlaybackDiagClear = playbackDiagClear;
   w.__protoAssertTypeIn = assertPlaybackTypeIn;
+  w.__protoAssertPlayEndedAtStart = assertPlaybackPlayEndedAtStart;
 }
 
 export function uninstallPlaybackDiagWindowApis(): void {
   const w = window as Window & {
     __studioPlaybackDiag?: unknown;
+    __studioAssertPlayEndedAtStart?: unknown;
+    __protoAssertPlayEndedAtStart?: unknown;
     __studioPlaybackDiagClear?: unknown;
     __studioAssertTypeIn?: unknown;
     __protoPlaybackDiag?: unknown;
@@ -286,7 +427,9 @@ export function uninstallPlaybackDiagWindowApis(): void {
   delete w.__studioPlaybackDiag;
   delete w.__studioPlaybackDiagClear;
   delete w.__studioAssertTypeIn;
+  delete w.__studioAssertPlayEndedAtStart;
   delete w.__protoPlaybackDiag;
   delete w.__protoPlaybackDiagClear;
   delete w.__protoAssertTypeIn;
+  delete w.__protoAssertPlayEndedAtStart;
 }

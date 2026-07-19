@@ -78,6 +78,8 @@ await window.__protoRunTraditionalRetreatSmoke?.()
 
 **Traditional settle (2026-07-19):** After each Step, wait until transport is idle (`!isOnAir && !isPlaying`). Login chains into `book-location-pick` — early Step aborts mid-picker → stray Availability on `book-step2`.
 
+**Play end → CJM start (2026-07-20):** Product Play finish returns to the first journey beat (not hub, not stuck on last). Diag: `play-end` + `__studioAssertPlayEndedAtStart({ startBeatId, startScreenId })`. Smokes: `__protoRunTraditionalPlaySmoke` / `__protoRunAgenticPlaySmoke` (harness may still `resetToHub` after assert).
+
 PASS criteria:
 
 1. No `diagnostic-on-step-1` / no playback diagnostic card mid-smoke  

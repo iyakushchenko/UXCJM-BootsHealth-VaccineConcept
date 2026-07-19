@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  assertPlaybackPlayEndedAtStart,
   assertPlaybackTypeIn,
   getPlaybackDiagBundle,
   playbackDiagClear,
   playbackDiagLog,
+  playbackDiagPlayEnd,
   playbackDiagTypeInEnd,
   playbackDiagTypeInProgress,
   playbackDiagTypeInSkip,
@@ -52,5 +54,37 @@ describe("playbackDiag", () => {
     expect(bundle.step.forwards).toBe(1);
     expect(bundle.step.backs).toBe(1);
     expect(bundle.step.retreatSyncs).toBe(1);
+  });
+
+  it("assertPlayEndedAtStart requires play-end + start beat", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    vi.stubGlobal("window", {
+      __protoStudioState: () => ({
+        beatId: "traditional-plp",
+        isPlaying: false,
+        isOnAir: false,
+      }),
+    });
+    vi.stubGlobal("location", {
+      search: "?project=boots-pharmacy&screen=plp&cjm=on",
+    });
+
+    expect(
+      assertPlaybackPlayEndedAtStart({
+        startBeatId: "traditional-plp",
+        startScreenId: "plp",
+      }).pass
+    ).toBe(false);
+
+    playbackDiagPlayEnd({
+      fromBeatId: "appointment-details",
+      toBeatId: "traditional-plp",
+    });
+    const assert = assertPlaybackPlayEndedAtStart({
+      startBeatId: "traditional-plp",
+      startScreenId: "plp",
+    });
+    expect(assert.pass).toBe(true);
+    expect(getPlaybackDiagBundle().playEnd.count).toBe(1);
   });
 });

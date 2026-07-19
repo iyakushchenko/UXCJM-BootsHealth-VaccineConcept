@@ -54,6 +54,7 @@ import {
   cancelDemoCursorJourneyEndFade,
   parkDemoCursorAtRest,
 } from "@/app/scenario/demoCursor";
+import { playbackDiagPlayEnd } from "@/app/shell/playbackDiag";
 import type { JourneyBeat, JourneyRuntime, JourneyDefinition } from "@/app/orchestra/types";
 import type { ProjectPlayback } from "@/projects/types";
 import type { StudioTouchpointEntry } from "@/projects/types";
@@ -291,10 +292,22 @@ export function useJourneyPlayback({
     setIsPlaying(false);
   }, []);
 
+  /** Jump-to-start after Play finishes — set by jumpToStart (avoids TDZ). */
+  const jumpToStartRef = useRef<() => void>(() => {});
+
   const completeJourneyPlay = useCallback(() => {
+    const fromBeat = beats[beatIndexRef.current];
     setPlaybackEndToken((token) => token + 1);
     stopJourneyPlay();
-  }, [stopJourneyPlay]);
+    // Product: return to CJM journey start (first beat) — not hub, not stuck on last.
+    jumpToStartRef.current();
+    const firstBeat = beats.find((beat) => !shouldSkipBeat(beat));
+    playbackDiagPlayEnd({
+      fromBeatId: fromBeat?.id,
+      toBeatId: firstBeat?.id,
+      detail: "play-end → journey-start",
+    });
+  }, [beats, shouldSkipBeat, stopJourneyPlay]);
 
   const reportScriptFailure = useCallback(
     (
@@ -1646,6 +1659,7 @@ export function useJourneyPlayback({
     shouldSkipBeat,
     stopJourneyPlay,
   ]);
+  jumpToStartRef.current = jumpToStart;
 
   const jumpToEnd = useCallback(() => {
     if (atPlaylistEndRef.current) return;

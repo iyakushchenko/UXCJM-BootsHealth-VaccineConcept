@@ -8,6 +8,14 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ---
 
+## 2026-07-20
+
+### Play end stuck on last beat / hub — return to CJM start (PO / Finn)
+
+- **Symptom / class:** After Play finishes, transport sits on last beat (or agent teardown dumps hub); PO wants **CJM journey start** of the active script.
+- **Root cause:** `completeJourneyPlay` only stopped play — no `jumpToStart`. Smoke `resetToHub` is harness-only and must not define product end.
+- **Gate:** `completeJourneyPlay` → jump to first playable beat + `playbackDiagPlayEnd`. Prove: `__protoRunTraditionalPlaySmoke` / `__protoRunAgenticPlaySmoke` + `__studioAssertPlayEndedAtStart`.
+
 ## 2026-07-19
 
 ### Traditional SF `stray-popup-on-beat` — settle skipped chained location pick (PO / Finn + Quinn)

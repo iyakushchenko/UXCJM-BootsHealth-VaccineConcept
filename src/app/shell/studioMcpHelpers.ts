@@ -74,6 +74,10 @@ import {
   stepSettleMsForState,
   waitForDirectorSettle as waitForDirectorSettleCore,
 } from "@/app/shell/stepForwardSmokeSettle";
+import {
+  runPlayJourneyToStartSmoke,
+  type PlayJourneySmokeResult,
+} from "@/app/shell/playJourneySmoke";
 
 export { directorTransportBusy } from "@/app/shell/stepForwardSmokeSettle";
 
@@ -199,10 +203,14 @@ declare global {
       timeoutMs?: number;
       maxSteps?: number;
     }) => Promise<StepForwardSmokeResult>;
-    /** Traditional CJM Play → journey end smoke (async, dev-only). */
+    /** Traditional CJM Play → end → CJM start (async, dev-only). */
     __protoRunTraditionalPlaySmoke?: (options?: {
       timeoutMs?: number;
-    }) => Promise<HomePlaySmokeResult>;
+    }) => Promise<PlayJourneySmokeResult>;
+    /** Agentic CJM Play → end → CJM start (async, dev-only). */
+    __protoRunAgenticPlaySmoke?: (options?: {
+      timeoutMs?: number;
+    }) => Promise<PlayJourneySmokeResult>;
     /** Jump-to-end then step-back — traditional book / confirmation / browse baselines. */
     __protoRunTraditionalRetreatSmoke?: (options?: {
       timeoutMs?: number;
@@ -352,12 +360,6 @@ function isOnAgenticChatBeat(state: StudioMcpState): boolean {
 function chatRetreatCounterPass(state: StudioMcpState): boolean {
   const { visible } = parseStudioStepCounter(state.counter);
   return visible >= 10 && visible !== 2;
-}
-
-function traditionalJourneyEndReached(state: StudioMcpState): boolean {
-  const { visible, total } = parseStudioStepCounter(state.counter);
-  if (total > 0 && visible >= total) return true;
-  return state.beatId === "appointment-details";
 }
 
 function cursorFieldsForStudioState(): Pick<
@@ -1025,48 +1027,54 @@ export function registerStudioMcpHelpers(options: {
       { resetToHub: true }
     );
 
+  const runPlayToStartForMode = (
+    orchestraMode: OrchestraModeId,
+    startBeatId: string,
+    startScreenId: string,
+    smokeOptions?: { timeoutMs?: number }
+  ) =>
+    runPlayJourneyToStartSmoke({
+      orchestraMode,
+      startBeatId,
+      startScreenId,
+      timeoutMs: smokeOptions?.timeoutMs,
+      delay,
+      ensureClean: () => {
+        window.__protoEnsureCleanStudio?.();
+      },
+      setOrchestraMode: (mode) => {
+        window.__protoSetOrchestraMode?.(mode);
+      },
+      setJourneyMode: (enabled) =>
+        Boolean(window.__protoSetJourneyMode?.(enabled)),
+      triggerTransport: (action) =>
+        Boolean(window.__protoTriggerTransport?.(action)),
+      getState: () => window.__protoStudioState?.(),
+    });
+
   window.__protoRunTraditionalPlaySmoke = (smokeOptions) =>
     withMcpTestSession(
       "traditional-play-smoke",
-      async () => {
-    const timeoutMs = smokeOptions?.timeoutMs ?? 120_000;
-    window.__protoEnsureCleanStudio?.();
-    window.__protoSetOrchestraMode?.("traditional-cjm");
-    await delay(120);
-    if (!window.__protoSetJourneyMode?.(true)) {
-      return { pass: false, reason: "set-journey-mode-unavailable" };
-    }
-    await delay(480);
-    if (!window.__protoTriggerTransport?.("jump-to-start")) {
-      return { pass: false, reason: "jump-to-start-unavailable" };
-    }
-    await delay(800);
-    if (!window.__protoTriggerTransport?.("play")) {
-      return { pass: false, reason: "trigger-play-unavailable" };
-    }
+      () =>
+        runPlayToStartForMode(
+          "traditional-cjm",
+          "traditional-plp",
+          "plp",
+          smokeOptions
+        ),
+      { resetToHub: true }
+    );
 
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      const state = window.__protoStudioState?.();
-      if (!state) {
-        await delay(200);
-        continue;
-      }
-      if (state.diagnosticOpen) {
-        return { pass: false, reason: "playback-diagnostic", state };
-      }
-      if (traditionalJourneyEndReached(state)) {
-        return { pass: true, state };
-      }
-      await delay(200);
-    }
-
-    return {
-      pass: false,
-      reason: "timeout",
-      state: window.__protoStudioState?.(),
-    };
-      },
+  window.__protoRunAgenticPlaySmoke = (smokeOptions) =>
+    withMcpTestSession(
+      "agentic-play-smoke",
+      () =>
+        runPlayToStartForMode(
+          "agentic-cjm",
+          "agentic-home",
+          "site-pilot",
+          smokeOptions
+        ),
       { resetToHub: true }
     );
 
@@ -1215,6 +1223,7 @@ export function registerStudioMcpHelpers(options: {
     delete window.__protoRunAgenticStepForwardSmoke;
     delete window.__protoRunTraditionalStepForwardSmoke;
     delete window.__protoRunTraditionalPlaySmoke;
+    delete window.__protoRunAgenticPlaySmoke;
     delete window.__protoRunTraditionalRetreatSmoke;
     delete window.__protoRunTraditionalControlRoomRobotQa;
     delete window.__protoAbortAll;
