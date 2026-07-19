@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.5 - 190726
+- **project:** Restore Make→React PLP parity — page bg fill, hero shadow lift, listing wrapper, filter-change preloader + stagger, active filter chips; Nazi QA PROVEN
+
 ## v0.0.4 - 190726
 - **shell:** Version chip tracks live package.json; agent overlay idle auto-stop + clean titles + forceClear
 - **project:** Ship Boots PLP React migration (screen=plp); retire Make child 9 via data-studio-make-retired; Nazi QA PROVEN

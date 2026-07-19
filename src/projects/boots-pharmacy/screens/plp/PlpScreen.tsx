@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import plpHeroImage from "@/projects/boots-pharmacy/frame/5b75d20d7a0df34031ca23477a68cf97cac4938d.png";
+import plpBodyFill from "@/projects/boots-pharmacy/frame/dbcd84d6da292330c6f57adefa32dd4b969ac8bd.png";
 import {
   isInWishlist,
   plpTileWishlistId,
@@ -19,16 +25,22 @@ import {
   PLP_COUNTRY_OPTIONS,
   PLP_DISEASE_OPTIONS,
   PLP_JAB_ITEMS,
+  PLP_LISTING_LOAD_MS,
   PLP_REGION_OPTIONS,
+  collectPlpActiveFilterChips,
   filterOptionList,
   filterPlpCatalog,
   isPlpFiltersDirty,
+  plpResultsNoun,
+  removePlpActiveFilterChip,
   togglePlpFilterValue,
   type PlpCatalogItem,
   type PlpFilterState,
 } from "./plpCatalog";
 import { PLP_REACT_SCREEN_ID } from "./plpContract";
 import "./plp.css";
+
+type ListingPhase = "idle" | "loading" | "reveal";
 
 export type PlpScreenProps = {
   onBookNow: (item: PlpCatalogItem) => void;
@@ -176,6 +188,8 @@ function ServiceTile({
   item,
   tileIndex,
   wishlisted,
+  staggerMs,
+  reveal,
   onToggleWishlist,
   onBookNow,
   onQuickView,
@@ -183,16 +197,23 @@ function ServiceTile({
   item: PlpCatalogItem;
   tileIndex: number;
   wishlisted: boolean;
+  staggerMs?: number;
+  reveal?: boolean;
   onToggleWishlist: () => void;
   onBookNow: () => void;
   onQuickView: () => void;
 }) {
   return (
     <article
-      className="plp__tile"
+      className={`plp__tile${reveal ? " plp__tile--in" : ""}`}
       data-name="boots-pharmacy.service.tile"
       data-studio-plp-tile-id={item.id}
       data-studio-plp-tile-index={String(tileIndex)}
+      style={
+        staggerMs != null
+          ? ({ ["--plp-stagger"]: `${staggerMs}ms` } as CSSProperties)
+          : undefined
+      }
     >
       <div className="plp__tile-main">
         <div className="plp__tile-copy">
@@ -282,13 +303,51 @@ export function PlpScreen({
 }: PlpScreenProps) {
   const [filters, setFilters] = useState<PlpFilterState>(DEFAULT_PLP_FILTERS);
   const [wishlistTick, setWishlistTick] = useState(0);
+  const [displayItems, setDisplayItems] = useState(() =>
+    filterPlpCatalog(DEFAULT_PLP_FILTERS)
+  );
+  const [listingPhase, setListingPhase] = useState<ListingPhase>("idle");
+  const syncPassRef = useRef(0);
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const items = useMemo(() => filterPlpCatalog(filters), [filters]);
   const dirty = isPlpFiltersDirty(filters);
+  const activeChips = collectPlpActiveFilterChips(filters);
+  const noun = plpResultsNoun(filters, displayItems.length);
 
   useEffect(() => {
     onFiltersDirtyChange?.(dirty);
   }, [dirty, onFiltersDirtyChange]);
+
+  // Make plpListing: first sync instant; later filter changes simulate load.
+  useEffect(() => {
+    const next = filterPlpCatalog(filters);
+
+    if (syncPassRef.current === 0) {
+      syncPassRef.current = 1;
+      setDisplayItems(next);
+      setListingPhase("idle");
+      return;
+    }
+
+    if (loadTimerRef.current != null) {
+      clearTimeout(loadTimerRef.current);
+      loadTimerRef.current = null;
+    }
+
+    setListingPhase("loading");
+    loadTimerRef.current = setTimeout(() => {
+      loadTimerRef.current = null;
+      setDisplayItems(next);
+      setListingPhase("reveal");
+    }, PLP_LISTING_LOAD_MS);
+
+    return () => {
+      if (loadTimerRef.current != null) {
+        clearTimeout(loadTimerRef.current);
+        loadTimerRef.current = null;
+      }
+    };
+  }, [filters]);
 
   const diseaseOptions = filterOptionList(
     PLP_DISEASE_OPTIONS,
@@ -298,6 +357,21 @@ export function PlpScreen({
     PLP_COUNTRY_OPTIONS,
     filters.countryQuery
   );
+
+  const resultsCountClass =
+    listingPhase === "loading"
+      ? "plp__results-count plp__results-count--loading"
+      : listingPhase === "reveal"
+        ? "plp__results-count plp__results-count--in"
+        : "plp__results-count";
+
+  const tilesHostClass = [
+    "plp__tiles-host",
+    listingPhase === "loading" ? "plp__tiles-host--loading" : "",
+    listingPhase === "reveal" ? "plp__tiles-host--reveal" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
@@ -347,8 +421,18 @@ export function PlpScreen({
         </div>
       </section>
 
-      <div className="plp__body">
-        <div className="plp__shell">
+      <div className="plp__body" data-name="module.laptop.specs">
+        {/* Make ModuleLaptopSpecs: white base + decorative fill @ opacity 0.41 */}
+        <div className="plp__body-fill" aria-hidden>
+          <div className="plp__body-fill-solid" />
+          <img
+            className="plp__body-fill-img"
+            src={plpBodyFill}
+            alt=""
+          />
+        </div>
+
+        <div className="plp__shell plp__body-shell">
           <div className="plp__shell-inner plp__layout">
             <aside
               className="plp__filters"
@@ -519,48 +603,140 @@ export function PlpScreen({
               ) : null}
             </aside>
 
-            <div className="plp__results">
-              <div
-                className="plp__results-summary"
-                data-name="component.filter.controls"
-              >
-                <p
-                  className="plp__results-count proto-plp-results-count--in"
-                  data-studio-plp-results={String(items.length)}
+            {/* Make Body8 listing wrapper — white card + drop-shadow over page fill */}
+            <div className="plp__listing" data-name="module.plp.listing">
+              <div className="plp__results">
+                <div
+                  className="plp__results-summary"
+                  data-name="component.filter.controls"
                 >
-                  {items.length} service
-                  {items.length === 1 ? "" : "s"} available for the selected
-                  filters
-                </p>
-              </div>
-              <div
-                className="plp__tiles-host proto-plp-tiles-host"
-                data-name="module.plp.tiles"
-              >
-                {items.map((item, tileIndex) => {
-                  const wishId = plpTileWishlistId(tileIndex);
-                  const wishlisted =
-                    wishlistTick >= 0 && isInWishlist(wishId);
-                  return (
-                    <ServiceTile
-                      key={item.id}
-                      item={item}
-                      tileIndex={tileIndex}
-                      wishlisted={wishlisted}
-                      onToggleWishlist={() => {
-                        toggleWishlist(wishId);
-                        setWishlistTick((n) => n + 1);
-                      }}
-                      onBookNow={() => onBookNow(item)}
-                      onQuickView={() => onQuickView(item)}
-                    />
-                  );
-                })}
-                {!items.length ? (
-                  <p className="plp__empty">
-                    No services match these filters. Try resetting filters.
-                  </p>
-                ) : null}
+                  <div className="plp__results-summary-row">
+                    <p
+                      className={resultsCountClass}
+                      data-studio-plp-results={String(displayItems.length)}
+                      aria-live="polite"
+                    >
+                      {listingPhase === "loading" ? (
+                        "Updating results…"
+                      ) : activeChips.length ? (
+                        <>
+                          {displayItems.length} {noun} found for{" "}
+                          {activeChips.map((chip, index) => (
+                            <span key={`${chip.facet}:${chip.label}`}>
+                              {index > 0 ? ", " : null}
+                              <button
+                                type="button"
+                                className="plp__filter-chip uxds-link"
+                                data-studio-plp-filter-facet={chip.facet}
+                                data-studio-plp-filter-label={chip.label}
+                                onClick={() =>
+                                  setFilters(
+                                    removePlpActiveFilterChip(
+                                      filters,
+                                      chip.facet,
+                                      chip.label
+                                    )
+                                  )
+                                }
+                              >
+                                {chip.label}
+                              </button>
+                            </span>
+                          ))}
+                        </>
+                      ) : dirty ? (
+                        `${displayItems.length} ${noun} found`
+                      ) : (
+                        `${displayItems.length} ${noun} available`
+                      )}
+                    </p>
+                    {dirty ? (
+                      <button
+                        type="button"
+                        className="plp__reset-inline uxds-link"
+                        data-name="component.plp.reset-filters"
+                        data-studio-plp-reset-filters="true"
+                        onClick={() => setFilters(DEFAULT_PLP_FILTERS)}
+                      >
+                        Reset Filters
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div
+                  className={tilesHostClass}
+                  data-name="module.plp.tiles"
+                >
+                  {listingPhase === "loading" ? (
+                    <div
+                      className="plp__listing-loader"
+                      aria-live="polite"
+                    >
+                      <div className="plp__listing-loader__inner">
+                        <div
+                          className="plp__listing-loader__spinner plp__listing-loader__spinner--run"
+                          aria-hidden
+                        >
+                          <svg
+                            viewBox="0 0 44 44"
+                            width="44"
+                            height="44"
+                            aria-hidden
+                          >
+                            <circle
+                              className="plp__listing-loader__track"
+                              cx="22"
+                              cy="22"
+                              r="18"
+                              fill="none"
+                            />
+                            <circle
+                              className="plp__listing-loader__arc"
+                              cx="22"
+                              cy="22"
+                              r="18"
+                              fill="none"
+                            />
+                          </svg>
+                        </div>
+                        <p className="plp__listing-loader__text">
+                          Updating results…
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {displayItems.map((item, tileIndex) => {
+                    const wishId = plpTileWishlistId(tileIndex);
+                    const wishlisted =
+                      wishlistTick >= 0 && isInWishlist(wishId);
+                    const staggerMs = Math.min(tileIndex, 8) * 50;
+                    return (
+                      <ServiceTile
+                        key={item.id}
+                        item={item}
+                        tileIndex={tileIndex}
+                        wishlisted={wishlisted}
+                        staggerMs={
+                          listingPhase === "reveal" ? staggerMs : undefined
+                        }
+                        reveal={listingPhase === "reveal"}
+                        onToggleWishlist={() => {
+                          toggleWishlist(wishId);
+                          setWishlistTick((n) => n + 1);
+                        }}
+                        onBookNow={() => onBookNow(item)}
+                        onQuickView={() => onQuickView(item)}
+                      />
+                    );
+                  })}
+                  {!displayItems.length && listingPhase !== "loading" ? (
+                    <p className="plp__empty">
+                      No services match these filters. Try resetting filters.
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>

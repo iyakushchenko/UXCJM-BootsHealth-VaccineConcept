@@ -5,8 +5,12 @@ import {
 } from "@/projects/boots-pharmacy/screens/screens";
 import {
   DEFAULT_PLP_FILTERS,
+  PLP_LISTING_LOAD_MS,
+  collectPlpActiveFilterChips,
   filterPlpCatalog,
   isPlpFiltersDirty,
+  plpResultsNoun,
+  removePlpActiveFilterChip,
   togglePlpFilterValue,
 } from "../plpCatalog";
 import {
@@ -61,5 +65,24 @@ describe("plpCatalog filters", () => {
     expect(items.every((item) => item.diseases.includes("Chickenpox"))).toBe(
       true
     );
+  });
+
+  it("collects and removes active filter chips like Make summary", () => {
+    const dirty = togglePlpFilterValue(
+      DEFAULT_PLP_FILTERS,
+      "diseases",
+      "Chickenpox"
+    );
+    const chips = collectPlpActiveFilterChips(dirty);
+    expect(chips).toEqual([{ facet: "diseases", label: "Chickenpox" }]);
+    expect(plpResultsNoun(dirty, 1)).toBe("jab");
+    expect(PLP_LISTING_LOAD_MS).toBe(450);
+    const cleared = removePlpActiveFilterChip(
+      dirty,
+      "diseases",
+      "Chickenpox"
+    );
+    expect(collectPlpActiveFilterChips(cleared)).toEqual([]);
+    expect(isPlpFiltersDirty(cleared)).toBe(false);
   });
 });

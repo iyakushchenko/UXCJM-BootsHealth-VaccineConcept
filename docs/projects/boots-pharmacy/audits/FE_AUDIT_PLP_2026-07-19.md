@@ -1,10 +1,11 @@
 # FE / UI / UX audit result
 
-**Surface / slice:** PLP Vaccinations (React migration) + Make retire gates + Studio URL/chip  
+**Surface / slice:** PLP Vaccinations — Make→React parity restore (bg fill, hero shadow, listing wrapper, preloader, filter chips)  
 **Date:** 2026-07-19  
-**Auditor:** Uma (UI/UX) — strict (“Nazi QA”) pass (same session, hat switch after Finn handoff)  
-**Implementer handoff / audited tip:** `929e507` (patch `0.0.4`; parent `6c5c911`)  
+**Auditor:** Uma (UI/UX) + Quinn (QA) — strict (“Nazi QA”) parity pass  
+**Implementer handoff / audited tip:** pending commit after this stamp (package `0.0.5`; parent tip was `42d922c`)  
 **Checklist:** [../../../product/FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [FE_STANDARDS.md](../../../product/FE_STANDARDS.md) · [DS_STRICTNESS.md](../../../product/DS_STRICTNESS.md)  
+**Register:** [../features/PLP_MAKE_PARITY_REGISTER.md](../features/PLP_MAKE_PARITY_REGISTER.md)  
 **Brief:** [../features/PLP_REACT.md](../features/PLP_REACT.md)
 
 ---
@@ -14,13 +15,35 @@
 | Field | Value |
 |-------|-------|
 | **Overall** | **PROVEN** |
-| **PO green-light allowed?** | Yes (with honest residual below) |
+| **PO green-light allowed?** | Yes (residuals below) |
 
 ---
 
 ## Summary
 
-Localhost `?project=boots-pharmacy&screen=plp` mounts React PLP (`data-studio-react-screen=plp`). All Make Frame direct children under child 9 are `data-studio-make-retired=plp` + `display:none` except Studio host/footer mount (no Make hero/listing leak). Book now → `screen=pdp`; Quick View opens RTB modal; Bundles filter → 7 tiles; shell 1440/64; version chip `v0.0.3` / `alpha` matches package. No LEGACY CSS growth for React path. Residual: Make child still in bundle; jab catalog 10 vs Make ~21; no listing load spinner.
+React PLP now matches Make journey-critical layout: decorative page fill (`imgBody1` @ 0.41), hero category-title lift shadow, Body8-style listing wrapper (24px radius + `0 5px 9.75px` shadow), and Make listing preloader (“Updating results…” + stagger reveal on filter change). Active filter chips restore. Localhost: Make leak=0; Bundles=7; Chickenpox chip; Quick View; Book→PDP; chip `v0.0.5` / `alpha`. No LEGACY growth (styles in `screens/plp/plp.css`).
+
+---
+
+## Parity register prove (Quinn)
+
+| Register # | Item | Result | Localhost evidence |
+|------------|------|--------|--------------------|
+| L1 | Page bg fill | **PASS** | `.plp__body-fill-img` opacity `0.41` |
+| L2 | Category title / hero shadow | **PASS** | `.plp__hero` `box-shadow: rgba(0,0,0,0.18) 0px 12px 28px` |
+| L3 | Listing wrapper | **PASS** | `.plp__listing` radius 24px + `0 5px 9.75px` shadow |
+| L4 / I12 / I13 | Preloader + stagger | **PASS** | Bundles click → `loadingDuring=true`, loader “Updating results…”, then `--reveal` + 7 tiles |
+| I4 | Active filter chips | **PASS** | Chickenpox → chip + “1 jab found for Chickenpox” |
+| I1 / I11 | By Type / Bundles | **PASS** | 7 bundles found |
+| I8 | Book → PDP | **PASS** | URL `screen=pdp` |
+| I9 | Quick View | **PASS** | RTB popup open |
+| I10 | Wishlist | **PASS** | Handlers present (prior ship; not regress) |
+| W1 | Make retire / no leak | **PASS** | `makeLeak=0`, retired Make children hidden |
+| L5 / L6 / I6 / L14 | Advantage / AI strip / View all / catalog depth | **Residual** | Documented; not ship-blockers |
+
+**Pages:** tip not yet deployed — verify after push (`https://iyakushchenko.github.io/ux-studio/?project=boots-pharmacy&screen=plp`).
+
+**Agent overlay:** stopped/cleaned via `__protoAgentTestingOverlay.stop({ force: true })` before prove (clean slate → hub; re-nav to PLP).
 
 ---
 
@@ -30,67 +53,22 @@ Localhost `?project=boots-pharmacy&screen=plp` mounts React PLP (`data-studio-re
 
 | # | Result | Evidence |
 |---|--------|----------|
-| A1 | **PASS** | Teal hero band + Vaccinations title/lede; white tiles; navy Book now; mint tertiary icons; filter radios/checkboxes `#afccca` / `#305854`. |
-| A2 | **PASS (Partial)** | Concept L&F preserved for composition; catalog count Partial vs Make 21 jabs (documented residual). |
-| A3 | **PASS** | Styles in `screens/plp/plp.css` + UXDS Accordion / ButtonPrimary / `.uxds-link`; no new `globals-screens` LEGACY rules. |
+| A1 | **PASS** | Teal hero + Vaccinations; white listing card; navy Book now; mint tertiary icons. |
+| A2 | **PASS** | Make L&F restored for PO P0 gaps; catalog count still Partial (~10 vs ~21). |
+| A3 | **PASS** | All new styles in `plp.css` / UXDS; no `globals-screens` LEGACY growth. |
 
 ### B. Layout / max-width / alignment
 
 | # | Result | Evidence |
 |---|--------|----------|
-| B1 | **PASS** | `.plp__shell` max-width **1440px**, pad L/R **64px**; inner **1312px**. |
-| B2 | **PASS** | Filters column **304px**; results flex; desktop-first. |
-| B3 | **PASS** | No Make listing leak under host; sticky Proto header + footer mount present. |
-| B4 | **PASS** | Tertiary Bookmarks / Quick View `white-space: nowrap`. |
+| B1 | **PASS** | 1440/64/1312 shell retained. |
+| B2 | **PASS** | Filters 304px + listing flex card. |
+| B3 | **PASS** | No Make listing leak under host. |
+| B4 | **PASS** | Tertiary nowrap retained. |
 
-### C. Icon + text CTAs — no wrap
+### C–H
 
-| # | Result | Evidence |
-|---|--------|----------|
-| C1 | **PASS** | `.plp__tertiary` nowrap; Book now nowrap. |
-| C2 | **PASS** | Tertiary h 32; icon+label single line. |
-| C3 | **PASS** | Primary commerce pill single-line. |
-
-### D. Hover / focus / active
-
-| # | Result | Evidence |
-|---|--------|----------|
-| D1 | **PASS** | Tertiary hover → black label / navy icon; title link underline navy; primary commerce hover kit. |
-| D2 | **PASS** | `:focus-visible` on crumb, options, tertiary, search. |
-| D3 | **PASS** | By Type / age radios show selected mint fill. |
-| D4 | **N/A** | Empty filter path shows empty copy (honest). |
-
-### E. Behavior parity
-
-| # | Result | Evidence |
-|---|--------|----------|
-| E1 | **PASS** | Filters narrow results; Bundles → 7; Reset when dirty. |
-| E2 | **PASS** | Book now / title → PDP; Quick View → modal; wishlist toggles via shared API. |
-| E3 | **PASS** | Live React handlers; Make wire PLP effects gated by `isPlpReactMounted()`. |
-
-### F. Control hierarchy / no zoo
-
-| # | Result | Evidence |
-|---|--------|----------|
-| F1 | **PASS** | One primary Book now; tertiary Bookmarks/Quick View; Accordion kit reused. |
-| F2 | **PASS** | No second accordion CSS fork. |
-| F3 | **PASS** | No FilterChip zoo on PLP. |
-
-### G. Nav chrome logic
-
-| # | Result | Evidence |
-|---|--------|----------|
-| G1 | **PASS** | Studio tabs + `screen=plp` deep link; version chip visible `v0.0.3` / `alpha`. |
-| G2 | **PASS** | Post-agent clean slate / overlay untouched. |
-| G3 | **PASS** | Single STEPS counter language unchanged. |
-
-### H. DS strictness
-
-| # | Result | Evidence |
-|---|--------|----------|
-| H1 | **PASS** | UXDS Accordion + ButtonPrimary + `.uxds-link`; screen CSS for Make-parity chrome. |
-| H2 | **PASS** | No anonymous page styles outside `plp.css`. |
-| H3 | **PASS** | No LEGACY growth. |
+Prior PROVEN checks retained (icon+text nowrap, focus-visible, Accordion kit, no FilterChip zoo for sidebar, Studio chrome XOR, DS tokens / screen CSS only). Re-spot-checked on localhost this pass.
 
 ---
 
@@ -98,16 +76,18 @@ Localhost `?project=boots-pharmacy&screen=plp` mounts React PLP (`data-studio-re
 
 | Item | Status |
 |------|--------|
-| Make Frame child 9 still in JS bundle | Hidden + wire-gated; delete at end of erase-Make sequence |
-| Jab catalog 10 vs Make ~21 tiles | Acceptable for DONE; expand later if CJM needs full scrape parity |
-| Make listing load spinner / stagger | Not ported (Partial) |
+| Make Frame child 9 still in bundle | Hidden + wire-gated; delete at end of erase-Make |
+| Advantage Card points banner (L5) | Not ported |
+| AI Assistant promo strip (L6) | Not ported |
+| Filter “View all” (I6) | Not ported (short React lists) |
+| Jab catalog 10 vs Make ~21 | Partial; expand if CJM needs |
 | `globals-screens` `.proto-plp-*` | Dead while React mounted; shrink on Make delete |
 
 ---
 
 ## Quinn (QA) prove notes
 
-- `npm test` 323 passed + hygiene/felonies/version green (pre-bump)
-- `npm run build` OK
-- Localhost MCP: react mount, Make retired (0 leak), Book→PDP, Quick View, Bundles=7, chip 0.0.3/alpha
-- Pages: verify after deploy tip
+- `npm test` 324 passed + hygiene/felonies/version green (pre-bump path); build OK via `release:patch`
+- Localhost MCP prove matrix above — **critical interactions retained**
+- Version chip localhost: `v0.0.5` / `alpha`
+- Pages: after deploy tip

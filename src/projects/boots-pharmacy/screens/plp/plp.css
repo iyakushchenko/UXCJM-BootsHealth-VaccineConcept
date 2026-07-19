@@ -82,15 +82,17 @@
   color: #3a3a3a;
 }
 
-/* Make module.plp.hero — teal band 296px */
+/* Make module.plp.hero — teal category title band 296px + lift shadow over page fill */
 .plp__hero {
   position: relative;
+  z-index: 2;
   width: 100%;
   min-height: 296px;
   overflow: hidden;
   background: #467672;
   display: flex;
   align-items: center;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
 .plp__hero-bg {
@@ -157,16 +159,66 @@
   display: block;
 }
 
+/*
+ * Make ModuleLaptopSpecs page fill:
+ * absolute white base + decorative PNG @ opacity 0.41, object-position bottom.
+ */
 .plp__body {
+  position: relative;
   width: 100%;
+  flex: 1 1 auto;
   padding: 40px 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.plp__body-fill {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.plp__body-fill-solid {
+  position: absolute;
+  inset: 0;
   background: var(--uxds-surface-neutral);
+}
+
+.plp__body-fill-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: bottom;
+  opacity: 0.41;
+}
+
+.plp__body-shell {
+  position: relative;
+  z-index: 1;
 }
 
 .plp__layout {
   display: flex;
   gap: 32px;
   align-items: flex-start;
+}
+
+/* Make Body8 — white listing card standing out from page fill */
+.plp__listing {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--uxds-surface-neutral);
+  border-radius: 24px;
+  box-shadow: 0 5px 9.75px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .plp__filters {
@@ -373,23 +425,202 @@
   width: 100%;
 }
 
+.plp__results-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  width: 100%;
+}
+
 .plp__results-count {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.plp__results-count--loading {
+  animation: plp-results-loading-pulse 0.9s ease-in-out infinite;
+}
+
+.plp__results-count--in {
+  animation: plp-results-count-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.plp__filter-chip {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.plp__reset-inline {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.plp__tiles-host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 160px;
+}
+
+.plp__tiles-host--loading {
+  min-height: 220px;
+}
+
+.plp__tiles-host--loading .plp__tile {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plp__tiles-host--reveal .plp__tile--in {
+  animation: plp-tile-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--plp-stagger, 0ms);
+}
+
+/* Make listing preloader — ported from globals-screens .proto-plp-listing-loader */
+.plp__listing-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 8px;
+}
+
+.plp__listing-loader__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.plp__listing-loader__spinner {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plp__listing-loader__spinner svg {
+  display: block;
+  transform-origin: 50% 50%;
+}
+
+.plp__listing-loader__spinner--run svg {
+  animation: plp-spinner-turn 0.85s linear infinite;
+  will-change: transform;
+}
+
+.plp__listing-loader__track {
+  stroke: #c4dde3;
+  stroke-width: 4;
+}
+
+.plp__listing-loader__arc {
+  stroke: #012169;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+}
+
+.plp__listing-loader__spinner--run .plp__listing-loader__arc {
+  animation: plp-spinner-arc 1.1s ease-in-out infinite;
+  will-change: stroke-dasharray, stroke-dashoffset;
+}
+
+.plp__listing-loader__text {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
   color: #3a3a3a;
 }
 
-.plp__tiles-host {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
+@keyframes plp-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+@keyframes plp-results-count-in {
+  from {
+    opacity: 0.35;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes plp-spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes plp-spinner-arc {
+  0% {
+    stroke-dasharray: 1 113;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 56 113;
+    stroke-dashoffset: -18;
+  }
+  100% {
+    stroke-dasharray: 1 113;
+    stroke-dashoffset: -113;
+  }
+}
+
+@keyframes plp-results-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plp__tiles-host--reveal .plp__tile--in,
+  .plp__results-count--in,
+  .plp__listing-loader__spinner--run svg,
+  .plp__listing-loader__spinner--run .plp__listing-loader__arc,
+  .plp__results-count--loading {
+    animation: none !important;
+  }
+}
+
+/* Make tile pad 16px */
 .plp__tile {
   width: 100%;
-  padding: 24px;
+  padding: 16px;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
   background: #fff;

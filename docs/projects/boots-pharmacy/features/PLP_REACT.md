@@ -2,9 +2,9 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** done  
+**Status:** done (+ Make parity restore `v0.0.5`)  
 **Updated:** 2026-07-19  
-**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) erase-Make program · audit [../audits/FE_AUDIT_PLP_2026-07-19.md](../audits/FE_AUDIT_PLP_2026-07-19.md)
+**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PLP_MAKE_PARITY_REGISTER.md](./PLP_MAKE_PARITY_REGISTER.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) erase-Make program · audit [../audits/FE_AUDIT_PLP_2026-07-19.md](../audits/FE_AUDIT_PLP_2026-07-19.md)
 
 ---
 
@@ -62,11 +62,13 @@ Erase-Make program **NOW = PLP**. Vaccinations listing (`screenId: plp`, Frame c
 - [x] Push? **Y**
 - [x] Notes/CHANGELOG updated if bump
 
-## Honest residual (expected at first ship)
+## Honest residual (after parity restore)
 
 | Residual | Why OK for DONE |
 |----------|-----------------|
 | Make Frame child 9 still in bundle | Hidden + wire-gated; delete after History/Details + Book Make delete phase |
 | `globals-screens` `.proto-plp-*` rules for Make child 9 | Dead while React mounted; shrink when Make child deleted — do not grow |
-| Filter facet counts / load spinner parity | May be Partial vs Make DOM sync sophistication |
-| Traditional CJM tile scrape | Must hit React tiles via same `data-name` hooks |
+| Advantage banner / AI promo / View all / catalog ~10 vs ~21 | Register L5–L6 / I6 / L14 — not journey-critical for PLP→PDP |
+| Traditional CJM tile scrape | Hits React tiles via same `data-name` hooks |
+
+**Parity P0 fixed this ship:** page bg fill, hero shadow, listing wrapper, listing preloader + stagger, active filter chips — see register.

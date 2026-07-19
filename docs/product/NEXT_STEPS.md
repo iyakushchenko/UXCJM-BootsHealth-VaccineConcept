@@ -24,35 +24,37 @@ A screen is **DONE** only when **all** are true:
 ## NOW
 
 1. [x] **PLP React migration** — DONE by erase-Make definition. Brief: [PLP_REACT.md](../projects/boots-pharmacy/features/PLP_REACT.md) · audit [FE_AUDIT_PLP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19.md).
-2. [ ] **PDP React migration** — same DONE definition; retire Make child 8. Order lock continues: **PDP → Home → Chat → History/Details**, then delete Book 1–3 Make children.
-3. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
+2. [x] **PLP Make parity restore** — register [PLP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md); P0 gaps fixed (bg fill, hero shadow, listing wrapper, preloader, filter chips); audit PROVEN; patch `0.0.5`.
+3. [ ] **PDP React migration** — same DONE definition; retire Make child 8. Order lock continues: **PDP → Home → Chat → History/Details**, then delete Book 1–3 Make children. **Await PO +.**
+4. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
 
 ---
 
 ## NEXT (erase-Make sequence)
 
-4. [ ] **Home React migration** — Site Pilot Home (child 11).
-5. [ ] **Chat React migration** — Site Pilot Chat (child 10).
-6. [ ] **Appointment History + Details** — children 2 + 1.
-7. [ ] **Delete Book Step 1–3 Make children** — after PDP…Details React DONE and CJM/playback green; until then keep `data-studio-make-retired` residual.
-8. [ ] **LEGACY retirement (by screen)** — shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
-9. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain — not micro-files.
-10. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
-11. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
+5. [ ] **Home React migration** — Site Pilot Home (child 11).
+6. [ ] **Chat React migration** — Site Pilot Chat (child 10).
+7. [ ] **Appointment History + Details** — children 2 + 1.
+8. [ ] **Delete Book Step 1–3 Make children** — after PDP…Details React DONE and CJM/playback green; until then keep `data-studio-make-retired` residual.
+9. [ ] **LEGACY retirement (by screen)** — shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
+10. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain — not micro-files.
+11. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+12. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases. PLP residuals: Advantage banner, AI promo strip, View all, catalog depth (see register).
 
 ---
 
 ## LATER
 
-12. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
-13. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
-14. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
-15. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
+13. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
+14. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
+15. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
+16. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
 
 ---
 
 ## Done recently (context)
 
+- [x] **PLP Make parity restore** — register + P0 fidelity; audit PROVEN; `v0.0.5`.
 - [x] **PLP React migration** — erase-Make DONE; audit PROVEN; Make child 9 retired (delete deferred).
 - [x] **Honest version chip + unstick agent overlay** — tip `6c5c911`.
 - [x] **REC capture gaps (v3)** — beat-enter / scroll / typed-text capture+replay; compile still gaps scroll/typed.

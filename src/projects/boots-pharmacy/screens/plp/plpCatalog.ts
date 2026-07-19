@@ -352,3 +352,59 @@ export function filterOptionList(
   if (!q) return [...options];
   return options.filter((label) => label.toLowerCase().includes(q));
 }
+
+/** Active facet chips shown in Make PLP results summary (removable). */
+export type PlpActiveFilterChip = {
+  facet: "ages" | "diseases" | "regions" | "countries";
+  label: string;
+};
+
+export function collectPlpActiveFilterChips(
+  state: PlpFilterState
+): PlpActiveFilterChip[] {
+  const chips: PlpActiveFilterChip[] = [];
+  if (!state.allAges) {
+    for (const label of state.ages) {
+      chips.push({ facet: "ages", label });
+    }
+  }
+  for (const label of state.diseases) {
+    chips.push({ facet: "diseases", label });
+  }
+  for (const label of state.regions) {
+    chips.push({ facet: "regions", label });
+  }
+  for (const label of state.countries) {
+    chips.push({ facet: "countries", label });
+  }
+  return chips;
+}
+
+export function removePlpActiveFilterChip(
+  state: PlpFilterState,
+  facet: PlpActiveFilterChip["facet"],
+  label: string
+): PlpFilterState {
+  if (facet === "ages") {
+    const ages = state.ages.filter((item) => item !== label);
+    return { ...state, ages, allAges: ages.length === 0 };
+  }
+  return {
+    ...state,
+    [facet]: state[facet].filter((item) => item !== label),
+  };
+}
+
+/** Make wire copy noun for results summary. */
+export function plpResultsNoun(
+  state: PlpFilterState,
+  visible: number
+): string {
+  if (state.showBundles) {
+    return visible === 1 ? "bundle" : "bundles";
+  }
+  return visible === 1 ? "jab" : "jabs";
+}
+
+/** Make `PLP_LISTING_LOAD_MS` — filter-change listing preloader. */
+export const PLP_LISTING_LOAD_MS = 450;
