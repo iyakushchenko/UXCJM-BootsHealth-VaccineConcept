@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.33 - 190726
+- Maintenance update
+
 ## v0.0.32 - 190726
 - **shell:** Robo-cursor travel via Motion `animate` ease-in-out (no bounce/overshoot); `@/uxds/motion` wire; cancel stoppable on forceClear
 - **docs:** MOTION.md platform standard
