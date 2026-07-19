@@ -12,6 +12,7 @@ import {
 import { notePlaybackDemoClick } from "@/app/shell/playbackInteractionContext";
 import {
   describeCursorTarget,
+  noteCursorPathSample,
   notePlaybackCursorEvent,
 } from "@/app/shell/playbackCursorDiagnostic";
 import {
@@ -78,10 +79,26 @@ let cursorFadeGeneration = 0;
 /** Bumped on forceClear / remove — cancels in-flight Motion travel (Chrome hang guard). */
 let travelGeneration = 0;
 let activeTravelControls: AnimationPlaybackControls | null = null;
+/**
+ * After easeInOut travel settles on target, freeze left/top until the next travel.
+ * Prevents on-target re-aim / chase while hover styles or scroll leftovers shift the rect.
+ */
+let cursorPosLocked = false;
 /** Rate-limit synthetic pointer flood from hover bridge path. */
 const SYNTHETIC_MOVE_MIN_MS = 48;
 let lastSyntheticMoveAt = 0;
 let lastSyntheticMoveKey = "";
+
+function writeDemoCursorPos(
+  cursor: HTMLElement,
+  x: number,
+  y: number,
+  options?: { force?: boolean }
+): void {
+  if (cursorPosLocked && !options?.force) return;
+  cursor.style.left = `${x}px`;
+  cursor.style.top = `${y}px`;
+}
 
 export type RemoveDemoCursorOptions = {
   /** Hard-remove with no fade — aborts, resets, mode teardown. */
@@ -224,6 +241,7 @@ function cancelDemoCursorParkInFlight(): void {
 /** Abort in-flight Motion cursor travel — call from forceClear / remove / teardown. */
 export function cancelDemoCursorTravel(): void {
   travelGeneration += 1;
+  cursorPosLocked = false;
   if (activeTravelControls) {
     activeTravelControls.stop();
     activeTravelControls = null;
@@ -283,8 +301,8 @@ function seedDemoCursorPosition(
   position: { x: number; y: number }
 ): void {
   cursor.style.transition = "none";
-  cursor.style.left = `${position.x}px`;
-  cursor.style.top = `${position.y}px`;
+  cursorPosLocked = false;
+  writeDemoCursorPos(cursor, position.x, position.y, { force: true });
   lastCursorPos = { x: position.x, y: position.y };
 }
 
@@ -455,9 +473,7 @@ async function animateCursorTravel(
   endY: number,
   durationMs: number,
   options?: {
-    onApproach?: () => void;
-    approachElement?: HTMLElement;
-    /** Re-read end position each frame (page scroll in progress). */
+    /** Re-read end position while page scroll is in progress (frozen near arrival). */
     trackTarget?: HTMLElement;
     shouldAbort?: () => boolean;
   }
@@ -466,33 +482,27 @@ async function animateCursorTravel(
   const aborted = () =>
     generation !== travelGeneration || !!options?.shouldAbort?.();
 
+  // Unlock for this travel; freeze again only after settle.
+  cursorPosLocked = false;
+  let frozenEndX = endX;
+  let frozenEndY = endY;
+  let tracking = Boolean(options?.trackTarget);
+
   const resolveEnd = () => {
-    if (options?.trackTarget) {
+    if (tracking && options?.trackTarget) {
       const tracked = cursorPositionForTarget(options.trackTarget);
-      return { x: tracked.left, y: tracked.top };
+      frozenEndX = tracked.left;
+      frozenEndY = tracked.top;
     }
-    return { x: endX, y: endY };
+    return { x: frozenEndX, y: frozenEndY };
   };
 
   cursor.style.transition = "none";
-  let approached = false;
-
-  const tryApproach = (left: number, top: number) => {
-    if (approached || !options?.onApproach || aborted()) return;
-    if (options.approachElement) {
-      const { x: hotspotX, y: hotspotY } = cursorHotspotFromPos(left, top);
-      if (!hotspotIntersectsElement(hotspotX, hotspotY, options.approachElement)) {
-        return;
-      }
-    }
-    approached = true;
-    options.onApproach();
-  };
-
-  tryApproach(startX, startY);
+  noteCursorPathSample("travel", startX, startY);
   if (aborted()) return false;
 
   // Motion tween — ease-in-out only (light touch). No spring / back / overshoot.
+  // Hover is applied AFTER settle (not mid-travel) so CTA layout shifts cannot re-aim.
   let controls!: AnimationPlaybackControls;
   controls = animate(0, 1, {
     duration: Math.max(0.001, durationMs / 1000),
@@ -502,14 +512,15 @@ async function animateCursorTravel(
         controls.stop();
         return;
       }
+      // Freeze tracking before the last segment so hover/layout cannot chase the tip.
+      if (progress >= 0.9) tracking = false;
       const end = resolveEnd();
       const x = startX + (end.x - startX) * progress;
       const y = startY + (end.y - startY) * progress;
       if (cursor.isConnected) {
-        cursor.style.left = `${x}px`;
-        cursor.style.top = `${y}px`;
+        writeDemoCursorPos(cursor, x, y, { force: true });
       }
-      tryApproach(x, y);
+      noteCursorPathSample("travel", x, y);
     },
   });
   activeTravelControls = controls;
@@ -528,10 +539,18 @@ async function animateCursorTravel(
 
   const finalEnd = resolveEnd();
   if (cursor.isConnected) {
-    cursor.style.left = `${finalEnd.x}px`;
-    cursor.style.top = `${finalEnd.y}px`;
+    writeDemoCursorPos(cursor, finalEnd.x, finalEnd.y, { force: true });
   }
   lastCursorPos = { x: finalEnd.x, y: finalEnd.y };
+  cursorPosLocked = true;
+  noteCursorPathSample("settle", finalEnd.x, finalEnd.y);
+  notePlaybackCursorEvent("settle", {
+    target: options?.trackTarget
+      ? describeCursorTarget(options.trackTarget)
+      : undefined,
+    animated: true,
+    detail: "on-target-lock",
+  });
   return true;
 }
 
@@ -776,6 +795,7 @@ function clearDemoCursorImmediate(): void {
   cancelDemoCursorJourneyEndFade();
   cancelDemoCursorParkInFlight();
   cursorFadeGeneration += 1;
+  cursorPosLocked = false;
   notePlaybackCursorEvent("remove", { detail: "immediate" });
   document
     .querySelectorAll<HTMLElement>(".proto-chat-demo-cursor")
@@ -1155,8 +1175,8 @@ export async function moveDemoCursorTo(
     ? prepareDemoCursorForTravel(cursor)
     : resolveCursorStart(endX, endY);
 
-  cursor.style.left = `${travelStart.x}px`;
-  cursor.style.top = `${travelStart.y}px`;
+  cursorPosLocked = false;
+  writeDemoCursorPos(cursor, travelStart.x, travelStart.y, { force: true });
 
   await delay(randomInRange(24, 72));
   if (travelAborted()) return bail();
@@ -1172,13 +1192,8 @@ export async function moveDemoCursorTo(
     endY,
     durationMs,
     {
-      approachElement: applyHover ? interactionRoot : undefined,
+      // Track only while a real page scroll is running; frozen ≥90% progress.
       trackTarget: syncPageScroll && scrollDurationMs > 0 ? target : undefined,
-      onApproach: applyHover
-        ? () => {
-            if (!travelAborted()) setDemoInteractionHover(interactionRoot, true);
-          }
-        : undefined,
       shouldAbort: () => travelAborted(),
     }
   );
@@ -1191,10 +1206,11 @@ export async function moveDemoCursorTo(
     detail: applyHover ? "with-hover" : "no-hover",
   });
 
+  // Hover after settle — native light-touch; no mid-travel re-aim from layout shift.
   if (applyHover) {
     setDemoInteractionHover(interactionRoot, true);
   }
-  await delay(randomInRange(20, 60));
+  await delay(32);
   if (travelAborted()) return bail();
   return cursor;
 }
@@ -1310,13 +1326,20 @@ export async function simulateDemoPointerClick(
     return false;
   }
 
+  const lockedLeft = Number.parseFloat(cursor.style.left);
+  const lockedTop = Number.parseFloat(cursor.style.top);
+  if (Number.isFinite(lockedLeft) && Number.isFinite(lockedTop)) {
+    noteCursorPathSample("press", lockedLeft, lockedTop);
+  }
   tapDemoCursor(cursor);
   notePlaybackCursorEvent("press", {
     target: describeCursorTarget(interactionRoot),
     animated: true,
+    detail: "64ms",
   });
 
   // Native parity: :hover stays while :active — keep hover class during press.
+  // Do not rewrite cursor left/top (on-target lock).
   interactionRoot.classList.add(DEMO_HOVER_CLASS, DEMO_PRESSED_CLASS);
   interactionRoot.setAttribute(DEMO_ROBO_HOVER_ATTR, "true");
   if (dispatchEvents) {
@@ -1335,6 +1358,13 @@ export async function simulateDemoPointerClick(
     dispatchDemoPointerUp(interactionRoot, x, y);
   }
   interactionRoot.classList.remove(DEMO_PRESSED_CLASS);
+  if (Number.isFinite(lockedLeft) && Number.isFinite(lockedTop)) {
+    noteCursorPathSample("release", lockedLeft, lockedTop);
+  }
+  notePlaybackCursorEvent("release", {
+    target: describeCursorTarget(interactionRoot),
+    animated: true,
+  });
   notePlaybackDemoClick(interactionRoot);
   target.click();
   notePlaybackCursorEvent("click", {
@@ -1344,6 +1374,12 @@ export async function simulateDemoPointerClick(
   });
   // Default arrow immediately after click / unfocus — not stuck on hand.
   settleDemoCursorAfterClick(cursor, interactionRoot);
+  if (Number.isFinite(lockedLeft) && Number.isFinite(lockedTop)) {
+    // Re-assert lock pose (settle must not drift).
+    writeDemoCursorPos(cursor, lockedLeft, lockedTop, { force: true });
+    cursorPosLocked = true;
+    noteCursorPathSample("post-click", lockedLeft, lockedTop);
+  }
   await delay(160);
   return true;
 }

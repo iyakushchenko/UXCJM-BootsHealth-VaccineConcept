@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetControlPanelLogForTests } from "@/app/shell/controlPanelLog";
 import { getQaHudState, resetQaHud } from "@/app/shell/controlPanelQa";
 import {
+  beginCursorPathRecording,
   checkBookStep2DwellCursorViolations,
   enableCursorQaEyes,
+  endCursorPathRecording,
   formatPlaybackCursorEventSummary,
   getPlaybackCursorSummary,
   getRecentPlaybackCursorEvents,
@@ -11,6 +13,7 @@ import {
   isBookStep2DwellBeatId,
   isCursorQaEyesEnabled,
   logCursorDiagnostic,
+  noteCursorPathSample,
   notePlaybackCursorEvent,
   resetPlaybackCursorDiagnostic,
   resolveBookStep2CursorPhase,
@@ -163,5 +166,26 @@ describe("playbackCursorDiagnostic", () => {
     const check = checkBookStep2DwellCursorViolations(marker);
     expect(check.pass).toBe(false);
     expect(check.violations[0]?.action).toBe("travel");
+  });
+
+  it("records path samples and flags on-target drift after settle", () => {
+    beginCursorPathRecording();
+    noteCursorPathSample("travel", 10, 10);
+    noteCursorPathSample("settle", 100, 200);
+    noteCursorPathSample("press", 100, 200);
+    noteCursorPathSample("release", 100, 200);
+    noteCursorPathSample("post-click", 100, 200);
+    const stable = endCursorPathRecording();
+    expect(stable.onTargetStable).toBe(true);
+    expect(stable.phasesSeen).toEqual(
+      expect.arrayContaining(["travel", "settle", "press", "release", "post-click"])
+    );
+
+    beginCursorPathRecording();
+    noteCursorPathSample("settle", 100, 200);
+    noteCursorPathSample("press", 104, 200);
+    const drifted = endCursorPathRecording();
+    expect(drifted.onTargetStable).toBe(false);
+    expect(drifted.maxPostSettleDriftPx).toBeGreaterThan(0.75);
   });
 });

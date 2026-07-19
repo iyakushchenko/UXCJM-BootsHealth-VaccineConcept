@@ -9,6 +9,7 @@
  * Ephemeral agent leftovers (`proof`, …) are stripped on boot / overlay stop.
  */
 
+import { normalizeOrchestraModeId } from "@/app/orchestra/orchestraModes";
 import {
   normalizeStudioModalId,
   type StudioModalId,
@@ -106,7 +107,7 @@ export function parseStudioUrl(
   );
   const projectId = params.get(STUDIO_QUERY.project)?.trim() || undefined;
   const personaId = params.get(STUDIO_QUERY.persona)?.trim() || undefined;
-  const modeId = params.get(STUDIO_QUERY.mode)?.trim() || undefined;
+  const modeId = normalizeOrchestraModeId(params.get(STUDIO_QUERY.mode));
   const screenId = normalizeScreenId(params.get(STUDIO_QUERY.screen));
   const modalId = normalizeStudioModalId(params.get(STUDIO_QUERY.modal));
   return { projectId, screenId, personaId, modeId, modalId };
@@ -339,7 +340,8 @@ export function applyStudioScreen(
     input.setPersonaId(state.personaId);
   }
   if (state.modeId && input.setModeId) {
-    input.setModeId(state.modeId);
+    const mode = normalizeOrchestraModeId(state.modeId);
+    if (mode) input.setModeId(mode);
   }
   if (nav) {
     input.setHubOpen(nav.hubOpen);

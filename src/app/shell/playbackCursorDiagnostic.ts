@@ -10,6 +10,7 @@ export type PlaybackCursorAction =
   | "travel"
   | "scroll-into-view"
   | "hover-dwell"
+  | "settle"
   | "press"
   | "click"
   | "park"
@@ -27,6 +28,32 @@ export type PlaybackCursorAction =
   | "script-end"
   | "dwell-sync"
   | "guard-hit";
+
+/** On-target / travel path sample phases for MCP prove + PO diagnostics. */
+export type CursorPathPhase =
+  | "travel"
+  | "settle"
+  | "press"
+  | "release"
+  | "post-click";
+
+export type CursorPathSample = {
+  t: number;
+  x: number;
+  y: number;
+  phase: CursorPathPhase;
+};
+
+export type CursorPathDiagnostic = {
+  recording: boolean;
+  sampleCount: number;
+  samples: CursorPathSample[];
+  settle: { x: number; y: number } | null;
+  maxPostSettleDriftPx: number;
+  /** True when left/top never moved >0.75px after settle through post-click. */
+  onTargetStable: boolean;
+  phasesSeen: CursorPathPhase[];
+};
 
 export type PlaybackCursorPhase = "dwell" | "script" | "sync" | "idle";
 
@@ -72,6 +99,9 @@ export type CursorDiagnosticState = {
 };
 
 const MAX_EVENTS = 20;
+const MAX_PATH_SAMPLES = 80;
+/** Post-settle left/top delta above this = on-target drift/re-aim. */
+const ON_TARGET_DRIFT_FAIL_PX = 0.75;
 const BOOK_STEP2_BEATS = new Set([
   "book-step2",
   "book-step2-date",
@@ -93,6 +123,13 @@ const ring: PlaybackCursorEvent[] = [];
 let context: PlaybackCursorDiagnosticContext = {};
 let lastSummary = "";
 let qaEyesEnabled = false;
+/** Path recorder — independent of CJM pin (prove / MCP can arm without journey mode). */
+let pathRecording = false;
+let pathStartedAt = 0;
+const pathSamples: CursorPathSample[] = [];
+let pathSettle: { x: number; y: number } | null = null;
+let maxPostSettleDriftPx = 0;
+let lastPathSampleAt = 0;
 
 export function isBookStep2BeatId(beatId: string | undefined | null): boolean {
   return beatId != null && BOOK_STEP2_BEATS.has(beatId);
@@ -138,9 +175,93 @@ export function resetPlaybackCursorDiagnostic(): void {
   lastSummary = "";
   context = {};
   qaEyesEnabled = false;
+  resetCursorPathRecording();
   if (typeof document !== "undefined") {
     delete document.documentElement.dataset.studioQaAutomation;
   }
+}
+
+export function beginCursorPathRecording(): void {
+  pathRecording = true;
+  pathStartedAt = performance.now();
+  pathSamples.length = 0;
+  pathSettle = null;
+  maxPostSettleDriftPx = 0;
+  lastPathSampleAt = 0;
+}
+
+export function endCursorPathRecording(): CursorPathDiagnostic {
+  pathRecording = false;
+  return getCursorPathDiagnostic();
+}
+
+export function resetCursorPathRecording(): void {
+  pathRecording = false;
+  pathStartedAt = 0;
+  pathSamples.length = 0;
+  pathSettle = null;
+  maxPostSettleDriftPx = 0;
+  lastPathSampleAt = 0;
+}
+
+export function isCursorPathRecording(): boolean {
+  return pathRecording;
+}
+
+/**
+ * Sample cursor left/top during prove / QA. Travel samples are rate-limited;
+ * settle/press/release/post-click always record (on-target phase clarity).
+ */
+export function noteCursorPathSample(
+  phase: CursorPathPhase,
+  x: number,
+  y: number
+): void {
+  if (!pathRecording) return;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  const now = performance.now();
+  if (phase === "travel" && now - lastPathSampleAt < 32 && pathSamples.length > 0) {
+    return;
+  }
+  lastPathSampleAt = now;
+  const sample: CursorPathSample = {
+    t: Math.round(now - pathStartedAt),
+    x: Math.round(x * 100) / 100,
+    y: Math.round(y * 100) / 100,
+    phase,
+  };
+  pathSamples.push(sample);
+  if (pathSamples.length > MAX_PATH_SAMPLES) {
+    pathSamples.splice(0, pathSamples.length - MAX_PATH_SAMPLES);
+  }
+
+  if (phase === "settle") {
+    pathSettle = { x: sample.x, y: sample.y };
+    maxPostSettleDriftPx = 0;
+    return;
+  }
+
+  if (
+    pathSettle &&
+    (phase === "press" || phase === "release" || phase === "post-click")
+  ) {
+    const drift = Math.hypot(sample.x - pathSettle.x, sample.y - pathSettle.y);
+    if (drift > maxPostSettleDriftPx) maxPostSettleDriftPx = drift;
+  }
+}
+
+export function getCursorPathDiagnostic(): CursorPathDiagnostic {
+  const phasesSeen = [...new Set(pathSamples.map((s) => s.phase))];
+  return {
+    recording: pathRecording,
+    sampleCount: pathSamples.length,
+    samples: pathSamples.slice(),
+    settle: pathSettle ? { ...pathSettle } : null,
+    maxPostSettleDriftPx: Math.round(maxPostSettleDriftPx * 100) / 100,
+    onTargetStable:
+      pathSettle != null && maxPostSettleDriftPx <= ON_TARGET_DRIFT_FAIL_PX,
+    phasesSeen,
+  };
 }
 
 export function describeCursorTarget(target: HTMLElement): string {
@@ -371,8 +492,21 @@ export function resolveBookStep2CursorPhase(options: {
   return "idle";
 }
 
+export type StudioCursorDiagnosticsBundle = {
+  cursor: CursorDiagnosticState;
+  path: CursorPathDiagnostic;
+};
+
+export function getStudioCursorDiagnosticsBundle(): StudioCursorDiagnosticsBundle {
+  return {
+    cursor: getCursorDiagnosticState(),
+    path: getCursorPathDiagnostic(),
+  };
+}
+
 declare global {
   interface Window {
     __protoCursorDiagnostics?: () => CursorDiagnosticState;
+    __studioCursorDiagnostics?: () => StudioCursorDiagnosticsBundle;
   }
 }

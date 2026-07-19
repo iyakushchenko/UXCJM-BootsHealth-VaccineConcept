@@ -23,6 +23,7 @@ No React Spring. No bespoke `@keyframes` zoos unless registered in [DEVIATIONS.m
 
 - **API:** `animate` from `@/uxds/motion` — progress `0 → 1`, `ease: "easeInOut"` (cubic ease-in / ease-out).
 - **Path:** straight-line lerp to target. **No** spring, back-ease, overshoot, arc jitter, or end-frame noise.
+- **On-target:** settle → lock left/top → press 64ms → release → default arrow. No mid-travel hover, no post-settle re-aim, no tap scale bounce. Path samples via `__studioCursorDiagnostics()` / prove `path`.
 - **Cancel:** `cancelDemoCursorTravel()` → `controls.stop()` + generation bump on `forceClear` / `removeDemoCursor` (Chrome hang guard — keep with hover-bridge caps).
 - **Customizations:** PO will instruct later — keep the wrapper thin; do not invent “more human agility” bounce.
 

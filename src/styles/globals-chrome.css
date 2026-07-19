@@ -1456,10 +1456,11 @@ html {
   display: none;
 }
 .proto-chat-demo-cursor--pointer {
-  transform: translate(0, 0);
+  transform: none;
 }
+/* Press feedback = fingertip flash only — no scale bounce on the target. */
 .proto-chat-demo-cursor--pointer.proto-chat-demo-cursor--tap {
-  transform: translate(0, 0) scale(0.88);
+  transform: none;
 }
 .proto-chat-demo-cursor--pointer .proto-chat-demo-cursor__graphic--arrow {
   display: none;
@@ -1468,7 +1469,7 @@ html {
   display: block;
 }
 .proto-chat-demo-cursor--tap {
-  transform: scale(0.9);
+  transform: none;
 }
 .proto-chat-demo-cursor--pointer.proto-chat-demo-cursor--tap::after {
   content: "";

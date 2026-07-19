@@ -7,6 +7,7 @@ import {
 } from "@/app/journey/journeyRuntimeStore";
 import {
   ORCHESTRA_MODE_OPTIONS,
+  normalizeOrchestraModeId,
   readStoredOrchestraMode,
   storeOrchestraMode,
 } from "@/app/orchestra/orchestraModes";
@@ -100,9 +101,10 @@ export function useStudio() {
   );
 
   const [modeId, setModeIdState] = useState<OrchestraModeId>(() => {
-    const fromUrl = parseStudioUrl().modeId;
-    if (fromUrl === "agentic-cjm" || fromUrl === "traditional-cjm") return fromUrl;
-    return readStoredOrchestraMode();
+    return (
+      normalizeOrchestraModeId(parseStudioUrl().modeId) ??
+      readStoredOrchestraMode()
+    );
   });
   const [beatIndex, setBeatIndex] = useState(0);
 
@@ -135,9 +137,11 @@ export function useStudio() {
     [project]
   );
 
-  const setModeId = useCallback((next: OrchestraModeId) => {
-    setModeIdState(next);
-    storeOrchestraMode(next);
+  const setModeId = useCallback((next: OrchestraModeId | string) => {
+    const normalized = normalizeOrchestraModeId(next);
+    if (!normalized) return;
+    setModeIdState(normalized);
+    storeOrchestraMode(normalized);
     setBeatIndex(0);
   }, []);
 

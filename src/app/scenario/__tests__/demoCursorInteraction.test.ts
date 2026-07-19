@@ -96,6 +96,7 @@ vi.mock("@/app/shell/studioModalGuard", () => ({
 vi.mock("@/app/shell/playbackCursorDiagnostic", () => ({
   describeCursorTarget: vi.fn(() => "btn"),
   notePlaybackCursorEvent: vi.fn(),
+  noteCursorPathSample: vi.fn(),
 }));
 
 vi.mock("@/app/shell/playbackInteractionContext", () => ({
@@ -289,6 +290,27 @@ describe("demoCursor interaction contract", () => {
       expect(top).toBeGreaterThanOrEqual(minT - 1);
       expect(top).toBeLessThanOrEqual(maxT + 1);
     }
+  });
+
+  it("keeps left/top stable on-target through press/release (no re-aim)", async () => {
+    const btn = mountButton();
+    const poses: string[] = [];
+    const clickPromise = simulateDemoPointerClick(btn, { scroll: false });
+
+    for (let i = 0; i < 24; i++) {
+      await vi.advanceTimersByTimeAsync(40);
+      const el = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+      if (!el) continue;
+      poses.push(`${el.style.left}|${el.style.top}`);
+    }
+    await vi.runAllTimersAsync();
+    expect(await clickPromise).toBe(true);
+
+    // Final on-target poses (press/release/post-click) must not wander.
+    const tail = poses.slice(-8);
+    expect(tail.length).toBeGreaterThan(3);
+    expect(new Set(tail).size).toBe(1);
+    expect(isDemoCursorPointerMode()).toBe(false);
   });
 
   it("does not re-flood enter/move when hover already active", async () => {

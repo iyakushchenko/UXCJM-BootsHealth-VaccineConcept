@@ -1,12 +1,18 @@
 /**
  * MCP prove — robo-cursor native hover + press on any interactive target.
  * Auto-Rule R10: everywhere, not chat-only.
+ * Arms cursor path diagnostics so on-target drift/re-aim is visible in the return.
  */
 import {
   isDemoCursorPointerMode,
   simulateDemoPointerClick,
   simulateDemoPointerHover,
 } from "@/app/scenario/demoCursor";
+import {
+  beginCursorPathRecording,
+  endCursorPathRecording,
+  type CursorPathDiagnostic,
+} from "@/app/shell/playbackCursorDiagnostic";
 
 export type ProveRoboCursorFeedbackResult = {
   pass: boolean;
@@ -14,6 +20,8 @@ export type ProveRoboCursorFeedbackResult = {
   hoverStyleChanged: boolean;
   pressSeen: boolean;
   pointerClearedAfterClick: boolean;
+  onTargetStable: boolean;
+  path: CursorPathDiagnostic;
   detail: string;
 };
 
@@ -31,9 +39,13 @@ export async function proveRoboCursorFeedback(
       hoverStyleChanged: false,
       pressSeen: false,
       pointerClearedAfterClick: false,
+      onTargetStable: false,
+      path: endCursorPathRecording(),
       detail: "no target",
     };
   }
+
+  beginCursorPathRecording();
 
   const beforeBg = getComputedStyle(el).backgroundColor;
   const beforeColor = getComputedStyle(el).color;
@@ -66,13 +78,16 @@ export async function proveRoboCursorFeedback(
 
   const clicked = await simulateDemoPointerClick(el, { scroll: true });
   const pointerClearedAfterClick = !isDemoCursorPointerMode();
+  const path = endCursorPathRecording();
+  const onTargetStable = path.onTargetStable;
   const pass =
     hovered &&
     clicked &&
     hoverClass &&
     hoverStyleChanged &&
     pressSeen &&
-    pointerClearedAfterClick;
+    pointerClearedAfterClick &&
+    onTargetStable;
 
   return {
     pass,
@@ -80,8 +95,10 @@ export async function proveRoboCursorFeedback(
     hoverStyleChanged,
     pressSeen,
     pointerClearedAfterClick,
+    onTargetStable,
+    path,
     detail: pass
-      ? "robo-cursor native feedback OK"
-      : `hover=${hovered}/${hoverClass}/${hoverStyleChanged} click=${clicked} press=${pressSeen} pointerCleared=${pointerClearedAfterClick}`,
+      ? `robo-cursor native feedback OK · path n=${path.sampleCount} drift=${path.maxPostSettleDriftPx}px`
+      : `hover=${hovered}/${hoverClass}/${hoverStyleChanged} click=${clicked} press=${pressSeen} pointerCleared=${pointerClearedAfterClick} onTargetStable=${onTargetStable} drift=${path.maxPostSettleDriftPx}px phases=${path.phasesSeen.join(",")}`,
   };
 }

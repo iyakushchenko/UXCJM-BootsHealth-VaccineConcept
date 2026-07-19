@@ -20,6 +20,20 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Symptom / class:** Robo cursor “bouncy” arrival (back-ease overshoot + path/end jitter felt like spring).
 - **Gate:** Travel driven by Motion `animate(0,1,{ ease:"easeInOut" })` via `@/uxds/motion`; straight-line lerp; **no** spring / back / overshoot / arc variance. `cancelDemoCursorTravel()` → `controls.stop()` on forceClear (keep hang guards from v0.0.31). See [MOTION.md](./MOTION.md).
 
+### Playback panel stranded by AnimatePresence `mode="wait"` (PO / Finn)
+
+- **Symptom / class:** Cassette transport (CJM + STEPS + play deck) missing from nav; only REC switch remains; `.studio-nav-scenario__panel-swap` has `children=0`.
+- **Root cause (two classes):**
+  1. Playback ↔ Rec XOR used `AnimatePresence mode="wait"` — exit can complete without enter → empty swap while ScenarioControls is mounted.
+  2. Invalid URL mode (`mode=traditional` / bare aliases) applied via `setModeId` → 0 journey beats → `showOrchestraControls` false → **REC-only** `StudioNavRecordingModeSlot` (empty playback by design).
+- **Gate:** Sync-mount playback when Rec is off (`data-studio-playback-panel`); `normalizeOrchestraModeId` on URL parse + `setModeId` (`traditional`→`traditional-cjm`). Never let an unknown mode zero the cassette deck.
+
+### Robo-cursor on-target re-aim / tap bounce (PO / Finn)
+
+- **Symptom / class:** After travel, cursor jitters / re-aims / “bounces” on the CTA while pressing.
+- **Root cause:** Mid-travel hover + `trackTarget` chased layout shifts; CSS `scale()` on `--tap` read as bounce; path diagnostics required CJM pin so prove could not show the drift.
+- **Gate:** Hover only after settle; freeze tracking ≥90% progress; lock left/top through press/release; no tap scale; `__studioCursorDiagnostics()` path samples + prove `onTargetStable`. Keep hang guards.
+
 ### PAGE FINAL PASS — no next migrated page until previous hard-green (PO / Arch)
 
 - **Symptom / class:** Team starts PDP (or next erase-Make page) while PLP (previous) still has open Final Pass gaps — PROVEN/tests green used as a false “open next page” signal.

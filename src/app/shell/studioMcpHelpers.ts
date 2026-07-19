@@ -24,8 +24,10 @@ import {
   disableCursorQaEyes,
   formatPlaybackCursorEventSummary,
   getCursorDiagnosticState,
+  getStudioCursorDiagnosticsBundle,
 } from "@/app/shell/playbackCursorDiagnostic";
 import { getRecentDiagnosticFlashes } from "@/app/shell/playbackDiagnosticFlash";
+import type { ProveRoboCursorFeedbackResult } from "@/app/shell/studioProveRoboCursorFeedback";
 import {
   beginMcpTestSession,
   endMcpTestSession,
@@ -197,12 +199,14 @@ declare global {
     }) => Promise<RetreatSmokeResult>;
     /** Full control-room robot QA — step fwd/back, play/pause, HUD telemetry (dev-only). */
     __protoRunTraditionalControlRoomRobotQa?: () => Promise<import("@/app/shell/controlRoomQaRunner").ControlRoomQaResult>;
-    /** Cursor diagnostic ring buffer + DOM visibility snapshot (dev-only). */
+    /** Cursor ring + DOM snapshot. Prefer `__studioCursorDiagnostics` (includes path). */
     __protoCursorDiagnostics?: () => import("@/app/shell/playbackCursorDiagnostic").CursorDiagnosticState;
-    /** Agent MCP eyes — state + cursor + qa log slices in one call. */
+    __studioCursorDiagnostics?: () => import("@/app/shell/playbackCursorDiagnostic").StudioCursorDiagnosticsBundle;
+    /** Agent MCP eyes — state + cursor + path + qa log slices. */
     __protoMcpEyes?: () => {
       state?: StudioMcpState;
       cursor?: import("@/app/shell/playbackCursorDiagnostic").CursorDiagnosticState;
+      path?: import("@/app/shell/playbackCursorDiagnostic").CursorPathDiagnostic;
       diagnosticFlashes?: import("@/app/shell/playbackDiagnosticFlash").DiagnosticFlashRecord[];
       diagnostics?: import("@/app/shell/controlPanelLog").ControlPanelLogEntry[];
       consoleFilter?: string;
@@ -210,36 +214,23 @@ declare global {
       qaCursor: import("@/app/shell/controlPanelLog").ControlPanelLogEntry[];
       qaPhases: import("@/app/shell/controlPanelLog").ControlPanelLogEntry[];
     };
-    /** Emergency stop — halts playback, dismisses diagnostic, ends MCP session. */
     __protoAbortAll?: () => StudioMcpState;
-    /** Safe default MCP test — DOM checks only, no transport. */
     __protoRunMcpSanityCheck?: () => Promise<{
       pass: boolean;
       checks: SmokeRetreatCheck[];
       state?: StudioMcpState;
     }>;
-    /**
-     * Visible page probe — robo-cursor to click targets; overlay PASS/FAIL per step.
-     * Stays on current screen after stop (unless resetToHub).
-     */
+    /** Visible page probe — robo-cursor + overlay PASS/FAIL; stays on screen unless resetToHub. */
     __protoRunMcpPageProbe?: (
       options?: McpPageProbeOptions
     ) => Promise<McpPageProbeResult>;
     __studioRunMcpPageProbe?: (
       options?: McpPageProbeOptions
     ) => Promise<McpPageProbeResult>;
-    /**
-     * Prove robo-cursor native feedback (R10): hover styles + press + default after click.
-     *   await window.__studioProveRoboCursorFeedback?.(".proto-popup-close")
-     */
-    __studioProveRoboCursorFeedback?: (selector?: string) => Promise<{
-      pass: boolean;
-      hoverClass: boolean;
-      hoverStyleChanged: boolean;
-      pressSeen: boolean;
-      pointerClearedAfterClick: boolean;
-      detail: string;
-    }>;
+    /** R10 prove — hover + press + default arrow; includes path/onTargetStable. */
+    __studioProveRoboCursorFeedback?: (
+      selector?: string
+    ) => Promise<ProveRoboCursorFeedbackResult>;
     __protoDiagnosticFlashes?: () => import("@/app/shell/playbackDiagnosticFlash").DiagnosticFlashRecord[];
   }
 }
@@ -677,12 +668,14 @@ export function registerStudioMcpHelpers(options: {
   };
 
   window.__protoCursorDiagnostics = () => getCursorDiagnosticState();
+  window.__studioCursorDiagnostics = () => getStudioCursorDiagnosticsBundle();
 
   window.__protoMcpEyes = () => {
     const log = window.dumpProtoControlPanelLog?.() ?? [];
     return {
       state: window.__protoStudioState?.(),
       cursor: window.__protoCursorDiagnostics?.(),
+      path: window.__studioCursorDiagnostics?.().path,
       diagnosticFlashes: getRecentDiagnosticFlashes(),
       diagnostics: log
         .filter(
@@ -1267,6 +1260,7 @@ export function registerStudioMcpHelpers(options: {
     delete window.__studioRunMcpPageProbe;
     delete window.__studioProveRoboCursorFeedback;
     delete window.__protoCursorDiagnostics;
+    delete window.__studioCursorDiagnostics;
     delete window.__protoMcpEyes;
     delete window.__protoDiagnosticFlashes;
   };

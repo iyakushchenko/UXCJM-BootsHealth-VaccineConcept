@@ -77,6 +77,13 @@ describe("studioUrl", () => {
     expect(parseStudioUrl("?screen=Agentic-Home").screenId).toBe("home");
   });
 
+  it("normalizes orchestra mode aliases (bare traditional must not blank playback)", () => {
+    expect(parseStudioUrl("?mode=traditional").modeId).toBe("traditional-cjm");
+    expect(parseStudioUrl("?mode=agentic").modeId).toBe("agentic-cjm");
+    expect(parseStudioUrl("?mode=traditional-cjm").modeId).toBe("traditional-cjm");
+    expect(parseStudioUrl("?mode=nope").modeId).toBeUndefined();
+  });
+
   it("resolves nav ↔ screenId for hub and book steps", () => {
     expect(resolveScreenIdFromNav({ hubOpen: true, current: 0, screens: SCREENS })).toBe(
       HUB_SCREEN_ID
