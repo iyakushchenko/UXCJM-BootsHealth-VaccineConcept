@@ -30,6 +30,7 @@ import {
 } from "./chatThinkingBridge";
 import {
   getChatScenarioRevealState,
+  resolveChatFrameRevealed,
   resolveChatRevealedFrameCount,
   subscribeChatScenarioReveal,
 } from "./chatScenarioRevealBridge";
@@ -428,7 +429,13 @@ export function ChatScreen({
 
   const threadNodes: ReactNode[] = [];
   CHAT_THREAD_FRAMES.forEach((frame, frameIndex) => {
-    const revealed = frameIndex < revealedFrameCount;
+    // Make: thinking bubble before agent reply — never paint reply while held.
+    const revealed = resolveChatFrameRevealed(
+      frameIndex,
+      revealedFrameCount,
+      frame.id,
+      thinking
+    );
 
     if (
       thinking.mode === "playback" &&

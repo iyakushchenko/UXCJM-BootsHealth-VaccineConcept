@@ -177,6 +177,8 @@ declare global {
   interface Window {
     /** Dismiss playback diagnostic overlay if open. Returns whether one was open. */
     __protoDismissPlaybackDiagnostic?: () => boolean;
+    __studioAcknowledgePlaybackDiagnostic?: () => boolean;
+    __protoAcknowledgePlaybackDiagnostic?: () => boolean;
     /** Snapshot for MCP scripts — no paste needed. */
     __protoStudioState?: () => StudioMcpState;
     /** Dismiss diagnostic then return clean state. */
@@ -608,7 +610,8 @@ async function waitForDirectorSettle(
 }
 
 export function registerStudioMcpHelpers(options: {
-  dismissDiagnostic: () => void;
+  /** Clear diagnostic UI. `acknowledgeStop: true` (default) latches DIAGNOSTIC_ACK_STOP. Smoke flake dismiss passes false. */
+  dismissDiagnostic: (opts?: { acknowledgeStop?: boolean; note?: string }) => void;
   isDiagnosticOpen: () => boolean;
   abortAll?: () => void;
   getState: () => Omit<
@@ -629,9 +632,21 @@ export function registerStudioMcpHelpers(options: {
 
   window.__protoDismissPlaybackDiagnostic = () => {
     if (!options.isDiagnosticOpen()) return false;
-    options.dismissDiagnostic();
+    // Harness / smoke flake clear — do NOT latch DIAGNOSTIC_ACK_STOP.
+    options.dismissDiagnostic({ acknowledgeStop: false });
     return true;
   };
+
+  window.__studioAcknowledgePlaybackDiagnostic = () => {
+    if (!options.isDiagnosticOpen()) return false;
+    options.dismissDiagnostic({
+      acknowledgeStop: true,
+      note: "mcp-acknowledge",
+    });
+    return true;
+  };
+  window.__protoAcknowledgePlaybackDiagnostic =
+    window.__studioAcknowledgePlaybackDiagnostic;
 
   window.__protoStudioState = () => {
     const base = options.getState();
@@ -1280,6 +1295,8 @@ export function registerStudioMcpHelpers(options: {
     uninstallStudioAgentTeardownContractApi();
     uninstallPlaybackDiagWindowApis();
     delete window.__protoDismissPlaybackDiagnostic;
+    delete window.__studioAcknowledgePlaybackDiagnostic;
+    delete window.__protoAcknowledgePlaybackDiagnostic;
     delete window.__protoStudioState;
     delete window.__protoEnsureCleanStudio;
     delete window.__protoSetOrchestraMode;

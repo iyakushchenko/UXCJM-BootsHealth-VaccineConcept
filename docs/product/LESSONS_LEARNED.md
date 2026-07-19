@@ -10,6 +10,18 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-20
 
+### PO overlay / diagnostic dismiss must hard-stop Play sync (PO / Finn)
+
+- **Symptom / class:** Alarm/Cursor/Scroll click left Play running until next smoke poll; PLAYBACK DIAGNOSTIC Cancel left modal / did not stop cassette.
+- **Root cause:** Latch-only path; dismiss cleared React state without `haltPlaybackForPoSignal` + PO latch.
+- **Gate:** Overlay CTAs + diagnostic Cancel → `haltPlaybackForPoSignal` (journey/scenario abort + cursor/scroll cancel) in the same click; Cancel latches `DIAGNOSTIC_ACK_STOP`. Smoke `__protoDismissPlaybackDiagnostic` clears without that latch. Prove: mid-Play Alarm/Cancel → `isPlaying===false` immediately; modal gone.
+
+### Agentic chat reply before thinking bubble (PO / Finn + Quinn)
+
+- **Symptom / class:** Chat progressed too fast — first agent reply painted without (or with) thinking bubble; PO Alarm sequence mismatch at `frame:2`.
+- **Root cause:** Manual `stepForward` (and home→chat handoff) used `skipPrelude: true`, skipping `runSitePilotChatBeforeReveal` thinking pause. Make order is thinking → fade → reveal reply.
+- **Gate:** CJM Step runs `beforeReveal` when hooks exist; React holds reply paint while `playback` thinking anchors that frame (`resolveChatFrameRevealed`). Diag: `thinking-start` / `thinking-end → reveal reply`. Prove: thinking visible + r0 `revealed=false` before reveal; then r0 after fade.
+
 ### CJM type-in hid robo-cursor on Site Pilot (PO / Finn + Quinn)
 
 - **Symptom / class:** Agentic home typed-text beat — robo-cursor missing / opacity 0; PO Cursor flag while eyes saw no cursor.

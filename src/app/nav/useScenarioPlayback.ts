@@ -59,7 +59,11 @@ export type BeforeRevealContext = {
 type PlaybackMode = "idle" | "playing";
 
 type AdvanceOptions = {
-  /** Manual step — reveal immediately without typing/thinking preludes. */
+  /**
+   * Skip beforeReveal (typing/thinking). Default for browse / no hooks.
+   * CJM Step must NOT skip when `beforeReveal` is wired — agent reply
+   * thinking bubble must run before the reply frame paints (Make parity).
+   */
   skipPrelude?: boolean;
 };
 
@@ -699,8 +703,11 @@ export function useScenarioPlayback({
     isPlayingRef.current = shouldResumePlay;
     setPlaybackMode(shouldResumePlay ? "playing" : "idle");
 
+    // CJM chat (and any hook-backed scenario): run beforeReveal on Step —
+    // agent reply must show thinking bubble before the reply paints.
+    // skipPrelude only when there is no prelude hook (browse / no hooks).
     advanceOneFrame(shouldResumePlay ? scheduleNext : undefined, {
-      skipPrelude: true,
+      skipPrelude: !playbackStepHooks?.beforeReveal,
     });
   }, [advanceOneFrame, playbackStepHooks, scheduleNext]);
 

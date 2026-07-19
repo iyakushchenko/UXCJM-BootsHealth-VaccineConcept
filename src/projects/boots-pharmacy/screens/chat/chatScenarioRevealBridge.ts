@@ -70,3 +70,29 @@ export function resolveChatRevealedFrameCount(
     Math.min(Math.floor(engineVisibleCount), contentFrameTotal)
   );
 }
+
+/**
+ * Make order: thinking bubble → then agent reply.
+ * Hold reply paint while playback thinking is anchored to that frame,
+ * even if engine visibleCount already advanced (race / skipPrelude regress).
+ */
+export function isChatReplyHeldForPlaybackThinking(
+  frameId: string,
+  thinking: { mode: string; anchorFrameId: string | null }
+): boolean {
+  return (
+    thinking.mode === "playback" && thinking.anchorFrameId === frameId
+  );
+}
+
+/** Whether a thread frame should paint as revealed. */
+export function resolveChatFrameRevealed(
+  frameIndex: number,
+  revealedFrameCount: number,
+  frameId: string,
+  thinking: { mode: string; anchorFrameId: string | null }
+): boolean {
+  if (frameIndex >= revealedFrameCount) return false;
+  if (isChatReplyHeldForPlaybackThinking(frameId, thinking)) return false;
+  return true;
+}

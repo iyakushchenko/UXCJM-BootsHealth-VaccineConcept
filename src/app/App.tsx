@@ -39,6 +39,7 @@ import type {
 import type { PersonaId, ProjectId, ProjectWireApi } from "@/projects/types";
 import {
   cancelDemoCursorJourneyEndFade,
+  cancelDemoCursorTravel,
   parkDemoCursorAtRest,
   removeDemoCursor,
   resetDemoCursorTravelOrigin,
@@ -46,6 +47,11 @@ import {
   scheduleDemoCursorJourneyEndFade,
   setDemoCursorJourneyMode,
 } from "@/app/scenario/demoCursor";
+import {
+  acknowledgePlaybackDiagnosticStop,
+  haltPlaybackForPoSignal,
+  registerPoSignalPlaybackHalt,
+} from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 import {
   cancelPlaybackScroll,
   getPrototypeScrollRoot,
@@ -582,9 +588,20 @@ export default function App() {
     };
   }, [journeyPlayback, scenarioPlayback]);
 
+  // PO overlay Alarm/Cursor/Scroll / diagnostic Cancel → halt Play same click turn.
+  useEffect(() => {
+    registerPoSignalPlaybackHalt(() => {
+      stopAllPlaybackRef.current();
+      cancelDemoCursorTravel();
+      cancelPlaybackScroll();
+    });
+    return () => registerPoSignalPlaybackHalt(null);
+  }, []);
+
   useEffect(() => {
     if (!playbackDiagnostic) return;
-    stopAllPlaybackRef.current();
+    // Opening a diagnostic already means stop — same hard halt as overlay Alarm.
+    haltPlaybackForPoSignal("diagnostic-open");
   }, [playbackDiagnostic]);
 
   scenarioIsPlayingRef.current = scenarioPlayback.isPlaying;
@@ -1482,8 +1499,15 @@ export default function App() {
 
   useEffect(() => {
     return registerStudioMcpHelpers({
-      dismissDiagnostic: () => {
-        recordPlaybackDiagnosticDismiss("mcp-helper");
+      dismissDiagnostic: (opts) => {
+        if (opts?.acknowledgeStop !== false) {
+          acknowledgePlaybackDiagnosticStop(opts?.note ?? "diagnostic-dismiss");
+          recordPlaybackDiagnosticDismiss("acknowledge");
+        } else {
+          recordPlaybackDiagnosticDismiss("mcp-helper");
+        }
+        cancelPlaybackScroll();
+        playbackScrollMonitor.reset();
         setPlaybackDiagnostic(null);
       },
       abortAll: () => stopAllPlaybackRef.current(),
@@ -1651,6 +1675,8 @@ export default function App() {
       <PlaybackDiagnosticOverlay
         error={playbackDiagnostic}
         onDismiss={() => {
+          // Cancel = acknowledge → hard-stop Play + latch (same class as overlay Alarm).
+          acknowledgePlaybackDiagnosticStop("overlay-cancel");
           recordPlaybackDiagnosticDismiss("overlay");
           cancelPlaybackScroll();
           playbackScrollMonitor.reset();

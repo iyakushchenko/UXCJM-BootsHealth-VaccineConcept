@@ -37,6 +37,11 @@ import {
   uninstallPoSignalWindowApis,
   type AgentTestingPoSignal,
 } from "@/app/shell/agent-testing/agentTestingPoSignal";
+import {
+  haltPlaybackForPoSignal,
+  installPoSignalPlaybackHaltWindowApis,
+  uninstallPoSignalPlaybackHaltWindowApis,
+} from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 import type {
   AgentTestingLogEntry,
@@ -419,6 +424,8 @@ function saveDump(
  * Secondary: session dump for postmortem.
  */
 export function ringAgentTestingAlarm(note?: string): void {
+  // HARD: stop Play in the same turn as the click — do not wait for smoke poll.
+  haltPlaybackForPoSignal("po-alarm");
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
   const signal = latchPoSignal({
     type: "alarm",
@@ -454,6 +461,7 @@ export function ringAgentTestingAlarm(note?: string): void {
 }
 
 export function flagAgentTestingCursorWeird(note?: string): void {
+  haltPlaybackForPoSignal("po-cursor");
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
   const signal = latchPoSignal({
     type: "cursor",
@@ -484,6 +492,7 @@ export function flagAgentTestingCursorWeird(note?: string): void {
 }
 
 export function flagAgentTestingScrollIssue(note?: string): void {
+  haltPlaybackForPoSignal("po-scroll");
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
   const snap = readScrollSnapshot();
   const snapLabel =
@@ -1559,6 +1568,7 @@ export function installAgentTestingOverlayApi(): void {
   };
   bindOverlayApi(api);
   installPoSignalWindowApis();
+  installPoSignalPlaybackHaltWindowApis();
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
@@ -1590,6 +1600,7 @@ export function uninstallAgentTestingOverlayApi(): void {
   }
   clearPoSignal();
   uninstallPoSignalWindowApis();
+  uninstallPoSignalPlaybackHaltWindowApis();
   if (typeof window !== "undefined") {
     delete window.__protoAgentTestingOverlay;
     delete window.__studioAgentTestingOverlay;

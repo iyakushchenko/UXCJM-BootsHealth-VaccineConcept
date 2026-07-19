@@ -77,4 +77,12 @@ export {
   type AgentTestingPoSignalCode,
 } from "@/app/shell/agent-testing/agentTestingPoSignal";
 
+export {
+  registerPoSignalPlaybackHalt,
+  haltPlaybackForPoSignal,
+  acknowledgePlaybackDiagnosticStop,
+  installPoSignalPlaybackHaltWindowApis,
+  uninstallPoSignalPlaybackHaltWindowApis,
+} from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
+
 export { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";

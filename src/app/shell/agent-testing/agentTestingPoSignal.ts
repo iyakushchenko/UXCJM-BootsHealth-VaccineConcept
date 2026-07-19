@@ -20,6 +20,7 @@ export type AgentTestingPoSignalType = "alarm" | "cursor" | "scroll";
 
 export type AgentTestingPoSignalCode =
   | "ALARM_SEQUENCE_MISMATCH"
+  | "DIAGNOSTIC_ACK_STOP"
   | "CURSOR_WEIRD_FLAG"
   | "CURSOR_UNEXPECTED_DWELL"
   | "CURSOR_HIDDEN_DURING_TYPEIN"

@@ -2,6 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/app/scenario/demoCursor", () => ({
   removeDemoCursor: vi.fn(),
+  cancelDemoCursorTravel: vi.fn(),
+}));
+
+vi.mock("@/app/scenario/playbackScroll", () => ({
+  cancelPlaybackScroll: vi.fn(),
 }));
 
 import {
@@ -16,6 +21,7 @@ import {
   isAgentTestingOverlayActive,
   isAgentTestingOverlaySettling,
   peekPoSignal,
+  registerPoSignalPlaybackHalt,
   resolveAgentTestingOverlayTitle,
   ringAgentTestingAlarm,
   scheduleAgentTestingOverlayEnsureClear,
@@ -33,8 +39,9 @@ describe("agentTestingOverlay", () => {
     vi.useRealTimers();
   });
 
-  it("ringAlarm latches ALARM_SEQUENCE_MISMATCH for live consume", () => {
+  it("ringAlarm halts Play sync and latches ALARM_SEQUENCE_MISMATCH", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const halt = vi.fn();
     const listeners = new Map<string, Set<EventListener>>();
     vi.stubGlobal("window", {
       __studioAgentTestingTakeover: null as unknown,
@@ -79,8 +86,10 @@ describe("agentTestingOverlay", () => {
       );
     }
     installAgentTestingOverlayApi();
+    registerPoSignalPlaybackHalt(halt);
     startAgentTestingOverlay("alarm-latch");
     ringAgentTestingAlarm("progressive bubbles broken");
+    expect(halt).toHaveBeenCalledTimes(1);
     expect(peekPoSignal()?.code).toBe("ALARM_SEQUENCE_MISMATCH");
     expect(window.__studioAgentTestingTakeover?.type).toBe("alarm");
     expect(
@@ -93,6 +102,7 @@ describe("agentTestingOverlay", () => {
     const consumed = window.__studioConsumePoSignal?.();
     expect(consumed?.code).toBe("ALARM_SEQUENCE_MISMATCH");
     expect(peekPoSignal()).toBeNull();
+    registerPoSignalPlaybackHalt(null);
     stopAgentTestingOverlay({ force: true });
   });
 

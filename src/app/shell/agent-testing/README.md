@@ -16,15 +16,13 @@ Primary: `window.__studioAgentTestingTakeover` / `__studioConsumePoSignal()`. Du
 
 When PO clicks Alarm / Cursor / Scroll during a watched MCP / smoke session:
 
-1. **STOP** immediately (smoke aborts with structured fail + `diagSnapshot`).
-2. **Understand** the issue from `diagSnapshot` + `[PLAYBACK_DIAG]` console.  
-   - If the agent does **not** know exactly what was wrong → **ask PO for follow-up details before guessing**.  
-   - **Do not invent the bug.**
-3. **FIX** the reported issue.
-4. **RESTART** the test and **prove that exact issue is gone**.
-5. Continue the journey until the next PO signal or green end.
+1. **STOP Play immediately** in the same click (`haltPlaybackForPoSignal` → journey/scenario abort — not next smoke poll).
+2. **Latch** stays for `__studioConsumePoSignal` / smoke abort + `diagSnapshot`.
+3. **Understand** from `diagSnapshot` + `[PLAYBACK_DIAG]`. If unclear → **ask PO** (do not invent).
+4. **FIX** → **RESTART** → prove that exact issue gone.
+5. Continue until next signal or green end.
 
-Not “log and move on.” Not “report only.” Smokes cannot auto-fix — the orchestrator session owns the loop.
+**PLAYBACK DIAGNOSTIC Cancel** (Scroll/camera jank, etc.): same hard-stop + latch `DIAGNOSTIC_ACK_STOP`. Modal must close in that click. Smoke harness `__protoDismissPlaybackDiagnostic` clears UI without that latch.
 
 ## Type-in cursor (CJM)
 

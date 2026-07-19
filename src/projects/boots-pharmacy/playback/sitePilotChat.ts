@@ -10,6 +10,7 @@ import {
 } from "@/app/scenario/scenarioEngine";
 import {
   playbackDiagClick,
+  playbackDiagLog,
   playbackDiagSkip,
   playbackDiagTarget,
   playbackDiagTypeInEnd,
@@ -272,6 +273,11 @@ export async function runSitePilotChatBeforeReveal(
     removeDemoCursor();
     const screen = getChatScreen();
     const scrollEl = getChatScrollEl();
+    const frameId = frame.getAttribute("data-studio-chat-frame") ?? "?";
+    playbackDiagLog(
+      "info",
+      `thinking-start before reply ${frameId} (frameIndex=${frameIndex})`
+    );
     if (screen) beginSitePilotChatPlaybackThinking(screen, frame);
     if (scrollEl) {
       scrollChatToBottom(true);
@@ -284,6 +290,15 @@ export async function runSitePilotChatBeforeReveal(
     if (!preludeAborted) {
       await fadeOutSitePilotChatThinking();
       scrollChatToBottom();
+      playbackDiagLog(
+        "info",
+        `thinking-end → reveal reply ${frameId} (frameIndex=${frameIndex})`
+      );
+    } else {
+      playbackDiagLog(
+        "info",
+        `thinking-abort before reply ${frameId} (frameIndex=${frameIndex})`
+      );
     }
     return;
   }
