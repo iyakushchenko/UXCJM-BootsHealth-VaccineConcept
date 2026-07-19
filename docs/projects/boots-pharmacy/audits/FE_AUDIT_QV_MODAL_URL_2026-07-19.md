@@ -1,10 +1,11 @@
-# FE / UI / UX audit — Quick View modal URL (v0.0.18)
+# FE / UI / UX audit — Quick View modal URL (v0.0.19 / v0.0.20)
 
 **Surface / slice:** PLP Quick View → `&modal=quick-view` open/close + overlay eyes  
 **Date:** 2026-07-19  
 **Auditor:** Quinn (QA) — Chrome DevTools MCP localhost:5185  
-**Ship tip:** `43c1ec8` (Knowledge stamp) · feature tip `0afb33d` / **v0.0.18**  
-**Policy:** [URL.md](../../../shell/URL.md) · [RECORDING.md](../../../shell/RECORDING.md) · TEAM modal URL registry HARD FAIL
+**Ship tip:** `c497589` (Knowledge stamp) · close-fix `1624f79` / **v0.0.19** · overlay probe harden `de2edf0` / **v0.0.20**  
+**Policy:** [URL.md](../../../shell/URL.md) · [RECORDING.md](../../../shell/RECORDING.md) · TEAM modal URL registry HARD FAIL  
+**Prior:** FAIL on tip `43c1ec8` / stamp `0f337f2` (close race re-opened via URL bridge)
 
 **Knowledge used:** TEAM_KNOWLEDGE Quinn + URL.md modal table + LESSONS overlay eyes + RECORDING MCP page probe
 
@@ -14,9 +15,9 @@
 
 | Field | Value |
 |-------|-------|
-| **Overall** | **FAIL** *(superseded)* → **PROVEN** on tip `1624f79` / v0.0.19 — re-prove [FE_AUDIT_OVERLAY_PREARM_SITREP_2026-07-19.md](./FE_AUDIT_OVERLAY_PREARM_SITREP_2026-07-19.md) |
-| **PO green-light allowed?** | **Yes** after `1624f79` (was No on tip `43c1ec8`) |
-| **Quinn interaction matrix** | Was **FAIL** `plp-quick-view-close` → **PASS** on re-prove |
+| **Overall** | **PASS** / **PROVEN** |
+| **PO green-light allowed?** | **Yes** — open writes `&modal=quick-view`; close clears URL + dismisses dialog; stays closed |
+| **Quinn interaction matrix** | **PASS** — full PLP probe incl. QV open / overlay-eyes / close |
 
 ---
 
@@ -24,7 +25,7 @@
 
 **Session:** `http://localhost:5185/?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&mode=agentic-cjm`  
 **Helper:** `await window.__studioRunMcpPageProbe({ screenId: "plp", reload: false })`  
-**Result:** `{ pass: false, screenId: "plp" }` · chip `v0.0.18`
+**Result:** `{ pass: true, screenId: "plp" }` · chip `v0.0.20`
 
 ### Full matrix
 
@@ -43,39 +44,41 @@
 | plp-quick-view-ready | **PASS** | |
 | plp-below-fold-scroll | **PASS** | scroll-into-view + overlay visible |
 | plp-quick-view | **PASS** | open writes `&modal=quick-view`; stay `screen=plp` |
-| plp-overlay-eyes | **PASS** | refuse under-click |
-| plp-quick-view-close | **FAIL** | Quick View still open after close |
+| plp-overlay-eyes | **PASS** | overlay eyes refused under-click |
+| plp-quick-view-close | **PASS** | dialog gone; `modal` cleared; stay `screen=plp` |
 | url-screen | **PASS** | stay on `screen=plp` |
 
 ### Focus claims
 
 | Claim | Result | Evidence |
 |-------|--------|----------|
-| Open → `&modal=quick-view` | **PASS** | probe assert + URL after open |
+| Open → `&modal=quick-view` | **PASS** | `plp-quick-view` + URL after open |
 | Jab id in URL | **N/A** | URL.md: optional `&jab=` later (multi-SKU) |
 | Overlay eyes refuse under-tile | **PASS** | `plp-overlay-eyes` |
-| Close clears modal + dismisses overlay | **FAIL** | see race below |
+| Close clears modal + dismisses overlay | **PASS** | `plp-quick-view-close` + native timeline |
+| Close **stays** closed (no URL re-open) | **PASS** | samples below — `modal` stays `null` |
 | Stay on `screen=plp` | **PASS** | |
 
-### Close race (native click timeline)
+### Close stay-closed (native click timeline)
 
-After Close button `click()`, samples (ms):
+After Close button `click()`, samples (ms) on tip with `1624f79` suppress:
 
 | t | `modal` | dialog present |
 |---|--------|----------------|
-| 80 | `null` | true |
-| 160+ | `quick-view` | true |
+| 80 | `null` | true (exit settle) |
+| 160 | `null` | true |
+| 250 | `null` | true |
+| 400+ | `null` | false |
 
-URL briefly clears, then `&modal=quick-view` returns and dialog stays. Escape does not dismiss.
+URL clears and **does not** return to `quick-view`. Dialog dismisses by ~400ms. Race from FAIL stamp (`160+ → modal=quick-view`) is gone.
 
-**Root cause (Quinn):** `useStudioModalUrlBridge` deep-link effect re-opens from stale URL when `wireTick` fires on close — `modalId` still `quick-view` while `live` already cleared → `applyModalFromUrl("quick-view")` reopens before/while URL sync settles.
+**Fix (Finn):** `studioModalUrlBridgePlan` / `useStudioModalUrlBridge` suppress URL→open while intentional close waits for `&modal=` clear (`1624f79`, v0.0.19).
 
 ---
 
-## Blockers for Finn
+## Blockers
 
-1. **P0:** Close Quick View must dismiss overlay **and** clear `&modal=` without re-open. Fix URL↔live apply ordering (suppress URL→open during intentional close, or clear URL before wireTick notify, or ignore apply when closing).
-2. Re-prove: `__studioRunMcpPageProbe({ screenId: "plp" })` → `plp-quick-view` + `plp-quick-view-close` + `plp-overlay-eyes` all **PASS**.
+None.
 
 ---
 
@@ -83,5 +86,5 @@ URL briefly clears, then `&modal=quick-view` returns and dialog stays. Escape do
 
 | Item | Owner | Notes |
 |------|-------|-------|
-| Close race / URL re-open | **Finn (FE)** | bridge in `useStudioModalUrlBridge.ts` |
-| Re-prove + stamp PROVEN | **Quinn (QA)** | after Finn tip |
+| Close race | **Finn (FE)** | **DONE** — `1624f79` |
+| Re-prove + stamp PROVEN | **Quinn (QA)** | **DONE** — this stamp |
