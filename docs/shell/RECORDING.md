@@ -60,7 +60,7 @@ Cassette deck mode toggles (labels match STEPS type; pipe bars match zoom delimi
 
 **Playback | Rec** (mutually exclusive panels):
 
-- **Left (muted, browse-off weight) / REC off** — playback mode: `REC [switch] | CJM [switch] | STEPS: N` (journey) — no recording counter. Recording event counter and REC transport are unmounted.
+- **Left (muted, same as CJM-off) / REC off** — playback mode: `REC [switch] | CJM [switch] | STEPS: N` (journey) — shared `.proto-studio-mode-switch` off chrome; no recording counter. Recording event counter and REC transport are unmounted.
 - **Right (red) / REC on** — rec mode: `REC [switch] STEPS: N` (recording events) + REC deck. Journey STEPS / cassette transport are unmounted.
 
 Leaving Rec while a capture is live **pauses** the session (does not stop/destroy it).

@@ -7,7 +7,7 @@ type Props = {
   disabled?: boolean;
 };
 
-/** FL-style mini toggle — Playback (blue) vs Rec (red); mirrors journey-mode switch. */
+/** FL-style mini toggle — REC off shares muted mode-switch chrome; on is red. */
 export function ProtoStudioPlaybackRecSwitch({
   checked,
   onChange,
@@ -25,19 +25,19 @@ export function ProtoStudioPlaybackRecSwitch({
           : "REC off — cassette transport (recording controls hidden)"
       }
       disabled={disabled}
-      className={`proto-studio-playback-rec-switch${
-        checked ? " proto-studio-playback-rec-switch--on" : ""
+      className={`proto-studio-mode-switch proto-studio-playback-rec-switch${
+        checked ? " proto-studio-mode-switch--on" : ""
       }`}
       onClick={(event) => {
         flashControlRoomButton(
           event.currentTarget,
-          "proto-studio-playback-rec-switch--tap"
+          "proto-studio-mode-switch--tap"
         );
         onChange(!checked);
       }}
     >
-      <span className="proto-studio-playback-rec-switch__track" aria-hidden>
-        <span className="proto-studio-playback-rec-switch__thumb" />
+      <span className="proto-studio-mode-switch__track" aria-hidden>
+        <span className="proto-studio-mode-switch__thumb" />
       </span>
     </button>
   );
