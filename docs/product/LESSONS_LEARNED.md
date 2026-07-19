@@ -73,6 +73,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Post-push sitrep mandatory (BE / Director)** — after push, run `gh run list -R iyakushchenko/ux-studio -L 10`; do **not** tell the PO CI is green from local tests alone. `cancelled` Deploy/CI often means a newer push superseded the run — check the tip SHA. → [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5.
 - **Pages verify after chrome ships** — deploy green ≠ visual proof; check deployed host for `data-studio-react-screen` + MCP sanity on the live URL when chrome/pages matter.
 - **Agent MCP testing overlay** — BR corner status + invisible click capture (no lightbox). `stop()` enters ~5s DONE/SITREP (readable log, click guard released) then clears; MCP helpers use `stop({ reload: true })` so reload runs **after** sitrep; Dismiss/`force` is instant; never restore stale persist on load ([../shell/RECORDING.md](../shell/RECORDING.md)).
+- **Post-agent clean slate** — `&modal=choose-pharmacy` survives sitrep reload unless stripped; always `resetStudioAfterAgentTest()` → hub + no modal **before** `location.reload()`, and dismiss avail via `studio-post-agent-reset` on no-reload stop.
 - **Overlay ≠ lightbox** — opaque full-screen “AGENT TESTING” modals rage the PO and hide the page under test; keep the concept visible.
 
 ---

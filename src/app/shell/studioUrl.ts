@@ -32,6 +32,19 @@ export const EPHEMERAL_QUERY_KEYS = [
 
 export const HUB_SCREEN_ID = "hub";
 
+/** Default project when post-agent reset has no project in the bar. */
+export const DEFAULT_STUDIO_PROJECT_ID = "boots-pharmacy";
+
+/**
+ * Deterministic post-agent / MCP-test home.
+ * After `__studioRun*` / `__protoRun*` sitrep (+ optional reload):
+ * `?project=<current|boots-pharmacy>&screen=hub` — no `modal`, no ephemeral.
+ */
+export const STUDIO_POST_AGENT_HOME_SCREEN_ID = HUB_SCREEN_ID;
+
+/** Window event: App closes lightboxes + applies post-agent home nav. */
+export const STUDIO_POST_AGENT_RESET_EVENT = "studio-post-agent-reset";
+
 const SCREEN_ALIASES: Record<string, string> = {
   onboarding: HUB_SCREEN_ID,
   "book-step1": "book-step-1",
@@ -49,6 +62,10 @@ export type StudioUrlState = {
   modeId?: string;
   /** Blocking lightbox id (e.g. choose-pharmacy). */
   modalId?: StudioModalId | string;
+};
+
+export type StudioPostAgentResetDetail = {
+  state: StudioUrlState;
 };
 
 export type StudioScreenRef = {
@@ -74,8 +91,9 @@ function normalizeScreenId(raw: string | null | undefined): string | undefined {
 export function parseStudioUrl(
   search: string = typeof window !== "undefined" ? window.location.search : ""
 ): StudioUrlState {
+  const raw = typeof search === "string" ? search : "";
   const params = new URLSearchParams(
-    search.startsWith("?") ? search.slice(1) : search
+    raw.startsWith("?") ? raw.slice(1) : raw
   );
   const projectId = params.get(STUDIO_QUERY.project)?.trim() || undefined;
   const personaId = params.get(STUDIO_QUERY.persona)?.trim() || undefined;
@@ -135,6 +153,54 @@ export function stripEphemeralStudioQuery(
   } catch {
     return false;
   }
+}
+
+/**
+ * Build the deterministic post-agent landing URL state.
+ * Preserves project when present; always hub; never modal / persona / mode.
+ */
+export function buildStudioPostAgentHomeState(
+  search: string = typeof window !== "undefined" ? window.location.search : ""
+): StudioUrlState {
+  const current = parseStudioUrl(search);
+  return {
+    projectId: current.projectId ?? DEFAULT_STUDIO_PROJECT_ID,
+    screenId: STUDIO_POST_AGENT_HOME_SCREEN_ID,
+  };
+}
+
+/** Ignore nav→URL sync briefly so React cannot re-stamp `&modal=` during sitrep. */
+let postAgentResetSyncLockUntil = 0;
+
+const POST_AGENT_RESET_SYNC_LOCK_MS = 2500;
+
+/** True while post-agent clean slate owns the address bar. */
+export function isStudioPostAgentResetSyncLocked(
+  now: number = Date.now()
+): boolean {
+  return now < postAgentResetSyncLockUntil;
+}
+
+/**
+ * Clean slate after agent / MCP tests: strip ephemeral + modal, land on hub.
+ * Writes the address bar, then dispatches {@link STUDIO_POST_AGENT_RESET_EVENT}
+ * so App can dismiss Choose Pharmacy / popups and apply hub nav (no-reload path).
+ * Call again immediately before `location.reload()` so a settle-window race
+ * cannot leave `&modal=` in the bar.
+ */
+export function resetStudioAfterAgentTest(): StudioUrlState {
+  const state = buildStudioPostAgentHomeState();
+  postAgentResetSyncLockUntil = Date.now() + POST_AGENT_RESET_SYNC_LOCK_MS;
+  stripEphemeralStudioQuery();
+  writeStudioUrl(state);
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(
+      new CustomEvent<StudioPostAgentResetDetail>(STUDIO_POST_AGENT_RESET_EVENT, {
+        detail: { state },
+      })
+    );
+  }
+  return state;
 }
 
 export function resolveScreenIdFromNav(options: {

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import {
   applyStudioScreen,
+  isStudioPostAgentResetSyncLocked,
   parseStudioUrl,
   resolveScreenIdFromNav,
   stripEphemeralStudioQuery,
@@ -92,6 +93,8 @@ export function useStudioUrlSync(options: StudioUrlSyncOptions): void {
   // Reflect nav + modal → address bar + recording screen markers.
   useEffect(() => {
     if (applyingUrlRef.current) return;
+    // Post-agent clean slate owns the bar until reload / lock expiry.
+    if (isStudioPostAgentResetSyncLocked()) return;
     const screenId = resolveScreenIdFromNav({ hubOpen, current, screens });
     const state: StudioUrlState = {
       projectId,

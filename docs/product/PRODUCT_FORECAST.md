@@ -21,8 +21,9 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 | Work | Why | Status |
 |------|-----|--------|
-| Recording compile→journeys | Ephemeral Save as journey → CJM catalog landed; durable `journeys.ts` later | **LANDED (vertical)** |
+| Post-agent clean slate | Sticky Choose Pharmacy after MCP sitrep/reload rage | **LANDED** — hub home + strip modal + sync lock |
 | Versioning habit | notes + consider patch on named demos | Habit — every ship |
+| Recording compile→journeys | Ephemeral Save as journey → CJM catalog landed; durable `journeys.ts` later | **LANDED (vertical)** |
 
 ### NEXT
 
@@ -93,9 +94,9 @@ Default push = unit + build (+ cheap contracts). Playwright = `workflow_dispatch
 
 Deploy green ≠ visual proof. Verify `data-studio-react-screen`, deep link, overlay on live host after chrome ships.
 
-### 10. Agent overlay — POLICY (landed)
+### 10. Agent overlay — POLICY (landed + clean slate)
 
-BR **AGENT TESTING** + invisible click guard; `touch()`; MCP `stop({ reload: true })`; never lightbox / sticky `?proof=`.
+BR **AGENT TESTING** + invisible click guard; `touch()`; MCP `stop({ reload: true })`; never lightbox / sticky `?proof=`. Post-test: `resetStudioAfterAgentTest()` → `?project=…&screen=hub` (no `modal`) before reload.
 
 ### 11. Versioning — HABIT THEN AUTOMATION
 

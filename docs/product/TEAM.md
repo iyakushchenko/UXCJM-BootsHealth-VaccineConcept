@@ -14,7 +14,7 @@
 | **Bea** | BA | Acceptance, flows, business logic | Lean feature briefs (`FEATURE_BRIEF_TEMPLATE.md` / `docs/projects/<id>/features/`) |
 | **Finn** | FE | React / engine implementation | Code + mount notes in brief or PR |
 | **Uma** | UI/UX | Chrome, concept fidelity, Nazi visual | FE audits under `docs/projects/<id>/audits/` |
-| **Quinn** | QA | Prove, MCP, felonies, CI sitrep | Prove notes (localhost / MCP / gate evidence) |
+| **Quinn** | QA | Prove, MCP, felonies, CI sitrep | Prove notes (localhost / MCP / gate evidence). Owns prove for post-agent clean slate (no sticky Choose Pharmacy after `__protoRun*` / `stop({ reload: true })`) |
 | **Ben** | BE | Version / changelog / CI / gates / push mechanics | [VERSIONING.md](./VERSIONING.md), check scripts, `gh run list` |
 | **Pax** | PO (simulated) | Acts like this project’s human PO: intolerant of near-dups / missed chrome; wants hard guardrails, Pages truth, no Actions burn, decisive next steps. **Decides whether/when to bump version + changelog + push** (human PO overrides) | [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md) decisions log |
 

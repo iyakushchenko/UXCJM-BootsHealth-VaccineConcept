@@ -104,10 +104,14 @@ import {
 } from "@/app/shell/studioNavStorage";
 import { STUDIO_MODAL } from "@/app/shell/studioModalGuard";
 import {
+  applyStudioScreen,
+  HUB_SCREEN_ID,
   parseStudioUrl,
   resolveNavFromScreenId,
   resolveScreenIdFromNav,
   serializeStudioUrl,
+  STUDIO_POST_AGENT_RESET_EVENT,
+  type StudioPostAgentResetDetail,
 } from "@/app/shell/studioUrl";
 import { useStudioUrlSync } from "@/app/shell/useStudioUrlSync";
 import { getProjectWire } from "@/projects/registry";
@@ -254,9 +258,11 @@ export default function App() {
     storeHubOpen(studioProjectId, hubOpen);
   }, [current, hubOpen, studioProjectId]);
 
-  const studioModalId = wireApiRef.current?.availabilityOpen
-    ? STUDIO_MODAL.choosePharmacy
-    : undefined;
+  // wireTick re-reads the ref when Boots avail open/close lands.
+  const studioModalId =
+    wireTick >= 0 && wireApiRef.current?.availabilityOpen
+      ? STUDIO_MODAL.choosePharmacy
+      : undefined;
 
   useStudioUrlSync({
     projectId: studioProjectId,
@@ -279,6 +285,41 @@ export default function App() {
       }
     },
   });
+
+  // Agent overlay stop → dismiss Choose Pharmacy / popups + land hub (URL already written).
+  useEffect(() => {
+    const onPostAgentReset = (event: Event) => {
+      const detail = (event as CustomEvent<StudioPostAgentResetDetail>).detail;
+      const state = detail?.state;
+      closeAvailabilityToolRef.current();
+      wireApiRef.current?.closeAllPopups();
+      applyStudioScreen({
+        projectId: state?.projectId ?? studioProjectId,
+        screenId: state?.screenId ?? HUB_SCREEN_ID,
+        screens: SCREENS,
+        currentProjectId: studioProjectId,
+        setProjectId: setStudioProjectId,
+        setPersonaId: setStudioPersonaId,
+        setModeId: setOrchestraModeId,
+        setCurrent,
+        setHubOpen,
+        applyModal: () => {
+          closeAvailabilityToolRef.current();
+        },
+        syncUrl: true,
+      });
+    };
+    window.addEventListener(STUDIO_POST_AGENT_RESET_EVENT, onPostAgentReset);
+    return () => {
+      window.removeEventListener(STUDIO_POST_AGENT_RESET_EVENT, onPostAgentReset);
+    };
+  }, [
+    SCREENS,
+    setOrchestraModeId,
+    setStudioPersonaId,
+    setStudioProjectId,
+    studioProjectId,
+  ]);
 
   // Deep-link / boot may apply modal before Boots wire mounts — re-open when ready.
   useEffect(() => {

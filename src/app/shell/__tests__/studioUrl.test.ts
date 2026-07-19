@@ -9,7 +9,12 @@ import {
   resolveScreenIdFromNav,
   resolveStudioScreenTarget,
   serializeStudioUrl,
+  buildStudioPostAgentHomeState,
+  isStudioPostAgentResetSyncLocked,
+  resetStudioAfterAgentTest,
   stripEphemeralStudioQuery,
+  STUDIO_POST_AGENT_HOME_SCREEN_ID,
+  STUDIO_POST_AGENT_RESET_EVENT,
   writeStudioUrl,
 } from "@/app/shell/studioUrl";
 
@@ -104,6 +109,55 @@ describe("studioUrl", () => {
     const next = replaceState.mock.calls[0][2] as string;
     expect(next).toBe("/?project=boots-pharmacy&screen=home");
     expect(next).not.toContain("proof");
+  });
+
+  it("buildStudioPostAgentHomeState lands hub without modal", () => {
+    expect(
+      buildStudioPostAgentHomeState(
+        "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&persona=sarah-jenkins"
+      )
+    ).toEqual({
+      projectId: "boots-pharmacy",
+      screenId: STUDIO_POST_AGENT_HOME_SCREEN_ID,
+    });
+    expect(buildStudioPostAgentHomeState("")).toEqual({
+      projectId: "boots-pharmacy",
+      screenId: "hub",
+    });
+  });
+
+  it("resetStudioAfterAgentTest strips modal + proof and dispatches home", () => {
+    const replaceState = vi.fn();
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
+        pathname: "/",
+        search:
+          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
+        hash: "",
+      },
+      history: { state: null, replaceState, pushState: vi.fn() },
+      dispatchEvent,
+    });
+
+    const state = resetStudioAfterAgentTest();
+    expect(state).toEqual({
+      projectId: "boots-pharmacy",
+      screenId: "hub",
+    });
+    expect(replaceState).toHaveBeenCalled();
+    const next = replaceState.mock.calls.at(-1)?.[2] as string;
+    expect(next).toBe("/?project=boots-pharmacy&screen=hub");
+    expect(next).not.toContain("modal");
+    expect(next).not.toContain("proof");
+    expect(dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: STUDIO_POST_AGENT_RESET_EVENT,
+        detail: { state },
+      })
+    );
+    expect(isStudioPostAgentResetSyncLocked()).toBe(true);
   });
 
   it("writeStudioUrl replaces bar and drops ephemeral keys", () => {

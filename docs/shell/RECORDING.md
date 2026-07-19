@@ -14,6 +14,16 @@ While an agent drives localhost, Studio shows a **compact bottom-right status pa
 
 **Sitrep settle (DONE):** on `stop()` (nest → 0), the panel does **not** vanish instantly. It enters a short **AGENT DONE — SITREP** state (~5s, configurable `settleMs` clamped 4–6s): final status + last log lines stay readable; click guard is **released** so the PO can use the page while reading. After the settle delay the panel clears; if `reload: true`, reload runs **after** settle (not during). Manual **Dismiss** / `stop({ force: true })` still clears **instantly**. A tiny recent-session stack (max 5, `sessionStorage`) may show under the log during settle — keep it simple, not a notification center product.
 
+**Post-test clean slate (mandatory):** on `stop()` (nest → 0) and again immediately before any `reload`, Studio runs `resetStudioAfterAgentTest()`:
+
+| Step | Behavior |
+|------|----------|
+| URL | `?project=<current\|boots-pharmacy>&screen=hub` — **no** `&modal=`, no ephemeral (`proof`, …) |
+| Live UI | Dispatches `studio-post-agent-reset` → App closes Choose Pharmacy / popups and applies hub |
+| Reload | Re-asserts clean URL **then** `location.reload()` so boot cannot reopen a sticky lightbox |
+
+Default post-test home: **`?project=boots-pharmacy&screen=hub`** (project preserved when already in the bar). Quinn proves: open Choose Pharmacy → `__protoRunMcpSanityCheck` / overlay `stop({ reload: true })` → after sitrep/reload, no lightbox, clean hub URL.
+
 ```js
 window.__protoAgentTestingOverlay?.start("optional title")
 window.__protoAgentTestingOverlay?.touch("optional title") // arm if inactive; no nest bump
@@ -29,16 +39,16 @@ window.__protoAgentTestingOverlay?.isActive() // false during settle
 
 | Event | Behavior |
 |-------|----------|
-| `__protoRunMcpSanityCheck` / `__protoRun*` session `finally` | Always `stop({ reload: true })` — sitrep ~5s, then clean-tab reload |
+| `__protoRunMcpSanityCheck` / `__protoRun*` session `finally` | Always `stop({ reload: true })` — sitrep ~5s, clean-slate hub URL, then reload |
 | Mutating `__proto*` helpers | Auto-`touch()` on first/each call (read-only getters skipped) |
 | DevTools MCP clicks only | Agent **must** call `touch()` at session start |
-| `stop()` nest → 0 | Enter DONE/SITREP settle (default **5s**); release click guard; keep log visible |
-| Settle timer fires | Hide panel; if `reload: true`, then deferred `location.reload()` (~120ms) |
+| `stop()` nest → 0 | Enter DONE/SITREP settle (default **5s**); release click guard; **clean slate** (hub, dismiss modal); keep log visible |
+| Settle timer fires | Hide panel; re-assert clean URL; if `reload: true`, deferred `location.reload()` (~120ms) after URL strip |
 | Safety timeout | Auto `stop({ force: true })` after **3 min** (skips settle) |
 | `beforeunload` | Clears active/settle state + sessionStorage persist |
-| Page load / overlay install / stop | Strip ephemeral query (`proof`, …) — never leave `?proof=unmount-race` |
+| Page load / overlay install / stop | Strip ephemeral + (on stop) land post-agent hub — never leave `?proof=*` or sticky `&modal=` |
 | Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
-| Dismiss button / `stop({ force: true })` | Immediate clear (no settle); no reload unless `reload: true` |
+| Dismiss button / `stop({ force: true })` | Immediate clear (no settle) + clean slate; no reload unless `reload: true` |
 
 Manual console experiments should omit reload (default `false`). Auto-shown for `__protoRun*` MCP sessions and any mutating `__proto*` helper. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/agentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
 

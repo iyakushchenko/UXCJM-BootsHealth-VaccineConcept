@@ -9,34 +9,33 @@
 
 ## NOW
 
-1. [x] **Recording compile→journeys** — Save as journey / `__studioSaveRecordingAsJourney` → ephemeral CJM catalog overlay ([RECORDING.md](../shell/RECORDING.md)). Durable `journeys.ts` write + free journey ids = later.
-2. [x] **Lean UX team OS** — callsigns Arch/Bea/Finn/Uma/Quinn/Ben/Pax; briefs + cross-check; Pax owns bump/push ([TEAM.md](./TEAM.md)).
-3. [x] **Modal URL + sitrep z-index** — `&modal=choose-pharmacy`; popup eyes for replay/agent; overlay above avail lightbox.
-4. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
+1. [x] **Post-agent clean slate** — sticky Choose Pharmacy after MCP/agent tests: `stop({ reload: true })` → hub URL + dismiss modal before reload ([RECORDING.md](../shell/RECORDING.md)). Quinn proved localhost 2026-07-19.
+2. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
 
 ---
 
 ## NEXT
 
-5. [ ] **REC capture gaps** — beat-enter / scroll / typed-text replay (capture partial; replay unsupported) unless a trivial win appears.
-6. [ ] **LEGACY retirement (by screen)** — no LEGACY growth; shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
-7. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain (recording bridge / beat advance) — not micro-files.
-8. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
-9. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
+3. [ ] **REC capture gaps** — beat-enter / scroll / typed-text replay (capture partial; replay unsupported) unless a trivial win appears.
+4. [ ] **LEGACY retirement (by screen)** — no LEGACY growth; shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
+5. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain (recording bridge / beat advance) — not micro-files.
+6. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+7. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
 
 ---
 
 ## LATER
 
-10. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
-11. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
-12. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
-13. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
+8. [ ] **Second project rabbit** — after Boots book + URL + REC proven on Pages.
+9. [ ] **Release / tag CI** — when versioning habit is stable and Actions budget allows.
+10. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs`, not more Playwright on every push.
+11. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
 
 ---
 
 ## Done recently (context)
 
+- [x] **Post-agent clean slate** — `resetStudioAfterAgentTest()` → `?project=…&screen=hub` (no modal) on overlay stop + pre-reload; sync lock; Quinn localhost PROVEN ([RECORDING.md](../shell/RECORDING.md)).
 - [x] **Lean UX team OS + modal URL + sitrep z-index** — Arch/Bea/Finn/Uma/Quinn/Ben/Pax; `&modal=choose-pharmacy`; overlay above avail ([TEAM.md](./TEAM.md), [URL.md](../shell/URL.md)).
 - [x] **Recording compile→journeys (vertical)** — `compileRecordingToJourney` + REC **Save as journey** / `__studioSaveRecordingAsJourney` merges into `journeyRuntimeStore`; play via CJM ([RECORDING.md](../shell/RECORDING.md)).
 - [x] **Recording v2 gaps (human + scripts)** — trusted human REC clicks → `demo-click`; `applyDirectorScript` + `retreat-sync` via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind` ([RECORDING.md](../shell/RECORDING.md)).
