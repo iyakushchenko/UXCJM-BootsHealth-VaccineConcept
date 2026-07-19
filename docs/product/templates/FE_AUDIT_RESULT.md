@@ -94,6 +94,15 @@ Copy rows from [FE_UI_UX_AUDIT.md](../FE_UI_UX_AUDIT.md); keep PASS/FAIL/N/A + e
 | H2 | | |
 | H3 | | |
 
+### I. DS strictness / no near-duplicates
+
+| # | Result | Evidence |
+|---|--------|----------|
+| I1 | | |
+| I2 | | |
+| I3 | | |
+| I4 | | |
+
 ---
 
 ## Follow-ups (if FAIL / BLOCKED)

@@ -48,7 +48,7 @@ function EditGlyph() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
       <path
-        fill="#AFCCCA"
+        fill="var(--uxds-icon-icon-accent-soft)"
         fillRule="evenodd"
         d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-9.2 9.2H2.1v-3.4l9.6-9.8Zm.7 1.4L3.5 11.6v1h1l8.9-8.9-1-1Z"
         clipRule="evenodd"
@@ -63,11 +63,11 @@ function SearchGlyph() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M19.136 9.92c0-4.261-3.454-7.716-7.716-7.716S3.705 5.659 3.705 9.92s3.454 7.715 7.715 7.715 7.716-3.454 7.716-7.715Zm2.204 0c0 5.478-4.441 9.92-9.92 9.92S1.5 15.398 1.5 9.92 5.941 0 11.42 0s9.92 4.441 9.92 9.92Z"
-        fill="#012169"
+        fill="var(--uxds-input-button-surface-surface-commerce-solid)"
       />
       <path
         d="M24 20.941 22.441 22.5l-6.353-6.353 1.558-1.559L24 20.941Z"
-        fill="#012169"
+        fill="var(--uxds-input-button-surface-surface-commerce-solid)"
       />
     </svg>
   );
@@ -83,7 +83,7 @@ function CheckboxCheckMark() {
     >
       <svg width="14" height="10" viewBox="0 0 13.4079 10.1151" fill="none">
         <path
-          fill="#305854"
+          fill="var(--uxds-badge-text-on-variant-1)"
           fillRule="evenodd"
           clipRule="evenodd"
           d="M0 5.49077L1.40162 4.06407L4.69457 7.29914L11.9937 0L13.4079 1.41421L4.70705 10.1151L0 5.49077Z"
@@ -359,7 +359,7 @@ export function BookStep1LocationScreen({
 
             <div className="book-step1__cta-wrap">
               <ButtonPrimary
-                className="book-step1__continue"
+                className="book-step1__continue uxds-btn-primary--commerce"
                 onClick={onContinue}
               >
                 Continue

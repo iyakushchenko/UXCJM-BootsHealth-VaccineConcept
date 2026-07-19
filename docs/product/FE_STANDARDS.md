@@ -2,7 +2,9 @@
 
 **Status:** Locked (Product Owner, 2026-07-19)  
 **Audience:** Every agent building or rebuilding concept UI in `src/projects/*`.  
-**Companions:** [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) · [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) · [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md)
+**Companions:** [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) · [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) · [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md)
+
+**DS strictness (PO):** No near-duplicate styles; pages use UXDS + project theme only; deviations must be registered — [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md).
 
 ---
 
@@ -24,7 +26,7 @@ Sibling **tertiary icon+text** CTAs on the same surface must share **one** icon 
 
 | Rule | Expectation |
 |------|-------------|
-| **Pick a baseline** | When merging siblings, pick one control as the visual merge target (Book Step 1 Change / pencil: `#AFCCCA` → `#012169` hover) |
+| **Pick a baseline** | When merging siblings, pick one control as the visual merge target (Book Step 1 Change / pencil: `--uxds-icon-icon-accent-soft` → `--uxds-text-link-link` hover) |
 | **Match baseline** | Rest fill/stroke color, size (e.g. 16×16), weight (simple line/glyph — **not** a filled dark circular badge), hover color shift |
 | **Same string/role → one component** | Identical CTA copy that appears on multiple surfaces must share **one** component — do not fork FilterChip vs tertiary markup |
 
@@ -42,29 +44,30 @@ Search-field glyphs inside inputs are a **different** family (field chrome) — 
 
 ### 1.3 Availability list filter pills
 
-Secondary pills (**All locations** / **Slots available**): inactive = quiet outline/neutral; **selected = Boots primary** (`#467672` fill, white on-primary text; hover `#305854`). Keep mini vs List/Map hierarchy. Do **not** use mint `#c6e5e1` for the selected state.
+Secondary pills (**All locations** / **Slots available**): use **`.uxds-filter-chip--strong`** (registered). Inactive = quiet outline/neutral; **selected** = `--uxds-filter-chip-surface-selected-strong` + inverse text (Boots theme → brand primary). Keep mini vs List/Map hierarchy. Do **not** use mint / badge selected for this role.
 
 ---
 
 ## 2. Regular text links (CRITICAL)
 
-Typical blue body links (**Learn more**, **Show on map**, **See working hours**, help tel, forgot-password, footer FAQs/Delivery) **must** share one pattern. Do not invent per-screen link colors.
+Typical underline body links (**Learn more**, **Show on map**, **See working hours**, help tel, forgot-password style) **must** share one pattern. Do not invent per-screen link colors.
 
 | Token | Value |
 |-------|--------|
 | **Class** | `.uxds-link` (`src/uxds/components/text-link.css`) |
-| **Baseline** | Footer / Make `.proto-link` + Book Step 1 booster **Learn more** |
-| **Rest** | `#012169`, `text-decoration: none`, weight inherit |
-| **Hover** | `#01318f`, underline **on** |
-| **Focus-visible** | `outline: 2px solid #012169`, `outline-offset: 2px` |
+| **Tokens** | `--uxds-text-link-link` / `--uxds-text-link-link-hover` |
+| **UXDS baseline** | Teal Concept (`#305854` / darker hover) |
+| **Boots theme** | Remaps to commerce navy (`#012169` / `#01318f`) |
+| **States** | Rest: underline; hover: underline **off**; focus-visible: 2px outline in link color |
 
 Legacy aliases (same rules): `.proto-avail-link`, `.proto-recipient-picker__link`.
 
 | Family | Do not force into `.uxds-link` |
 |--------|--------------------------------|
 | Tertiary icon+text CTAs | Change location, near-me — §1 |
-| Breadcrumb Home | Teal `#305854` crumb chrome (Make) |
-| Make `.proto-link` globals | Same rest/hover underline under `.proto-viewport` — keep colors aligned; React surfaces use `.uxds-link` |
+| Breadcrumb Home | Teal `--uxds-text-link-link-dark` crumb chrome (Make) |
+| Make `.proto-link` globals | Still strip underline under `.proto-viewport` — **Make target:** adopt `.uxds-link` when a surface is migrated; do not weaken React parity to match the strip |
+
 
 ---
 
@@ -109,9 +112,13 @@ Migrate Make `:hover`, `:focus-visible`, and `:active` (and short transitions) i
 
 | Do | Do not |
 |----|--------|
-| Co-locate screen CSS next to the React screen (e.g. `book-step1-location.css`) | Grow monster global sheets for one screen’s chrome |
-| Override UXDS defaults **under a screen host** when concept chrome differs | Rewrite UXDS baselines for a one-off look |
+| Co-locate screen CSS next to the React screen (e.g. `book-step1-location.css`) for **layout** | Grow monster global sheets for one screen’s chrome |
+| Consume `var(--uxds-…)` for shared control colors | Hardcode brand hex in page/shared CSS (put remaps in `theme.css`) |
+| Register a named deviation when a new variant is required | Anonymous page hacks / parallel hover palettes |
 | Keep UXDS kit CSS lean and valid (no empty declarations) | Paste Figma export noise / blank rule bodies into shared kits |
+
+See [DS_STRICTNESS.md](./DS_STRICTNESS.md).
+
 
 ---
 
@@ -127,9 +134,10 @@ Use `nowrap` for short CTAs, chips, crumb current labels, and tertiary pills unl
 2. Icon+text CTAs are single-line (`inline-flex` + `nowrap`).  
 3. Sibling tertiary CTAs share one icon language (baseline chosen and applied).  
 4. Same CTA string/role → one shared component (near-me → `NearMeCta`).  
-5. Availability secondary filter selected state uses primary brand colors.  
-6. Regular text links use `.uxds-link` (one navy/underline pattern — §2).  
+5. Availability secondary filters use `.uxds-filter-chip--strong` (not mint selected).  
+6. Regular text links use `.uxds-link` + link tokens (§2).  
 7. Hover/focus/active ported from Make.  
 8. Design-delta table written (fills in scope).  
 9. Behavior parity verified.  
-10. CSS scoped to the screen/kit — build still passes.
+10. No near-duplicate control styles; deviations registered if needed.  
+11. CSS scoped to the screen/kit — build still passes.

@@ -1,4 +1,8 @@
-/* UXDS filter chip — baseline interaction states (screens may remap chrome). */
+/**
+ * UXDS filter chip. Default selected = badge/mint.
+ * Strong selected = .uxds-filter-chip--strong (registered).
+ * @see docs/uxds/DEVIATIONS.md · docs/product/DS_STRICTNESS.md
+ */
 
 .uxds-filter-chip-row {
   display: flex;
@@ -25,7 +29,7 @@
 }
 
 .uxds-filter-chip:hover {
-  background: #eef8f7;
+  background: var(--uxds-filter-chip-surface-hover);
 }
 
 .uxds-filter-chip.is-selected,
@@ -42,10 +46,39 @@
 }
 
 .uxds-filter-chip:focus-visible {
-  outline: 2px solid var(--project-brand-cta-navy, #012169);
+  outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
 .uxds-filter-chip:active {
-  background: #c6e5e1;
+  background: var(--uxds-surface-accent-soft);
+}
+
+.uxds-filter-chip--strong {
+  min-height: 28px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  color: var(--uxds-text-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.uxds-filter-chip--strong:hover {
+  background: var(--uxds-filter-chip-surface-hover);
+}
+
+.uxds-filter-chip--strong.is-selected,
+.uxds-filter-chip--strong[data-state="on"] {
+  background: var(--uxds-filter-chip-surface-selected-strong);
+  border-color: var(--uxds-filter-chip-surface-selected-strong);
+  color: var(--uxds-filter-chip-text-on-selected-strong);
+  font-weight: 500;
+}
+
+.uxds-filter-chip--strong.is-selected:hover,
+.uxds-filter-chip--strong[data-state="on"]:hover {
+  background: var(--uxds-filter-chip-surface-selected-strong-hover);
+  border-color: var(--uxds-filter-chip-surface-selected-strong-hover);
+  color: var(--uxds-filter-chip-text-on-selected-strong);
 }

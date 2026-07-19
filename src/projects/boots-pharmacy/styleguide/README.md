@@ -1,18 +1,24 @@
 # Boots Pharmacy — project styleguide (brand delta)
 
 **Project id:** `boots-pharmacy`  
-**Scope:** `[data-proto-project="boots-pharmacy"]` via `theme.css`
+**Scope:** `[data-proto-project="boots-pharmacy"]` via `theme.css`  
+**Contract:** `theme.css` **remaps CSS variables only** — no component rules. See [DS_STRICTNESS.md](../../../../docs/product/DS_STRICTNESS.md).
 
 **Rule:** Visual L&F of the source concept is mandatory; brand may override UXDS color tokens in `theme.css`. Rebuilds also require **behavior parity** with prior Make interactions ([VISUAL_FIDELITY.md](../../../../docs/product/VISUAL_FIDELITY.md) §1.1).
+
+### Turn theme off
+
+Remove `data-proto-project="boots-pharmacy"` and/or skip importing this `theme.css`. Shared UXDS controls fall back to Concept baselines in `src/uxds/tokens/design.css`.
 
 ## Brand facts
 
 | Role | Value | Notes |
 |------|-------|--------|
-| Primary teal | `#467672` | Brand mid |
-| Primary darkest | `#305854` | Buttons / strong accents (UXDS Concept primary solid) |
-| Primary light | `#AFCCCA` | Secondary borders, badges, selected chips |
-| Commerce navy CTA | `#012169` | Existing Make wire primary CTAs (kept; not forced onto UXDS primary solid) |
+| Primary teal | `#467672` | Brand mid → `--project-brand-primary` |
+| Primary darkest | `#305854` | Remaps UXDS primary solid |
+| Primary light | `#AFCCCA` | Secondary borders, badges |
+| Primary soft | `#c6e5e1` | Progress / checkbox hover → `--uxds-surface-accent-soft` |
+| Commerce navy CTA | `#012169` | Remaps commerce + body-link tokens (not UXDS primary solid) |
 
 ## Concept visual fidelity (locked)
 
@@ -31,9 +37,9 @@ Measure from Make classes / live wire CSS. Document PO-approved deltas here only
 
 | File | Role |
 |------|------|
-| `theme.css` | Remaps UXDS semantic roles → Boots brand |
+| `theme.css` | **Variable remaps only** → Boots brand under `[data-proto-project]` |
 | `assets/` | Logos (add when needed) |
 
 ## Agent rule
 
-Build with UXDS structure + this delta. Visible styling follows the Boots concept source. Migrate Make interactions onto React screens. Do not hardcode Boots teal into other projects. See [VISUAL_FIDELITY.md](../../../../docs/product/VISUAL_FIDELITY.md), [PROJECT_STYLEGUIDE.md](../../../../docs/product/PROJECT_STYLEGUIDE.md), and [PAGE_BUILD_CONTRACT.md](../../../../docs/product/PAGE_BUILD_CONTRACT.md) §5.
+Build with UXDS structure + this delta. Shared components use `var(--uxds-…)`, not hardcoded Boots hex. Visible styling follows the Boots concept source. Migrate Make interactions onto React screens. Do not hardcode Boots teal into other projects. Deviations → [DEVIATIONS.md](../../../../docs/uxds/DEVIATIONS.md). See [DS_STRICTNESS.md](../../../../docs/product/DS_STRICTNESS.md), [VISUAL_FIDELITY.md](../../../../docs/product/VISUAL_FIDELITY.md), [PROJECT_STYLEGUIDE.md](../../../../docs/product/PROJECT_STYLEGUIDE.md), and [PAGE_BUILD_CONTRACT.md](../../../../docs/product/PAGE_BUILD_CONTRACT.md) §5.

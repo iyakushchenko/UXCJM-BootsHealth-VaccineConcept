@@ -68,7 +68,7 @@
   border: none;
   background: none;
   padding: 0;
-  color: #305854;
+  color: var(--uxds-text-link-link-dark);
   text-decoration: underline;
   cursor: pointer;
   font: inherit;
@@ -76,12 +76,12 @@
 }
 
 .book-step1__crumb-link:hover {
-  color: #012169;
+  color: var(--uxds-text-link-link);
   text-decoration: none;
 }
 
 .book-step1__crumb-link:focus-visible {
-  outline: 2px solid #012169;
+  outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
@@ -197,7 +197,7 @@
 .book-step1__progress-step.is-active ol,
 .book-step1__progress-step[data-proto-step-active="true"] ol {
   font-weight: 700;
-  color: #012169;
+  color: var(--uxds-text-link-link);
 }
 
 .book-step1__progress-step li {
@@ -219,7 +219,7 @@
 
 .book-step1__progress-step.is-active .book-step1__progress-bar,
 .book-step1__progress-step[data-proto-step-active="true"] .book-step1__progress-bar {
-  background: #c6e5e1;
+  background: var(--uxds-surface-accent-soft);
 }
 
 /* Live Make card width override: 863px (not Figma export 758px) */
@@ -301,7 +301,7 @@
 }
 
 .book-step1__pill-change svg path {
-  fill: #afccca;
+  fill: var(--uxds-icon-icon-accent-soft);
   transition: fill 0.18s ease;
 }
 
@@ -313,11 +313,11 @@
 
 .book-step1__pill-change:hover svg path,
 .book-step1__pill-change:active svg path {
-  fill: #012169;
+  fill: var(--uxds-text-link-link);
 }
 
 .book-step1__pill-change:focus-visible {
-  outline: 2px solid #012169;
+  outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
@@ -380,8 +380,8 @@
 
 .book-step1__search:hover,
 .book-step1__search:focus-visible {
-  border-color: #012169;
-  box-shadow: inset 0 0 0 2px #012169;
+  border-color: var(--uxds-input-button-surface-surface-commerce-solid);
+  box-shadow: inset 0 0 0 2px var(--uxds-input-button-surface-surface-commerce-solid);
   outline: none;
 }
 
@@ -524,14 +524,14 @@
 }
 
 .book-step1__checkbox-row:hover .book-step1__checkbox-box {
-  background: #c6e5e1 !important;
-  border-color: #c6e5e1 !important;
+  background: var(--uxds-surface-accent-soft) !important;
+  border-color: var(--uxds-surface-accent-soft) !important;
 }
 
 .book-step1__checkbox-row[data-checkbox-checked="true"] .book-step1__checkbox-box,
 .book-step1__checkbox-row[data-checkbox-checked="true"]:hover .book-step1__checkbox-box {
-  background: #afccca !important;
-  border: 1px solid #afccca !important;
+  background: var(--uxds-badge-surface-variant-1) !important;
+  border: 1px solid var(--uxds-badge-surface-variant-1) !important;
 }
 
 .book-step1__checkbox-mark {
@@ -545,7 +545,7 @@
 }
 
 .book-step1__checkbox-mark svg path {
-  fill: #305854 !important;
+  fill: var(--uxds-badge-text-on-variant-1) !important;
 }
 
 .book-step1__checkbox-input {
@@ -605,16 +605,11 @@
   line-height: 16px;
   font-weight: 600;
   letter-spacing: -0.32px;
-  color: #ffffff;
 }
 
-.book-step1__continue.uxds-btn-primary:hover:not(:disabled) {
-  background: #01318f;
-}
 
-.book-step1__continue.uxds-btn-primary:active:not(:disabled) {
-  background: #011a5c;
-}
+
+
 
 .book-step1__help {
   display: flex;

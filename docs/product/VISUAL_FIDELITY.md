@@ -2,7 +2,8 @@
 
 **Status:** Locked (Product Owner directive, 2026-07-19)  
 **Audience:** Every agent rebuilding or enriching concept UI.  
-**Companion:** Interaction behavior → [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md). This doc is **look & feel**; rebuilds also require **behavior parity** (§1.1).
+**Companion:** Interaction behavior → [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md). This doc is **look & feel**; rebuilds also require **behavior parity** (§1.1).  
+**DS craft:** [DS_STRICTNESS.md](./DS_STRICTNESS.md) — no near-duplicate styles; pages use UXDS + theme only; deviations registered.
 
 ---
 
@@ -17,12 +18,14 @@ Source concept (Make / live CSS / PO frame)
         ↓
 Measure original chrome (colors, sizes, hierarchy)
         ↓
-React + UXDS structure under the hood
+React + UXDS structure under the hood (tokens / kits)
+        ↓
+Project theme remaps brand colors (optional)
         ↓
 Visible UI still reads as THAT concept
 ```
 
-UXDS is for **structure and reuse**. Brand may remap UXDS **color tokens** via the project theme. Neither licenses a redesign of chrome.
+UXDS is for **structure and reuse**. Brand may remap UXDS **color tokens** via the project theme. Neither licenses a redesign of chrome. **One pattern per role** — do not invent parallel selected/hover languages for the same control on different screens ([DS_STRICTNESS.md](./DS_STRICTNESS.md)).
 
 ### 1.1 Behavior parity (locked — PO)
 
@@ -98,8 +101,11 @@ Hierarchy: **primary chrome > secondary filters**. Secondary controls must not o
 
 | Allowed | Not allowed |
 |---------|-------------|
-| Remap UXDS semantic **colors** in `styleguide/theme.css` so badges/buttons carry brand teal/navy | Redesign radii, progress bars, search pills, toggle families to “look more DS” |
-| Document PO-approved visual deltas in the project styleguide README | Quietly “improve” concept chrome without PO ask |
+| Remap UXDS semantic **colors** in `styleguide/theme.css` (variables only) so badges/buttons carry brand teal/navy | Redesign radii, progress bars, search pills, toggle families to “look more DS” |
+| Shared components consume `var(--uxds-…)` so theme-off still uses UXDS baselines | Hardcoded brand hex inside shared kit CSS (except UXDS `:root` baselines) |
+| Document PO-approved visual deltas / registered deviations | Quietly “improve” concept chrome or anonymous page color forks |
+
+**Theme off:** remove `data-proto-project` and/or skip project `theme.css` import — UI must still look correct on UXDS defaults. See [DS_STRICTNESS.md](./DS_STRICTNESS.md) §3.
 
 See [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) and Boots [styleguide/README.md](../../src/projects/boots-pharmacy/styleguide/README.md).
 
@@ -128,6 +134,7 @@ See [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) and Boots [styleguide/READM
 | [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md) | Intake craft preserves concept L&F while upgrading structure |
 | [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) | Behavior kits work; **this doc** covers how they look |
 | [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) | Brand color/logo delta only |
+| [DS_STRICTNESS.md](./DS_STRICTNESS.md) | No near-duplicates; theme optional; deviations registry |
 | [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md) | Decisions log |
 
 ---

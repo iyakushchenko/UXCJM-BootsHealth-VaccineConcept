@@ -58,7 +58,7 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 ## 5. Visual fidelity (locked — PO)
 
 **Full doctrine:** [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md).  
-**FE craft rules:** [FE_STANDARDS.md](./FE_STANDARDS.md) (icon+text nowrap, content column / logo grid, scoped CSS, hover migration).
+**FE craft rules:** [FE_STANDARDS.md](./FE_STANDARDS.md) · [DS_STRICTNESS.md](./DS_STRICTNESS.md) (one pattern per role; UXDS + theme only; deviations registered).
 
 **Visual look & feel of the source concept is mandatory.** Aesthetic DS “upgrades” are not.
 
@@ -69,7 +69,8 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 - **Behavior parity** — rebuilds must keep every Make/concept interaction that already worked (checkbox, Continue gating, search/near-me, Change, crumbs, etc.) unless the PO retires it. See [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1 and [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) §2.4.
 - **Content column** — crumbs/main share the header logo grid (shell max **1440** + **64px** side pad → inner max **1312**). Never pad the 1312 inner horizontally.
 - **Icon+text CTAs** — single line (`inline-flex` + `white-space: nowrap`); label must not wrap under the icon.
-- **Brand may remap UXDS color tokens** via the project theme (`styleguide/theme.css`) so semantic roles carry Boots/concept colors — that is expected, not a license to redesign chrome.
+- **Brand may remap UXDS color tokens** via the project theme (`styleguide/theme.css` — **variables only**) so semantic roles carry Boots/concept colors — that is expected, not a license to redesign chrome. Theme is optional; without it, UXDS baselines apply.
+- **No near-duplicate styles** — one pattern per role; page one-offs forbidden unless registered ([DS_STRICTNESS.md](./DS_STRICTNESS.md), [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)).
 - Document intentional deltas only when the PO asks to change the concept look.
 
 ---

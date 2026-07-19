@@ -9,9 +9,9 @@
 
 ## 1. Purpose
 
-Prove a UI-facing ship is done. Implementer “done” / “tests passed” is **BAD until this audit is PROVEN**.
+**Strict (“Nazi QA”) interface audit.** Prove a UI-facing ship is done. Implementer “done” / “tests passed” is **BAD until this audit is PROVEN**. Master must not accept a UI handoff without it.
 
-Use after any concept page, shell chrome, kit CSS, or layout/CTA change that affects what the user sees or clicks.
+Use after any concept page, shell chrome, kit CSS, or layout/CTA change that affects what the user sees or clicks. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, and lost L&F.
 
 ---
 
@@ -116,6 +116,17 @@ Refs: [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §6
 | H2 | No new console errors on the audited path (note if pre-existing) | | |
 | H3 | Build/tests may be green — but visual FAIL still fails the audit | | |
 
+### I. DS strictness / no near-duplicates
+
+Refs: [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)
+
+| # | Check | PASS / FAIL / N/A | Evidence |
+|---|--------|-------------------|----------|
+| I1 | One pattern per control role on the surface (no parallel link/chip/CTA palettes) | | |
+| I2 | Shared string/role uses one component (e.g. NearMeCta page↔popup) | | |
+| I3 | Page CSS is layout/structure — not anonymous one-off color/hover forks | | |
+| I4 | Intentional kit breaks are registered in DEVIATIONS.md | | |
+
 ---
 
 ## 4. Overall verdict
@@ -126,7 +137,7 @@ Refs: [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §6
 | **FAIL** | Any applicable FAIL; reopen/fix; do **not** green-light PO |
 | **BLOCKED** | Cannot audit (no localhost, missing concept ref); say what is blocked — still not PROVEN |
 
-Unit tests, `npm run build`, and lean smoke alone **never** equal PROVEN for visual work.
+Unit tests, `npm run build`, and lean smoke alone **never** equal PROVEN for visual work. **Cannot skip** this checklist for “tests passed.”
 
 ---
 
@@ -134,7 +145,9 @@ Unit tests, `npm run build`, and lean smoke alone **never** equal PROVEN for vis
 
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §7  
 - [FE_STANDARDS.md](./FE_STANDARDS.md)  
+- [DS_STRICTNESS.md](./DS_STRICTNESS.md)  
 - [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)  
 - [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)  
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)  
 - [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md)  
+- Results store: [audits/](./audits/)  

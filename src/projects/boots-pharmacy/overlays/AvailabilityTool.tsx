@@ -994,6 +994,7 @@ export default function AvailabilityTool({
                       <FilterChipRow className="uxds-filter-chip-row proto-avail-store-filters__row">
                         <FilterChip
                           id="all"
+                          className="uxds-filter-chip uxds-filter-chip--strong"
                           selected={isSelected("all") || selected.length === 0}
                           onToggle={() => toggle("all")}
                         >
@@ -1001,6 +1002,7 @@ export default function AvailabilityTool({
                         </FilterChip>
                         <FilterChip
                           id="slots"
+                          className="uxds-filter-chip uxds-filter-chip--strong"
                           selected={isSelected("slots")}
                           onToggle={() => toggle("slots")}
                         >

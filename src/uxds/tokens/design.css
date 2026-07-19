@@ -1,43 +1,50 @@
 /**
- * UXDS `design` collection — Concept mode samples (hand-mapped).
- * Names preserve Figma paths: slash → kebab (`uxds-text/text-primary` → `--uxds-text-text-primary`).
- * @see docs/uxds/VARIABLES.md · docs/uxds/TOKEN_BRIDGE.md
+ * UXDS design collection - Concept mode samples (hand-mapped).
+ * Project brand themes remap under [data-proto-project].
+ * @see docs/uxds/TOKEN_BRIDGE.md · docs/product/DS_STRICTNESS.md
  */
 
 :root {
-  /* uxds-text */
   --uxds-text-text-primary: #3a3a3a;
   --uxds-text-text-secondary: #5c5c5c;
   --uxds-text-text-inverse: #ffffff;
   --uxds-text-link-link-dark: #305854;
+  --uxds-text-link-link: #305854;
+  --uxds-text-link-link-hover: #244440;
 
-  /* uxds-surface */
   --uxds-surface-neutral: #ffffff;
   --uxds-surface-subtle: #f5f5f5;
   --uxds-surface-success: #e8f5e9;
   --uxds-surface-error: #fdecea;
+  --uxds-surface-accent-soft: #e8f5e9;
 
-  /* uxds-border */
   --uxds-border-border-default: #d6d6d6;
   --uxds-border-border-strong: #afafaf;
   --uxds-border-border-focus: #305854;
 
-  /* uxds-icon */
   --uxds-icon-icon-primary: #5c5c5c;
   --uxds-icon-icon-accent-strong: #467672;
+  --uxds-icon-icon-accent-soft: #afccca;
   --uxds-icon-icon-inverse: #ffffff;
 
-  /* uxds-input / button */
   --uxds-input-button-surface-surface-primary-solid: #305854;
+  --uxds-input-button-surface-surface-primary-hover: #244440;
+  --uxds-input-button-surface-surface-primary-active: #1a3330;
   --uxds-input-button-surface-surface-secondary-solid: #ffffff;
   --uxds-input-button-border-border-secondary: #afccca;
   --uxds-input-field-surface-surface-default: #ffffff;
   --uxds-input-field-border-border-default: #afafaf;
+  --uxds-input-button-surface-surface-commerce-solid: #305854;
+  --uxds-input-button-surface-surface-commerce-hover: #244440;
+  --uxds-input-button-surface-surface-commerce-active: #1a3330;
 
-  /* uxds-badge */
   --uxds-badge-surface-variant-1: #afccca;
   --uxds-badge-text-on-variant-1: #305854;
 
-  /* uxds-logo */
+  --uxds-filter-chip-surface-hover: #f0f5f4;
+  --uxds-filter-chip-surface-selected-strong: #305854;
+  --uxds-filter-chip-surface-selected-strong-hover: #244440;
+  --uxds-filter-chip-text-on-selected-strong: #ffffff;
+
   --uxds-logo-logo-accent: #467672;
 }

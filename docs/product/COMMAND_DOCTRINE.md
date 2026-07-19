@@ -47,7 +47,8 @@ The PO may override with a clear product veto (“wrong priority for the busines
 |-------|----------|
 | Repo identity | Engine `ux-studio`; Boots = first test rabbit |
 | Concept UI | React + UXDS structure; PO feeds may be messy — agent upgrades ([CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)) |
-| Brand identity | Per-project styleguide **delta** (colors, logos) → small `theme.css` ([PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md)) |
+| Brand identity | Per-project styleguide **delta** (colors, logos) → small `theme.css` remaps only ([PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md)); theme optional — UXDS baselines remain ([DS_STRICTNESS.md](./DS_STRICTNESS.md)) |
+| DS strictness on pages | UXDS + theme only; no near-duplicate styles; deviations registered ([DS_STRICTNESS.md](./DS_STRICTNESS.md), [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)) |
 | Studio purpose (early) | Discovery, ideation, solution proofing, hypothesis validation |
 | Governance style | Summarizer-shaped docs/contracts; not a Figma-plugin clone |
 | Engine vs projects | `src/app/` engine; `src/projects/<id>/` concepts |
@@ -111,51 +112,58 @@ Assume **regressions** and **label collisions** until checked. Example: duplicat
 
 ---
 
-## 7. FE / UI / UX audit verification (mandatory after UI ships)
+## 7. Strict FE / UI / UX audit ("Nazi QA") — mandatory before any UI handoff is accepted
 
 **Locked (PO directive, 2026-07-19).** Extends §6 for **any UI-facing** handoff.
 
-An implementer (or implementer-subagent) claiming “done,” “tests passed,” or “looks good” is **not** proof. Treat that claim as **BAD until a rigorous FE/UI/UX audit is PROVEN.**
+### Doctrine (non-negotiable)
+
+Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/product/audits/` (or the template tables), not a chat claim.
+
+| Claim | Status until Nazi QA **PROVEN** |
+|-------|----------------------------------|
+| Implementer / subagent "done / success / looks good" | **BAD** |
+| Unit tests / `npm run build` / lean smoke green alone | **Insufficient** — **cannot skip** the audit for "tests passed" |
+| Design-delta doc exists but no live/CSS gate | **Insufficient** |
+| Checklist filled; overall **PROVEN** | Only then may master green-light the PO |
+
+**Cannot skip** for: "tests passed," "build green," "smoke green," "small change," "CSS-only," "already looked at it," or implementer self-signoff.
 
 ### Rule
 
-After any UI-facing subagent ship (concept page, shell chrome, kit CSS that changes visible UI, layout/CTA work), the **master must run or spawn a separate FE/UI/UX audit verification pass** before telling the PO the slice is good.
-
-| Claim | Status until audit |
-|-------|--------------------|
-| Implementer “done / success” | **BAD** |
-| Unit tests / build / lean smoke green alone | **Insufficient** for visual work |
-| Audit checklist filled with **PROVEN** overall | Only then may master green-light PO |
+After any UI-facing ship (concept page, shell chrome, kit CSS that changes visible UI, layout/CTA work, DS/token remaps that affect pages), the **master must run or spawn a separate strict FE/UI/UX audit agent** before telling the PO the slice is good.
 
 ### Who may audit
 
 | Role | Allowed? |
 |------|----------|
 | Master / parent / tech director (self) | Yes — preferred when scope is small |
-| Separate audit subagent spawned by master | Yes — preferred when implementer was a subagent |
-| Same implementer marking their own ship “audited” | **No** — not proof |
+| Separate **audit** subagent spawned by master | Yes — preferred when implementer was a subagent |
+| Same implementer marking their own ship "audited" | **No** — not proof |
 
-### Audit must cover
+### What "strict" means (fail hard)
 
-Use the checklist in [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md). At minimum:
+Use [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) ruthlessly, plus [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md), [FE_STANDARDS.md](./FE_STANDARDS.md), and [DS_STRICTNESS.md](./DS_STRICTNESS.md). At minimum fail on:
 
 | Area | Fail if… |
 |------|----------|
-| **Visual fidelity to concept** | L&F drifts; generic DS restyle; design-delta gaps ([VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)) |
-| **Layout / max-width / alignment** | Content column wrong; misaligned rows; broken breakpoints ([FE_STANDARDS.md](./FE_STANDARDS.md)) |
+| **Lost L&F / drift** | Concept chrome drifted; generic DS restyle; design-delta gaps |
+| **Duplicates / slop** | Duplicate labels/counters (e.g. double STEPS); leftover dead markup; copy/CSS debris |
+| **Near-duplicate styles** | Parallel colors/hover for the same control role ([DS_STRICTNESS.md](./DS_STRICTNESS.md)) |
+| **Layout / max-width / gaps** | Wrong 1440/64/1312 column; misaligned logo/crumbs; overflow; broken side-by-side rows |
 | **No wrap on icon+text CTAs** | Icon and label stack or wrap mid-control |
 | **Hover / focus** | Flat dead controls; missing Make parity states |
-| **Behavior parity** | Prior interactions dropped on rebuild ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)) |
+| **Behavior parity** | Prior interactions dropped on rebuild |
 | **Control hierarchy / no zoo** | Competing active languages; secondary chrome as loud as primary |
 | **Nav chrome logic** | Mode XOR broken; counters wrong/duplicate; REC vs play leakage |
-| **No obvious regressions** | Adjacent screens/chrome worse than before the ship |
+| **Regressions** | Adjacent screens/chrome worse; new console errors on the path |
 
 ### Closing the loop
 
-1. Spawn or perform audit → fill [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md) (or equivalent table).  
-2. Overall **FAIL** → reopen / fix; do **not** tell the PO it’s good.  
+1. Spawn or perform the **strict audit agent** → fill [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md) and store under `docs/product/audits/` with HEAD SHA.  
+2. Overall **FAIL** → reopen / fix; do **not** tell the PO it's good.  
 3. Overall **PROVEN** → master may report to PO.  
-4. **Do not** close visual work on “tests passed” alone.
+4. **Do not** close visual work on "tests passed" alone — ever.
 
 ---
 
@@ -165,6 +173,7 @@ Use the checklist in [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md). At minimum:
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)
 - [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md)
 - [FE_STANDARDS.md](./FE_STANDARDS.md)
+- [DS_STRICTNESS.md](./DS_STRICTNESS.md)
 - [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)
 - [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)
 - [UXDS_ACCESS.md](./UXDS_ACCESS.md)

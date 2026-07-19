@@ -1,7 +1,8 @@
 # Project styleguide (brand delta)
 
 **Status:** Locked (Product Owner, 2026-07-19)  
-**Why:** Concepts often bring their **own** primary colors, logos, accent ramps, etc. Without a per-project delta, every Studio project would look like the same generic UXDS brand — awful for discovery and client proofing.
+**Why:** Concepts often bring their **own** primary colors, logos, accent ramps, etc. Without a per-project delta, every Studio project would look like the same generic UXDS brand — awful for discovery and client proofing.  
+**Strictness:** Theme is **optional**; shared UI must work on UXDS baselines — [DS_STRICTNESS.md](./DS_STRICTNESS.md).
 
 ---
 
@@ -11,23 +12,25 @@
 ┌─────────────────────────────────────────┐
 │  UXDS base  (src/uxds/)                 │
 │  Shared structure, roles, type, space   │
-│  Semantic names: uxds-text/*, gap/*, …  │
+│  Semantic names + :root default values  │
 └─────────────────────────────────────────┘
-                    ↑ remapped by
+                    ↑ remapped by (optional)
 ┌─────────────────────────────────────────┐
 │  PROJECT styleguide / theme (delta)     │
 │  src/projects/<id>/styleguide/          │
 │  Brand primary, logos, accents, fonts   │
-│  Small CSS helper — not a second DS     │
+│  CSS variables ONLY under               │
+│  [data-proto-project="<id>"]            │
+│  Small helper — not a second DS         │
 └─────────────────────────────────────────┘
 ```
 
 | Layer | Owns | Does not own |
 |-------|------|--------------|
-| **UXDS base** | Roles, spacing scale, component anatomy, semantic token **names** | Client brand identity |
-| **Project delta** | Primary/secondary colors, logo assets, brand typeface overrides, accent ramps, any concept-specific tokens | Reinventing buttons/spacing from scratch |
+| **UXDS base** | Roles, spacing scale, component anatomy, semantic token **names** + baseline values | Client brand identity |
+| **Project delta** | Remap `--uxds-*` / `--project-*` brand facts under `[data-proto-project]` | Component rules, hover forks, layout hacks, reinventing buttons |
 
-Screens compose **UXDS structure** + **project brand values**.
+Screens compose **UXDS structure** + **optional project brand remaps**.
 
 ---
 
@@ -93,15 +96,29 @@ See [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §5 (visual fidelity).
 ## 5. What “small CSS helper” means
 
 - Prefer **dozens of lines**, not a parallel design system.  
-- Override / remap existing UXDS semantic variables.  
-- Add `--project-*` only for brand facts (logo sizes, brand fonts).  
-- Do **not** copy-paste a full token dump per project.
+- Override / remap existing UXDS semantic variables **only** — no selectors that style components.  
+- Add `--project-*` only for brand facts (logo sizes, brand fonts, raw brand hex).  
+- Do **not** copy-paste a full token dump per project.  
+- Do **not** be the only place raw values live for shared components — baselines stay in `src/uxds/tokens/`.
+
+---
+
+## 6. Turning brand theme off
+
+| Method | Effect |
+|--------|--------|
+| Remove `data-proto-project="<id>"` from the host | Remap block does not match |
+| Skip importing `styleguide/theme.css` | No brand overrides load |
+
+Shared components (`.uxds-link`, `.uxds-filter-chip`, `.uxds-btn-primary`, tertiary CTA) must still render correctly on UXDS `:root` defaults. Verify when changing kit CSS.
 
 ---
 
 ## Related
 
+- [DS_STRICTNESS.md](./DS_STRICTNESS.md)  
 - [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)  
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)  
 - [../uxds/TOKEN_BRIDGE.md](../uxds/TOKEN_BRIDGE.md)  
+- [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)  
 - [../shell/PROJECTS.md](../shell/PROJECTS.md)

@@ -1,4 +1,8 @@
-/* UXDS primary CTA — Make Boots hover/active language (lift + navy darken). */
+/**
+ * UXDS primary CTA - colors from tokens.
+ * Commerce variant: .uxds-btn-primary--commerce
+ * @see docs/uxds/DEVIATIONS.md · docs/product/DS_STRICTNESS.md
+ */
 
 .uxds-btn-primary {
   display: inline-flex;
@@ -19,23 +23,41 @@
 }
 
 .uxds-btn-primary:hover:not(:disabled) {
-  background: #01318f;
-  box-shadow: 0 4px 12px rgba(1, 33, 105, 0.35);
+  background: var(--uxds-input-button-surface-surface-primary-hover);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--uxds-input-button-surface-surface-primary-solid) 35%, transparent);
   transform: translateY(-1px);
 }
 
 .uxds-btn-primary:active:not(:disabled) {
-  background: #011a5c;
+  background: var(--uxds-input-button-surface-surface-primary-active);
   box-shadow: none;
   transform: translateY(0);
 }
 
 .uxds-btn-primary:focus-visible {
-  outline: 2px solid #012169;
+  outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
 .uxds-btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.uxds-btn-primary--commerce {
+  background: var(--uxds-input-button-surface-surface-commerce-solid);
+}
+
+.uxds-btn-primary--commerce:hover:not(:disabled) {
+  background: var(--uxds-input-button-surface-surface-commerce-hover);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--uxds-input-button-surface-surface-commerce-solid) 35%, transparent);
+}
+
+.uxds-btn-primary--commerce:active:not(:disabled) {
+  background: var(--uxds-input-button-surface-surface-commerce-active);
+  box-shadow: none;
+}
+
+.uxds-btn-primary--commerce:focus-visible {
+  outline-color: var(--uxds-input-button-surface-surface-commerce-solid);
 }

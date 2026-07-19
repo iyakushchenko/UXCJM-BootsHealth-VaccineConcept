@@ -13,6 +13,7 @@ export type ButtonPrimaryProps = {
  * Thin UXDS primary button — uses semantic token
  * `--uxds-input-button-surface-surface-primary-solid`.
  * Project `styleguide/theme.css` remaps that role for brand.
+ * Commerce / navy CTAs: add class `uxds-btn-primary--commerce`.
  */
 export function ButtonPrimary({
   children,

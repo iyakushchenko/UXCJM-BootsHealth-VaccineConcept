@@ -431,7 +431,7 @@
   [data-name="component.input.button"][class*="h-[32px]"]:has(p):not([class*="bg-[#012169]"]):not([class*="bg-[#003fcc]"]):not([class*="bg-[#003fcb]"]):hover svg path,
 .proto-viewport [data-name="component.input.button"][data-proto-change-loc="true"]:hover svg path,
 .proto-tertiary-cta:hover svg path {
-  fill: #012169 !important;
+  fill: var(--uxds-text-link-link) !important;
 }
 
 /* ── Near-me CTA — same string/role on Book Step 1 + Availability search-row.
@@ -518,18 +518,18 @@
 }
 
 .proto-tertiary-cta svg path {
-  fill: #afccca;
+  fill: var(--uxds-icon-icon-accent-soft);
   transition: fill 0.18s ease;
 }
 
 .proto-tertiary-cta:hover svg path,
 .proto-tertiary-cta.proto-chat-cta--hover svg path {
-  fill: #012169;
+  fill: var(--uxds-text-link-link);
 }
 
 .proto-tertiary-cta__icon svg.proto-tertiary-cta__svg--stroke path {
   fill: none !important;
-  stroke: #afccca;
+  stroke: var(--uxds-icon-icon-accent-soft);
   stroke-width: 1.25;
   transition: stroke 0.18s ease;
 }
@@ -537,7 +537,7 @@
 .proto-tertiary-cta:hover .proto-tertiary-cta__icon svg.proto-tertiary-cta__svg--stroke path,
 .proto-tertiary-cta.proto-chat-cta--hover .proto-tertiary-cta__icon svg.proto-tertiary-cta__svg--stroke path {
   fill: none !important;
-  stroke: #012169;
+  stroke: var(--uxds-text-link-link);
 }
 
 .proto-tertiary-cta__icon img,

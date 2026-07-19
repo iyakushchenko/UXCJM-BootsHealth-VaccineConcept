@@ -1,7 +1,8 @@
 # UXDS → CSS token bridge (plan)
 
 **Status:** Thin hand-mapped bridge landed under `src/uxds/tokens/` (Concept + medium samples). Full dump/regenerate later.  
-**Default Figma modes for v1:** `design` = **Concept** · `screen & fonts` = **medium**
+**Default Figma modes for v1:** `design` = **Concept** · `screen & fonts` = **medium**  
+**Strictness:** [../product/DS_STRICTNESS.md](../product/DS_STRICTNESS.md) — baseline → optional project remap; shared components use `var(--uxds-…)`.
 
 ---
 
@@ -21,7 +22,20 @@ Rules:
 - Collapse runs of non-alphanumerics to single `-`
 - Never invent synonyms (`--color-primary` ❌ if UXDS has `uxds-input/.../surface-primary-solid`)
 
-**Project brand delta** (required for multi-brand Studio): each project ships a small `styleguide/theme.css` that remaps UXDS roles to that concept’s primary colors / logos — see [../product/PROJECT_STYLEGUIDE.md](../product/PROJECT_STYLEGUIDE.md). Without it, every project looks like the same generic UXDS brand.
+**Project brand delta** (multi-brand Studio): each project ships a small `styleguide/theme.css` that **only remaps CSS variables** under `[data-proto-project="<id>"]` — see [../product/PROJECT_STYLEGUIDE.md](../product/PROJECT_STYLEGUIDE.md). Theme is optional; without it, UI uses UXDS `:root` baselines (correct and consistent, not “broken”).
+
+### Studio-extended roles (hand-mapped)
+
+Used by shared kits; brands remap in `theme.css`:
+
+| Token | Role |
+|-------|------|
+| `--uxds-text-link-link` / `-hover` | Body text links (`.uxds-link`) |
+| `--uxds-text-link-link-dark` | Crumb / teal links |
+| `--uxds-surface-accent-soft` | Soft accent wash (progress, checkbox hover) |
+| `--uxds-icon-icon-accent-soft` | Tertiary CTA icon rest |
+| `--uxds-input-button-surface-surface-commerce-*` | Commerce / navy CTA variant |
+| `--uxds-filter-chip-surface-selected-strong*` | Strong filter-pill selected |
 
 ---
 
@@ -31,17 +45,24 @@ Rules:
 src/uxds/
   tokens/
     primitives.css      # from primitives (color) — optional
-    design.css          # uxds-* semantic (Concept mode dump)
+    design.css          # uxds-* semantic (Concept mode dump) — BASELINE values
     screen.css          # font/space/gap/radius/grid (medium)
   index.css             # imports layers
 
 src/projects/<id>/styleguide/
   README.md             # brand delta notes
-  theme.css             # small per-brand remap helper
+  theme.css             # variable remaps only under [data-proto-project]
   assets/               # logos
 ```
 
-Concept pages import `src/uxds/index.css` **then** the active project’s `styleguide/theme.css`.
+Import order (`src/styles/index.css`): UXDS tokens → UXDS component CSS → project `theme.css` → globals.
+
+### Turn theme off
+
+1. Remove `data-proto-project` from the host, and/or  
+2. Do not import the project `theme.css`.  
+
+Shared components must still look correct on UXDS defaults.
 
 ---
 

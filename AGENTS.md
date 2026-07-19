@@ -9,7 +9,7 @@
 **Handoff verification (parent / coordinator agents):** Treat subagent “done/success” as **BAD until proven**. Verify critical UX/logic (nav chrome, mode switches, counters, panel XOR, migrated page L&F/behavior) via the actual JSX/CSS gate or localhost before telling the PO it’s fine. Assume regressions and label collisions (e.g. duplicate STEPS). Subagents build; **you** own integration quality — reopen/fix handoffs that smell wrong.  
 → [docs/product/COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §6
 
-**FE / UI / UX audit (parent / master — mandatory after UI ships):** After any UI-facing subagent handoff, **spawn or perform** a rigorous FE/UI/UX audit ([docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md)) before telling the PO it’s good. Implementer success and “tests passed” alone are **insufficient** for visual work — treat as BAD until audit **PROVEN**. Cover visual fidelity, layout/max-width/alignment, no wrap on icon+text CTAs, hover/focus, behavior parity, control hierarchy/no zoo, nav chrome (mode XOR, counters), and regressions. Fill [docs/product/templates/FE_AUDIT_RESULT.md](docs/product/templates/FE_AUDIT_RESULT.md).  
+**Strict FE / UI / UX audit — “Nazi QA” (parent / master — mandatory before accepting any UI handoff):** After any UI-facing subagent ship, **spawn a separate strict interface audit agent** (or perform it yourself) per [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) + [VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) + [FE_STANDARDS.md](docs/product/FE_STANDARDS.md) + [DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md). Implementer “done” and **“tests passed” alone are BAD** — **cannot skip** the audit for green tests/build/smoke. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, lost L&F. Write the result under `docs/product/audits/` (**PROVEN** or **FAIL**). Master does **not** green-light the PO until **PROVEN**.  
 → [docs/product/COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §7
 
 Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first reference project (test rabbit).
@@ -21,14 +21,15 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 3. [docs/README.md](docs/README.md) — catalog  
 4. [docs/product/PRODUCT_OWNER_BRIEF.md](docs/product/PRODUCT_OWNER_BRIEF.md) — PO A–Z + decisions log  
 5. [docs/product/CONCEPT_INTAKE.md](docs/product/CONCEPT_INTAKE.md) — messy concepts in; agent fills UXDS gap  
-6. [docs/product/PROJECT_STYLEGUIDE.md](docs/product/PROJECT_STYLEGUIDE.md) — brand delta → project theme.css  
-7. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
-8. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
-9. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
-10. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
-11. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
-12. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components)  
-13. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
+6. [docs/product/PROJECT_STYLEGUIDE.md](docs/product/PROJECT_STYLEGUIDE.md) — brand delta → project theme.css (remaps only; theme optional)  
+7. [docs/product/DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered  
+8. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
+9. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
+10. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
+11. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
+12. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
+13. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)  
+14. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
 
 ## Quick start
 
@@ -76,8 +77,9 @@ Full transport smokes require `__protoRun*` helpers — use sparingly; prefer sa
 - Boots-specific DOM/scripts in `src/projects/boots-pharmacy/` only until React+UXDS rebuild
 - Concept pages target: React + UXDS ([PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md))
 - FE standards — icon+text nowrap, one tertiary icon language, 1440/64/1312 content column, scoped CSS ([FE_STANDARDS.md](docs/product/FE_STANDARDS.md))
+- DS strictness — one pattern per role; `var(--uxds-…)`; theme remaps only; no anonymous page CSS ([DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md), [DEVIATIONS.md](docs/uxds/DEVIATIONS.md))
 - Visual fidelity + no zoo + rebuild behavior parity ([VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md))
 - Interaction fidelity before record — shared kits `src/uxds/interactions/` ([INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md))
-- After UI handoffs: FE/UI/UX audit PROVEN before PO ([FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md)); not “tests passed” alone
+- After UI handoffs: strict (“Nazi QA”) FE audit **PROVEN** before PO ([FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md), doctrine §7); **cannot skip** for “tests passed”
 - Minimize scope; match existing patterns; test playback changes
 - Durable PO decisions → update `docs/product/PRODUCT_OWNER_BRIEF.md` decisions log

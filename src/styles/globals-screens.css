@@ -1996,38 +1996,9 @@
   gap: 8px;
 }
 /*
- * Secondary list filters (All locations / Slots available).
- * Selected = Boots primary teal (#467672 / on-primary white), not mint #c6e5e1.
- * Hierarchy: mini + quieter inactive outline vs List/Map chrome.
+ * Secondary list filters — chrome via .uxds-filter-chip--strong + tokens
+ * (see docs/uxds/DEVIATIONS.md). Layout/host only here.
  */
-.proto-avail-store-filters .uxds-filter-chip {
-  min-height: 28px;
-  padding: 2px 10px;
-  border: 1px solid #d6d6d6;
-  border-radius: 8px;
-  background: #fff;
-  color: #5c5c5c;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 16px;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.proto-avail-store-filters .uxds-filter-chip.is-selected,
-.proto-avail-store-filters .uxds-filter-chip[data-state="on"] {
-  background: var(--project-brand-primary, #467672);
-  border-color: var(--project-brand-primary, #467672);
-  color: #ffffff;
-  font-weight: 500;
-}
-.proto-avail-store-filters .uxds-filter-chip:hover {
-  background: #eef8f7;
-}
-.proto-avail-store-filters .uxds-filter-chip.is-selected:hover,
-.proto-avail-store-filters .uxds-filter-chip[data-state="on"]:hover {
-  background: var(--project-brand-primary-darkest, #305854);
-  border-color: var(--project-brand-primary-darkest, #305854);
-  color: #ffffff;
-}
 .proto-avail-store-filters .uxds-filter-chip:focus,
 .proto-avail-store-filters .uxds-filter-chip:focus-visible {
   outline: none;
