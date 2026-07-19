@@ -411,7 +411,7 @@
   white-space: nowrap;
 }
 
-/* Make Frame102: h-72, pt-24, tertiary near-me — icon+label single line */
+/* Make Frame102: h-72, pt-24 — aligns NearMeCta beside labeled search field */
 .book-step1__near-me {
   display: flex;
   align-items: center;
@@ -421,66 +421,7 @@
   flex-shrink: 0;
 }
 
-.book-step1__near-me .uxds-filter-chip-row {
-  flex-wrap: nowrap;
-}
-
-.book-step1__near-me .uxds-filter-chip {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 360px;
-  background: transparent;
-  color: #5c5c5c;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: -0.36px;
-  white-space: nowrap;
-  transition: color 0.18s ease;
-}
-
-.book-step1__near-me .uxds-filter-chip svg {
-  flex-shrink: 0;
-}
-
-/* Same icon language as .book-step1__pill-change (Change baseline) */
-.book-step1__near-me .uxds-filter-chip svg path {
-  fill: #afccca;
-  transition: fill 0.18s ease;
-}
-
-.book-step1__near-me .uxds-filter-chip span {
-  white-space: nowrap;
-}
-
-.book-step1__near-me .uxds-filter-chip.is-selected,
-.book-step1__near-me .uxds-filter-chip[data-state="on"],
-.book-step1__near-me .uxds-filter-chip.is-selected:hover,
-.book-step1__near-me .uxds-filter-chip[data-state="on"]:hover,
-.book-step1__near-me .uxds-filter-chip:active {
-  border: none;
-  background: transparent;
-  color: #5c5c5c;
-}
-
-.book-step1__near-me .uxds-filter-chip:hover {
-  background: transparent;
-  color: #000000;
-}
-
-.book-step1__near-me .uxds-filter-chip:hover svg path {
-  fill: #012169;
-}
-
-.book-step1__near-me .uxds-filter-chip:focus-visible {
-  outline: 2px solid #012169;
-  outline-offset: 2px;
-}
+/* Shared NearMeCta chrome lives in globals-chrome (.proto-tertiary-cta / .proto-near-me-cta) */
 
 /* Chosen store tile — same treatment as Make .proto-chosen-tile */
 .book-step1__chosen {

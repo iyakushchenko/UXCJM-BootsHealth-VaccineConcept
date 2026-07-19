@@ -24,12 +24,25 @@ Sibling **tertiary icon+text** CTAs on the same surface must share **one** icon 
 
 | Rule | Expectation |
 |------|-------------|
-| **Pick a baseline** | When merging siblings, pick one control as the visual merge target (Book Step 1: **Change** / pencil) |
+| **Pick a baseline** | When merging siblings, pick one control as the visual merge target (Book Step 1 Change / pencil: `#AFCCCA` → `#012169` hover) |
 | **Match baseline** | Rest fill/stroke color, size (e.g. 16×16), weight (simple line/glyph — **not** a filled dark circular badge), hover color shift |
-| **Book Step 1 baseline** | Change: `#AFCCCA` at rest → `#012169` on hover; label `#5c5c5c` → `#000` on hover; transparent hit area |
-| **Normalize outliers** | If Make near-me used navy icons, still normalize to the Change baseline when PO asks for one language |
+| **Same string/role → one component** | Identical CTA copy that appears on multiple surfaces must share **one** component — do not fork FilterChip vs tertiary markup |
+
+### 1.2 Near-me CTA (CRITICAL)
+
+**“See what’s available near me”** — Book Step 1 search row **and** Availability Tool search row — **must** use shared `NearMeCta` (`src/projects/boots-pharmacy/chrome/NearMeCta.tsx`).
+
+| Rule | Expectation |
+|------|-------------|
+| **Source of truth** | Availability popup / Make tertiary beside search (`.proto-tertiary-cta--compact` + 16×16 map-pin + nowrap) — **not** a FilterChip restyle and **not** a Change-pencil one-off fork |
+| **Placement** | Right of the search field when the concept shows side-by-side (Make `Frame209` / `.proto-avail-search-row`) |
+| **Shared class** | `.proto-near-me-cta` on top of tertiary compact chrome — typography, color, icon, hover stay in sync |
 
 Search-field glyphs inside inputs are a **different** family (field chrome) — do not force them onto the tertiary CTA palette unless the concept ties them together.
+
+### 1.3 Availability list filter pills
+
+Secondary pills (**All locations** / **Slots available**): inactive = quiet outline/neutral; **selected = Boots primary** (`#467672` fill, white on-primary text; hover `#305854`). Keep mini vs List/Map hierarchy. Do **not** use mint `#c6e5e1` for the selected state.
 
 ---
 
@@ -91,7 +104,9 @@ Use `nowrap` for short CTAs, chips, crumb current labels, and tertiary pills unl
 1. Content shell matches logo column (1440 / 64 / 1312).  
 2. Icon+text CTAs are single-line (`inline-flex` + `nowrap`).  
 3. Sibling tertiary CTAs share one icon language (baseline chosen and applied).  
-4. Hover/focus/active ported from Make.  
-5. Design-delta table written (fills in scope).  
-6. Behavior parity verified.  
-7. CSS scoped to the screen/kit — build still passes.
+4. Same CTA string/role → one shared component (near-me → `NearMeCta`).  
+5. Availability secondary filter selected state uses primary brand colors.  
+6. Hover/focus/active ported from Make.  
+7. Design-delta table written (fills in scope).  
+8. Behavior parity verified.  
+9. CSS scoped to the screen/kit — build still passes.

@@ -1,13 +1,11 @@
 import locationsMapChosen from "@/assets/locations-map-chosen.png";
 import imgBodyFill from "@/projects/boots-pharmacy/frame/6d60145a5be9172088977b4513e3f4859a70c66a.png";
+import { NearMeCta } from "@/projects/boots-pharmacy/chrome/NearMeCta";
 import { ButtonPrimary } from "@/uxds/components";
 import {
   Disclosure,
   DisclosureContent,
   DisclosureTrigger,
-  FilterChip,
-  FilterChipGroup,
-  FilterChipRow,
 } from "@/uxds/interactions";
 import type { RecipientMode } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
 import { recipientModeLabel } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
@@ -70,23 +68,6 @@ function SearchGlyph() {
       <path
         d="M24 20.941 22.441 22.5l-6.353-6.353 1.558-1.559L24 20.941Z"
         fill="#012169"
-      />
-    </svg>
-  );
-}
-
-/**
- * Near-me / GPS glyph — same tertiary icon language as Change (EditGlyph):
- * light teal #AFCCCA at rest, 16×16, simple glyph (not navy / not circular badge).
- */
-function NearMeGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        fill="#AFCCCA"
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M14.502 7.273A6.73 6.73 0 0 0 8.727 1.498V0H7.273v1.498A6.73 6.73 0 0 0 1.498 7.273H0v1.454h1.498a6.73 6.73 0 0 0 5.775 5.775V16h1.454v-1.498a6.73 6.73 0 0 0 5.775-5.775H16V7.273h-1.498ZM7.995 5.09a2.91 2.91 0 1 0 0 5.818 2.91 2.91 0 0 0 0-5.818ZM2.906 8.001a5.091 5.091 0 1 0 10.182 0 5.091 5.091 0 0 0-10.182 0Z"
       />
     </svg>
   );
@@ -283,24 +264,7 @@ export function BookStep1LocationScreen({
                   </div>
 
                   <div className="book-step1__near-me">
-                    <FilterChipGroup mode="single">
-                      {({ isSelected, toggle }) => (
-                        <FilterChipRow>
-                          <FilterChip
-                            id="near-me"
-                            selected={isSelected("near-me")}
-                            onToggle={(id) => {
-                              toggle(id);
-                              onOpenNearMe();
-                            }}
-                            data-name="component.input.button"
-                          >
-                            <NearMeGlyph />
-                            <span>See what&apos;s available near me</span>
-                          </FilterChip>
-                        </FilterChipRow>
-                      )}
-                    </FilterChipGroup>
+                    <NearMeCta onClick={onOpenNearMe} />
                   </div>
                 </>
               ) : (

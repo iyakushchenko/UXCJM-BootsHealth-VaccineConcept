@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
 import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
 import { ProtoTertiaryCta } from "@/app/chrome/ProtoTertiaryCta";
+import { NearMeCta } from "@/projects/boots-pharmacy/chrome/NearMeCta";
 import { ProtoWishlistHeart } from "@/projects/boots-pharmacy/chrome/ProtoWishlistHeart";
 import {
   DisclosureContent,
@@ -12,7 +13,6 @@ import {
   useAccordion,
 } from "@/uxds/interactions";
 import iconSearch from "@/assets/avail/search.svg";
-import iconMapPin from "@/assets/avail/map-pin.svg";
 import iconCheckChosen from "@/assets/avail/check-chosen.svg";
 import iconArrows from "@/assets/avail/arrows.svg";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
@@ -863,14 +863,7 @@ export default function AvailabilityTool({
                     <img src={iconSearch} alt="" width={24} height={24} />
                   </button>
                 </label>
-                <button
-                  type="button"
-                  className="proto-tertiary-cta proto-tertiary-cta--compact"
-                  onClick={goNearMe}
-                >
-                  <img src={iconMapPin} alt="" width={16} height={16} />
-                  See what&apos;s available near me
-                </button>
+                <NearMeCta onClick={goNearMe} />
               </div>
             </div>
           </div>
@@ -923,14 +916,7 @@ export default function AvailabilityTool({
                   </button>
                 </span>
               </label>
-              <button
-                type="button"
-                className="proto-tertiary-cta proto-tertiary-cta--compact"
-                onClick={goNearMe}
-              >
-                <img src={iconMapPin} alt="" width={16} height={16} />
-                See what&apos;s available near me
-              </button>
+              <NearMeCta onClick={goNearMe} />
             </div>
 
             {pickLocation && locationRequiredHint && (

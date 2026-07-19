@@ -434,6 +434,14 @@
   fill: #012169 !important;
 }
 
+/* ── Near-me CTA — same string/role on Book Step 1 + Availability search-row.
+ * Uses tertiary compact chrome; always import `NearMeCta` (do not fork styles).
+ */
+.proto-near-me-cta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* ── Tertiary CTA — icon + link (Find a store, Change location, near-me, etc.) ──
  * No hover background/circle; muted icon → navy; label → black on hover.
  */

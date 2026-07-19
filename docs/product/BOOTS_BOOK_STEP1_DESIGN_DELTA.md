@@ -61,7 +61,7 @@ Boots content grid (header logo + `ProtoFooter`):
 | **Search field chrome** | Pill 360, h 48, border `#c3c3c3`, white fill; wire placeholder grey | Same + inset navy ring hover/focus (chrome pattern) | **match** | — |
 | **Search placeholder copy** | Wire sets `Search for City, Postcode, Location...` `#5c5c5c` / 400 (Figma showed “London”) | Same placeholder | **match** | Follows live wire, not static Figma string |
 | **Search icon** | Body5 glyph `#012169`, 24px slot | Inline `SearchGlyph` `#012169` | **match** (was `#AFCCCA` asset) | Navy glyph |
-| **Near-me control** | Make Body5 used navy GPS; **PO merge target = Change**: `#AFCCCA` icon → `#012169` hover; label `#5c5c5c` → black; h32 in h72/pt24; **single line** | Same tertiary language as Change + `nowrap` | **match** (was navy icon + wrap) | FE_STANDARDS §1 / §1.1 |
+| **Near-me control** | Make / Availability tertiary beside search: compact icon+label, map-pin 16×16, `#AFCCCA`→navy hover, label `#5c5c5c`→black, nowrap | Shared `NearMeCta` + `.proto-near-me-cta` (same as Availability search-row); slot `h72/pt24` beside field | **match** (was FilterChip fork) | FE_STANDARDS §1.2 — same string/role → one component |
 | **Chosen store tile** | `.proto-chosen-tile`: border `#f2f2f2`, radius 8, map + store row, Change location tertiary | `.book-step1__chosen` same language | **match** | — |
 | **Booster checkbox unchecked** | Live: white / border `#c3c3c3` (Make path) | Same | **match** | — |
 | **Booster checkbox hover** | Fill `#c6e5e1` | Same | **match** | — |
@@ -97,7 +97,7 @@ Boots content grid (header logo + `ProtoFooter`):
 | Body white + decorative fill @ 0.31 | **Fixed** |
 | Content shell 1440 / 64 / 1312 (crumbs + main vs logo) | **Fixed** |
 | Near-me + Change CTAs `nowrap` | **Fixed** |
-| Near-me icon language = Change (`#AFCCCA` → navy hover) | **Fixed** (PO baseline) |
+| Near-me = shared `NearMeCta` (Availability tertiary SOT) | **Fixed** (page ↔ popup unified) |
 | Card / progress / help 863px; progress type live | **Fixed** |
 | Location field label + side-by-side search/near-me | **Fixed** |
 | Navy search / near-me glyphs | **Fixed** |
