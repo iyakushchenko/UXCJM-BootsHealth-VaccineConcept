@@ -361,9 +361,20 @@ function plpProbeSteps(): ProbeStep[] {
         '[data-studio-react-screen="plp"] button[data-studio-quick-view="true"]',
       action: "click",
       settleMs: 450,
-      assert: () =>
-        isBlockingModalOpen() ||
-        "Quick View overlay did not open (registry / scrim miss)",
+      assert: () => {
+        if (!isBlockingModalOpen()) {
+          return "Quick View overlay did not open (registry / scrim miss)";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "plp") {
+          return `expected screen=plp while Quick View open, got ${screenId ?? "?"}`;
+        }
+        // URL.md: &modal=quick-view required; &jab= optional later (multi-SKU).
+        if (modalId !== "quick-view") {
+          return `expected &modal=quick-view after Quick View open, got ${modalId ?? "missing"}`;
+        }
+        return true;
+      },
     },
     {
       id: "plp-overlay-eyes",
@@ -376,6 +387,20 @@ function plpProbeSteps(): ProbeStep[] {
       selector:
         '[data-studio-modal="quick-view"] button[aria-label="Close quick view"]',
       action: "click",
+      settleMs: 400,
+      assert: () => {
+        if (isBlockingModalOpen()) {
+          return "Quick View still open after close";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "plp") {
+          return `expected stay on screen=plp after close, got ${screenId ?? "?"}`;
+        }
+        if (modalId) {
+          return `expected modal cleared after Quick View close, got &modal=${modalId}`;
+        }
+        return true;
+      },
     },
   ];
 }
