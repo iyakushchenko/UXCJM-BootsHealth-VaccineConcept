@@ -56,6 +56,7 @@ Playable · recordable · CJM-ready · looks like THAT brand
 - Map structure to **UXDS** + closest `component.*` / `module.*`; brand via project theme CSS
 - Stable Studio wiring (`data-name`, screens, touchpoints)
 - **Interactive fidelity** needed for proofing and recording — shared kits under `src/uxds/interactions/`, not one-off scripts ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Fake data OK; dead UI is not record-ready.
+- On React rebuilds: **behavior parity** with prior Make/concept handlers ([VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1) — do not drop checkbox/Continue/search wiring.
 
 Do **not** refuse a concept because it is “not on the design system.”  
 Do **not** slavishly copy broken structure.  
@@ -73,7 +74,7 @@ Do **not** slavishly copy broken structure.
 | Good enough for discovery / proof | Pixel-match a messy source at the cost of maintainability |
 
 When the source is structured UXDS (rare), prefer fidelity to masters.  
-When the source is early/messy (common), prefer **intent + UXDS structure under the hood** — but **visual L&F of the source concept is mandatory** (radii, chrome, progress, buttons, checkboxes). Brand may remap UXDS color tokens via the project theme; do not invent new chrome. ([PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §5).
+When the source is early/messy (common), prefer **intent + UXDS structure under the hood** — but **visual L&F of the source concept is mandatory** (radii, chrome, progress, buttons, checkboxes). Brand may remap UXDS color tokens via the project theme; do not invent new chrome. No visual zoo — same active language within a surface; secondary selectors stay mini / lower contrast. ([VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md), [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §5).
 
 ---
 

@@ -59,6 +59,16 @@ Until a CJM deck is attached, page context alone is enough to anticipate the hap
 
 Same rule when enriching Boots Make wire or any in-place screen: if we touch it for recording or journey work, raise interaction fidelity toward the shared kit — do not pile more permanent one-off imperative scripts.
 
+### 2.4 React rebuild = behavior parity (locked — PO)
+
+When a Make / concept screen is rebuilt in React, **migrate every interaction that already worked** on the prior page (checkbox/booster toggle, Continue gating, search + near-me openers, Change links, breadcrumbs, etc.).
+
+- Do **not** ship a static visual shell that drops handlers.
+- Prefer React props + `src/uxds/interactions/` kits; mark React-owned rows (`data-proto-react-owned` / host `[data-proto-react-screen]`) so Make global input mutators do not fight React state.
+- Retire a behavior only when the PO explicitly asks.
+
+Visual L&F + this parity rule: [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1.
+
 ---
 
 ## 3. Anti-sprawl (main engineering concern)
@@ -142,6 +152,7 @@ Engine-only bridges (`src/app/`) remain for playback/recording — not for reinv
 | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) | Standing tech: shared interaction kit; agent builds fidelity without asking PO to pick libraries |
 | [SOLUTION_REQUIREMENTS.md](./SOLUTION_REQUIREMENTS.md) | Locked default §2.3 + readiness: interactivity before record |
 | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) | Page checklist includes interaction + library reuse |
+| [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) | Kits must **look** like the concept — same active language, control hierarchy; no visual zoo |
 | [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md) | Enrichment / fidelity gap is part of intake craft |
 | [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) | Brand delta only — behavior kits stay in `src/uxds/interactions/` |
 | [../shell/RECORDING.md](../shell/RECORDING.md) | Prerequisite: page interactivity first |
@@ -164,6 +175,7 @@ Engine-only bridges (`src/app/`) remain for playback/recording — not for reinv
 ## Related
 
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)  
+- [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)  
 - [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)  
 - [SOLUTION_REQUIREMENTS.md](./SOLUTION_REQUIREMENTS.md)  
 - [../shell/RECORDING.md](../shell/RECORDING.md)  

@@ -25,6 +25,14 @@ export function markBoosterCheckboxRow(row: HTMLElement): void {
   row.dataset.protoBooster = "true";
 }
 
+/** React pilot screens own their own checkbox/radio state — do not Make-mutate them. */
+export function isReactOwnedInputRow(row: HTMLElement): boolean {
+  return (
+    row.dataset.protoReactOwned === "true" ||
+    !!row.closest("[data-proto-react-screen]")
+  );
+}
+
 function standardizeCheckboxBox(box: HTMLElement): void {
   box.className = "absolute left-0 top-0 size-[24px] rounded-[2px]";
   box.replaceChildren();
@@ -56,6 +64,8 @@ function findCheckboxRow(target: HTMLElement): HTMLElement | null {
 }
 
 export function ensureCheckboxRow(row: HTMLElement): void {
+  if (isReactOwnedInputRow(row) || isBoosterCheckboxRow(row)) return;
+
   const box = row.querySelector<HTMLElement>('[data-name="box"]');
   if (!box) return;
 
@@ -206,7 +216,10 @@ export function initProtoInputControls(root: ParentNode = document): void {
 export function handleProtoInputClick(target: HTMLElement): boolean {
   const checkboxRow = findCheckboxRow(target);
   if (checkboxRow) {
-    if (isBoosterCheckboxRow(checkboxRow)) return false;
+    // React screens + shared booster checkbox own state via React — never DOM-toggle.
+    if (isBoosterCheckboxRow(checkboxRow) || isReactOwnedInputRow(checkboxRow)) {
+      return false;
+    }
     if (isPlpFilterCheckboxDisabled(checkboxRow)) return false;
 
     ensureCheckboxRow(checkboxRow);

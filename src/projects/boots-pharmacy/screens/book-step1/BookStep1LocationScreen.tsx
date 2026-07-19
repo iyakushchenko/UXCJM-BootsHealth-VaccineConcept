@@ -273,6 +273,8 @@ export function BookStep1LocationScreen({
             <label
               className="book-step1__checkbox-row"
               data-name="component.input.checkbox"
+              data-proto-booster="true"
+              data-proto-react-owned="true"
               data-checkbox-checked={String(includeBoosterDose)}
             >
               <span
@@ -287,6 +289,7 @@ export function BookStep1LocationScreen({
                   className="book-step1__checkbox-input"
                   checked={includeBoosterDose}
                   onChange={onToggleBooster}
+                  aria-label={BOOSTER_LABEL}
                 />
               </span>
               <span data-name="Label">

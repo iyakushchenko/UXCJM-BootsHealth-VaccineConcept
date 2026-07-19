@@ -1992,6 +1992,44 @@
 }
 .proto-avail-store-filters__row {
   margin-bottom: 0;
+  gap: 8px;
+}
+/*
+ * Secondary list filters (All locations / Slots available).
+ * Same mint active language as List/Map (#c6e5e1 / hover #eef8f7) — not badge #afccca.
+ * Hierarchy: mini + lower contrast vs primary List/Map chrome.
+ */
+.proto-avail-store-filters .uxds-filter-chip {
+  min-height: 28px;
+  padding: 2px 10px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #fff;
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.proto-avail-store-filters .uxds-filter-chip.is-selected,
+.proto-avail-store-filters .uxds-filter-chip[data-state="on"] {
+  background: #c6e5e1;
+  border-color: #c6e5e1;
+  color: #3a3a3a;
+  font-weight: 500;
+}
+.proto-avail-store-filters .uxds-filter-chip:hover {
+  background: #eef8f7;
+}
+.proto-avail-store-filters .uxds-filter-chip.is-selected:hover,
+.proto-avail-store-filters .uxds-filter-chip[data-state="on"]:hover {
+  background: #c6e5e1;
+  border-color: #c6e5e1;
+}
+.proto-avail-store-filters .uxds-filter-chip:focus,
+.proto-avail-store-filters .uxds-filter-chip:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 .proto-avail-store-list::-webkit-scrollbar {
   width: 4px;

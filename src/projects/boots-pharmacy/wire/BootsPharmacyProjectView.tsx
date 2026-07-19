@@ -1196,11 +1196,16 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         return;
       }
 
-      const crumb = t.closest(
-        "[data-name='component.breadcrumbs'] p, [data-name='component.breadcrumbs'] span"
-      ) as HTMLElement | null;
-      if (crumb && /^home$/i.test((crumb.textContent ?? "").trim())) {
-        goHome(e);
+      // Make used p/span; React Book Step 1 uses a button — match any Home hit in crumbs.
+      const crumbNav = t.closest("[data-name='component.breadcrumbs']");
+      if (crumbNav) {
+        const hit = (t.closest("p, span, button, a") ?? t) as HTMLElement;
+        if (
+          crumbNav.contains(hit) &&
+          /^home$/i.test((hit.textContent ?? "").trim())
+        ) {
+          goHome(e);
+        }
       }
     };
 

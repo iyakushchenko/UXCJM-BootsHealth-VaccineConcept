@@ -132,8 +132,9 @@ See [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §5. Current order:
 3. ✅ Interaction fidelity doctrine — record only after pages are interactive; shared behavior library ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)).  
 4. ✅ Recording UI (engine).  
 5. ✅ Thin UXDS foundation + Boots theme + Availability Tool kit enrichment.  
-6. **Next:** one Boots screen rebuilt React + UXDS (full page pilot).  
-7. Scale rebuild; later X-Suite import + compiler.
+6. ✅ Visual fidelity doctrine + Book Step 1 React pilot (behavior parity with Make).  
+7. **Next:** continue Boots screen rebuilds React + UXDS.  
+8. Scale rebuild; later X-Suite import + compiler.
 
 ---
 
@@ -191,5 +192,7 @@ Avoid:
 | 2026-07-19 | Internal FE DS code: yes, thin & incremental under `src/uxds/` + project theme — not a second Figma; grows with pages (SOLUTION_REQUIREMENTS §2.7) |
 | 2026-07-19 | **Interaction fidelity:** recording depends on playable page controls; agent builds anticipated interactivity (from page context / later CJM deck) before record; shared React+UXDS behavior kits at `src/uxds/interactions/` — anti-sprawl vs one-off scripts. See INTERACTION_FIDELITY.md |
 | 2026-07-19 | **Concept visual L&F mandatory:** rebuilds must match source concept chrome (progress, search, checkboxes, etc.). UXDS = structure/reuse; brand may remap UXDS color tokens via project theme. No generic DS restyle. See PAGE_BUILD_CONTRACT.md §5 |
+| 2026-07-19 | **No visual zoo + control hierarchy:** same active/inactive language within a surface; secondary selectors mini / lower contrast vs primary chrome. See VISUAL_FIDELITY.md |
+| 2026-07-19 | **Rebuild behavior parity:** React rebuilds must migrate all prior Make/concept interactions (e.g. Book Step 1 booster checkbox, Continue gating, search/near-me, crumbs). No static shells. See VISUAL_FIDELITY.md §1.1 + INTERACTION_FIDELITY.md §2.4 |
 
 New durable decisions get a row here in the same session they are made.
