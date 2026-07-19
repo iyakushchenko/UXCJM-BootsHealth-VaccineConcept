@@ -2,17 +2,17 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted · Uma **PROVEN** · Quinn MCP **PASS** · not Final Pass  
+**Status:** L1–L20 mounted · Uma **PROVEN** · Quinn MCP **PASS** · **PAGE FINAL PASS HARD-GREEN**  
 **Updated:** 2026-07-19  
-**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn [../audits/QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](../audits/QUINN_PDP_PROBE_CRITERIA_2026-07-19.md)
+**Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md)
 
 ---
 
 ## Context
 
-Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
+Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** PLP PAGE FINAL PASS **HARD-GREEN** satisfied (2026-07-19). React L1–L20 mounted; Quinn MCP **PASS**; Uma **PROVEN** — Arch may run PDP PAGE FINAL PASS.
+**Gate:** PDP PAGE FINAL PASS **HARD-GREEN** @ tip `d7ce01c` / v0.0.24. **Home waits PO `+`.**
 
 ## Business logic
 
@@ -40,9 +40,9 @@ Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Fra
 - [x] Scaffold P0 bands L1–L13 + interactions I5–I12, I8–I10 per register
 - [x] Below-fold P0 bands L14–L20 (static accordion B1; download/GP CTAs decorative)
 - [x] Modal URL sync: `login`, `choose-pharmacy` from PDP CTAs ([URL.md](../../../shell/URL.md)) — wire reuses existing modals
-- [ ] PAGE FINAL PASS: landmarks `header`+`main`, BEM=`pdp` present; stamp + `check:page-final-pass` after Quinn MCP
+- [x] PAGE FINAL PASS: landmarks `header`+`main`, BEM=`pdp`; stamp + `mcpFinalPass` HARD-GREEN + `check:page-final-pass` ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
 - [x] `npm test` green on L14–L20 contract; Uma audit **PROVEN** ([UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md))
-- [ ] Honest residual: Make Frame child 8 in DOM until delete phase; accordion B1 static-only until PO (**accepted** for Uma PROVEN)
+- [x] Honest residual: Make Frame child 8 in DOM until delete phase; accordion B1 static-only until PO (**accepted** for Uma PROVEN + Final Pass)
 
 ## Chrome / fidelity (Uma)
 
@@ -67,7 +67,7 @@ Erase-Make **next page after PLP HARD-GREEN**. Vaccine PDP (`screenId: pdp`, Fra
 - **MCP matrix PASS** 2026-07-19 — [FE_AUDIT_PDP_MCP_2026-07-19.md](../audits/FE_AUDIT_PDP_MCP_2026-07-19.md) (`__studioRunMcpPageProbe({ screenId:"pdp", reload:false })`)
 - Localhost: mount + Make leak=0; PLP→PDP; Book now login gate; Check availability modal URL; overlay-arm + overlay-eyes
 - Booster £150↔£75; empty-heart hover; below-fold reveal (compact title stamp)
-- Uma **PROVEN** clears fidelity blocker — **PAGE FINAL PASS** still needs Arch manifest stamp + Quinn HARD-GREEN follow-up
+- Final Pass HARD-GREEN tip `d7ce01c` — [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md)
 - Register prove matrix: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
 
 ## Pax

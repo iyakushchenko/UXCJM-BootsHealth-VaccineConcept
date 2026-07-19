@@ -146,6 +146,7 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
+| **PDP PAGE FINAL PASS HARD-GREEN** — tip `d7ce01c` / v0.0.24; re-prove after share flip (prior Quinn on `cbbd97d` insufficient alone); B1 static accordion accepted; Home waits PO `+` | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass (5 screens) |
 | **PDP RTB vertical rhythm** — LEGACY Make `module.pdp.rtb > div > div` stole React column gap (48≠32) + forced title-block 1:1; Uma must MCP-measure section gaps before fidelity IN PROGRESS; Quinn PASS ≠ rhythm done | Uma, Finn, Arch | UMA_FIDELITY_NOTES §0b · UMA_FIDELITY_PDP · globals-screens `:not(.pdp__rtb-card)` |
 | **PDP kickoff** — Bea register before code; Finn L1–L13 mount; Uma fidelity IN PROGRESS; Quinn probe criteria prep (no false PROVEN); accordion B1 static | Arch, Bea, Finn, Uma, Quinn, Ben | [PDP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PDP_MAKE_PARITY_REGISTER.md) · screens/pdp |
 | **PAGE FINAL PASS** — no new migrated page until previous hard-green; Finn/Uma checklist + check; parallel callsigns + Knowledge used still required | Arch, Finn, Uma, Bea | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · TEAM · doctrine · NEXT_STEPS |
@@ -157,6 +158,14 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Agent overlay: **pre-arm** before steps; sitrep **PASS/FAIL** green/red; **forceClear** hard-remove (no stale popup) | Uma, Finn, Quinn | RECORDING.md · LESSONS · `agentTestingOverlay` |
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
 | Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
+
+**Knowledge improved** (2026-07-19 · stream: PDP PAGE FINAL PASS HARD-GREEN · tip d7ce01c · v0.0.24):
+- Arch (Director): Final Pass stamp only after Quinn re-prove on tip that includes share flip; veto Home until PO `+` — applied: PAGE_FINAL_PASS.json mcpFinalPass + NEXT_STEPS 3e + Reflex
+- Finn (FE): wired `pdp` into `check:page-final-pass` (sources/mounts/ButtonPrimary; ban invent Accordion kit) — applied: scripts/check-page-final-pass.mjs
+- Uma (UI/UX): PROVEN + B1 static accordion accepted residual — applied: UMA_FIDELITY_PDP PROVEN (no invent interactive accordion)
+- Quinn (QA): re-prove after post-matrix code tip (share flip) before HARD-GREEN — applied: FE_AUDIT_PDP_PAGE_FINAL_PASS 19/19 PASS on d7ce01c
+- Ben (BE): tip CI success + local hygiene/parity/final-pass green — applied: CI sitrep run 29693462532
+- Pax (PO sim): accept HARD-GREEN for sequencing; do not auto-start Home — applied: wait PO `+`
 
 **Knowledge improved** (2026-07-19 · stream: PDP RTB vertical rhythm + Uma §0b ratchet · user-visible):
 - Uma (UI/UX): PO hard-fail RTB cramped stack — root cause Make LEGACY `module.pdp.rtb > div > div` hitting React; MCP-measured 32px gaps restored; **§0a / PROVEN not stamped** — applied: pdp.css + globals-screens `:not(.pdp__rtb-card)` + UMA_FIDELITY_PDP §0b checklist

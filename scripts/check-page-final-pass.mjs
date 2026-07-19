@@ -23,6 +23,7 @@ const REACT_MIGRATED_SCREENS = [
   "book-step-2",
   "book-step-3",
   "plp",
+  "pdp",
 ];
 
 const CHECKLIST_KEYS = [
@@ -37,6 +38,7 @@ const CHECKLIST_KEYS = [
 /** screenId → primary React screen source (structure contracts). */
 const SCREEN_SOURCES = {
   plp: "src/projects/boots-pharmacy/screens/plp/PlpScreen.tsx",
+  pdp: "src/projects/boots-pharmacy/screens/pdp/PdpScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx",
   "book-step-2":
@@ -47,6 +49,7 @@ const SCREEN_SOURCES = {
 
 const SCREEN_MOUNTS = {
   plp: "src/projects/boots-pharmacy/screens/plp/mountPlpScreen.tsx",
+  pdp: "src/projects/boots-pharmacy/screens/pdp/mountPdpScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen.tsx",
   "book-step-2":
@@ -61,6 +64,7 @@ const SEARCH_REQUIRED = new Set(["plp", "book-step-1"]);
 /** Screens that must use ButtonPrimary for primary commerce CTAs. */
 const BUTTON_PRIMARY_REQUIRED = new Set([
   "plp",
+  "pdp",
   "book-step-1",
   "book-step-2",
   "book-step-3",
@@ -198,9 +202,11 @@ for (const screenId of required) {
   const screenIdConst =
     screenId === "plp"
       ? /PLP_REACT_SCREEN_ID|["']plp["']/.test(src)
-      : new RegExp(
-          `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
-        ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
+      : screenId === "pdp"
+        ? /PDP_REACT_SCREEN_ID|["']pdp["']/.test(src)
+        : new RegExp(
+            `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
+          ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
 
   if (!hasReactScreenAttr || !screenIdConst) {
     fail(
@@ -287,6 +293,20 @@ for (const screenId of required) {
           `${screenId}: .plp__filter-section must not invent border separators (Make has none)`
         );
       }
+    }
+  }
+
+  // PDP: Book now uses ButtonPrimary (above); no SearchField required.
+  // Accordion is static Make B1 — do not require UXDS Accordion kit.
+  // Specs/accordion borders are Make-parity — do not invent separator bans.
+  if (screenId === "pdp") {
+    if (
+      /from\s+["']@\/uxds\/interactions["']/.test(src) &&
+      /\bAccordion\b/.test(code)
+    ) {
+      fail(
+        `${screenId}: must not invent UXDS Accordion kit (Make accordion is static B1)`
+      );
     }
   }
 }

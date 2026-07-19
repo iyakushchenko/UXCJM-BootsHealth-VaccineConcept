@@ -30,16 +30,17 @@ A screen is **DONE** only when **all** are true:
 2c. [x] **PLP preloader + checkbox hover (PO rage #2)** — real Make spinner overlay (hide tiles, in-band); mint checkbox hover; Uma loading/checkbox sign-off gates; patch bump.
 2d. [x] **PLP invent/dupe rage #3** — one loader label (no count duplicate), height lock, Make empty-heart navy hover (no fuchsia invent); MCP matrix mandatory; prior PROVEN revoked; `0.0.8`.
 2e. [x] **PLP PAGE FINAL PASS hard-green** — structure stamp + `check:page-final-pass` green; Quinn MCP `__studioRunMcpPageProbe({ screenId:"plp" })` full matrix PASS (overlay + scroll-into-view + landmarks); `mcpFinalPass: HARD-GREEN` @ tip `6358184` / v0.0.17. Audit: [FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md). **PDP unblocked.**
-3. [ ] **PDP React migration** — **scaffold mounted** (2026-07-19). Register [PDP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PDP_MAKE_PARITY_REGISTER.md) · brief [PDP_REACT.md](../projects/boots-pharmacy/features/PDP_REACT.md) · React `screens/pdp/*` (L1–L13 RTB) · Uma [UMA_FIDELITY_PDP_2026-07-19.md](../projects/boots-pharmacy/audits/UMA_FIDELITY_PDP_2026-07-19.md) IN PROGRESS · Quinn prep [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](../projects/boots-pharmacy/audits/QUINN_PDP_PROBE_CRITERIA_2026-07-19.md). **Not PROVEN / not Final Pass.** Next: below-fold L14–L20 + Quinn MCP recipe + Uma side-by-side. Order lock: **PDP → Home → Chat → History/Details**.
+3. [x] **PDP React migration** — DONE by erase-Make definition (2026-07-19). Register [PDP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PDP_MAKE_PARITY_REGISTER.md) · brief [PDP_REACT.md](../projects/boots-pharmacy/features/PDP_REACT.md) · React `screens/pdp/*` (L1–L20) · Uma [UMA_FIDELITY_PDP_2026-07-19.md](../projects/boots-pharmacy/audits/UMA_FIDELITY_PDP_2026-07-19.md) **PROVEN** · Quinn [FE_AUDIT_PDP_MCP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PDP_MCP_2026-07-19.md) PASS · `PARITY_PROVEN` pdp proven.
+3e. [x] **PDP PAGE FINAL PASS hard-green** — structure stamp + `check:page-final-pass` green (5 screens); Quinn MCP `__studioRunMcpPageProbe({ screenId:"pdp" })` full matrix PASS on tip `d7ce01c` / v0.0.24 (share flip `553e29c`); `mcpFinalPass: HARD-GREEN`. Audit: [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md). **Home sequencing-unblocked — wait PO `+` before start.**
 4. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
 
 ---
 
 ## NEXT (erase-Make sequence)
 
-**Gate:** each page starts only after the previous is **PAGE FINAL PASS hard-green** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Parallel callsigns + Knowledge used still required.
+**Gate:** each page starts only after the previous is **PAGE FINAL PASS hard-green** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Parallel callsigns + Knowledge used still required. **Do not start Home without PO `+`.**
 
-5. [ ] **Home React migration** — after PDP Final Pass hard-green. Site Pilot Home (child 11).
+5. [ ] **Home React migration** — after PDP Final Pass hard-green **+ PO `+`**. Site Pilot Home (child 11).
 6. [ ] **Chat React migration** — after Home Final Pass hard-green. Site Pilot Chat (child 10).
 7. [ ] **Appointment History + Details** — after Chat Final Pass hard-green. Children 2 + 1.
 8. [ ] **Delete Book Step 1–3 Make children** — after History/Details Final Pass hard-green + CJM/playback green; until then keep `data-studio-make-retired` residual.
