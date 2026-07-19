@@ -55,12 +55,24 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 
 ---
 
-## 5. Build order for a screen (agent checklist)
+## 5. Visual fidelity (locked — PO)
+
+**Visual look & feel of the source concept is mandatory.** Aesthetic DS “upgrades” are not.
+
+- Stick to the previous concept look (Make / live wire) — progress, search, buttons, checkboxes, spacing, radii — even if it feels “shitty.”
+- Do **not** restyle toward a cleaner generic DS look.
+- UXDS is for **structure and reuse under the hood**; **visible chrome must match the source page** (measure from original CSS / Make — do not invent).
+- **Brand may remap UXDS color tokens** via the project theme (`styleguide/theme.css`) so semantic roles carry Boots/concept colors — that is expected, not a license to redesign chrome.
+- Document intentional deltas only when the PO asks to change the concept look.
+
+---
+
+## 6. Build order for a screen (agent checklist)
 
 1. Open PO concept URL; classify early strip vs structured page ([CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)).
 2. Extract intent (flow, hypothesis) — do not require DS-perfect source.
 3. Map regions → UXDS tokens + closest `component.*` / `module.*`.
-4. Compose React screen; upgrade structure where source is weak.
+4. Compose React screen; **match concept visuals**; use UXDS for structure/reuse, not a visual redesign.
 5. **Build anticipated interactivity** from page context (and CJM deck when provided) via shared kits — CTAs, filters, accordions, forms, etc. ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Prefer library reuse over one-off scripts.
 6. Register screen + `data-*` hooks for cursor, touchpoints, recording.
 7. Wire journey beats / scripts as needed (thin; not duplicate DS behavior).
@@ -69,12 +81,12 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 
 ---
 
-## 6. What we will not do
+## 7. What we will not do
 
 - Grow new concept features as permanent Make HTML.
 - Invent a second parallel design system in code that ignores UXDS names.
 - Refuse a concept because Figma “isn’t on the DS yet” — **filling that gap is the job**.
-- Blindly pixel-copy broken structure when a UXDS module would prove the hypothesis better.
+- “Improve” concept visuals with generic DS polish (rounded cards, sharper inputs, new color ramps) unless the PO asks.
 - Grow gigantic custom imperative scripts per screen that duplicate accordion/dropdown/filter/modal behavior — extend `src/uxds/interactions/` instead.
 - Expect recording on pages that lack the interactive components the scenario needs.
 - Block **engine** work on a full Boots rewrite.

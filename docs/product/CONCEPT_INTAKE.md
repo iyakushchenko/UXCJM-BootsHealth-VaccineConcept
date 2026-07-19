@@ -73,7 +73,7 @@ Do **not** slavishly copy broken structure.
 | Good enough for discovery / proof | Pixel-match a messy source at the cost of maintainability |
 
 When the source is structured UXDS (rare), prefer fidelity to masters.  
-When the source is early/messy (common), prefer **intent + UXDS upgrade**.
+When the source is early/messy (common), prefer **intent + UXDS structure under the hood** — but **visual L&F of the source concept is mandatory** (radii, chrome, progress, buttons, checkboxes). Brand may remap UXDS color tokens via the project theme; do not invent new chrome. ([PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §5).
 
 ---
 

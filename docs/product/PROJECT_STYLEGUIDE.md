@@ -81,9 +81,12 @@ When building pages from a PO concept:
 
 1. Extract brand delta (colors, logos, fonts) even if the frame is not UXDS-bound.  
 2. Create/update `styleguide/README.md` + `theme.css` for that project.  
-3. Build React with **UXDS component patterns** + **project theme** for brand.  
-4. Never hardcode a second project’s Boots teal into a new brand project.  
-5. Never force every project to use UXDS default Concept palette as the visible brand.
+3. Build React with **UXDS structure/reuse** + **project theme** for brand — **visual L&F of the source concept is mandatory**; do not restyle toward a cleaner generic DS look.  
+4. **Brand may remap UXDS color tokens** in `theme.css` to match the concept; measure radii/chrome/checkboxes from source CSS — do not invent.  
+5. Never hardcode a second project’s Boots teal into a new brand project.  
+6. Never force every project to use UXDS default Concept palette as the visible brand.
+
+See [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §5 (visual fidelity).
 
 ---
 

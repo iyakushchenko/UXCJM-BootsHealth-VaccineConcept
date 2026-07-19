@@ -59,6 +59,26 @@ function EditGlyph() {
   );
 }
 
+/** Make Book Step 1 checkmark (`element. gse. checkbox. check mark`) */
+function CheckboxCheckMark() {
+  return (
+    <span
+      className="book-step1__checkbox-mark"
+      data-name="element. gse. checkbox. check mark"
+      aria-hidden
+    >
+      <svg width="14" height="10" viewBox="0 0 13.4079 10.1151" fill="none">
+        <path
+          fill="#3A3A3A"
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M0 5.49077L1.40162 4.06407L4.69457 7.29914L11.9937 0L13.4079 1.41421L4.70705 10.1151L0 5.49077Z"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function SummaryPill({
   label,
   value,
@@ -253,13 +273,22 @@ export function BookStep1LocationScreen({
             <label
               className="book-step1__checkbox-row"
               data-name="component.input.checkbox"
+              data-checkbox-checked={String(includeBoosterDose)}
             >
-              <input
-                type="checkbox"
-                className="book-step1__checkbox"
-                checked={includeBoosterDose}
-                onChange={onToggleBooster}
-              />
+              <span
+                className="book-step1__checkbox-icon"
+                data-name="icon / input / checkbox"
+              >
+                <span className="book-step1__checkbox-box" data-name="box">
+                  {includeBoosterDose ? <CheckboxCheckMark /> : null}
+                </span>
+                <input
+                  type="checkbox"
+                  className="book-step1__checkbox-input"
+                  checked={includeBoosterDose}
+                  onChange={onToggleBooster}
+                />
+              </span>
               <span data-name="Label">
                 <p>{BOOSTER_LABEL}</p>
               </span>

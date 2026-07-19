@@ -190,5 +190,6 @@ Avoid:
 | 2026-07-19 | Page-from-existing: no URL required; compose from UXDS + internal ready components; maximize reuse (key) |
 | 2026-07-19 | Internal FE DS code: yes, thin & incremental under `src/uxds/` + project theme — not a second Figma; grows with pages (SOLUTION_REQUIREMENTS §2.7) |
 | 2026-07-19 | **Interaction fidelity:** recording depends on playable page controls; agent builds anticipated interactivity (from page context / later CJM deck) before record; shared React+UXDS behavior kits at `src/uxds/interactions/` — anti-sprawl vs one-off scripts. See INTERACTION_FIDELITY.md |
+| 2026-07-19 | **Concept visual L&F mandatory:** rebuilds must match source concept chrome (progress, search, checkboxes, etc.). UXDS = structure/reuse; brand may remap UXDS color tokens via project theme. No generic DS restyle. See PAGE_BUILD_CONTRACT.md §5 |
 
 New durable decisions get a row here in the same session they are made.
