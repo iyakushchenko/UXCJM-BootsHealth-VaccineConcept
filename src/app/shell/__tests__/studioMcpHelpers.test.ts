@@ -3,7 +3,10 @@ import {
   beginMcpTestSession,
   endMcpTestSession,
 } from "@/app/shell/mcpTestGuard";
-import { registerStudioMcpHelpers, parseStudioStepCounter } from "@/app/shell/studioMcpHelpers";
+import {
+  registerStudioMcpHelpers,
+  parseStudioStepCounter,
+} from "@/app/shell/studioMcpHelpers";
 
 describe("studioMcpHelpers", () => {
   afterEach(() => {
@@ -194,4 +197,5 @@ describe("studioMcpHelpers", () => {
     });
     expect(parseStudioStepCounter("2 / 25").visible).toBe(2);
   });
+
 });

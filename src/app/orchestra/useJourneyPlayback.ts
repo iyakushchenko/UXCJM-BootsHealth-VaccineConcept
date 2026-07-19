@@ -257,6 +257,9 @@ export function useJourneyPlayback({
 
   const abortActiveScripts = useCallback(() => {
     playback.abortAll();
+    // Mid-chain abort (login→book-location-pick) must not leave Availability open.
+    runtime.closeAllPopups();
+    runtime.closeAvailability();
     stopScrollPoll();
     setPlaybackScrollBusy(false);
     setScriptingActive(false);
@@ -266,7 +269,7 @@ export function useJourneyPlayback({
     lastBookAutoRunRef.current = null;
     lastTabAutoRunRef.current = null;
     lastHomeAutoRunRef.current = null;
-  }, [playback, setScriptingActive, stopScrollPoll]);
+  }, [playback, runtime, setScriptingActive, stopScrollPoll]);
 
   const stopJourneyPlay = useCallback(() => {
     isPlayingRef.current = false;
@@ -888,6 +891,18 @@ export function useJourneyPlayback({
     async (beat: JourneyBeat) => {
       runtime.closeAllPopups();
       runtime.closeAvailability();
+      // Wait for scrim unmount — transport guard FAIL stray-popup-on-beat otherwise.
+      for (let i = 0; i < 40; i++) {
+        const scrim =
+          typeof document !== "undefined" &&
+          document.querySelector(".studio-avail-scrim, .proto-avail-scrim");
+        if (!scrim) break;
+        runtime.closeAvailability();
+        runtime.closeAllPopups();
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, 50);
+        });
+      }
       cancelDemoCursorJourneyEndFade();
       await parkDemoCursorAtRest({ animate: false });
       if (!retreatSyncRef.current && playback.syncDwellRetreat) {

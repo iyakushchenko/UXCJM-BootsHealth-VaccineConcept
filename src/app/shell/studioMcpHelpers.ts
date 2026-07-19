@@ -68,6 +68,14 @@ import {
 } from "@/app/shell/studioMcpPageProbe";
 import { proveRoboCursorFeedback } from "@/app/shell/studioProveRoboCursorFeedback";
 import { stripEphemeralStudioQuery } from "@/app/shell/studioUrl";
+import {
+  directorTransportBusy,
+  stateFingerprint,
+  stepSettleMsForState,
+  waitForDirectorSettle as waitForDirectorSettleCore,
+} from "@/app/shell/stepForwardSmokeSettle";
+
+export { directorTransportBusy } from "@/app/shell/stepForwardSmokeSettle";
 
 export type StudioMcpState = {
   diagnosticOpen: boolean;
@@ -346,24 +354,6 @@ function chatRetreatCounterPass(state: StudioMcpState): boolean {
   return visible >= 10 && visible !== 2;
 }
 
-function stateFingerprint(state: StudioMcpState | undefined | null): string {
-  if (!state) return "";
-  return [state.counter, state.beatId, state.label, state.availStep].join("|");
-}
-
-function stepSettleMsForState(state: StudioMcpState | undefined): number {
-  if (!state) return 4000;
-  if (state.beatId === "agentic-home") return 50_000;
-  if (state.beatId === "agentic-chat") return 12_000;
-  if (state.beatId === "traditional-plp" || state.beatId === "traditional-pdp") {
-    return 10_000;
-  }
-  if (state.label?.toLowerCase().includes("thinking")) return 12_000;
-  if (state.beatId?.startsWith("book-step2")) return 22_000;
-  if (state.beatId?.startsWith("avail-")) return 10_000;
-  return 6000;
-}
-
 function traditionalJourneyEndReached(state: StudioMcpState): boolean {
   const { visible, total } = parseStudioStepCounter(state.counter);
   if (total > 0 && visible >= total) return true;
@@ -556,50 +546,14 @@ async function waitForTransportProgress(
   };
 }
 
-/** Let cursor director scripts finish before the next manual step. */
 async function waitForDirectorSettle(
   state: StudioMcpState,
   maxMs: number
 ): Promise<StudioMcpState | undefined> {
-  const needsSettle =
-    state.beatId?.startsWith("book-step2") ||
-    state.beatId?.startsWith("avail-") ||
-    state.beatId === "agentic-home" ||
-    state.beatId === "traditional-plp" ||
-    state.beatId === "traditional-pdp";
-  if (!needsSettle || maxMs <= 0) return window.__protoStudioState?.();
-
-  const stableMs = state.beatId?.startsWith("book-step2") ? 4500 : 1800;
-  const minSettleMs = state.beatId?.startsWith("book-step2") ? 3000 : 0;
-  const progressAt = Date.now();
-  const deadline = Date.now() + maxMs;
-  let stableSince: number | null = null;
-  let lastFingerprint = stateFingerprint(state);
-
-  while (Date.now() < deadline && Date.now() - progressAt < minSettleMs) {
-    const current = window.__protoStudioState?.();
-    if (current?.diagnosticOpen) return current;
-    await delay(250);
-  }
-
-  while (Date.now() < deadline) {
-    const current = window.__protoStudioState?.();
-    if (current?.diagnosticOpen) {
-      return current;
-    }
-    const fingerprint = stateFingerprint(current);
-    if (fingerprint !== lastFingerprint) {
-      lastFingerprint = fingerprint;
-      stableSince = null;
-    } else if (stableSince == null) {
-      stableSince = Date.now();
-    } else if (Date.now() - stableSince >= stableMs) {
-      return current;
-    }
-    await delay(250);
-  }
-
-  return window.__protoStudioState?.();
+  return waitForDirectorSettleCore(state, maxMs, {
+    delay,
+    getState: () => window.__protoStudioState?.(),
+  });
 }
 
 export function registerStudioMcpHelpers(options: {

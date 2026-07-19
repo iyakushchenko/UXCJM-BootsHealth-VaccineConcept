@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Traditional SF `stray-popup-on-beat` — settle skipped chained location pick (PO / Finn + Quinn)
+
+- **Symptom / class:** `__protoRunTraditionalStepForwardSmoke` FAIL `stray-popup-on-beat` — Availability still open (`availStep=list`) on `book-step2`.
+- **Root cause:** `login-sign-in` **chains** into `book-location-pick`. Smoke `waitForDirectorSettle` ignored `choose-location` / on-air, so the next Step aborted mid-picker and left the scrim. Secondary: Book Step 1 Continue/search first-match could hit Make-retired ghosts.
+- **Gate:** Settle must wait until `!isOnAir && !isPlaying` (see `stepForwardSmokeSettle.ts`). Abort closes Availability. Prefer React `[data-studio-action="book-step-1-continue"]` / live `.book-step-1` — never Make-retired Continue. Prove full traditional SF smoke PASS on R11 `:5173` from **`E:\\UX\\ux-studio`** (not abandoned VaccineConcept clone).
+
 ### CJM type-in skipped + Chat fade removed — PLAYBACK_DIAG (PO / Finn + Quinn + Ben)
 
 - **Symptom / class:** Agentic CJM Site Pilot type-in animation missing (instant jump to chat); Chat composer/under-bar fade wash gone after “remove gradient” ship; step/retreat hard to prove without console evidence.

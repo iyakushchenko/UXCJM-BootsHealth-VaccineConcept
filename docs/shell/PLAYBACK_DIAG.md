@@ -76,6 +76,8 @@ await window.__protoRunTraditionalStepForwardSmoke?.()
 await window.__protoRunTraditionalRetreatSmoke?.()
 ```
 
+**Traditional settle (2026-07-19):** After each Step, wait until transport is idle (`!isOnAir && !isPlaying`). Login chains into `book-location-pick` — early Step aborts mid-picker → stray Availability on `book-step2`.
+
 PASS criteria:
 
 1. No `diagnostic-on-step-1` / no playback diagnostic card mid-smoke  

@@ -477,20 +477,54 @@ async function runLoginSignIn(
   return !shouldAbort();
 }
 
+/** Prefer live React Book Step 1 — Make under `data-studio-make-retired` is a ghost. */
+function liveBookStep1Root(screen: HTMLElement): HTMLElement {
+  return (
+    screen.querySelector<HTMLElement>(
+      [
+        '[data-studio-react-screen="book-step-1"]',
+        ".studio-react-screen-host .book-step-1",
+        ".book-step-1",
+      ].join(", ")
+    ) ?? screen
+  );
+}
+
+function isLiveBookStep1Target(el: HTMLElement | null): el is HTMLElement {
+  // Size/visibility checked by waitForVisibleTarget / simulate click — here only
+  // skip Make-retired ghosts that win first-match querySelector.
+  return Boolean(el && !el.closest("[data-studio-make-retired]"));
+}
+
 async function waitForBookStep1ChosenSlot(screen: HTMLElement): Promise<boolean> {
+  const root = liveBookStep1Root(screen);
   for (let i = 0; i < 80; i++) {
-    if (screen.querySelector(".proto-chosen-slot")) return true;
+    const slot = root.querySelector<HTMLElement>(
+      ".book-step-1__chosen, .proto-chosen-slot"
+    );
+    if (slot && !slot.closest("[data-studio-make-retired]")) return true;
     await delay(50);
   }
   return false;
 }
 
-function findBookStep1ContinueBtn(screen: HTMLElement): HTMLElement | null {
+/** Prefer React Continue — Make-retired `component.input.button` is a ghost. */
+export function findBookStep1ContinueBtn(
+  screen: HTMLElement
+): HTMLElement | null {
+  const root = liveBookStep1Root(screen);
+  const reactBtn = root.querySelector<HTMLElement>(
+    '[data-studio-action="book-step-1-continue"]'
+  );
+  if (isLiveBookStep1Target(reactBtn)) return reactBtn;
+
   return (
     Array.from(
-      screen.querySelectorAll<HTMLElement>('[data-name="component.input.button"]')
-    ).find((btn) =>
-      /^continue$/i.test((btn.textContent ?? "").replace(/\s+/g, " ").trim())
+      root.querySelectorAll<HTMLElement>('[data-name="component.input.button"]')
+    ).find(
+      (btn) =>
+        isLiveBookStep1Target(btn) &&
+        /^continue$/i.test((btn.textContent ?? "").replace(/\s+/g, " ").trim())
     ) ?? null
   );
 }
@@ -511,13 +545,17 @@ async function clickBookStep1Continue(
 }
 
 function findBookStep1SearchField(scope: ParentNode): HTMLElement | null {
-  return (
-    scope.querySelector<HTMLElement>(
+  const root =
+    scope instanceof HTMLElement ? liveBookStep1Root(scope) : scope;
+  const candidates = [
+    root.querySelector<HTMLElement>(
       "[data-name='chosen location'] [data-name='component.input.field']"
-    ) ??
-    scope.querySelector<HTMLElement>("[data-name='component.input.field']") ??
-    scope.querySelector<HTMLElement>("[data-name='Text Field']")
-  );
+    ),
+    root.querySelector<HTMLElement>("button.book-step-1__search"),
+    root.querySelector<HTMLElement>("[data-name='component.input.field']"),
+    root.querySelector<HTMLElement>("[data-name='Text Field']"),
+  ];
+  return candidates.find((el) => isLiveBookStep1Target(el)) ?? null;
 }
 
 /** Opens location picker via Step 1 search field click (wire listener) or runtime fallback. */
@@ -585,8 +623,14 @@ async function runBookLocationPick(
     const scrim = document.querySelector(".studio-avail-scrim, .proto-avail-scrim");
     if (!scrim) break;
     runtime.closeAvailability();
+    runtime.closeAllPopups();
     await delay(50);
   }
+
+  const scrimStillOpen = Boolean(
+    document.querySelector(".studio-avail-scrim, .proto-avail-scrim")
+  );
+  if (scrimStillOpen) return false;
 
   return !shouldAbort();
 }
