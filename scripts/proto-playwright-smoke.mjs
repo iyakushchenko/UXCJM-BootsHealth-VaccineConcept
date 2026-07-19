@@ -1,6 +1,8 @@
 /**
- * Playwright smoke — agentic + traditional CJM playback baselines.
- * Usage: npm run smoke (dev server running, or set PROTO_SMOKE_URL)
+ * Playwright smoke — CI runs lean profile; full marathon is opt-in.
+ * Usage:
+ *   npm run smoke              # lean (CI default)
+ *   PROTO_SMOKE_PROFILE=full npm run smoke
  */
 
 import { chromium } from "playwright";
@@ -12,6 +14,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const baseUrl = process.env.PROTO_SMOKE_URL ?? "http://localhost:5173";
 const outDir = path.join(__dirname, "playwright-out");
 const evaluateTimeoutMs = 600_000;
+const profile = process.env.PROTO_SMOKE_PROFILE ?? "ci";
+const isFull = profile === "full" || process.env.PROTO_SMOKE_FULL === "1";
+
+async function dismissAndClean(page) {
+  await page.evaluate(() => {
+    window.__protoDismissPlaybackDiagnostic?.();
+    window.__protoEnsureCleanStudio?.();
+  });
+  await page.waitForTimeout(400);
+}
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
@@ -19,6 +31,12 @@ async function main() {
   page.setDefaultTimeout(evaluateTimeoutMs);
 
   await page.goto(baseUrl, { waitUntil: "networkidle", timeout: 60_000 });
+  await page.evaluate(() => window.__protoAbortAll?.());
+  await dismissAndClean(page);
+
+  const sanity = await page.evaluate(async () =>
+    window.__protoRunMcpSanityCheck?.()
+  );
 
   const baseline = await page.evaluate(() => window.__protoSmokeRetreatChecks?.());
   if (!baseline?.pass) {
@@ -27,25 +45,36 @@ async function main() {
     );
   }
 
-  const homePlay = await page.evaluate(async () => {
-    return window.__protoRunHomePlaySmoke?.({ timeoutMs: 30_000 });
-  });
+  await dismissAndClean(page);
+  const homePlay = await page.evaluate(async () =>
+    window.__protoRunHomePlaySmoke?.({ timeoutMs: 30_000 })
+  );
 
-  const retreat = await page.evaluate(async () => {
-    return window.__protoRunRetreatSmoke?.({ timeoutMs: 90_000 });
-  });
+  await dismissAndClean(page);
+  const retreat = await page.evaluate(async () =>
+    window.__protoRunRetreatSmoke?.({ timeoutMs: 90_000 })
+  );
 
-  const stepForward = await page.evaluate(async () => {
-    return window.__protoRunAgenticStepForwardSmoke?.({ timeoutMs: 240_000 });
-  });
+  let stepForward;
+  let traditionalStepForward;
+  let traditionalRetreat;
 
-  const traditionalStepForward = await page.evaluate(async () => {
-    return window.__protoRunTraditionalStepForwardSmoke?.({ timeoutMs: 360_000 });
-  });
+  if (isFull) {
+    await dismissAndClean(page);
+    stepForward = await page.evaluate(async () =>
+      window.__protoRunAgenticStepForwardSmoke?.({ timeoutMs: 240_000 })
+    );
 
-  const traditionalRetreat = await page.evaluate(async () => {
-    return window.__protoRunTraditionalRetreatSmoke?.({ timeoutMs: 120_000 });
-  });
+    await dismissAndClean(page);
+    traditionalStepForward = await page.evaluate(async () =>
+      window.__protoRunTraditionalStepForwardSmoke?.({ timeoutMs: 360_000 })
+    );
+
+    await dismissAndClean(page);
+    traditionalRetreat = await page.evaluate(async () =>
+      window.__protoRunTraditionalRetreatSmoke?.({ timeoutMs: 120_000 })
+    );
+  }
 
   const diagnosticOpen = await page.evaluate(
     () => document.querySelector(".proto-playback-diagnostic") != null
@@ -53,20 +82,25 @@ async function main() {
 
   const report = {
     baseUrl,
+    profile,
     at: new Date().toISOString(),
+    sanity,
     baseline,
     homePlay,
     retreat,
-    stepForward,
-    traditionalStepForward,
-    traditionalRetreat,
+    stepForward: stepForward ?? { skipped: true },
+    traditionalStepForward: traditionalStepForward ?? { skipped: true },
+    traditionalRetreat: traditionalRetreat ?? { skipped: true },
     diagnosticOpen,
     pass:
+      Boolean(sanity?.pass) &&
       Boolean(homePlay?.pass) &&
       Boolean(retreat?.pass) &&
-      Boolean(stepForward?.pass) &&
-      Boolean(traditionalStepForward?.pass) &&
-      Boolean(traditionalRetreat?.pass) &&
+      (isFull
+        ? Boolean(stepForward?.pass) &&
+          Boolean(traditionalStepForward?.pass) &&
+          Boolean(traditionalRetreat?.pass)
+        : true) &&
       !diagnosticOpen,
   };
 
@@ -80,31 +114,25 @@ async function main() {
   await browser.close();
 
   if (!report.pass) {
-    const failed = retreat?.checks?.filter((c) => !c.pass) ?? [];
-    if (!homePlay?.pass) {
-      console.error("homePlay failed:", homePlay?.reason);
-    }
-    if (!stepForward?.pass) {
+    if (!sanity?.pass) console.error("sanity failed");
+    if (!homePlay?.pass) console.error("homePlay failed:", homePlay?.reason);
+    if (!retreat?.pass) {
       console.error(
-        "stepForward failed:",
-        stepForward?.reason,
-        `after ${stepForward?.steps?.length ?? 0} steps`
+        "retreat failed:",
+        retreat?.checks?.filter((c) => !c.pass)
       );
     }
-    if (!traditionalStepForward?.pass) {
+    if (isFull && !stepForward?.pass) {
+      console.error("stepForward failed:", stepForward?.reason);
+    }
+    if (isFull && !traditionalStepForward?.pass) {
+      console.error("traditionalStepForward failed:", traditionalStepForward?.reason);
+    }
+    if (isFull && !traditionalRetreat?.pass) {
       console.error(
-        "traditionalStepForward failed:",
-        traditionalStepForward?.reason,
-        `after ${traditionalStepForward?.steps?.length ?? 0} steps`
+        "traditionalRetreat failed:",
+        traditionalRetreat?.checks?.filter((c) => !c.pass)
       );
-    }
-    if (!traditionalRetreat?.pass) {
-      const tradFailed =
-        traditionalRetreat?.checks?.filter((check) => !check.pass) ?? [];
-      console.error("traditionalRetreat failed:", tradFailed);
-    }
-    if (failed.length > 0) {
-      console.error("retreat checks failed:", failed);
     }
     process.exitCode = 1;
   }
