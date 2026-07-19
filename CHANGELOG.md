@@ -17,6 +17,7 @@
 - **engine:** Recording replay restores screen/URL via shared applyStudioScreen (deep-link path)
 - **shell:** Agent overlay DONE/SITREP settle (~5s) after stop; click guard released; reload after settle; BE post-push CI sitrep doctrine
 - **engine:** Naming conventions + hard guardrails; Boots screen folders match screenId
+- **engine:** Recording v2: demo-click replay via selector chain + simulateDemoPointerClick; partial wire-intent for JourneyBeatActionId
 
 ## v0.0.1 - 190726
 

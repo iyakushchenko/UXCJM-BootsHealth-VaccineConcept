@@ -21,16 +21,14 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 | Work | Why | Status |
 |------|-----|--------|
-| Domain CSS + `data-studio-*` (PANEL/chrome + attrs) | Agents stop stumbling on `proto` identity | **Acting this tip** |
-| File hygiene ratchet (`check:hygiene`) | Stop monster growth; Summarizer lean pattern | **Acting this tip** |
-| Architecture / naming guardrails | Folders = Studio verbs; no new `.proto-*` | **Acting this tip** |
+| Recording v2 demo-click vertical | Selector chain → `simulateDemoPointerClick`; book CTAs stable | **Acting this tip** |
 | Versioning habit | `npm run notes:append` on user-visible ships | Habit — every ship |
 
 ### NEXT
 
 | Work | Why |
 |------|-----|
-| Recording v2 (demo-click / wire-intent replay) | Selector chain already stored; make replay boringly reliable |
+| Recording v2 gaps (human REC clicks, script / retreat-sync matrix) | Finish fidelity before compile→journeys |
 | LEGACY retirement by screen | No LEGACY growth; shrink `globals-screens` + Make wire as React pages land |
 | Concept `.proto-*` class debt | Boots wire/footer/chat/avail cards still `.proto-*` in LEGACY — retire with page migrate |
 | Engine monster splits | `App.tsx` / `useJourneyPlayback.ts` — extract by domain when next touched |
@@ -55,9 +53,9 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 Shareable `?project=&screen=`; URL wins on refresh; strip `proof` / ephemeral. Optional beat query later.
 
-### 2. Recording fidelity — PARTIAL → v2 NEXT
+### 2. Recording fidelity — v2 PARTIAL
 
-`kind: "screen"` + `applyStudioScreen` replay landed. Demo-click / wire-intent = v2. Compile→journeys only after transport replay is boring.
+`kind: "screen"` + `applyStudioScreen` landed. **Demo-click replay** landed (`resolvePlaybackSelectorChain` → `simulateDemoPointerClick`). Wire-intent for known `JourneyBeatActionId` only; `retreat-sync` / director scripts / human REC clicks still open. Compile→journeys only after that matrix is boring.
 
 ### 3. Interaction fidelity — ONGOING
 
@@ -129,9 +127,9 @@ Documented handshake; do not build a second studio inside Summarizer.
 
 1. URL + overlay + clean bar — landed  
 2. Recording screen markers → replay — landed  
-3. Domain CSS/attrs + hygiene — **this tip**  
-4. Finish Boots book React + fidelity debt (parallel)  
-5. Recording v2  
+3. Domain CSS/attrs + hygiene — landed  
+4. Recording v2 demo-click vertical — **this tip**  
+5. Recording v2 gaps + Boots fidelity debt (parallel)  
 6. LEGACY shrink by screen + UXDS extract-on-second-use  
 7. Second project rabbit  
 8. Release CI + broader CSS contracts  

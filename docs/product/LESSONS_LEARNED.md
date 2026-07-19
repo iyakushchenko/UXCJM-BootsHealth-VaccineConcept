@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Recording
+
+- **Demo-click replay needs stable targets** — prefer `data-studio-action` on the click element; stop the selector chain there. Ancestor `data-name` noise (progress "Step N", breadcrumbs) breaks nested resolve.
+- **Replay ≠ screen advance** — re-firing Continue proves interaction parity even when product logic opens a picker (no location yet). Do not require step navigation for a demo-click PROVE.
+- **Wire-intent is not retreat-sync** — `retreat-sync` is a diagnostic marker; only known `JourneyBeatActionId` values go through `runBeatAction`.
+
 ### Domain identity
 
 - **No new `.proto-*` / `data-proto-*`.** PANEL/chrome classes are `.studio-nav-*` / `.studio-*`; DOM attrs are `data-studio-*` (`dataset.studio*`). Prefer `__studio*` window APIs; keep `__proto*` aliases. Concept Make leftovers may stay `.proto-*` in LEGACY until that screen retires — do not invent new ones. Gate: [NAMING.md](./NAMING.md) + Nazi QA light after chrome class renames.

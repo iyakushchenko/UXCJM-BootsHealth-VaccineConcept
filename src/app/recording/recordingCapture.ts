@@ -27,6 +27,13 @@ export function getRecordingSnapshot(): RecordingSnapshot | undefined {
 
 /** Build a selector chain from demo-click target for future replay. */
 export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
+  // Prefer a unique studio action on the click target — ignore noisy ancestors
+  // (progress "Step N", breadcrumbs) that break nested resolve.
+  const selfAction = el.getAttribute("data-studio-action");
+  if (selfAction) {
+    return [`[data-studio-action="${selfAction}"]`];
+  }
+
   const chain: string[] = [];
   let node: HTMLElement | null = el;
 
@@ -51,6 +58,53 @@ export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
   }
 
   return [...new Set(chain)];
+}
+
+type PlaybackSelectorRoot = Pick<ParentNode, "querySelector" | "querySelectorAll">;
+
+/**
+ * Resolve a stored demo-click selector chain to a live element.
+ * Prefers outer→inner nested matches (how the chain was built), then
+ * most-specific unique fallback.
+ */
+export function resolvePlaybackSelectorChain(
+  chain: string[] | undefined,
+  root: PlaybackSelectorRoot
+): HTMLElement | null {
+  if (!chain?.length) return null;
+
+  let scope: PlaybackSelectorRoot = root;
+  let nested: HTMLElement | null = null;
+  let nestedOk = true;
+  for (const sel of chain) {
+    let el: HTMLElement | null = null;
+    try {
+      el = scope.querySelector(sel);
+    } catch {
+      nestedOk = false;
+      break;
+    }
+    if (!el) {
+      nestedOk = false;
+      break;
+    }
+    nested = el;
+    scope = el;
+  }
+  if (nestedOk && nested) return nested;
+
+  for (let i = chain.length - 1; i >= 0; i -= 1) {
+    const sel = chain[i];
+    let matches: NodeListOf<HTMLElement> | HTMLElement[];
+    try {
+      matches = root.querySelectorAll(sel);
+    } catch {
+      continue;
+    }
+    if (matches.length === 1) return matches[0] ?? null;
+  }
+
+  return null;
 }
 
 export function captureRecordingEvent(

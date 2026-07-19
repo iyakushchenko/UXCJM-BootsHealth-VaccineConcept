@@ -302,6 +302,7 @@ export function BookStep1LocationScreen({
             <div className="book-step-1__cta-wrap">
               <ButtonPrimary
                 className="book-step-1__continue uxds-btn-primary--commerce"
+                data-studio-action="book-step-1-continue"
                 onClick={onContinue}
               >
                 Continue

@@ -4,6 +4,8 @@ export type ButtonPrimaryProps = {
   children: ReactNode;
   className?: string;
   "data-name"?: string;
+  /** Stable recording / playback target (preferred over data-name alone). */
+  "data-studio-action"?: string;
 } & Pick<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "onClick" | "type" | "disabled" | "aria-label"
@@ -19,6 +21,7 @@ export function ButtonPrimary({
   children,
   className,
   "data-name": dataName = "component.input.button",
+  "data-studio-action": dataStudioAction,
   type = "button",
   ...rest
 }: ButtonPrimaryProps) {
@@ -27,6 +30,9 @@ export function ButtonPrimary({
       type={type}
       className={`uxds-btn-primary${className ? ` ${className}` : ""}`}
       data-name={dataName}
+      {...(dataStudioAction
+        ? { "data-studio-action": dataStudioAction }
+        : {})}
       {...rest}
     >
       {children}

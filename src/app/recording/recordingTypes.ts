@@ -164,6 +164,18 @@ export type RecordingScreenApplyInput = {
   studioUrl?: string;
 };
 
+export type RecordingDemoClickApplyInput = {
+  element: string;
+  selectorChain?: string[];
+  beatId?: string;
+  touchpointKey?: string;
+};
+
+export type RecordingWireIntentApplyInput = {
+  intentId: JourneyBeatActionId | string;
+  payload?: Record<string, unknown>;
+};
+
 export type RecordingReplayOptions = {
   triggerTransport?: (action: ManualTransportAction) => void | Promise<void>;
   /**
@@ -173,12 +185,22 @@ export type RecordingReplayOptions = {
   applyScreen?: (
     event: RecordingScreenApplyInput
   ) => boolean | void | Promise<boolean | void>;
-  /** Delay between transport / screen events (ms). Default 400. */
+  /**
+   * v2 — re-fire demo-clicks (resolve selectorChain → simulateDemoPointerClick).
+   * When omitted, demo-click events count as unsupported.
+   */
+  applyDemoClick?: (
+    event: RecordingDemoClickApplyInput
+  ) => boolean | void | Promise<boolean | void>;
+  /**
+   * v2 — dispatch wire intents (project `runBeatAction` for known beat actions).
+   * When omitted, wire-intent events count as unsupported.
+   */
+  applyWireIntent?: (
+    event: RecordingWireIntentApplyInput
+  ) => boolean | void | Promise<boolean | void>;
+  /** Delay between transport / screen / demo-click events (ms). Default 400. */
   stepDelayMs?: number;
-  /** v2 — replay demo clicks via simulateDemoPointerClick. */
-  replayDemoClicks?: boolean;
-  /** v2 — replay wire intents via runBeatAction. */
-  replayWireIntents?: boolean;
   shouldAbort?: () => boolean;
 };
 

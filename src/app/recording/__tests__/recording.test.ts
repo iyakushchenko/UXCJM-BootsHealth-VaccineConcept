@@ -20,10 +20,49 @@ import {
   replayRecordingSession,
 } from "@/app/recording/recordingReplay";
 import {
+  buildPlaybackSelectorChain,
   notifyRecordingFromInteraction,
   resetRecordingCaptureForTests,
+  resolvePlaybackSelectorChain,
 } from "@/app/recording/recordingCapture";
 import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
+
+type FakeEl = {
+  attrs: Record<string, string>;
+  children: FakeEl[];
+  matches: (sel: string) => boolean;
+  querySelector: (sel: string) => FakeEl | null;
+  querySelectorAll: (sel: string) => FakeEl[];
+};
+
+function fakeEl(attrs: Record<string, string>, children: FakeEl[] = []): FakeEl {
+  const node: FakeEl = {
+    attrs,
+    children,
+    matches(sel: string) {
+      const m = /^\[([^=]+)="([^"]+)"\]$/.exec(sel);
+      if (!m) return false;
+      return node.attrs[m[1]!] === m[2];
+    },
+    querySelector(sel: string) {
+      if (node.matches(sel)) return node;
+      for (const child of node.children) {
+        const found = child.querySelector(sel);
+        if (found) return found;
+      }
+      return null;
+    },
+    querySelectorAll(sel: string) {
+      const out: FakeEl[] = [];
+      if (node.matches(sel)) out.push(node);
+      for (const child of node.children) {
+        out.push(...child.querySelectorAll(sel));
+      }
+      return out;
+    },
+  };
+  return node;
+}
 
 function sampleSession(): RecordingSession {
   return {
@@ -306,5 +345,182 @@ describe("replayRecordingSession", () => {
 
     expect(result.replayed).toBe(1);
     expect(result.unsupported).toBe(1);
+  });
+
+  it("replays demo-click events via applyDemoClick in order", async () => {
+    const applyDemoClick = vi.fn(() => true);
+    const session: RecordingSession = {
+      id: "demo-click-replay",
+      version: 1,
+      startedAt: "2026-07-19T00:00:00.000Z",
+      events: [
+        {
+          kind: "screen",
+          screenId: "book-step-1",
+          projectId: "boots-pharmacy",
+          atMs: 1,
+        },
+        {
+          kind: "demo-click",
+          element: 'data-studio-action="book-step-1-continue"',
+          selectorChain: ['[data-studio-action="book-step-1-continue"]'],
+          atMs: 2,
+        },
+        {
+          kind: "demo-click",
+          element: 'data-studio-action="book-step-2-reserve"',
+          selectorChain: ['[data-studio-action="book-step-2-reserve"]'],
+          atMs: 3,
+        },
+      ],
+    };
+
+    const result = await replayRecordingSession(session, {
+      applyScreen: vi.fn(() => true),
+      applyDemoClick,
+      stepDelayMs: 0,
+    });
+
+    expect(applyDemoClick).toHaveBeenCalledTimes(2);
+    expect(applyDemoClick.mock.calls.map((c) => c[0].selectorChain?.[0])).toEqual([
+      '[data-studio-action="book-step-1-continue"]',
+      '[data-studio-action="book-step-2-reserve"]',
+    ]);
+    expect(result.replayed).toBe(3);
+    expect(result.unsupported).toBe(0);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("skips demo-click when applyDemoClick returns false", async () => {
+    const result = await replayRecordingSession(
+      {
+        id: "demo-miss",
+        version: 1,
+        startedAt: "2026-07-19T00:00:00.000Z",
+        events: [
+          {
+            kind: "demo-click",
+            element: "missing",
+            selectorChain: ['[data-studio-action="missing"]'],
+            atMs: 1,
+          },
+        ],
+      },
+      {
+        applyDemoClick: vi.fn(() => false),
+        stepDelayMs: 0,
+      }
+    );
+
+    expect(result.replayed).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(result.errors[0]).toMatch(/demo-click/);
+  });
+
+  it("replays wire-intent beat actions and skips retreat-sync when apply returns false", async () => {
+    const applyWireIntent = vi.fn((event: { intentId: string }) => {
+      if (event.intentId === "retreat-sync") return false;
+      return event.intentId === "apply-demo-location";
+    });
+
+    const result = await replayRecordingSession(
+      {
+        id: "wire-replay",
+        version: 1,
+        startedAt: "2026-07-19T00:00:00.000Z",
+        events: [
+          {
+            kind: "wire-intent",
+            intentId: "apply-demo-location",
+            atMs: 1,
+          },
+          {
+            kind: "wire-intent",
+            intentId: "retreat-sync",
+            payload: { beatId: "book-step2" },
+            atMs: 2,
+          },
+        ],
+      },
+      {
+        applyWireIntent,
+        stepDelayMs: 0,
+      }
+    );
+
+    expect(applyWireIntent).toHaveBeenCalledTimes(2);
+    expect(result.replayed).toBe(1);
+    expect(result.skipped).toBe(1);
+    expect(result.errors.some((e) => e.includes("retreat-sync"))).toBe(true);
+  });
+});
+
+describe("buildPlaybackSelectorChain", () => {
+  it("stops at data-studio-action on the click target", () => {
+    const btn = {
+      getAttribute: (name: string) =>
+        name === "data-studio-action" ? "book-step-1-continue" : null,
+      parentElement: {
+        getAttribute: () => "Step 4",
+        parentElement: null,
+        tagName: "DIV",
+        id: "",
+      },
+      tagName: "BUTTON",
+      id: "",
+    } as unknown as HTMLElement;
+
+    expect(buildPlaybackSelectorChain(btn)).toEqual([
+      '[data-studio-action="book-step-1-continue"]',
+    ]);
+  });
+});
+
+describe("resolvePlaybackSelectorChain", () => {
+  it("resolves nested outer→inner chains", () => {
+    const continueBtn = fakeEl({
+      "data-studio-action": "book-step-1-continue",
+      "data-name": "component.input.button",
+    });
+    const body = fakeEl({ "data-name": "body" }, [continueBtn]);
+    const root = fakeEl({}, [body]);
+
+    const found = resolvePlaybackSelectorChain(
+      [
+        '[data-name="body"]',
+        '[data-studio-action="book-step-1-continue"]',
+      ],
+      root as unknown as ParentNode
+    );
+
+    expect(found).toBe(continueBtn);
+  });
+
+  it("falls back to most-specific unique match", () => {
+    const continueBtn = fakeEl({
+      "data-studio-action": "book-step-1-continue",
+    });
+    const root = fakeEl({}, [continueBtn]);
+
+    const found = resolvePlaybackSelectorChain(
+      [
+        '[data-name="missing-ancestor"]',
+        '[data-studio-action="book-step-1-continue"]',
+      ],
+      root as unknown as ParentNode
+    );
+
+    expect(found).toBe(continueBtn);
+  });
+
+  it("returns null when chain is empty or unmatched", () => {
+    const root = fakeEl({}, []);
+    expect(resolvePlaybackSelectorChain(undefined, root as unknown as ParentNode)).toBeNull();
+    expect(
+      resolvePlaybackSelectorChain(
+        ['[data-studio-action="nope"]'],
+        root as unknown as ParentNode
+      )
+    ).toBeNull();
   });
 });

@@ -280,12 +280,14 @@ export function BookStep3ConfirmationScreen({
               <div className="book-step-3__cta-row">
                 <ButtonPrimary
                   className="book-step-3__cta uxds-btn-primary--commerce"
+                  data-studio-action="book-step-3-explore-more"
                   onClick={onExploreMore}
                 >
                   Explore more vaccinations
                 </ButtonPrimary>
                 <ButtonPrimary
                   className="book-step-3__cta uxds-btn-primary--commerce"
+                  data-studio-action="book-step-3-add-calendar"
                   type="button"
                 >
                   Add to Google Calendar

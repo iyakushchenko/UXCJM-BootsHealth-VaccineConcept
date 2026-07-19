@@ -333,6 +333,7 @@ export function BookStep2DateTimeScreen({
               <div className="book-step-2__cta-wrap">
                 <ButtonPrimary
                   className="book-step-2__reserve uxds-btn-primary--commerce"
+                  data-studio-action="book-step-2-reserve"
                   onClick={onReserve}
                 >
                   Reserve Appointment

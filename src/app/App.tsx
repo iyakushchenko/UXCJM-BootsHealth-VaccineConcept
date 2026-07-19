@@ -31,7 +31,12 @@ import {
   resolveBeatIndexForScreenTab,
   resolveJourneyStartBeat,
 } from "@/app/orchestra/journeyUtils";
-import type { JourneyRuntime, JourneyDefinition, OrchestraModeId } from "@/app/orchestra/types";
+import type {
+  JourneyBeatActionId,
+  JourneyRuntime,
+  JourneyDefinition,
+  OrchestraModeId,
+} from "@/app/orchestra/types";
 import type { PersonaId, ProjectId, ProjectWireApi } from "@/projects/types";
 import {
   cancelDemoCursorJourneyEndFade,
@@ -40,6 +45,7 @@ import {
   reviveDemoCursorAfterJourneyEndRetreat,
   scheduleDemoCursorJourneyEndFade,
   setDemoCursorJourneyMode,
+  simulateDemoPointerClick,
 } from "@/app/scenario/demoCursor";
 import { cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
 import { useJourneyPlayback } from "@/app/orchestra/useJourneyPlayback";
@@ -76,6 +82,7 @@ import { registerStudioMcpHelpers } from "@/app/shell/studioMcpHelpers";
 import {
   captureTouchpointChange,
   registerRecordingSnapshotProvider,
+  resolvePlaybackSelectorChain,
 } from "@/app/recording/recordingCapture";
 import { registerRecordingMcpHelpers } from "@/app/recording/recordingMcpHelpers";
 import { replayRecordingSession } from "@/app/recording/recordingReplay";
@@ -131,6 +138,17 @@ import {
 } from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
 import { isHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/headerMount";
 import { AVAIL_INTENT } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
+
+const JOURNEY_BEAT_ACTION_IDS = new Set<JourneyBeatActionId>([
+  "open-availability-start",
+  "open-availability-date-chat",
+  "close-availability",
+  "apply-demo-location",
+]);
+
+function isJourneyBeatActionId(id: string): id is JourneyBeatActionId {
+  return JOURNEY_BEAT_ACTION_IDS.has(id as JourneyBeatActionId);
+}
 
 const CHAT_SCREEN_SELECTOR = ".studio-viewport > div > div:nth-child(10)";
 
@@ -1382,16 +1400,65 @@ export default function App() {
     [setOrchestraModeId, setStudioPersonaId, setStudioProjectId]
   );
 
+  const applyRecordingDemoClick = useCallback(
+    async (event: {
+      element: string;
+      selectorChain?: string[];
+      beatId?: string;
+      touchpointKey?: string;
+    }) => {
+      const target = resolvePlaybackSelectorChain(event.selectorChain, document);
+      if (!target) return false;
+      const clicked = await simulateDemoPointerClick(target, { scroll: false });
+      return clicked;
+    },
+    []
+  );
+
+  const journeyRuntimeRef = useRef(journeyRuntime);
+  journeyRuntimeRef.current = journeyRuntime;
+  const projectPlaybackRef = useRef(projectPlayback);
+  projectPlaybackRef.current = projectPlayback;
+
+  const applyRecordingWireIntent = useCallback(
+    (event: { intentId: string; payload?: Record<string, unknown> }) => {
+      // retreat-sync is a diagnostic marker, not a beat action — skip honestly.
+      if (event.intentId === "retreat-sync") return false;
+      if (!isJourneyBeatActionId(event.intentId)) return false;
+      projectPlaybackRef.current.runBeatAction(
+        event.intentId,
+        journeyRuntimeRef.current
+      );
+      return true;
+    },
+    []
+  );
+
+  const replayRecordingOptions = useCallback(
+    () => ({
+      triggerTransport: triggerRecordingTransport,
+      applyScreen: applyRecordingScreen,
+      applyDemoClick: applyRecordingDemoClick,
+      applyWireIntent: applyRecordingWireIntent,
+      stepDelayMs: 200,
+    }),
+    [
+      applyRecordingDemoClick,
+      applyRecordingScreen,
+      applyRecordingWireIntent,
+      triggerRecordingTransport,
+    ]
+  );
+
   useEffect(() => {
     return registerRecordingMcpHelpers({
       getDefaultStartOptions: () => ({
         ...getRecordingStartOptions(),
         metadata: { recordedFrom: "mcp" },
       }),
-      triggerTransport: triggerRecordingTransport,
-      applyScreen: applyRecordingScreen,
+      ...replayRecordingOptions(),
     });
-  }, [applyRecordingScreen, getRecordingStartOptions, triggerRecordingTransport]);
+  }, [getRecordingStartOptions, replayRecordingOptions]);
 
   useEffect(() => {
     return registerJourneyMcpHelpers({
@@ -1685,11 +1752,7 @@ export default function App() {
                 <StudioNavRecordingControls
                   getStartOptions={getRecordingStartOptions}
                   onReplay={(session) =>
-                    replayRecordingSession(session, {
-                      triggerTransport: triggerRecordingTransport,
-                      applyScreen: applyRecordingScreen,
-                      stepDelayMs: 200,
-                    })
+                    replayRecordingSession(session, replayRecordingOptions())
                   }
                 />
               }
@@ -1701,11 +1764,7 @@ export default function App() {
                 getStartOptions={getRecordingStartOptions}
                 recModeLocked={navTransportLocked}
                 onReplay={(session) =>
-                  replayRecordingSession(session, {
-                    triggerTransport: triggerRecordingTransport,
-                    applyScreen: applyRecordingScreen,
-                    stepDelayMs: 200,
-                  })
+                  replayRecordingSession(session, replayRecordingOptions())
                 }
               />
             </div>

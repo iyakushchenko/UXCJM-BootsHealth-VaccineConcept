@@ -9,6 +9,8 @@ import type {
 
 const TRANSPORT_KIND = "transport" as const;
 const SCREEN_KIND = "screen" as const;
+const DEMO_CLICK_KIND = "demo-click" as const;
+const WIRE_INTENT_KIND = "wire-intent" as const;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -64,8 +66,8 @@ export function compileRecordingToBeatTimeline(
 }
 
 /**
- * v1.1 replays transport + screen (deep-link restore) + dwell.
- * demo-click, wire-intent, scroll, director-script — counted as unsupported.
+ * v2 replays transport + screen + dwell + demo-click + wire-intent (when wired).
+ * scroll, director-script, beat-enter, studio, touchpoint — counted as unsupported.
  */
 export async function replayRecordingSession(
   session: RecordingSession,
@@ -80,8 +82,12 @@ export async function replayRecordingSession(
 
   const trigger = options.triggerTransport;
   const applyScreen = options.applyScreen;
-  if (!trigger && !applyScreen) {
-    result.errors.push("triggerTransport or applyScreen is required for replay");
+  const applyDemoClick = options.applyDemoClick;
+  const applyWireIntent = options.applyWireIntent;
+  if (!trigger && !applyScreen && !applyDemoClick && !applyWireIntent) {
+    result.errors.push(
+      "triggerTransport, applyScreen, applyDemoClick, or applyWireIntent is required for replay"
+    );
     return result;
   }
 
@@ -148,21 +154,63 @@ export async function replayRecordingSession(
       continue;
     }
 
-    if (
-      event.kind === "demo-click" &&
-      options.replayDemoClicks
-    ) {
-      // v2 — resolve selectorChain and call simulateDemoPointerClick
-      result.unsupported += 1;
+    if (event.kind === DEMO_CLICK_KIND) {
+      if (!applyDemoClick) {
+        result.unsupported += 1;
+        continue;
+      }
+      try {
+        const applied = await applyDemoClick({
+          element: event.element,
+          selectorChain: event.selectorChain,
+          beatId: event.beatId,
+          touchpointKey: event.touchpointKey,
+        });
+        if (applied === false) {
+          result.skipped += 1;
+          result.errors.push(
+            `demo-click ${event.element}: target not found or click failed`
+          );
+          continue;
+        }
+        result.replayed += 1;
+        if (stepDelayMs > 0) {
+          await delay(stepDelayMs);
+        }
+      } catch (err) {
+        result.errors.push(
+          `demo-click ${event.element}: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
       continue;
     }
 
-    if (
-      event.kind === "wire-intent" &&
-      options.replayWireIntents
-    ) {
-      // v2 — dispatch via project playback.runBeatAction
-      result.unsupported += 1;
+    if (event.kind === WIRE_INTENT_KIND) {
+      if (!applyWireIntent) {
+        result.unsupported += 1;
+        continue;
+      }
+      try {
+        const applied = await applyWireIntent({
+          intentId: event.intentId,
+          payload: event.payload,
+        });
+        if (applied === false) {
+          result.skipped += 1;
+          result.errors.push(
+            `wire-intent ${event.intentId}: apply returned false`
+          );
+          continue;
+        }
+        result.replayed += 1;
+        if (stepDelayMs > 0) {
+          await delay(stepDelayMs);
+        }
+      } catch (err) {
+        result.errors.push(
+          `wire-intent ${event.intentId}: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
       continue;
     }
 
@@ -179,6 +227,8 @@ export function summarizeRecordingSession(session: RecordingSession): {
   touchpointCount: number;
   transportCount: number;
   screenCount: number;
+  demoClickCount: number;
+  wireIntentCount: number;
   durationMs: number | null;
 } {
   const byKind: Record<string, number> = {};
@@ -197,6 +247,8 @@ export function summarizeRecordingSession(session: RecordingSession): {
     touchpointCount: byKind.touchpoint ?? 0,
     transportCount: byKind.transport ?? 0,
     screenCount: byKind.screen ?? 0,
+    demoClickCount: byKind["demo-click"] ?? 0,
+    wireIntentCount: byKind["wire-intent"] ?? 0,
     durationMs,
   };
 }
