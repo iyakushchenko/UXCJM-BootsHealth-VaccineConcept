@@ -6,6 +6,7 @@ import {
   CONTROL_ROOM_TAP_MS,
   flashControlRoomButton,
 } from "@/app/nav/protoControlRoomTap";
+import { ProtoNavRecordingStepCounter } from "@/app/nav/ProtoNavRecordingControls";
 import {
   isRecordingActive,
   pauseRecording,
@@ -428,9 +429,7 @@ export function ProtoNavScenarioControls({
       <div className="proto-nav-scenario__deck">
         {recordingControls ? (
           <span className="proto-nav-scenario__mode-control">
-            <span className="proto-nav-scenario__mode-label" aria-hidden>
-              REC
-            </span>
+            <ProtoNavRecordingStepCounter />
             <ProtoStudioPlaybackRecSwitch
               checked={recMode}
               onChange={handlePlaybackRecModeChange}

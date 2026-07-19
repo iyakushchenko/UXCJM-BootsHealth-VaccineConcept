@@ -77,6 +77,40 @@ function useRecordingUiSnapshot(): RecordingUiSnapshot {
   );
 }
 
+/** Live / last-session event count — same type chrome as playback STEPS. */
+export function formatRecordingStepCounter(eventCount: number): string {
+  return `STEPS: ${eventCount}`;
+}
+
+/** Session event counter for the Playback|Rec mode-control slot (replaces grey REC label). */
+export function ProtoNavRecordingStepCounter() {
+  const ui = useRecordingUiSnapshot();
+  const label = formatRecordingStepCounter(ui.eventCount);
+  const stateClass = ui.isRecording
+    ? " proto-nav-scenario__counter--recording-live"
+    : ui.isPaused
+      ? " proto-nav-scenario__counter--recording-paused"
+      : "";
+  return (
+    <span
+      className={`proto-nav-scenario__counter proto-nav-scenario__counter--recording${stateClass}`}
+      aria-live="polite"
+      aria-label={`Recorded steps: ${ui.eventCount}`}
+      title={
+        ui.isRecording
+          ? `Recording · ${ui.eventCount} events`
+          : ui.isPaused
+            ? `Paused · ${ui.eventCount} events`
+            : ui.canReplay || ui.canExport
+              ? `Last session · ${ui.eventCount} events`
+              : "No recorded steps yet"
+      }
+    >
+      {label}
+    </span>
+  );
+}
+
 function RecDotIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
@@ -170,9 +204,7 @@ export function ProtoNavRecordingModeSlot({
   return (
     <div className="proto-nav-scenario__deck">
       <span className="proto-nav-scenario__mode-control">
-        <span className="proto-nav-scenario__mode-label" aria-hidden>
-          REC
-        </span>
+        <ProtoNavRecordingStepCounter />
         <ProtoStudioPlaybackRecSwitch
           checked={recMode}
           onChange={(enabled) => {
@@ -235,7 +267,6 @@ export function ProtoNavRecordingControls({
         recordedFrom: "ui",
       },
     });
-    setStatusNote("REC");
   };
 
   const handlePauseResume = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -243,7 +274,6 @@ export function ProtoNavRecordingControls({
     if (ui.isPaused) {
       logControlPanel("recording:resume", { eventCount: ui.eventCount });
       resumeRecording();
-      setStatusNote("REC");
       return;
     }
     logControlPanel("recording:pause", { eventCount: ui.eventCount });
@@ -323,28 +353,11 @@ export function ProtoNavRecordingControls({
 
   return (
     <span className={panelClass} role="group" aria-label="Journey recording">
-      <span
-        className="proto-nav-recording__label"
-        aria-live="polite"
-        title={
-          ui.isRecording
-            ? `Recording · ${ui.eventCount} events`
-            : ui.isPaused
-              ? `Paused · ${ui.eventCount} events`
-              : ui.canReplay
-                ? `Ready · ${ui.eventCount} events`
-                : "Recording idle"
-        }
-      >
-        {statusNote ??
-          (ui.isRecording
-            ? "REC"
-            : ui.isPaused
-              ? "PAUSE"
-              : ui.canReplay
-                ? "READY"
-                : "REC")}
-      </span>
+      {statusNote ? (
+        <span className="proto-nav-recording__label" aria-live="polite">
+          {statusNote}
+        </span>
+      ) : null}
       <button
         type="button"
         className="proto-nav-step-btn proto-nav-scenario__btn"

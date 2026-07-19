@@ -287,7 +287,7 @@
   white-space: nowrap;
 }
 
-/* Mode labels (REC / CJM) — match STEPS counter type */
+/* Mode labels (CJM) — match STEPS counter type */
 .proto-nav-scenario__mode-label {
   font-size: 9px;
   font-weight: 600;
@@ -306,6 +306,21 @@
   gap: 3px;
   flex-shrink: 0;
   margin-right: 2px;
+}
+
+/* Recorded-session STEPS beside Playback|Rec switch (not the grey REC word) */
+.proto-nav-scenario__mode-control .proto-nav-scenario__counter--recording {
+  min-width: 3.5rem;
+  margin-right: 0;
+  text-align: right;
+}
+
+.proto-nav-scenario__counter--recording-live {
+  color: #ffb4b4;
+}
+
+.proto-nav-scenario__counter--recording-paused {
+  color: #ead9ad;
 }
 
 /* CJM toggle between pipe separators — same bar as zoom delimiters */

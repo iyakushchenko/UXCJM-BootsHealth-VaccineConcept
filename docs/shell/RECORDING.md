@@ -55,7 +55,7 @@ Cassette deck mode toggles (labels match STEPS type; pipe bars match zoom delimi
 
 | Control | Chrome | Behavior |
 |---------|--------|----------|
-| **REC** | `REC` label + blue/red switch | Playback XOR recording panel |
+| **REC** | `STEPS: N` (session events) + blue/red switch | Playback XOR recording panel; count live from `protoRecordingSession` |
 | **CJM** | `\| CJM [switch] \|` pipes + amber when on | Journey mode (browse vs cassette transport) |
 
 **Playback | Rec** (mutually exclusive panels):
