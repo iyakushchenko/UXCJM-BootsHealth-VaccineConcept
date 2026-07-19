@@ -17,7 +17,7 @@
 4. **Handoff verification (parent / coordinator):** Treat subagent “done/success” as **BAD until proven**. Verify critical UX/logic (nav chrome, mode switches, counters, panel XOR, migrated page L&F/behavior) via the actual JSX/CSS gate or localhost before telling the PO it’s fine. Assume regressions and label collisions (e.g. duplicate STEPS). Subagents build; **you** own integration quality — reopen/fix handoffs that smell wrong.  
    → [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §6
 
-5. **Strict FE / UI / UX audit — “Nazi QA” (mandatory before accepting any UI handoff):** After any UI-facing subagent ship, **spawn a separate strict interface audit agent** (or perform it yourself) per [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) + [VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) + [FE_STANDARDS.md](docs/product/FE_STANDARDS.md) + [DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md). Implementer “done” and **“tests passed” alone are BAD** — **cannot skip** the audit for green tests/build/smoke. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, lost L&F. Write the result under `docs/product/audits/` (**PROVEN** or **FAIL**). Master does **not** green-light the PO until **PROVEN**.  
+5. **Strict FE / UI / UX audit — “Nazi QA” (mandatory before accepting any UI handoff):** After any UI-facing subagent ship, **spawn a separate strict interface audit agent** (or perform it yourself) per [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) + [VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) + [FE_STANDARDS.md](docs/product/FE_STANDARDS.md) + [DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md). Implementer “done” and **“tests passed” alone are BAD** — **cannot skip** the audit for green tests/build/smoke. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, lost L&F. Write the result under `docs/projects/<project-id>/audits/` (**PROVEN** or **FAIL**; Boots: `docs/projects/boots-pharmacy/audits/`). Master does **not** green-light the PO until **PROVEN**.  
    → [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §7
 
 Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first reference project (test rabbit).
@@ -70,7 +70,10 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 | **Projects** | `src/projects/` | Per-concept packages (React + UXDS target) |
 | **Boots (reference)** | `src/projects/boots-pharmacy/` | First rabbit — Make bootstrap today; UXDS React rebuild target |
 | **Journey data** | `data/journeys/` | Exported `journey.json` bundles |
-| **Product docs** | `docs/product/` | Vision, PO brief, page contract, UXDS access |
+| **Product docs** | `docs/product/` | Engine doctrine, vision, FE standards, templates |
+| **Project docs** | `docs/projects/<id>/` | Per-concept deltas, pilots, FE audits (Boots: `docs/projects/boots-pharmacy/`) |
+| **UXDS docs** | `docs/uxds/` | Variables, components, deviations |
+| **Shell docs** | `docs/shell/` | Recording, playback, projects shell |
 | **Tests** | `**/__tests__/` | Vitest |
 | **Smoke** | `scripts/proto-playwright-smoke.mjs` | CI lean + optional full profile |
 
@@ -103,6 +106,6 @@ Full transport smokes require `__protoRun*` helpers — use sparingly. Day-to-da
 - DS strictness — one pattern per role; `var(--uxds-…)`; theme remaps only; no anonymous page CSS ([DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md), [DEVIATIONS.md](docs/uxds/DEVIATIONS.md))
 - Visual fidelity + no zoo + rebuild behavior parity ([VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md))
 - Interaction fidelity before record — shared kits `src/uxds/interactions/` ([INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md))
-- After UI handoffs: strict (“Nazi QA”) FE audit **PROVEN** before PO ([FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md), doctrine §7); **cannot skip** for “tests passed”
+- After UI handoffs: strict (“Nazi QA”) FE audit **PROVEN** under `docs/projects/<id>/audits/` before PO ([FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md), doctrine §7); **cannot skip** for “tests passed”
 - Minimize scope; match existing patterns; test playback changes
 - Durable PO decisions → update `docs/product/PRODUCT_OWNER_BRIEF.md` decisions log

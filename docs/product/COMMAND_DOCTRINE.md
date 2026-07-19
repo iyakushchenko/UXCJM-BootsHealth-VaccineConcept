@@ -124,7 +124,7 @@ The PO may override with a clear product veto (“wrong priority for the busines
 3. ✅ Recording UI on the existing recording foundation (Studio REC deck + MCP).  
 4. ✅ Interaction fidelity doctrine locked — shared React/UXDS behavior library; build interactivity before expecting record ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)).  
 5. ✅ Thin UXDS code foundation — token CSS bridge (`src/uxds/`), interaction kits (accordion / disclosure / filter chip), Boots `styleguide/theme.css`, Availability Tool enrichment (mode B).  
-6. ✅ Pilot — **Book Step 1 — Location** React + UXDS (child 7). See [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md).  
+6. ✅ Pilot — **Book Step 1 — Location** React + UXDS (child 7). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
 7. ✅ **Book Step 2 — Date/Time** React + UXDS (child 4) + hotfixes (time-slot left-align; agentic browse Step 1 ≠ Home).  
 8. **Next:** **Book Step 3 — Confirmation** React + UXDS (child 3); then grow UXDS by page; journey/X-Suite seams later. Living board: [NEXT_STEPS.md](./NEXT_STEPS.md). Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
 
@@ -178,7 +178,7 @@ Assume **regressions** and **label collisions** until checked. Example: duplicat
 
 ### Doctrine (non-negotiable)
 
-Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/product/audits/` (or the template tables), not a chat claim.
+Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim.
 
 | Claim | Status until Nazi QA **PROVEN** |
 |-------|----------------------------------|
@@ -220,7 +220,7 @@ Use [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) ruthlessly, plus [VISUAL_FIDELITY.m
 
 ### Closing the loop
 
-1. Spawn or perform the **strict audit agent** → fill [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md) and store under `docs/product/audits/` with HEAD SHA.  
+1. Spawn or perform the **strict audit agent** → fill [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md) and store under `docs/projects/<project-id>/audits/` with HEAD SHA.  
 2. Overall **FAIL** → reopen / fix; do **not** tell the PO it's good.  
 3. Overall **PROVEN** → master may report to PO.  
 4. **Do not** close visual work on "tests passed" alone — ever.

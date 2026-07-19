@@ -15,7 +15,7 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 
 **Always-on Cursor rule:** [`.cursor/rules/ux-studio-director.mdc`](../.cursor/rules/ux-studio-director.mdc) · agent entry [AGENTS.md](../AGENTS.md)
 
-**Parent / tech-director agents:** subagent handoffs are **BAD until proven** — verify chrome/modes/counters/panels/migrated pages before telling the PO it’s fine ([product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) §6). After UI-facing ships, spawn/run a **strict (“Nazi QA”) FE audit** until **PROVEN** ([product/FE_UI_UX_AUDIT.md](./product/FE_UI_UX_AUDIT.md); doctrine §7) — **cannot skip** for “tests passed”; store results in [product/audits/](./product/audits/).
+**Parent / tech-director agents:** subagent handoffs are **BAD until proven** — verify chrome/modes/counters/panels/migrated pages before telling the PO it’s fine ([product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) §6). After UI-facing ships, spawn/run a **strict (“Nazi QA”) FE audit** until **PROVEN** ([product/FE_UI_UX_AUDIT.md](./product/FE_UI_UX_AUDIT.md); doctrine §7) — **cannot skip** for “tests passed”; store project FE audits in [projects/<id>/audits/](./projects/) (Boots: [projects/boots-pharmacy/audits/](./projects/boots-pharmacy/audits/); stubs index [product/audits/](./product/audits/)).
 
 ## Start here (reading order)
 
@@ -39,7 +39,8 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 18. [product/NEXT_STEPS.md](./product/NEXT_STEPS.md) — living NOW / NEXT / LATER board
 19. [uxds/README.md](./uxds/README.md) — UXDS Larkin inventory · [uxds/DEVIATIONS.md](./uxds/DEVIATIONS.md) · [uxds/TOKEN_BRIDGE.md](./uxds/TOKEN_BRIDGE.md)
 20. [product/X_SUITE_INTEGRATION.md](./product/X_SUITE_INTEGRATION.md) — Summarizer / X-Suite → Studio seam
-21. [shell/SHELL.md](./shell/SHELL.md) · [shell/PROJECTS.md](./shell/PROJECTS.md) · [shell/PLAYBACK.md](./shell/PLAYBACK.md) · [shell/RECORDING.md](./shell/RECORDING.md)
+21. [projects/boots-pharmacy/](./projects/boots-pharmacy/) — Boots design deltas, pilots, FE audits
+22. [shell/SHELL.md](./shell/SHELL.md) · [shell/PROJECTS.md](./shell/PROJECTS.md) · [shell/PLAYBACK.md](./shell/PLAYBACK.md) · [shell/RECORDING.md](./shell/RECORDING.md)
 
 Agent entry: [../AGENTS.md](../AGENTS.md)
 
@@ -53,3 +54,5 @@ Agent entry: [../AGENTS.md](../AGENTS.md)
 ## Doc ownership rule
 
 Durable decisions (doctrine, workspace, stack, sequence) are written into `docs/` **the same turn** — never only in chat.
+
+**Layout:** engine doctrine → `docs/product/`; per-concept docs → `docs/projects/<project-id>/`; UXDS inventory → `docs/uxds/`; shell → `docs/shell/`.

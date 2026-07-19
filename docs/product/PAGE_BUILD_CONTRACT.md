@@ -117,7 +117,7 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 
 **How monster CSS goes away:** screen by screen. When a Make page is rebuilt in React, its rules move into kit + co-located screen CSS; the global Make sheet shrinks for that surface. We do **not** rewrite `globals-screens.css` overnight.
 
-**Interaction states travel with the kit/screen CSS** — `:hover` / `:focus-visible` / `:active` / transitions from Make must land in the React path (not left as flat dead controls). See [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) and Book Step 1 parity table in [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md).
+**Interaction states travel with the kit/screen CSS** — `:hover` / `:focus-visible` / `:active` / transitions from Make must land in the React path (not left as flat dead controls). See [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) and Book Step 1 parity table in [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).
 
 ---
 

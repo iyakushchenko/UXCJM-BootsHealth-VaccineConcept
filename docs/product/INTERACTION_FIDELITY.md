@@ -68,7 +68,7 @@ When a Make / concept screen is rebuilt in React, **migrate every interaction th
 - Retire a behavior only when the PO explicitly asks.
 - **Also migrate hover / focus / active** from Make CSS (`:hover`, transitions, underline/fill changes) into kit CSS (`src/uxds/components/`) or co-located screen CSS — flat dead controls fail interaction fidelity even when click handlers work.
 
-Visual L&F + this parity rule: [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1. Book Step 1 checklist: [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md).
+Visual L&F + this parity rule: [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1. Book Step 1 checklist: [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).
 
 ---
 

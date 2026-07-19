@@ -29,11 +29,13 @@
 
 ## Done recently (context)
 
+- [x] **Docs layout** — Boots product docs + FE audits under `docs/projects/boots-pharmacy/`; engine doctrine stays in `docs/product/`; old paths keep stubs.
+- [x] **createRoot unmount race** — defer `root.unmount()` so book-step hosts never tear down during parent commit (tip `49e6397`).
 - [x] **GitHub Pages verify (Step 3)** — deploy `1a567be` green; Pages `data-proto-react-screen=book-step-3`; Step 2 short time rows left-aligned; Step 1 under agentic-cjm browse stays (no Home/tab1 snap); REC⊗CJM (CJM on → REC disabled); `__protoAgentTestingOverlay` start/log/stop on Pages.
 - [x] **Lessons + agent testing overlay** — [LESSONS_LEARNED.md](./LESSONS_LEARNED.md); director/checklist gates; `__protoAgentTestingOverlay` for MCP runs ([../shell/RECORDING.md](../shell/RECORDING.md)); tip `e35bf41`.
-- [x] **Book Step 3 React migration** — Confirmation Frame child **3**; Make chrome hidden; AIR `data-proto-open-appointment`; audit [FE_AUDIT_BOOK_STEP3_2026-07-19.md](./audits/FE_AUDIT_BOOK_STEP3_2026-07-19.md) **PROVEN** tip `e35bf41`.
-- [x] **Book Step 2 hotfix** — time-slot last-row left-align (CSS grid); agentic-cjm browse no longer snaps Book Step 1 → Home (`shouldNavigateBeatTabOnEnter`); tip `66e7fe0`; audit note on [FE_AUDIT_BOOK_STEP2_2026-07-19.md](./audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md).
-- [x] **Book Step 2 React migration** — Date/Time Frame child **4**; Make chrome hidden; calendar/reserve gated; audit [FE_AUDIT_BOOK_STEP2_2026-07-19.md](./audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md) **PROVEN** (`af50556` / tip `76b5f55`).
+- [x] **Book Step 3 React migration** — Confirmation Frame child **3**; Make chrome hidden; AIR `data-proto-open-appointment`; audit [FE_AUDIT_BOOK_STEP3_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP3_2026-07-19.md) **PROVEN** tip `e35bf41`.
+- [x] **Book Step 2 hotfix** — time-slot last-row left-align (CSS grid); agentic-cjm browse no longer snaps Book Step 1 → Home (`shouldNavigateBeatTabOnEnter`); tip `66e7fe0`; audit note on [FE_AUDIT_BOOK_STEP2_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md).
+- [x] **Book Step 2 React migration** — Date/Time Frame child **4**; Make chrome hidden; calendar/reserve gated; audit [FE_AUDIT_BOOK_STEP2_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md) **PROVEN** (`af50556` / tip `76b5f55`).
 - [x] **GitHub Pages verify (Step 2)** — deploy green; Pages shows `data-proto-react-screen=book-step-2` + host; MCP sanity REC⊗CJM pass on deployed build.
 - [x] **REC ⊗ CJM** — REC disabled when CJM on; XOR both ways; AIR locks both (`800ec61`). Unit + MCP sanity.
 - [x] **Slim CI** — unit + build default; Playwright smoke `workflow_dispatch` only (`009fb2b`).
@@ -62,7 +64,7 @@
 - [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)
 - [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md)
 - [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md)
-- [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)
-- [BOOTS_BOOK_STEP2_DESIGN_DELTA.md](./BOOTS_BOOK_STEP2_DESIGN_DELTA.md)
-- [BOOTS_BOOK_STEP3_DESIGN_DELTA.md](./BOOTS_BOOK_STEP3_DESIGN_DELTA.md)
+- [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md)
+- [BOOTS_BOOK_STEP2_DESIGN_DELTA.md](../projects/boots-pharmacy/BOOTS_BOOK_STEP2_DESIGN_DELTA.md)
+- [BOOTS_BOOK_STEP3_DESIGN_DELTA.md](../projects/boots-pharmacy/BOOTS_BOOK_STEP3_DESIGN_DELTA.md)
 - [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)

@@ -58,7 +58,7 @@ Retire a behavior only when the PO explicitly asks. See [INTERACTION_FIDELITY.md
 
 Minimum checklist columns: **Element | Make (value/source) | React (current) | Status (match / gap / intentional) | Fix plan**.
 
-Reference example: [BOOTS_BOOK_STEP1_DESIGN_DELTA.md](./BOOTS_BOOK_STEP1_DESIGN_DELTA.md).
+Reference example: [BOOTS_BOOK_STEP1_DESIGN_DELTA.md](../projects/boots-pharmacy/BOOTS_BOOK_STEP1_DESIGN_DELTA.md).
 
 ---
 
@@ -122,7 +122,7 @@ See [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) and Boots [styleguide/READM
 7. Brand theme remaps colors only; chrome shape/hierarchy still matches concept.  
 8. Close every **gap** row or mark **intentional** with PO rationale — do not leave silent omissions.  
 7. Migrate Make `:hover` / `:focus-visible` / `:active` (and transitions) into kit or co-located screen CSS — do not leave flat CTAs/inputs/chips.  
-8. Record Make → React status in a parity table for the pilot screen (see [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)).
+8. Record Make → React status in a parity table for the pilot screen (see [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md)).
 
 ---
 
@@ -145,4 +145,4 @@ See [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) and Boots [styleguide/READM
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)  
 - [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)  
 - [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)  
-- [BOOTS_BOOK_STEP1_DESIGN_DELTA.md](./BOOTS_BOOK_STEP1_DESIGN_DELTA.md)
+- [BOOTS_BOOK_STEP1_DESIGN_DELTA.md](../projects/boots-pharmacy/BOOTS_BOOK_STEP1_DESIGN_DELTA.md)

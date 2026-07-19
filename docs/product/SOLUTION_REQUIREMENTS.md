@@ -109,7 +109,7 @@ Standing order remains:
 1. ✅ Finish product docs commit hygiene.  
 2. ✅ **Recording UI** (engine).  
 3. ✅ Thin **token bridge + Boots styleguide + interaction kits** (`src/uxds/`, Availability Tool mode-B enrichment).  
-4. ✅ First Boots **screen** rebuilt React + UXDS — Book Step 1 Location ([BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)).  
+4. ✅ First Boots **screen** rebuilt React + UXDS — Book Step 1 Location ([BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md)).  
 5. **Next:** second screen (Book Step 2 or PLP) + grow kits by use.  
 
 If PO pastes “build this frame now,” that **overrides** and page pilot jumps the queue.

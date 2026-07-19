@@ -157,5 +157,5 @@ Unit tests, `npm run build`, and lean smoke alone **never** equal PROVEN for vis
 - [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)  
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)  
 - [templates/FE_AUDIT_RESULT.md](./templates/FE_AUDIT_RESULT.md)  
-- Results store: [audits/](./audits/)  
+- Results store: project audits under [`docs/projects/<id>/audits/`](../projects/) · index stubs [audits/](./audits/)  
 
