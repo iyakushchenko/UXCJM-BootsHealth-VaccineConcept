@@ -12,7 +12,8 @@
 
 **Locked (PO mandate, 2026-07-19) — lean UX team OS:** Serious work runs as a **self-organizing lean UX project team** with callsigns, lean artifacts, and cross-checks — not a lone coder chat. Full map: [TEAM.md](./TEAM.md).  
 **Locked (PO mandate, 2026-07-19) — team knowledge use:** Living index [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md). Before serious work, callsigns **MUST re-read** their hat section + relevant [LESSONS_LEARNED.md](./LESSONS_LEARNED.md). Team check must include **`Knowledge used:`** one-liner per role. Arch **rejects “done”** if knowledge was only appended and not applied. After ships: **Knowledge improved** sitrep ([TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) template).  
-**Locked (PO mandate, 2026-07-19) — PAGE FINAL PASS sequencing:** **No new migrated page** until the **previous** page is **PAGE FINAL PASS hard-green**. Contract + check: [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) (`npm run check:page-final-pass` — Finn/Uma own checklist + script; Arch enforces sequencing). Parallel callsigns still required. Does **not** waive **`Knowledge used:`** on team check.
+**Locked (PO mandate, 2026-07-19) — PAGE FINAL PASS sequencing:** **No new migrated page** until the **previous** page is **PAGE FINAL PASS hard-green**. Contract + check: [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) (`npm run check:page-final-pass` — Finn/Uma own checklist + script; Arch enforces sequencing). Parallel callsigns still required. Does **not** waive **`Knowledge used:`** on team check.  
+**Locked (PO mandate, 2026-07-19) — Reflex:** After each page hits **PAGE FINAL PASS HARD-GREEN**, **Arch (Director)** runs a **micro-retro** (Pain / Worked / Keep) and folds keep actions into [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) **before** opening the next migrated page. Full map: [TEAM.md](./TEAM.md) § Reflex · example [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md).
 
 | Callsign | Hat | Owns |
 |----------|-----|------|
@@ -36,7 +37,8 @@ For any more-or-less serious change (chrome, URL, REC, page behavior, CI gates):
 3. **Build + cross-check** — Finn / Uma / Quinn as siblings when slices are independent; Quinn↔Finn and Uma↔Bea before “done”.  
 4. **Pax** — accept bump / notes / push when user-visible (human PO overrides).  
 5. **Board + gates** — Arch synthesizes, assigns blockers, updates [NEXT_STEPS.md](./NEXT_STEPS.md); Quinn MCP prove still required before audit **PROVEN**; Ben updates notes/CHANGELOG when Pax says bump and runs **CI sitrep** after push (`gh run list`). Team check includes **`Knowledge used:`** per role; close-out includes **Knowledge improved** sitrep. Arch rejects write-only knowledge appends.  
-6. **PAGE FINAL PASS** — before opening the **next** migrated page, previous page must be **hard-green** per [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Arch vetoes next-page briefs/mounts otherwise.
+6. **PAGE FINAL PASS** — before opening the **next** migrated page, previous page must be **hard-green** per [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Arch vetoes next-page briefs/mounts otherwise.  
+7. **Reflex** — after HARD-GREEN, Arch micro-retro → [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) (Knowledge improved) before next-page brief/mount — [TEAM.md](./TEAM.md) § Reflex.
 
 **Do not parallelize** when the change is a tightly coupled **single-file hotfix**, a trivial docs/typo, or an atomic unblock that must land before siblings can start — see [TEAM.md](./TEAM.md) § When NOT to parallelize. That exception does **not** waive Quinn MCP / Uma audit on UI ships, **PAGE FINAL PASS** sequencing, or **team check** after a big task.
 
@@ -159,6 +161,8 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | Progressive learning | Append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) when a new failure class appears; index + **use** via [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) — read before work, prove in team check |
 | **Agent felonies** | **CI / `npm test` FAIL = felony.** Gates: `check:felonies` (proto filenames, PANEL `.proto-*`, `data-proto-*`, `docs/product/BOOTS_*`, channel, **overlay eyes** — registry + probe/demo-click under-overlay refuse), **`check:parity-ratchets`** (Make→React typical misses — search icon, bookmark copy, empty-heart fuchsia, Advantage, Book now primary, loader dup, make-retired — [PARITY_RATCHETS.md](./PARITY_RATCHETS.md)), `check:hygiene`, `check:links`, `check:version`, **`check:parity-proven`** (React-migrated screens need PROVEN audit + MCP matrix in `docs/projects/<id>/audits/PARITY_PROVEN.json`), **`check:page-final-pass`** (structure/naming stamp + source contracts before NEXT page — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Do not skip or `--no-verify`. No merge without the parity + final-pass gates. Every new typical fail class → add a ratchet (Arch/Ben). |
 | **Overlay eyes** | Blocking lightboxes (Quick View, Choose Pharmacy, Login, pickers) **must** be registered (`STUDIO_MODAL` / `data-studio-modal`). MCP/robo **must not** click through. See [RECORDING.md](../shell/RECORDING.md) + `studioModalGuard.ts`. |
+| **Modal URL registry** | **Before any dialog ship:** `modal` id in [URL.md](../shell/URL.md) + code registry + `data-studio-modal` — same change. No “registry later.” |
+| **Reflex** | After each PAGE FINAL PASS HARD-GREEN → Arch micro-retro into [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) before next migrated page — [TEAM.md](./TEAM.md) § Reflex |
 
 ---
 
@@ -171,7 +175,7 @@ The PO may override with a clear product veto (“wrong priority for the busines
 5. ✅ Thin UXDS code foundation — token CSS bridge (`src/uxds/`), interaction kits (accordion / disclosure / filter chip), Boots `styleguide/theme.css`, Availability Tool enrichment (mode B).  
 6. ✅ Pilot — **Book Steps 1–3** React + UXDS (children 7/4/3). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
 7. ✅ Studio URL + agent overlay + recording screen replay; naming + hard guardrails locked ([NAMING.md](./NAMING.md)).  
-8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) — **PLP PAGE FINAL PASS hard-green** before PDP; then erase-Make sequence. Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md).
+8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) — **PDP React migration** (PLP HARD-GREEN + Reflex landed); then erase-Make sequence. Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md).
 
 If the PO issues a product override, update §5 and the decisions log the same turn.
 

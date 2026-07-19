@@ -20,6 +20,19 @@ Trivial docs/typos may skip the full re-read; **do not** skip for chrome, URL, R
 
 ---
 
+## Reflex (after each HARD-GREEN page)
+
+**Locked (PO mandate, 2026-07-19).** After a migrated page reaches **`PAGE FINAL PASS — <screenId> — HARD-GREEN`**, **Arch (Director)** runs a **micro-retro** the same turn (or before opening the next migrated page):
+
+1. Lean Pain / Worked / Keep (callsigns that worked the stream — bullets, not essays).  
+2. Fold keep actions into [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) as a **Knowledge improved** sitrep (+ Recent deltas when a new process gate appears).  
+3. Append LESSONS only if a **new** fail class appeared; do not rewrite history.  
+4. **Veto** starting the next migrated page until Reflex landings are in TEAM_KNOWLEDGE (notes-only is fine — no version bump unless Finn shipped user-visible code).
+
+Full PLP example: [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md).
+
+---
+
 ## Callsigns (use everywhere)
 
 **Mandatory display format** (sitreps, checks, briefs, chat to PO) — role always next to name:
@@ -139,6 +152,8 @@ For **each** UXDS control used on the screen (at minimum **SearchField**, **Butt
 - **Parity ratchets (GLOBAL HARD FAIL):** `npm run check:parity-ratchets` — typical Make→React misses (search icon + **icon-pos end**, single clear, View all / 10-cap, filter counters, no filter hr, bookmark copy, empty-heart fuchsia, Advantage bar, Book now primary, loader dup, make-retired). Every new typical fail class → Arch/Ben add a ratchet ([PARITY_RATCHETS.md](./PARITY_RATCHETS.md)). Overlay registry stays in `check:felonies`.  
 
 - **Overlay eyes (GLOBAL HARD FAIL):** every blocking popup (Quick View, Choose Pharmacy, Login, pickers, …) must be in `studioModalGuard` registry + `data-studio-modal`. `__studioRunMcpPageProbe` / `simulateDemoPointerClick` **must refuse** clicks to targets under the topmost overlay (or only click inside it). Felony: `check:felonies` fails npm test if guard missing or known overlays unregistered. Quinn proves: open Quick View → under-tile refuse PASS.  
+- **Modal URL registry (GLOBAL HARD FAIL — before any dialog ship):** add the `modal` id to [URL.md](../shell/URL.md) **and** the code registry (`STUDIO_MODAL` / `REGISTERED_OVERLAY_MODAL_IDS`) **and** DOM `data-studio-modal` in the **same** change. No dialog lands “registry later.” Finn/Ben own; Quinn proves deep-link + overlay-eyes.  
+- **Reflex after HARD-GREEN:** Arch micro-retro → TEAM_KNOWLEDGE before next migrated page — [§ Reflex](#reflex-after-each-hard-green-page).
 - **Version bump:** patch after user-visible bugfixes is correct ([VERSIONING.md](./VERSIONING.md) §6); skip bump only for docs/process-only.  
 - **Knowledge used mandatory** on team check for serious ships — see [§ Knowledge use](#knowledge-use-hard--read-before-work-prove-in-team-check). Arch rejects write-only LESSONS appends.
 
@@ -162,6 +177,7 @@ Serious work = this loop **with parallel sibling subagents** (§ Parallel dispat
 |----------|------|-------|
 | Team OS (this file) | `docs/product/TEAM.md` | Arch |
 | **Team knowledge index** | `docs/product/TEAM_KNOWLEDGE.md` | Arch (all hats feed) |
+| **PLP team retro** | `docs/product/TEAM_RETRO_2026-07-19_PLP.md` | Arch (all hats) |
 | **Page Final Pass** | `docs/product/PAGE_FINAL_PASS.md` (+ `check:page-final-pass`) | Arch sequencing; Finn + Uma checklist/script |
 | Lessons (append-only) | `docs/product/LESSONS_LEARNED.md` | All (Arch curates) |
 | Feature brief template | `docs/product/FEATURE_BRIEF_TEMPLATE.md` | Bea |

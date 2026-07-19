@@ -16,6 +16,7 @@
 1c. **Team knowledge (hard):** Before serious work, callsigns **MUST re-read** their [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) section + relevant [LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md). Database is for **use**, not only write. Team check must include **`Knowledge used:`** per role.
 
 1d. **PAGE FINAL PASS (hard sequencing):** **No new migrated page** until the **previous** page is **PAGE FINAL PASS hard-green**. Contract: [PAGE_FINAL_PASS.md](docs/product/PAGE_FINAL_PASS.md). Finn/Uma own checklist + `check:page-final-pass` (do not duplicate). Arch enforces; parallel callsigns still required; Knowledge used still mandatory on team check.  
+1e. **Reflex:** After each HARD-GREEN page, **Arch (Director)** runs a micro-retro into [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) before opening the next migrated page — [TEAM.md](docs/product/TEAM.md) § Reflex · [TEAM_RETRO_2026-07-19_PLP.md](docs/product/TEAM_RETRO_2026-07-19_PLP.md).  
    → [PAGE_FINAL_PASS.md](docs/product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](docs/product/NEXT_STEPS.md) · [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §0 / §4
 
 2. **Proactive forecasting is mandatory on every task.** Spot or forecast issues while doing the ask — layout drift, style zoo, bad handoffs, missing hover, unused `framer-motion`, CSS layer violations (BASE/THEME/PANEL/LEGACY), REC chrome bugs, CI gaps. Do **not** wait for the PO to chase ghosts.  

@@ -23,6 +23,7 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 1b. [product/TEAM.md](./product/TEAM.md) — lean UX team callsigns + serious-work process (Pax bump/push)
 1c. [product/TEAM_KNOWLEDGE.md](./product/TEAM_KNOWLEDGE.md) — **living team knowledge index** (per-hat re-read; Knowledge used / Knowledge improved)
 1d. [product/PAGE_FINAL_PASS.md](./product/PAGE_FINAL_PASS.md) — **hard-green before next migrated page** (Finn/Uma checklist + check; Arch sequencing)
+1e. [product/TEAM_RETRO_2026-07-19_PLP.md](./product/TEAM_RETRO_2026-07-19_PLP.md) — PLP team retro (Pain/Worked/Keep) · Reflex → knowledge
 2. [product/LESSONS_LEARNED.md](./product/LESSONS_LEARNED.md) — progressive failure/win capture (read before UI close)
 2b. [product/UMA_FIDELITY_NOTES.md](./product/UMA_FIDELITY_NOTES.md) — Uma Make→React fidelity checklist (mandatory before PROVEN)
 2c. [product/PARITY_RATCHETS.md](./product/PARITY_RATCHETS.md) — programmatic typical-miss contracts (`check:parity-ratchets`)

@@ -22,6 +22,8 @@
 | Boots feature briefs | [../projects/boots-pharmacy/features/](../projects/boots-pharmacy/features/) | Project briefs |
 | PLP Make parity register | [../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md) | Band-by-band Make inventory |
 | PLP React brief | [../projects/boots-pharmacy/features/PLP_REACT.md](../projects/boots-pharmacy/features/PLP_REACT.md) | PLP migration brief |
+| **PLP team retro** | [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md) | Pain / Worked / Keep — apply on PDP+ |
+| Studio URL (modal ids) | [../shell/URL.md](../shell/URL.md) | **Modal URL registry** before any dialog ship |
 | Doctrine | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) | Locked tech + process |
 | Director rule | [../../.cursor/rules/ux-studio-director.mdc](../../.cursor/rules/ux-studio-director.mdc) | Always-on hard checklist |
 
@@ -36,6 +38,7 @@
 | This index + [TEAM.md](./TEAM.md) | Dispatch, team check, knowledge-use gate |
 | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 / §6–§7 | Parallel siblings, distrust handoffs, Nazi QA |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next migrated page until previous hard-green |
+| [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md) | After HARD-GREEN: micro-retro → this index (Reflex) |
 | [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) (latest + surface) | Reject “done” without applied lessons |
 | [NEXT_STEPS.md](./NEXT_STEPS.md) · [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md) | Board / forecast |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) | New typical fail → ratchet same ship |
@@ -47,10 +50,10 @@
 | Must re-read | Focus |
 |--------------|--------|
 | [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) | Readiness of acceptance |
-| Project `features/*.md` + **PLP register** when PLP | Every Make band before Finn codes |
+| Project `features/*.md` + **Make register** for the screen | Every Make band **before** Finn codes (incl. loader mechanism) |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next-page brief until previous hard-green |
 | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0 | Loading/empty/updating = P0 rows when Make has them |
-| LESSONS: Make→React fidelity, wrong preloader | Register completeness |
+| LESSONS: Make→React fidelity, wrong preloader · PLP retro | Register completeness; no invent acceptance |
 
 **Knowledge used tip:** brief/register + PAGE_FINAL_PASS gate + LESSONS loading/P0 rows.
 
@@ -62,10 +65,11 @@
 | [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) | No near-dups; BASE→THEME→PANEL→LEGACY |
 | [NAMING.md](./NAMING.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) | `data-studio-*`, domain folders |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Co-own checklist + `check:page-final-pass` with Uma; no next mount until previous hard-green |
-| LESSONS: hybrid mount, createRoot unmount, search/icon, DS hover | Do not re-ship known fail classes |
+| LESSONS: hybrid mount, createRoot unmount, search/icon, DS hover · invent chrome | Do not re-ship known fail classes; under-match Make |
 | Screen brief + register for the page | Mount gates / Make-retired |
+| [../shell/URL.md](../shell/URL.md) + modal guard | **Modal URL registry** + `data-studio-modal` before any dialog ship |
 
-**Knowledge used tip:** FE standards + PAGE_FINAL_PASS + LESSONS for the control class being touched.
+**Knowledge used tip:** FE standards + PAGE_FINAL_PASS + LESSONS for the control class being touched + URL modal table when shipping dialogs.
 
 ### Uma (UI/UX)
 
@@ -84,9 +88,10 @@
 | Must re-read | Focus |
 |--------------|--------|
 | [../shell/RECORDING.md](../shell/RECORDING.md) — MCP / overlay / page probe | `__studioRunMcpPageProbe`, sitrep, stay-on-page |
-| LESSONS: overlay eyes, MCP matrix, **scroll-into-view**, **overlay visible every probe** | Prove fail classes |
-| [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty |
+| LESSONS: overlay eyes, MCP matrix, **scroll-into-view**, **overlay visible every probe**, false PROVEN | Prove fail classes |
+| [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty — no PROVEN without MCP log |
 | [VERSIONING.md](./VERSIONING.md) DoD when bump | Chip = package.json |
+| [../shell/URL.md](../shell/URL.md) modal ids | Prove deep-link / overlay registry for every new dialog |
 
 **Knowledge used tip:** RECORDING MCP section + LESSONS overlay/scroll probe rules.
 
@@ -98,8 +103,9 @@
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · felonies in doctrine §4 | Keep gates honest |
 | LESSONS: version chip, post-push sitrep, overlay hygiene | BE + Quinn session hygiene |
 | `PARITY_PROVEN.json` · `PAGE_FINAL_PASS.json` ownership | No chat-only PROVEN / final-pass |
+| [../shell/URL.md](../shell/URL.md) + `check:felonies` overlay registry | **Modal URL registry mandatory** same PR as dialog ship |
 
-**Knowledge used tip:** VERSIONING DoD + CI sitrep lesson + ratchet/final-pass add path.
+**Knowledge used tip:** VERSIONING DoD + CI sitrep lesson + ratchet/final-pass add path + modal URL table.
 
 ### Pax (PO sim)
 
@@ -163,6 +169,29 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Quinn (QA): MCP-proved PLP Final Pass — `__studioRunMcpPageProbe` full matrix PASS (overlay-arm, below-fold scroll-into-view, overlay-eyes); landmarks header+main; stamped `mcpFinalPass: HARD-GREEN` — applied: PAGE_FINAL_PASS.json + FE_AUDIT_PLP_PAGE_FINAL_PASS_2026-07-19.md; NEXT_STEPS 2e closed; **PDP unblocked**
 - Arch (Director): sequencing gate satisfied for PLP → PDP may start — applied: NEXT_STEPS 2e/3
 
+| Delta | Hats | LESSONS / artifact |
+|-------|------|--------------------|
+| **PLP team retro** — Pain/Worked/Keep; top keep actions for PDP+ | All | [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md) |
+| **Reflex** — after each HARD-GREEN page, Arch micro-retro → this index | Arch | TEAM.md · doctrine §0 |
+| **Modal URL registry mandatory** before any dialog ship | Finn, Ben, Quinn | [URL.md](../shell/URL.md) · felonies overlay registry |
+| No invent UX / false PROVEN / DS hover / register-before-code (retro lock) | Bea, Finn, Uma, Quinn, Pax | Retro themes + LESSONS rage trail |
+
+**Knowledge improved** (2026-07-19 · stream: PLP team retro / Reflex · notes-only):
+- Arch (Director): facilitated full-callsign retro; locked **Reflex** (HARD-GREEN → micro-retro into TEAM_KNOWLEDGE); indexed top 5 keep actions — applied: TEAM_RETRO + TEAM.md + doctrine §0 + this index
+- Bea (BA): register-every-band incl. loader mechanism before Finn; unchecked P0 blocks PASS — applied: Bea must-re-read + retro Keep
+- Finn (FE): under-match Make; modal URL registry + `data-studio-modal` before dialog ship; ratchet same ship — applied: Finn must-re-read + URL.md link
+- Uma (UI/UX): no invent; typical DS checks vs kit+Make before PROVEN — applied: retro Keep (Uma)
+- Quinn (QA): PROVEN requires MCP probe evidence; overlay/scroll/eyes hard FAIL — applied: Quinn must-re-read
+- Ben (BE): modal URL table + overlay felonies same PR as dialog; no chat-only PROVEN — applied: Ben must-re-read
+- Pax (PO sim): accept bar = Make + MCP + Final Pass hard-green; notes/push without bump for docs/reflex — applied: retro Keep (Pax)
+
+**Process deltas (actionable — from retro):**
+1. **Modal URL registry mandatory** — before any blocking dialog ships: add `modal` id to [URL.md](../shell/URL.md), register in `STUDIO_MODAL` / `REGISTERED_OVERLAY_MODAL_IDS`, stamp `data-studio-modal` — same change as the dialog. Ben/Finn own; Quinn proves deep-link + overlay-eyes.
+2. **Make register before code** — Bea completes every band (incl. loading/empty/updating mechanism) before Finn implements; unchecked P0 = team-check FAIL.
+3. **No invent / DS hover** — Uma signs typical DS checks; Quinn MCP-hovers ≥1 SearchField; invent chrome = FAIL.
+4. **False PROVEN ban** — Arch rejects PROVEN without MCP evidence log; PO dispute revokes until re-prove.
+5. **Reflex** — after each PAGE FINAL PASS HARD-GREEN, Arch runs micro-retro (Pain/Worked/Keep lean) and appends **Knowledge improved** here before opening the next migrated page.
+
 ---
 
 ## How to maintain
@@ -170,7 +199,8 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 1. **Before serious work** — re-read your hat section + linked LESSONS; note what you will apply.  
 2. **During ship** — apply the gate; do not re-discover.  
 3. **After ship** — append LESSONS if new fail class; update this index “Recent deltas”; fill **Knowledge improved** sitrep; Arch confirms applied ≠ write-only.  
-4. **New typical fail** — Arch/Ben add ratchet same ship ([PARITY_RATCHETS.md](./PARITY_RATCHETS.md)).
+4. **After PAGE FINAL PASS HARD-GREEN** — Arch runs **Reflex** micro-retro → append Knowledge improved (see [TEAM.md](./TEAM.md) § Reflex).  
+5. **New typical fail** — Arch/Ben add ratchet same ship ([PARITY_RATCHETS.md](./PARITY_RATCHETS.md)).
 
 ---
 
