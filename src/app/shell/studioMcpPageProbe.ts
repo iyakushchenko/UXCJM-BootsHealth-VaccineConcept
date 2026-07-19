@@ -858,6 +858,49 @@ function pdpProbeSteps(): ProbeStep[] {
         if (!body || !/weakened immune system/i.test(normalizeText(body))) {
           return "FAQ open body missing Make copy";
         }
+        const helpBody = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] [data-studio-accordion-open="how-can-boots-help"]'
+        );
+        // Default open is who-is-at-risk (single); help body mounts when opened.
+        // Assert Make RTB copy is wired on the help trigger’s panel contract via DOM residual check:
+        const residual = document.querySelectorAll(
+          '.pdp[data-studio-react-screen="pdp"] [data-studio-faq-residual]'
+        );
+        if (residual.length !== 3) {
+          return `expected 3 Make-residual FAQ headers, got ${residual.length}`;
+        }
+        if (helpBody) {
+          return "how-can-boots-help should be collapsed while who-is-at-risk is open (single)";
+        }
+        const helpTrigger = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-how-can-boots-help"]'
+        );
+        if (!helpTrigger) return "How can Boots help? trigger missing (body wired)";
+        return true;
+      },
+    },
+    {
+      id: "pdp-faq-help-body",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-faq-how-can-boots-help"]',
+      action: "click",
+      settleMs: 350,
+      assert: () => {
+        const body = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] [data-studio-accordion-open="how-can-boots-help"]'
+        );
+        if (
+          !body ||
+          !/private Chickenpox Vaccination Service/i.test(normalizeText(body))
+        ) {
+          return "How can Boots help? missing Make RTB service blurb";
+        }
+        if (
+          !stylesheetHasRule(".pdp__accordion-header:focus-visible") &&
+          !stylesheetHasRule(".pdp__accordion-header:focus")
+        ) {
+          return "missing accordion focus-none CSS (.pdp__accordion-header:focus)";
+        }
         return true;
       },
     },
@@ -875,6 +918,15 @@ function pdpProbeSteps(): ProbeStep[] {
           '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-download-leaflet"]'
         );
         if (!guide || !leaflet) return "download CTAs missing";
+        if (leaflet.classList.contains("pdp__pill--bordered")) {
+          return "leaflet still has stub bordered class (Make hover mock)";
+        }
+        if (
+          guide.className !== leaflet.className ||
+          !guide.classList.contains("pdp__pill")
+        ) {
+          return "download CTAs must share the same tertiary .pdp__pill class";
+        }
         if (
           !stylesheetHasRule(".pdp__pill:hover") &&
           !stylesheetHasRule(".pdp__pill:hover:not(:disabled)")
@@ -886,6 +938,9 @@ function pdpProbeSteps(): ProbeStep[] {
           !stylesheetHasRule(".pdp__pill:hover .pdp__pill-icon")
         ) {
           return "missing download CTA icon hover CSS";
+        }
+        if (stylesheetHasRule(".pdp__pill--bordered")) {
+          return "stub .pdp__pill--bordered CSS still present";
         }
         return true;
       },

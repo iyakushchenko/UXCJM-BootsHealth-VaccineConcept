@@ -3,9 +3,9 @@
 **Surface:** Boots Pharmacy PDP (`screenId: pdp`, Frame child **8**)  
 **Date:** 2026-07-19  
 **Owner:** Uma (UI/UX)  
-**Status:** **PROVEN**  
-**Tip at PROVEN:** `d6e4951` · **v0.0.27** · FAQ UXDS Accordion + download tertiary DS hover (Final Pass HARD-GREEN restored @ `828ab2b`)  
-**Prior PROVEN tip (RTB / share):** `553e29c` · v0.0.24 (still valid for §0b / P2; not re-opened this pass)  
+**Status:** **NEEDS-REPROVE** (user-visible FAQ/CTA/focus polish after prior PROVEN)  
+**Prior PROVEN tip:** `d6e4951` · **v0.0.27** · FAQ Accordion + download hover (HARD-GREEN then @ `828ab2b`) — **superseded for §0a polish**  
+**Prior RTB / share tip:** `553e29c` · v0.0.24 (§0b / P2 still valid; not re-opened)  
 **React:** `src/projects/boots-pharmacy/screens/pdp/*` (L1–L20 RTB + below-fold)  
 **Make truth:** `frame/index.tsx` `ModuleBreadcrumbs` / `Body6` / `Body7` / `ModulePdpRtb` / `ComponentPdpRtb` / `ComponentPdpAccordion` · `globals-screens` child-8 · `globals-chrome` checkbox/CTA/icon hits  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
@@ -17,18 +17,18 @@
 
 | Field | Value |
 |-------|-------|
-| **Overall** | **PROVEN** |
-| **§0a typical DS / pointer matrix** | **PASS** — real MCP `:hover` / `:focus-visible` / expand (tip `d6e4951` / v0.0.27) |
-| **§0a FAQ Accordion (UXDS kit)** | **PASS** — hover title+chevron → navy; keyboard focus ring; expand/collapse + chevron rotate |
-| **§0a download CTAs (tertiary)** | **PASS** — hover label → `#000`; icon → navy `#012169` (`--uxds-text-link-link`) |
+| **Overall** | **NEEDS-REPROVE** |
+| **§0a typical DS / pointer matrix** | **NEEDS-REPROVE** — FAQ bodies + CTA unify + accordion focus-none after `d6e4951` |
+| **§0a FAQ Accordion (UXDS kit)** | **Ship pending prove** — 3 Make-sourced bodies; hover navy; **no focus ring** (PO/Make); residual headers static |
+| **§0a download CTAs (tertiary)** | **Ship pending prove** — Guide + Leaflet **same** `.pdp__pill` (removed `#c7e4ff` stub border = Make hover mock) |
 | **§0b RTB vertical rhythm** | **PASS** — carried from v0.0.24 measure (`32px` stack; title-block `72px`) |
 | **P2 share glyph Make flip** | **PASS** — carried from v0.0.24 MCP matrix |
-| **PO green-light allowed?** | **Yes for Uma fidelity** — Arch restored PAGE FINAL PASS HARD-GREEN @ `828ab2b` |
-| **PAGE FINAL PASS** | **HARD-GREEN** (Arch) — Uma fidelity gate closed; Home still waits PO `+` |
+| **PO green-light allowed?** | **No** until Uma §0a re-PROVEN + Quinn MCP + Arch Final Pass |
+| **PAGE FINAL PASS** | **NEEDS-REPROVE** (honest demote after user-visible polish) |
 
-**Honest residuals (do not block §0a / PROVEN):**  
-1. **Empty FAQ panels** — 5/6 panels have `body: null` (Make only ships copy for “Who is at risk?”); expand toggles a11y + chevron only.  
-2. **No download URLs** — Guide / Leaflet are `<button>` with no `href` / download asset (Make parity; not inventing files).
+**Honest residuals:**  
+1. **FAQ bodies** — 3/6 Make-sourced (`how-can-boots-help` ← RTB blurb; `who-is-at-risk` ← Description; `what-happens-at-appointment` ← strip + Administration). **3 residual** (NHS / already-have / personal-data): no Make Description after search — static headers, no empty expand shells.  
+2. **No download URLs** — Guide / Leaflet are `<button>` with no `href` / download asset (Make parity).
 
 ---
 
@@ -106,7 +106,7 @@
 | `loading states` | **N/A** — Make has no page loader / empty list / updating overlay (LE1–LE3). No skeleton/spinner invent observed on mount. |
 | `checkbox/radio hover` | **PASS** — real MCP `:hover` mint on unchecked booster box (v0.0.24) |
 | `typical DS checks` | **PASS** — §0a pointer matrix + FAQ Accordion + download tertiary (tip `d6e4951` / v0.0.27) |
-| `fidelity checklist` | **PROVEN** — L1–L20 + §0a/§0b PASS + P2 share flip PASS; empty FAQ bodies + no download URLs listed as residuals |
+| `fidelity checklist` | **NEEDS-REPROVE** — §0a polish after FAQ bodies / CTA unify / focus-none; §0b/P2 still carried |
 
 ---
 
@@ -143,7 +143,7 @@
 |----------|----------|-------|
 | FAQ panels without body copy (5/6) | **Accepted Make parity** — do not invent FAQ copy | PO / content |
 | Download CTAs have no file URLs | **Accepted Make parity** — buttons only until assets exist | PO / Pax |
-| PAGE FINAL PASS / `check:page-final-pass` | **Done** — Arch HARD-GREEN @ `828ab2b` | Arch |
+| PAGE FINAL PASS / `check:page-final-pass` | **NEEDS-REPROVE** — demoted after polish | Arch |
 | Register React column catch-up notes | Doc | Bea |
 
 ---

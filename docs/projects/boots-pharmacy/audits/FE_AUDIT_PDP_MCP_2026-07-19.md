@@ -3,11 +3,10 @@
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Quinn (QA) — Chrome DevTools MCP localhost  
-**Ship tip (latest prove):** `d6e4951` · **v0.0.27** (FAQ Accordion interactive + download CTA DS hover)  
-**Prior prove (superseded):** `d7ce01c` · **v0.0.24** (pre–FAQ/CTA interaction — Final Pass HARD-GREEN then demoted NEEDS-REPROVE)  
-**Earlier tips (history):** `cbbd97d` / `87c0fc8` · `eaf9aa3` / `03687d3`  
+**Ship tip (latest prove):** `d6e4951` · **v0.0.27** — **STALE** after v0.0.28 FAQ/CTA/focus polish  
+**Prior prove (superseded):** `d7ce01c` · **v0.0.24**  
 **Policy:** [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md) · [RECORDING.md](../../../shell/RECORDING.md) · recipe `studioMcpPageProbe.ts`  
-**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — Arch restored **HARD-GREEN** @ tip `828ab2b` (Quinn does not stamp HARD-GREEN)
+**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — **NEEDS-REPROVE**
 
 ---
 
@@ -15,13 +14,13 @@
 
 | Field | Value |
 |-------|-------|
-| **Quinn MCP matrix** | **PASS** (re-prove on tip `d6e4951` / v0.0.27) |
-| **New steps** | `pdp-faq-accordion-toggle` · `pdp-faq-accordion-reopen` · `pdp-download-cta-hover` — all **PASS** |
-| **Uma fidelity §0a (FAQ/CTA extras)** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) tip `d6e4951` / v0.0.27 |
-| **PAGE FINAL PASS HARD-GREEN?** | **HARD-GREEN** (Arch stamp tip `828ab2b` — Quinn matrix PASS cited; Quinn does not stamp) |
-| **PO green-light / Home?** | **Sequencing unblocked** — Home still waits PO `+` |
+| **Quinn MCP matrix** | **NEEDS-REPROVE** (prior PASS @ `d6e4951` stale) |
+| **New steps (v0.0.28)** | `pdp-faq-help-body` + download CTA same-class / no `--bordered` asserts — re-prove required |
+| **Uma fidelity §0a (FAQ/CTA extras)** | **NEEDS-REPROVE** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) |
+| **PAGE FINAL PASS HARD-GREEN?** | **NEEDS-REPROVE** (`hardGreen: false`) |
+| **PO green-light / Home?** | **Blocked** — wait Quinn + Uma + Arch restore + PO `+` |
 
-**Team check line:** `Quinn MCP — pdp — PASS` (interaction matrix; tip `d6e4951` / v0.0.27)
+**Team check line:** `Quinn MCP — pdp — NEEDS-REPROVE` (re-prove after v0.0.28 polish)
 
 **Knowledge used:** QUINN_PDP_PROBE_CRITERIA · RECORDING.md (overlay + scroll-into-view + overlay-eyes + teardown) · PAGE_FINAL_PASS.md (Quinn does not stamp HARD-GREEN) · TEAM_KNOWLEDGE Quinn § · FE_AUDIT_PDP_PLP_CONVENTIONS (new probe steps)
 
@@ -90,7 +89,7 @@
 |------|--------|
 | Quinn MCP interaction matrix | **PASS** (this re-prove · `d6e4951` / v0.0.27) |
 | Uma §0a extras (Accordion + download hover) | **PROVEN** (`c037d19`) |
-| `PAGE_FINAL_PASS.json` `mcpFinalPass` HARD-GREEN | **HARD-GREEN** — Arch stamp tip `828ab2b` |
+| `PAGE_FINAL_PASS.json` `mcpFinalPass` HARD-GREEN | **NEEDS-REPROVE** — demoted after v0.0.28 polish |
 | `hardGreen` | **true** |
 
 ---

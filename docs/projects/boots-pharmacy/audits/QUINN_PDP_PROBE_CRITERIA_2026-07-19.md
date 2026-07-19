@@ -1,8 +1,8 @@
 # Quinn (QA) — PDP MCP prove criteria
 
 **Status:** MCP matrix **PASS** @ tip `d6e4951` / v0.0.27 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**PAGE FINAL PASS:** **NEEDS-REPROVE** (`hardGreen: false`) — Quinn matrix PASS does **not** restore HARD-GREEN; Arch after Uma §0a.  
-**Updated:** 2026-07-19 (PO go interactive FAQ / download CTAs; Quinn re-prove done)  
+**PAGE FINAL PASS:** **NEEDS-REPROVE** (`hardGreen: false`) — user-visible FAQ/CTA/focus polish; Quinn must re-prove; Arch after Uma §0a.  
+**Updated:** 2026-07-19 (FAQ Make bodies + download tertiary unify + accordion focus-none)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
 **Refs:** [RECORDING.md](../../../shell/RECORDING.md) · LESSONS overlay/scroll · PLP probe pattern in `studioMcpPageProbe.ts`
@@ -58,8 +58,9 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 | 14 | `plp-to-pdp` | Book now from PLP | returns `screen=pdp` React host | |
 | 15 | `pdp-below-fold-scroll` | `reveal` | Scroll-into-view + overlay visible | **HARD** — compact below-fold stamp required |
 | 16 | `pdp-faq-accordion-toggle` | click Who is at risk? | `aria-expanded=false`; body unmounted | UXDS Accordion |
-| 17 | `pdp-faq-accordion-reopen` | click again | `aria-expanded=true` + Make body copy | |
-| 18 | `pdp-download-cta-hover` | hover Chickenpox Guide | `.pdp__pill:hover` CSS present | stylesheet rule (demo cursor ≠ CSS :hover) |
+| 17 | `pdp-faq-accordion-reopen` | click again | `aria-expanded=true` + Make body; 3 residual headers | |
+| 18 | `pdp-faq-help-body` | click How can Boots help? | Make RTB service blurb body; focus-none CSS | |
+| 19 | `pdp-download-cta-hover` | hover Chickenpox Guide | both CTAs same `.pdp__pill`; no `--bordered` | |
 | — | `url-screen` | assert | ends on `screen=pdp` | auto after recipe |
 
 Logged-in Book now → `screen=book-step-1` — prove in a second session or after login helper (document in evidence log).

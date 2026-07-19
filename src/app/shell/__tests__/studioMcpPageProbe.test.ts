@@ -505,18 +505,42 @@ describe("runMcpPageProbe", () => {
     };
     const availTitle = { tagName: "H2", textContent: "Find Pharmacy" };
     let faqExpanded = true;
+    let faqHelpExpanded = false;
     const faqTrigger = {
       tagName: "BUTTON",
       getAttribute: (name: string) =>
         name === "aria-expanded" ? String(faqExpanded) : null,
+    };
+    const faqHelpTrigger = {
+      tagName: "BUTTON",
+      getAttribute: (name: string) =>
+        name === "aria-expanded" ? String(faqHelpExpanded) : null,
     };
     const faqBody = {
       tagName: "DIV",
       textContent:
         "Chickenpox can affect any age, but complications are more likely in adults, pregnant women, newborn babies and people with a weakened immune system.",
     };
-    const downloadGuide = { tagName: "BUTTON" };
-    const downloadLeaflet = { tagName: "BUTTON" };
+    const faqHelpBody = {
+      tagName: "DIV",
+      textContent:
+        "Our private Chickenpox Vaccination Service is suitable for adults and children aged between one and 65 years. A full course consists of two doses given 4 to 6 weeks apart. Eligibility criteria apply and suitability will be checked before each vaccination is given.",
+    };
+    const faqResiduals = [{}, {}, {}];
+    const downloadGuide = {
+      tagName: "BUTTON",
+      className: "pdp__pill",
+      classList: {
+        contains: (c: string) => c === "pdp__pill",
+      },
+    };
+    const downloadLeaflet = {
+      tagName: "BUTTON",
+      className: "pdp__pill",
+      classList: {
+        contains: (c: string) => c === "pdp__pill",
+      },
+    };
 
     let modalOpen = false;
     let modalKind: "login" | "choose-pharmacy" | null = null;
@@ -592,6 +616,12 @@ describe("runMcpPageProbe", () => {
       }
       if (el === faqTrigger) {
         faqExpanded = !faqExpanded;
+        if (faqExpanded) faqHelpExpanded = false;
+        return true;
+      }
+      if (el === faqHelpTrigger) {
+        faqHelpExpanded = !faqHelpExpanded;
+        if (faqHelpExpanded) faqExpanded = false;
         return true;
       }
       return true;
@@ -624,6 +654,10 @@ describe("runMcpPageProbe", () => {
       cssText:
         ".pdp__pill:hover:not(:disabled) .pdp__pill-icon{color:var(--uxds-text-link-link)}",
     };
+    const accordionFocusRule = {
+      selectorText: ".pdp__accordion-header:focus-visible",
+      cssText: ".pdp__accordion-header:focus-visible{outline:none}",
+    };
 
     vi.stubGlobal("window", {
       location: locationState,
@@ -640,6 +674,7 @@ describe("runMcpPageProbe", () => {
             checkboxHoverRule,
             pillHoverRule,
             pillIconHoverRule,
+            accordionFocusRule,
           ],
         },
       ],
@@ -669,8 +704,13 @@ describe("runMcpPageProbe", () => {
         if (sel.includes("data-studio-probe-below-fold")) return belowFold;
         if (sel.includes('data-studio-action="pdp-faq-who-is-at-risk"'))
           return faqTrigger;
+        if (sel.includes('data-studio-action="pdp-faq-how-can-boots-help"'))
+          return faqHelpTrigger;
         if (sel.includes('data-studio-accordion-open="who-is-at-risk"')) {
           return faqExpanded ? faqBody : null;
+        }
+        if (sel.includes('data-studio-accordion-open="how-can-boots-help"')) {
+          return faqHelpExpanded ? faqHelpBody : null;
         }
         if (sel.includes('data-studio-action="pdp-download-guide"'))
           return downloadGuide;
@@ -678,7 +718,10 @@ describe("runMcpPageProbe", () => {
           return downloadLeaflet;
         return null;
       },
-      querySelectorAll: () => [],
+      querySelectorAll: (sel: string) => {
+        if (sel.includes("data-studio-faq-residual")) return faqResiduals;
+        return [];
+      },
     });
     vi.stubGlobal("getComputedStyle", () => ({ color: "rgb(175, 204, 202)" }));
 
@@ -734,6 +777,9 @@ describe("runMcpPageProbe", () => {
     expect(
       result.checks.find((c) => c.id === "pdp-faq-accordion-reopen")?.pass
     ).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-faq-help-body")?.pass).toBe(
+      true
+    );
     expect(
       result.checks.find((c) => c.id === "pdp-download-cta-hover")?.pass
     ).toBe(true);

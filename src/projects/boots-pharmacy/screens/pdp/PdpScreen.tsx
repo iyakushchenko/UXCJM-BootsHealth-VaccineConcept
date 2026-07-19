@@ -25,14 +25,13 @@ import {
 import {
   PDP_ACCORDION_DEFAULT_OPEN,
   PDP_ACCORDION_PANELS,
+  PDP_APPOINTMENT_STRIP,
   PDP_INTRO_PARAGRAPHS,
   PDP_REACT_SCREEN_ID,
+  PDP_SERVICE_BLURB,
   PDP_SPECS_ROWS,
 } from "./pdpContract";
 import "./pdp.css";
-
-const SERVICE_BLURB =
-  "Our private Chickenpox Vaccination Service is suitable for adults and children aged between one and 65 years. A full course consists of two doses given 4 to 6 weeks apart. Eligibility criteria apply and suitability will be checked before each vaccination is given.";
 
 const CHECKBOX_HELPER =
   "Automatically schedules and reminds you about your second dose so you do not miss the recommended window. You can change the appointment later in Account Settings. Learn More";
@@ -40,12 +39,8 @@ const CHECKBOX_HELPER =
 const ADVANTAGE_COPY =
   "Collect 3 points for every £1 you spend with Boots Advantage Card‡";
 
-const APPOINTMENT_STRIP =
-  "Typical appointment takes around 15 minutes";
-
 const GP_PROMO_COPY =
   "Book your doctor appointment online. Fast and convenient.";
-
 /** Download glyph paths from Make `icon=download` (Frame126). */
 const DOWNLOAD_GLYPH_BAR =
   "M14 12.2682H0V13.9999H14V12.2682Z";
@@ -193,7 +188,7 @@ function PdpBelowFold() {
               width={30}
               height={30}
             />
-            <p>{APPOINTMENT_STRIP}</p>
+            <p>{PDP_APPOINTMENT_STRIP}</p>
           </div>
 
           <div
@@ -223,7 +218,7 @@ function PdpBelowFold() {
               </button>
               <button
                 type="button"
-                className="pdp__pill pdp__pill--bordered"
+                className="pdp__pill"
                 data-name="component.input.button"
                 data-studio-action="pdp-download-leaflet"
               >
@@ -252,35 +247,58 @@ function PdpBelowFold() {
               data-name="component.gse.accordion"
               data-studio-accordion-item={panel.id}
             >
-              <AccordionTrigger
-                id={panel.id}
-                className="pdp__accordion-header"
-                data-studio-action={`pdp-faq-${panel.id}`}
-              >
-                <span
-                  className="pdp__accordion-title-wrap"
-                  data-name="title wrapper"
-                >
-                  <span className="pdp__accordion-title">{panel.title}</span>
-                </span>
-                <span
-                  className="pdp__accordion-chevron"
-                  data-name="icon / input / field"
-                  aria-hidden
-                >
-                  <ChevronGlyph />
-                </span>
-              </AccordionTrigger>
               {panel.body ? (
-                <AccordionContent
-                  id={panel.id}
-                  className="pdp__accordion-body"
-                  data-name="Description"
-                  data-studio-accordion-open={panel.id}
+                <>
+                  <AccordionTrigger
+                    id={panel.id}
+                    className="pdp__accordion-header"
+                    data-studio-action={`pdp-faq-${panel.id}`}
+                  >
+                    <span
+                      className="pdp__accordion-title-wrap"
+                      data-name="title wrapper"
+                    >
+                      <span className="pdp__accordion-title">{panel.title}</span>
+                    </span>
+                    <span
+                      className="pdp__accordion-chevron"
+                      data-name="icon / input / field"
+                      aria-hidden
+                    >
+                      <ChevronGlyph />
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent
+                    id={panel.id}
+                    className="pdp__accordion-body"
+                    data-name="Description"
+                    data-studio-accordion-open={panel.id}
+                  >
+                    <p>{panel.body}</p>
+                  </AccordionContent>
+                </>
+              ) : (
+                /* Make header-only residual — no empty expand shell */
+                <div
+                  className="pdp__accordion-header pdp__accordion-header--static"
+                  data-name="wrapper"
+                  data-studio-faq-residual={panel.id}
                 >
-                  <p>{panel.body}</p>
-                </AccordionContent>
-              ) : null}
+                  <span
+                    className="pdp__accordion-title-wrap"
+                    data-name="title wrapper"
+                  >
+                    <span className="pdp__accordion-title">{panel.title}</span>
+                  </span>
+                  <span
+                    className="pdp__accordion-chevron"
+                    data-name="icon / input / field"
+                    aria-hidden
+                  >
+                    <ChevronGlyph />
+                  </span>
+                </div>
+              )}
             </AccordionItem>
           ))}
         </Accordion>
@@ -473,7 +491,7 @@ export function PdpScreen({
                     ) : null}
                   </div>
 
-                  <p className="pdp__blurb">{SERVICE_BLURB}</p>
+                  <p className="pdp__blurb">{PDP_SERVICE_BLURB}</p>
 
                   <div className="pdp__booster-band" data-name="units">
                     <button

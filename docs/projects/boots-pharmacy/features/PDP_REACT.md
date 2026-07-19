@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted · FAQ Accordion interactive (PO go) · download CTA DS hover · Final Pass **HARD-GREEN**  
+**Status:** L1–L20 mounted · FAQ Make bodies (3/6) · download tertiary unify · accordion focus-none · Final Pass **NEEDS-REPROVE**  
 **Updated:** 2026-07-19  
 **Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) · Convention [../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md](../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md)
 
@@ -12,7 +12,7 @@
 
 Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** PAGE FINAL PASS **HARD-GREEN** @ tip `828ab2b` (≥ `d6e4951` / v0.0.27). **Home waits PO `+`.**
+**Gate:** PAGE FINAL PASS **NEEDS-REPROVE** after FAQ/CTA/focus polish (prior HARD-GREEN @ `828ab2b` demoted). **Home waits PO `+` + Final Pass restore.**
 
 ## Business logic
 
@@ -29,7 +29,7 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 | Wishlist | `PDP_WISHLIST_ID` (`chickenpox`) — shared with Quick View + header |
 | Breadcrumb Vaccination | → PLP |
 | Loading / empty | **None** on Make — static page; do not invent loader |
-| Accordion | PO go — UXDS Accordion kit; default open “Who is at risk?” (only Make body); other headers toggle chevron only |
+| Accordion | UXDS Accordion; default open “Who is at risk?”; 3 Make-sourced bodies; 3 residual static headers; no focus ring |
 
 ## Acceptance (Bea → Quinn)
 
@@ -40,9 +40,9 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 - [x] Scaffold P0 bands L1–L13 + interactions I5–I12, I8–I10 per register
 - [x] Below-fold P0 bands L14–L20 (interactive Accordion; download/GP CTAs live + DS hover)
 - [x] Modal URL sync: `login`, `choose-pharmacy` from PDP CTAs ([URL.md](../../../shell/URL.md)) — wire reuses existing modals
-- [x] PAGE FINAL PASS: landmarks `header`+`main`, BEM=`pdp`; stamp + `mcpFinalPass` HARD-GREEN + `check:page-final-pass` ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
+- [ ] PAGE FINAL PASS: landmarks/structure stamp retained; `mcpFinalPass` **NEEDS-REPROVE** after polish ([FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md))
 - [x] `npm test` green on L14–L20 contract; Uma audit **PROVEN** ([UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md))
-- [x] Honest residual: Make Frame child 8 in DOM until delete phase; FAQ panels without Make body have no invented copy
+- [x] Honest residual: Make Frame child 8 in DOM until delete phase; 3 FAQ panels still lack Make Description (no invented copy)
 
 ## Chrome / fidelity (Uma)
 
@@ -64,21 +64,19 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 
 ## Prove notes (Quinn)
 
-- **MCP matrix PASS** 2026-07-19 tip `d6e4951` / v0.0.27 — [FE_AUDIT_PDP_MCP_2026-07-19.md](../audits/FE_AUDIT_PDP_MCP_2026-07-19.md) (`__studioRunMcpPageProbe({ screenId:"pdp", reload:false })` · 22/22 incl. FAQ accordion + download CTA hover)
-- Localhost: mount + Make leak=0; PLP→PDP; Book now login gate; Check availability Find Pharmacy start; overlay-arm + overlay-eyes; teardown clean
-- Booster £150↔£75; empty-heart hover; below-fold reveal; FAQ toggle/reopen; `.pdp__pill:hover`
-- Final Pass **HARD-GREEN** restored — Arch stamp tip `828ab2b` (Quinn 22/22 @ `d6e4951` + Uma §0a @ `c037d19`)
-- Register prove matrix: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
+- **MCP matrix** — prior PASS @ `d6e4951` / 22/22 **stale** after FAQ body + CTA + focus ship; Quinn must re-prove (now includes `pdp-faq-help-body` + matched download CTAs)
+- Final Pass **NEEDS-REPROVE** — demoted honestly after user-visible polish
+- Register: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
 
 ## Pax
 
-- [ ] User-visible? → bump patch? **Y** (when React page ships)
-- [ ] Push? **Arch call**
+- [x] User-visible? → bump patch **Y** (this polish)
+- [x] Push? **Y** (this ship)
 - [ ] Notes/CHANGELOG when bump
 - [x] Resolve B1 accordion — PO go interactive (2026-07-19)
-- [x] Quinn re-prove MCP matrix (FAQ/download) @ `d6e4951` / v0.0.27
-- [x] Uma §0a for FAQ/download @ `d6e4951` / docs `c037d19`
-- [x] Arch PAGE FINAL PASS HARD-GREEN @ `828ab2b` — Home still waits PO `+`
+- [ ] Quinn re-prove MCP matrix (FAQ bodies / CTA unify / focus-none)
+- [ ] Uma §0a re-PROVEN after polish
+- [ ] Arch PAGE FINAL PASS HARD-GREEN restore — Home still waits PO `+`
 
 ## Honest residual (expected)
 
@@ -86,8 +84,8 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 |----------|--------|
 | Make Frame child 8 in bundle | Hidden + wire-gated until delete phase |
 | `globals-screens` child-8 rules | Dead while React mounted; shrink on Make delete |
-| FAQ panels without Make body | Expand/collapse + a11y only — **no invented FAQ copy** |
-| Download / GP CTAs | DS hover shipped; no file URL journey wire |
+| FAQ NHS / already-have / personal-data | No Make Description after search — static headers; **no invented copy** |
+| Download / GP CTAs | Matched tertiary (+ mint GP); no file URL journey wire |
 | Single chickenpox SKU | CJM scope |
 
 **Parity P0 for full page L&F:** L1–L20 bands + journey CTAs + booster/price + wishlist + modals URL + no invented loader — see register.

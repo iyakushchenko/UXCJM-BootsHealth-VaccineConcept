@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) owns register truth · Quinn (QA) owns prove · Finn/Uma restore gaps  
-**Updated:** 2026-07-19 (PO go: FAQ Accordion interactive + download CTA DS hover; B1 closed; Final Pass **HARD-GREEN** restored @ `828ab2b`)  
+**Updated:** 2026-07-19 (PO polish: FAQ Make bodies + download tertiary unify + accordion focus-none; Final Pass **NEEDS-REPROVE**)  
 **Make source:** Frame child **8** (`PDP. Vaccine Details Page` / `BTS-PHRM.Product - Deal Details Page`, `screenId: "pdp"`) + `globals-screens` child-8 rules + `BootsPharmacyProjectView` wire + `frame/index.tsx`  
 **React target:** `src/projects/boots-pharmacy/screens/pdp/*`  
 **Refs:** [PDP_REACT.md](./PDP_REACT.md) · [PLP_MAKE_PARITY_REGISTER.md](./PLP_MAKE_PARITY_REGISTER.md) (format) · [URL.md](../../../shell/URL.md) (modal ids)  
@@ -11,7 +11,7 @@
 **Status legend:** Present · Partial · Missing · Fixed · N/A
 
 **Make column:** inventory truth from Frame + wire + LEGACY CSS (2026-07-19).  
-**React column:** L1–L20 mounted; FAQ = UXDS Accordion kit (default open Who is at risk?); download CTAs = live buttons + tertiary/mint hover; Quinn MCP matrix **PASS** @ `d6e4951`/v0.0.27; Final Pass **HARD-GREEN** @ `828ab2b`.
+**React column:** L1–L20 mounted; FAQ = UXDS Accordion (3 Make-sourced bodies + 3 residual headers); download CTAs = matched tertiary `.pdp__pill` (no leaflet stub border); accordion focus ring removed (Make parity). Final Pass **NEEDS-REPROVE** after this polish.
 
 **Bea rule:** Every band before Finn codes — including loading/empty/updating as **P0** when Make has them. No invented bands.
 
@@ -48,16 +48,20 @@
 **Source:** `ComponentPdpAccordion` in `frame/index.tsx` L7301–7320.  
 **React:** shared UXDS Accordion kit (`type="single"`, default open `who-is-at-risk`) — same pattern as PLP filters.
 
-| Panel | Make Figma state | React |
-|-------|------------------|-------|
-| How can Boots help? | Header + chevron only | Trigger + chevron; **no body copy in Make** — expand flips chevron only |
-| Who is at risk? | Header + **expanded** `Description` body | Default open + Make body paragraph |
-| What happens at the appointment? | Header only | Trigger only (no invented body) |
-| Can I get vaccinated on the NHS? | Header only | Trigger only |
-| What if I already have chickenpox? | Header only | Trigger only |
-| How we use your personal data | Header only | Trigger only |
+| Panel | Make source (searched) | React |
+|-------|------------------------|-------|
+| How can Boots help? | Accordion `Description` **absent**; **RTB service blurb** (same PDP Make page) answers the header | Body = `PDP_SERVICE_BLURB` |
+| Who is at risk? | Accordion `Description` paragraph | Default open + that Make body |
+| What happens at the appointment? | Accordion `Description` **absent**; **appt strip** + specs **Administration** | Body = strip + administration (Make strings only) |
+| Can I get vaccinated on the NHS? | Header only — no Description / journey / HTML body | **Residual** static header (no empty expand shell) |
+| What if I already have chickenpox? | Header only — same search miss | **Residual** static header |
+| How we use your personal data | Header only — same search miss | **Residual** static header |
 
-**PO go (2026-07-19):** interactive open/close + focus/hover/a11y. B1 closed — no longer “static accepted”.
+**Search note (Bea):** `frame/index.tsx` `ComponentPdpAccordion`, register, journey `boots-pharmacy-sarah-jenkins.json`, repo HTML — only one accordion `Description`. No invent. Live Boots.com FAQ blocked (Incapsula); not used as copy source.
+
+**I18 download CTAs:** Make Frame126 shows Guide at rest + Leaflet with `#c7e4ff` border + `.utility / cursor` = **Figma hover mock** (I20), not a second rest style. React: both `.pdp__pill` tertiary; GP “Find out more” stays mint.
+
+**Accordion focus:** Make has no focus ring — PDP `.pdp__accordion-header` `outline: none` (keyboard expand kept via button + `aria-expanded`).
 
 ---
 
@@ -95,7 +99,7 @@
 | I15 | **Secondary Check availability hover** — mint wash on bordered secondary CTA | **Present** | **Missing** | `globals-chrome` L809–834 |
 | I16 | **Breadcrumb Vaccination** → PLP | **Present** | **Missing** | Wire L2310–2316 `data-studio-crumb="vaccination"` |
 | I17 | **Accordion headers** — Make Figma static; PO asks interactive React | **N/A** (static Make) | **Present** | UXDS Accordion; probes `pdp-faq-accordion-*` |
-| I18 | **Download guide / leaflet CTAs** — Make decorative; PO asks DS hover | **Present** (static) | **Present** | `pdp__pill` buttons + tertiary hover; probe `pdp-download-cta-hover` |
+| I18 | **Download guide / leaflet CTAs** — same tertiary rest; DS hover; no leaflet stub border | **Present** (Guide rest + Leaflet hover-mock) | **Present** | both `.pdp__pill`; probe asserts no `--bordered` |
 | I19 | **Someone else tab** — **does not** open `recipient-picker` on PDP (visual only); picker opens from Book Step “Change recipient” | **Present** (wire truth) | **Missing** | Toggle wire activates index only; `recipient-picker` wired on book steps L3865–3935 |
 | I20 | **Figma playback cursor** hidden on PDP | **Present** | **N/A** | `globals-screens` L714–715 `nth-child(8) [data-name=".utility / cursor"]` |
 
@@ -178,7 +182,8 @@
 
 | # | Issue | Owner |
 |---|-------|-------|
-| B1 | ~~**Accordion** static~~ — **CLOSED** (PO go 2026-07-19). Interactive UXDS Accordion shipped; only “Who is at risk?” has Make body. | Bea |
+| B1 | ~~**Accordion** static~~ — **CLOSED**. Interactive Accordion; 3 Make-sourced bodies; 3 residual headers (no empty shells). | Bea |
+| B6 | **FAQ residual bodies** — NHS / already-have / personal-data: no Make Description after search; PO may supply Make copy later. | Bea / PO |
 | B2 | **Someone else** on PDP — visual toggle only; `recipient-picker` is Book-step “Change recipient”. Do not wire picker to PDP toggle without PO. | Bea → Finn |
 | B3 | **Download / share CTAs** — DS hover shipped; **no** file/URL journey wire yet (decorative click OK). | Pax |
 | B4 | **Book now initial price** — Figma shows `£150` with booster default checked (`DEFAULT_INCLUDE_BOOSTER_DOSE = true`); list price row stays `£75.00` single-dose. | Documented — match wire |
