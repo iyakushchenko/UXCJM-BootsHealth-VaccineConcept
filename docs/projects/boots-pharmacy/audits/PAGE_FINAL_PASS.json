@@ -121,21 +121,21 @@
     {
       "screenId": "pdp",
       "status": "proven",
-      "hardGreen": false,
+      "hardGreen": true,
       "stampedAt": {
-        "sha": "5c1d90f",
+        "sha": "f5f004f",
         "date": "2026-07-19",
-        "note": "Finn structure/naming + UXDS Accordion kit + ButtonPrimary Book now; header crumbs + main RTB/below; BEM pdp; data-studio-react-screen + make-retired; FAQ 6/6 + TertiaryCta soft + muted chevrons. Structure retained. Prior HARD-GREEN @ 5c1d90f / v0.0.37 (Accordion Motion). hardGreen false until Quinn re-prove + Arch restore after v0.0.38."
+        "note": "Finn structure/naming + UXDS Accordion kit + ButtonPrimary Book now; header crumbs + main RTB/below; BEM pdp; data-studio-react-screen + make-retired; FAQ 6/6 + TertiaryCta soft + muted chevrons. PromoMessageStrip kit + tip-stable cursor retained under HARD-GREEN after Quinn 23/23 re-prove @ f5f004f / v0.0.38."
       },
       "mcpFinalPass": {
-        "status": "NEEDS-REPROVE",
-        "pass": false,
+        "status": "HARD-GREEN",
+        "pass": true,
         "stampedAt": {
-          "sha": "bd01c07",
+          "sha": "f5f004f",
           "date": "2026-07-19",
           "version": "0.0.38",
-          "auditor": "Arch (Director) — PromoMessageStrip + tip-stable cursor demote",
-          "note": "Honest demote: tip bd01c07 / v0.0.38 past HARD-GREEN @ 5c1d90f. PromoMessageStrip kit extract rewired PDP promo band (DOM/class path) + tip-stable robo-cursor (shell hotspot; not structure-only). Token CSS 1:1 ≠ Quinn waiver. Quinn must re-prove MCP matrix on tip before HARD-GREEN restore. Home waits PO +."
+          "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN restore",
+          "note": "Quinn __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) 23/23 PASS ~27242ms on tip f5f004f / v0.0.38 (PromoMessageStrip + tip-stable cursor). Overlay-arm + overlay-eyes + teardown clean stay screen=pdp. Arch restores hardGreen after demote NEEDS-REPROVE @ bd01c07. Home waits PO +."
         },
         "url": "http://localhost:5173/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
@@ -158,8 +158,8 @@
           { "id": "pdp-crumb-plp", "pass": true },
           { "id": "plp-to-pdp", "pass": true },
           { "id": "pdp-below-fold-scroll", "pass": true, "detail": "already in view + overlay visible" },
-          { "id": "pdp-faq-accordion-toggle", "pass": true, "detail": "Motion height contract" },
-          { "id": "pdp-faq-accordion-reopen", "pass": true, "detail": "Motion mid-tween assertable" },
+          { "id": "pdp-faq-accordion-toggle", "pass": true },
+          { "id": "pdp-faq-accordion-reopen", "pass": true },
           { "id": "pdp-faq-help-body", "pass": true },
           { "id": "pdp-download-cta-hover", "pass": true, "detail": "same tertiary .pdp__pill; no --bordered" },
           { "id": "url-screen", "pass": true }

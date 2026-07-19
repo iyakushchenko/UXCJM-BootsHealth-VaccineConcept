@@ -1,8 +1,8 @@
 # Quinn (QA) — PDP MCP prove criteria
 
-**Status:** MCP matrix **PASS** @ tip `5c1d90f` / v0.0.37 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**PAGE FINAL PASS:** **HARD-GREEN** (`hardGreen: true` @ tip `5c1d90f`) — Uma §0a PROVEN @ `76e2433`; Quinn 23/23 PASS @ `5c1d90f` / v0.0.37 (Accordion Motion; prove `cdf5c5f`).  
-**Updated:** 2026-07-19 (Arch HARD-GREEN restore after Accordion Motion re-prove)  
+**Status:** MCP matrix **PASS** @ tip `f5f004f` / v0.0.38 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
+**PAGE FINAL PASS:** **HARD-GREEN** (`hardGreen: true` @ tip `f5f004f`) — Uma §0a PROVEN @ `76e2433`; Quinn 23/23 PASS @ `f5f004f` / v0.0.38 (PromoMessageStrip + tip-stable cursor re-prove after NEEDS-REPROVE).  
+**Updated:** 2026-07-19 (Arch HARD-GREEN restore after v0.0.38 Quinn re-prove)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
 **Refs:** [RECORDING.md](../../../shell/RECORDING.md) · LESSONS overlay/scroll · `studioMcpPageProbe.ts`
@@ -25,7 +25,7 @@
 await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 ```
 
-**Prep:** Sign Out / `__studioSetLoggedIn(false)`; empty chickenpox wishlist heart; Book now £150 before probe.
+**Prep:** Sign Out / `__studioSetLoggedIn(false)`; empty chickenpox wishlist heart; Book now £150; strip `mode=traditional-cjm` before probe.
 
 **Matrix:** 23 steps (overlay-arm → url-screen) — see [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).
 
