@@ -239,6 +239,12 @@
   gap: 16px;
 }
 
+/* Engine reveal bridge — keep mounted for collectFrames; never paint unrevealed. */
+.chat__frame[hidden],
+.chat__frame[data-studio-chat-revealed="false"] {
+  display: none !important;
+}
+
 .chat__bubble {
   box-sizing: border-box;
   border-radius: 16px;

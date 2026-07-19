@@ -9,7 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AnimatePresence, motion, MOTION_EASE_IN_OUT } from "@/uxds/motion";
+import { AnimatePresence } from "@/uxds/motion";
 import { ButtonPrimary } from "@/uxds/components";
 import {
   beginSitePilotChatThinking,
@@ -28,6 +28,11 @@ import {
   getChatThinkingBridgeState,
   subscribeChatThinkingBridge,
 } from "./chatThinkingBridge";
+import {
+  getChatScenarioRevealState,
+  resolveChatRevealedFrameCount,
+  subscribeChatScenarioReveal,
+} from "./chatScenarioRevealBridge";
 import { ChatThinkingBubble } from "./ChatThinkingBubble";
 import {
   CHAT_CHIP_LABELS,
@@ -41,7 +46,11 @@ import {
 } from "./chatThreadContent";
 import "./chat.css";
 
-/** Apply BEM once — do not set React `className` (scenario engine owns `proto-scenario-frame*`). */
+/**
+ * Apply BEM once — do not set React `className` (scenario engine owns
+ * `proto-scenario-frame*`). Plain `<div>` only: framer-motion inline opacity
+ * overrides `.proto-scenario-frame--hidden` and dumps the full thread on enter.
+ */
 function useStaticFrameClasses(
   classNames: readonly string[]
 ): RefObject<HTMLDivElement | null> {
@@ -52,6 +61,20 @@ function useStaticFrameClasses(
     for (const name of classNames) el.classList.add(name);
   }, [classNames]);
   return ref;
+}
+
+/** Drop engine inline display/hide leftovers when React reveal bridge paints a frame. */
+function useChatFrameRevealPaint(
+  ref: RefObject<HTMLDivElement | null>,
+  revealed: boolean
+): void {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !revealed) return;
+    el.style.display = "";
+    el.classList.remove("proto-scenario-frame--hidden");
+    el.dataset.studioScenarioVisible = "true";
+  }, [ref, revealed]);
 }
 
 export type ChatScreenProps = {
@@ -138,17 +161,23 @@ function AgentCta({ label, onClick }: { label: string; onClick?: () => void }) {
 
 const QUERY_FRAME_CLASSES = ["chat__frame", "chat__frame--query"];
 
-function QueryFrame({ frame }: { frame: Extract<ChatThreadFrame, { kind: "query" }> }) {
+function QueryFrame({
+  frame,
+  revealed,
+}: {
+  frame: Extract<ChatThreadFrame, { kind: "query" }>;
+  revealed: boolean;
+}) {
   const ref = useStaticFrameClasses(QUERY_FRAME_CLASSES);
+  useChatFrameRevealPaint(ref, revealed);
   return (
-    <motion.div
+    <div
       ref={ref}
       data-name="query"
       data-studio-chat-frame={frame.id}
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: MOTION_EASE_IN_OUT }}
+      data-studio-chat-revealed={revealed ? "true" : "false"}
+      hidden={!revealed}
+      aria-hidden={!revealed}
     >
       <div
         className="chat__bubble chat__bubble--user"
@@ -158,7 +187,7 @@ function QueryFrame({ frame }: { frame: Extract<ChatThreadFrame, { kind: "query"
           <p>{frame.text}</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -166,14 +195,17 @@ const REPLY_FRAME_CLASSES = ["chat__frame", "chat__frame--reply"];
 
 function ReplyFrame({
   frame,
+  revealed,
   onAgentCta,
   onProductLink,
 }: {
   frame: Extract<ChatThreadFrame, { kind: "reply" }>;
+  revealed: boolean;
   onAgentCta?: (label: string) => void;
   onProductLink?: (label: string) => void;
 }) {
   const ref = useStaticFrameClasses(REPLY_FRAME_CLASSES);
+  useChatFrameRevealPaint(ref, revealed);
   const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement | null;
     const link = t?.closest?.(".uxds-link, .chat__link");
@@ -183,14 +215,13 @@ function ReplyFrame({
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       data-name="reply"
       data-studio-chat-frame={frame.id}
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: MOTION_EASE_IN_OUT }}
+      data-studio-chat-revealed={revealed ? "true" : "false"}
+      hidden={!revealed}
+      aria-hidden={!revealed}
     >
       <div
         className="chat__bubble chat__bubble--agent"
@@ -215,7 +246,7 @@ function ReplyFrame({
         ) : null}
       </div>
       {frame.helpful ? <HelpfulStrip /> : null}
-    </motion.div>
+    </div>
   );
 }
 
@@ -330,6 +361,19 @@ export function ChatScreen({
     getChatThinkingBridgeState
   );
 
+  const scenarioReveal = useSyncExternalStore(
+    subscribeChatScenarioReveal,
+    getChatScenarioRevealState,
+    getChatScenarioRevealState
+  );
+
+  /** Engine visibleCount — progressive paint; default min until publish lands. */
+  const revealedFrameCount = resolveChatRevealedFrameCount(
+    scenarioReveal.active ? scenarioReveal.visibleCount : 0,
+    CHAT_THREAD_FRAMES.length,
+    1
+  );
+
   // Bridge owns send/playback thinking end (Play fade-out). Clear local stop latch.
   useEffect(() => {
     if (thinking.mode !== "send") setSendThinking(false);
@@ -383,7 +427,9 @@ export function ChatScreen({
   };
 
   const threadNodes: ReactNode[] = [];
-  for (const frame of CHAT_THREAD_FRAMES) {
+  CHAT_THREAD_FRAMES.forEach((frame, frameIndex) => {
+    const revealed = frameIndex < revealedFrameCount;
+
     if (
       thinking.mode === "playback" &&
       thinking.anchorFrameId === frame.id
@@ -398,12 +444,15 @@ export function ChatScreen({
     }
 
     if (frame.kind === "query") {
-      threadNodes.push(<QueryFrame key={frame.id} frame={frame} />);
+      threadNodes.push(
+        <QueryFrame key={frame.id} frame={frame} revealed={revealed} />
+      );
     } else {
       threadNodes.push(
         <ReplyFrame
           key={frame.id}
           frame={frame}
+          revealed={revealed}
           onAgentCta={onAgentCta}
           onProductLink={onProductLink}
         />
@@ -423,7 +472,7 @@ export function ChatScreen({
         />
       );
     }
-  }
+  });
 
   if (thinking.mode === "send") {
     threadNodes.push(

@@ -31,7 +31,7 @@ const ALLOWLIST = {
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 1800, // CJM orchestrator; extract advance/retreat next
-  "src/app/App.tsx": 1800, // control-room root; recording bridge extracted to useRecordingReplayBridge
+  "src/app/App.tsx": 1820, // control-room root; chat reveal publish bridge wiring
   "src/app/nav/studioNavPanel.css": 1600, // PANEL chrome + version chip; keep one stylesheet
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth
   "src/app/scenario/demoCursor.ts": 1500, // demo cursor + R10 + PLAYBACK_DIAG click evidence; split park/travel next

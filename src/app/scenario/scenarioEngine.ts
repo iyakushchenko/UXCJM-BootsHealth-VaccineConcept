@@ -114,17 +114,13 @@ export function applyScenarioFrameVisibility(
       return;
     }
 
+    // Never-shown frames: hide immediately (no exit tween). Delayed display:none
+    // let React chat dump the full thread for ~480ms before collapse.
     if (!wasVisible && !wasHidden) {
+      clearFrameHideTimer(frame);
       frame.classList.add("proto-scenario-frame--hidden");
       frame.dataset.studioScenarioVisible = "false";
-      frame.dataset.studioScenarioHideTid = String(
-        window.setTimeout(() => {
-          if (frame.dataset.studioScenarioVisible === "false") {
-            frame.style.display = "none";
-          }
-          delete frame.dataset.studioScenarioHideTid;
-        }, SCENARIO_FRAME_ANIM_MS + 50)
-      );
+      frame.style.display = "none";
       return;
     }
 

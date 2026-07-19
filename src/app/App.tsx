@@ -145,6 +145,7 @@ import {
   isSitePilotChatPlaybackThinking,
   syncSitePilotChatThinkingHint,
 } from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
+import { usePublishChatScenarioReveal } from "@/projects/boots-pharmacy/screens/chat/usePublishChatScenarioReveal";
 import {
   installStudioAuthSessionWindowApi,
   isStudioLoggedIn,
@@ -570,6 +571,7 @@ export default function App() {
       scenarioRestoreFullOnInitRef.current = true;
       setChatRetreatRestoreActive(true);
     },
+    screenIdForTabIndex: (tabIndex) => SCREENS[tabIndex]?.screenId,
   });
 
   useEffect(() => {
@@ -1274,6 +1276,12 @@ export default function App() {
     studioProgress.visibleCount,
     studioProgress.totalFrames,
   ]);
+
+  usePublishChatScenarioReveal(
+    activeScreenScenario?.id,
+    scenarioPlayback.visibleCount,
+    stableChatPlaylistFrames
+  );
 
   useLayoutEffect(() => {
     const scrollEl = prototypeScrollElRef.current;

@@ -1379,7 +1379,7 @@
     margin-block var(--proto-scenario-frame-duration, 0.48s) var(--proto-scenario-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 .studio-viewport > div > div:nth-child(10) .proto-scenario-frame.proto-scenario-frame--hidden {
-  opacity: 0;
+  opacity: 0 !important;
   transform: translateY(8px) scale(0.99);
   max-height: 0;
   margin-block: 0;
