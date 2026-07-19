@@ -2,40 +2,61 @@
 
 **Updated:** 2026-07-19  
 **Owner:** Tech Director (agents execute; PO accept/reject + assets only)  
-**Refs:** [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) · [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) · [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md)
+**Refs:** [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) · [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) · [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) · [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) · [CSS_BASE_THEME.md](./CSS_BASE_THEME.md)
 
 ---
 
 ## NOW
 
-1. **Ship REC ⊗ CJM fix** — REC disabled when CJM on; XOR both ways; AIR still locks both. Prove with unit + MCP sanity; push + Pages.
-2. **Verify GitHub Pages** after push — `https://iyakushchenko.github.io/ux-studio/` loads; chrome REC/CJM still correct on deployed build.
-3. **Chrome XOR proven before page work** — do not start Book Step 2 migration until REC⊗CJM is green on Pages (or localhost + PROVEN audit).
+1. [ ] **Verify GitHub Pages** after Step 2 deploy — `https://iyakushchenko.github.io/ux-studio/` loads; Book Step 2 React visible; REC⊗CJM chrome still correct on deployed build.
+2. [ ] **Book Step 3 React migration** (Confirmation) — BASE→THEME→PANEL; no LEGACY growth; Nazi QA **PROVEN** before PO.
+
+---
 
 ## NEXT
 
-4. **Book Step 2 React migration** under BASE → THEME (+ PANEL only for engine chrome). Nazi QA FE audit **PROVEN** before PO.
-5. **Grow UXDS by page** — migrate real kits as screens land; retire LEGACY screen-by-screen (no new React styles in LEGACY).
-6. **Versioning habit** — append notes on user-visible ships (`npm run notes:append`). Release CI stays **later**.
+3. [ ] **Grow UXDS by page** — extract kits only when a second screen needs them; retire LEGACY screen-by-screen ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+4. [ ] **Fidelity debt (non-blocking)** — Step 1/2 hex→tokens harden; dead child-7 / child-4 LEGACY CSS cleanup when touching those files; tertiary CTA layer extraction when next shared use forces it.
+5. [ ] **Versioning habit** — append notes on every user-visible ship (`npm run notes:append`). Release/tag CI stays **later**.
+
+---
 
 ## LATER
 
-7. **Release / tag CI** — only when versioning habit is stable and budget allows.
-8. **Broader CSS check ratchets** — more `scripts/check-*.mjs` contracts (Summarizer-style), not more Playwright on every push.
-9. **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do not return auto smoke to default CI without a Director rewrite of this board.
+6. [ ] **Release / tag CI** — only when versioning habit is stable and Actions budget allows.
+7. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs` contracts (Summarizer-style), not more Playwright on every push.
+8. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
 
 ---
 
 ## Done recently (context)
 
-- Local versioning skeleton + post-change checklist  
-- Text-link contract + Make viewport link carve-out  
-- Slim CI: unit + build default; Playwright smoke on-demand only  
+- [x] **Book Step 2 React migration** — Date/Time Frame child **4**; Make chrome hidden; calendar/reserve gated; audit [FE_AUDIT_BOOK_STEP2_2026-07-19.md](./audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md) **PROVEN**.
+- [x] **REC ⊗ CJM** — REC disabled when CJM on; XOR both ways; AIR locks both (`800ec61`). Unit + MCP sanity.
+- [x] **Slim CI** — unit + build default; Playwright smoke `workflow_dispatch` only (`009fb2b`).
+- [x] **Actions bump** — checkout/setup-node v5; Node 22 app runtime (`3bec858`).
+- [x] Book Step 1 React pilot + FE audits **PROVEN** (hybrid mount; LEGACY retires screen-by-screen).
+- [x] Text-link contract + Make viewport link carve-out.
+- [x] Local versioning skeleton + post-change checklist.
+- [x] CSS layer lock BASE → THEME → PANEL → LEGACY documented.
+
+---
+
+## Hard locks (do not regress)
+
+| Lock | Rule |
+|------|------|
+| **REC ⊗ CJM** | REC off when journey mode on; XOR; AIR locks both |
+| **No LEGACY growth** | New React page styles → screen CSS / UXDS / theme only |
+| **Nazi QA** | UI ship needs audit **PROVEN** before PO green-light |
+| **CI budget** | No stacking full Playwright smoke via Actions without Director OK |
 
 ---
 
 ## Related
 
-- [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md)  
-- [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md)  
-- [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)  
+- [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md)
+- [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md)
+- [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)
+- [BOOTS_BOOK_STEP2_DESIGN_DELTA.md](./BOOTS_BOOK_STEP2_DESIGN_DELTA.md)
+- [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)

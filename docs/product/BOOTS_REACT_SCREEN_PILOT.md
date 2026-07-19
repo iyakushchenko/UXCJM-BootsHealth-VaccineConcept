@@ -35,6 +35,7 @@ Agentic CJM still lands on Book Step 2 after Availability Tool; this pilot prove
 | Screen | Stack |
 |--------|--------|
 | **Book Step 1 — Location** | **React + UXDS** (Make HTML hidden for this child only) |
+| **Book Step 2 — Date and Time** | **React + UXDS** (Make HTML hidden for Frame child **4** only) |
 | All other Boots screens | Make wire (+ overlays/popups as before) |
 | Availability Tool | React overlay (prior enrichment) |
 
@@ -118,8 +119,8 @@ Book Step 1 targets (child 7):
 2. Open **Boots Pharmacy** → nav tab **Book - Step 1 - Location** (or Traditional CJM → after PDP/login).
 3. Confirm React card matches Make look (progress teal underline, pill search, near-me, Continue); Make absolute layout gone for this tab.
 4. Search or Near me → Availability Tool → choose Covent Garden → chosen card + map.
-5. Continue → Book Step 2 (Make).
-6. Optional: play Traditional CJM through `choose-location` beat.
+5. Continue → Book Step 2 (React) — pick date/time → Reserve → Step 3 (Make).
+6. Optional: play Traditional CJM through `choose-location` / `book-step2*` beats.
 
 ---
 
@@ -127,4 +128,6 @@ Book Step 1 targets (child 7):
 
 - `src/projects/boots-pharmacy/screens/book-step1/BookStep1LocationScreen.tsx`
 - `src/projects/boots-pharmacy/screens/book-step1/mountBookStep1Screen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step2/BookStep2DateTimeScreen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step2/mountBookStep2Screen.tsx`
 - Wire mount in `BootsPharmacyProjectView.tsx`

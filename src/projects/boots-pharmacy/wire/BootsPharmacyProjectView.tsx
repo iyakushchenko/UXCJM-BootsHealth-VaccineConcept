@@ -107,6 +107,11 @@ import {
   mountBookStep1Screen,
   unmountBookStep1Screen,
 } from "@/projects/boots-pharmacy/screens/book-step1/mountBookStep1Screen";
+import {
+  isBookStep2ReactMounted,
+  mountBookStep2Screen,
+  unmountBookStep2Screen,
+} from "@/projects/boots-pharmacy/screens/book-step2/mountBookStep2Screen";
 
 
 /**
@@ -908,8 +913,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, []);
 
   // Book Step 2 — re-apply calendar selection when slot changes (incl. CJM step-back)
+  // React pilot owns selection via props — skip Make DOM mutators when mounted.
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 4) return;
+    if (isBookStep2ReactMounted()) return;
     const screen = bookStep2Screen();
     if (!screen) return;
     applyBookStep2CalendarFromSlot(screen, chosenBookingSlot);
@@ -1426,6 +1433,40 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   useEffect(() => {
     return () => unmountBookStep1Screen();
+  }, []);
+
+  // Book Step 2 — React + UXDS pilot (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== 4) {
+      unmountBookStep2Screen();
+      return;
+    }
+
+    mountBookStep2Screen({
+      chosenLocation,
+      vaccineName: chosenVaccine.name,
+      recipient: chosenRecipient,
+      slot: chosenBookingSlot,
+      onChangeVaccine: openVaccinePicker,
+      onChangeRecipient: openRecipientPicker,
+      onChangeLocation: () => openPickLocations("list"),
+      onSlotChange: setChosenBookingSlot,
+      onReserve: () => setCurrent(6), // Book - Step 3 - Confirmation
+    });
+
+    setupProtoFooters({
+      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    });
+  }, [
+    current,
+    chosenLocation,
+    chosenVaccine.name,
+    chosenRecipient,
+    chosenBookingSlot,
+  ]);
+
+  useEffect(() => {
+    return () => unmountBookStep2Screen();
   }, []);
 
   // Book – Step 1 (child 7): breadcrumb rewrite — Make path only
@@ -2964,8 +3005,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, [chosenLocation, current]);
 
   // Book Step 2 — date / time cells: hover + click selection (no Figma cursor demos)
+  // Make path only — React pilot owns calendar interaction.
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 4) return;
+    if (isBookStep2ReactMounted()) return;
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(4)"
     ) as HTMLElement | null;
@@ -3128,8 +3171,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, [current]);
 
   // Book Step 2 — Reserve Appointment → Step 3 Confirmation
+  // Make path only — React pilot wires Reserve in-component.
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 4) return;
+    if (isBookStep2ReactMounted()) return;
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(4)"
     ) as HTMLElement | null;
@@ -3355,6 +3400,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
     if (childIndex !== 4 && childIndex !== 3) return;
+    if (childIndex === 4 && isBookStep2ReactMounted()) return;
     const screen = document.querySelector(
       `.proto-viewport > div > div:nth-child(${childIndex})`
     ) as HTMLElement | null;
@@ -3611,8 +3657,9 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
     if (childIndex !== 7 && childIndex !== 4) return;
-    // React Book Step 1 owns Vaccine Change via props.
+    // React Book Step 1 / Step 2 own Vaccine Change via props.
     if (childIndex === 7 && isBookStep1ReactMounted()) return;
+    if (childIndex === 4 && isBookStep2ReactMounted()) return;
 
     const screen = document.querySelector(
       `.proto-viewport > div > div:nth-child(${childIndex})`
@@ -3691,6 +3738,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const childIndex = SCREENS[current]?.childIndex;
     if (childIndex !== 7 && childIndex !== 4) return;
     if (childIndex === 7 && isBookStep1ReactMounted()) return;
+    if (childIndex === 4 && isBookStep2ReactMounted()) return;
 
     const screen = document.querySelector(
       `.proto-viewport > div > div:nth-child(${childIndex})`

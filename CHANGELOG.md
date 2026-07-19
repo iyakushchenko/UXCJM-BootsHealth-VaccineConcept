@@ -3,6 +3,7 @@
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
 - **docs:** Seed local versioning + post-change checklist from Summarizer
+- **project:** Ship Book Step 2 React Date/Time pilot (Frame child 4); hide Make chrome; Nazi QA PROVEN; no LEGACY growth
 
 ## v0.0.1 - 190726
 

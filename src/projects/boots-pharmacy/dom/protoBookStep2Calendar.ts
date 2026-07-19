@@ -184,6 +184,11 @@ export function applyBookStep2CalendarFromSlot(
   screen: HTMLElement,
   slot: BookStep2CalendarSlot
 ): boolean {
+  // React pilot owns selection via props — do not strip React cell chrome.
+  if (screen.dataset.protoReactScreen === "book-step-2") {
+    return true;
+  }
+
   screen
     .querySelectorAll<HTMLElement>('[data-name="calendar. date. cell"]')
     .forEach((cell) => {

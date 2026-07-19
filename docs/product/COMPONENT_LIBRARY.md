@@ -37,8 +37,8 @@ Do **not** invent a large unused component catalog ahead of pages.
 
 | Phase | What happens |
 |-------|----------------|
-| **Now** | Book Step 1 (+ Availability / Login kits in use) prove the path: kits under `src/uxds/*`, Boots chrome, screen CSS for layout only |
-| **Next page** | Extract only what the page needs into UXDS/project chrome; register deviations if concept forces a break |
+| **Now** | Book Step 1 + **Book Step 2** (+ Availability / Login kits in use) prove the path: kits under `src/uxds/*`, Boots chrome, screen CSS for layout only |
+| **Next page** | Book Step 3 — extract only what the page needs into UXDS/project chrome; register deviations if concept forces a break |
 | **Ongoing** | Each migration adds 0–N real, used components — library grows as a **byproduct of shipping pages** |
 | **Never** | “Scaffold 40 unused DS components” as a milestone |
 
