@@ -55,6 +55,8 @@ export function useRecordingReplayBridge(options: {
   journeyRuntime: JourneyRuntime;
   projectPlayback: ProjectPlayback;
   getStartOptions: () => StartRecordingOptions;
+  /** After Save as journey / MCP save — refresh beat index + transport. */
+  onJourneySaved?: () => void;
 }): {
   replayRecordingOptions: () => RecordingReplayOptions;
 } {
@@ -64,6 +66,7 @@ export function useRecordingReplayBridge(options: {
     journeyRuntime,
     projectPlayback,
     getStartOptions,
+    onJourneySaved,
   } = options;
 
   const screensRef = useRef(screenNav.screens);
@@ -217,6 +220,9 @@ export function useRecordingReplayBridge(options: {
     return ensureRecordingHumanClickCapture();
   }, []);
 
+  const onJourneySavedRef = useRef(onJourneySaved);
+  onJourneySavedRef.current = onJourneySaved;
+
   useEffect(() => {
     return registerRecordingMcpHelpers({
       getDefaultStartOptions: () => ({
@@ -224,6 +230,7 @@ export function useRecordingReplayBridge(options: {
         metadata: { recordedFrom: "mcp" },
       }),
       ...replayRecordingOptions(),
+      onJourneySaved: () => onJourneySavedRef.current?.(),
     });
   }, [getStartOptions, replayRecordingOptions]);
 

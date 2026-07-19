@@ -73,6 +73,7 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 ```javascript
 window.__studioRunMcpSanityCheck?.()          // preferred — safe default, no transport
 window.__studioExportJourneyBundle?.()        // journey.json
+window.__studioSaveRecordingAsJourney?.()     // REC → ephemeral CJM journey
 window.__studioApplyJourneyBundle?.(json)     // runtime import
 window.__studioStartRecording?.()             // recording session
 // Legacy stable aliases (same functions): window.__proto*

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { flashControlRoomButton } from "@/app/nav/controlRoomTap";
 import { StudioPlaybackRecSwitch } from "@/app/nav/StudioPlaybackRecSwitch";
 import { studioPanelTransition } from "@/app/nav/studioMotion";
+import { saveRecordingAsJourney } from "@/app/recording/recordingCompile";
 import {
   getActiveRecordingSession,
   getLastRecordingSession,
@@ -24,6 +25,8 @@ import { logControlPanel } from "@/app/shell/controlPanelLog";
 export type StudioNavRecordingControlsProps = {
   getStartOptions: () => StartRecordingOptions;
   onReplay: (session: RecordingSession) => void | Promise<void>;
+  /** Compile last/live session → ephemeral journey in the CJM catalog + download JSON. */
+  onSaveAsJourney?: (session: RecordingSession) => void;
   /** When true (AIR / play live), REC mode switch is locked — same gate as cassette transport. */
   recModeLocked?: boolean;
 };
@@ -186,17 +189,36 @@ function ReplayIcon() {
   );
 }
 
-function downloadRecordingJson(session: RecordingSession): void {
-  const json = serializeRecordingSession(session);
+function JourneySaveIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+      <path
+        d="M2 1.25h4.25L8.5 3.5V8.5a.25.25 0 0 1-.25.25H2.25A.25.25 0 0 1 2 8.5V1.5c0-.14.11-.25.25-.25z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path d="M3.25 1.5h3v2h-3z" fill="currentColor" />
+      <path d="M3 6.25h4v2.25H3z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function downloadTextJson(filename: string, json: string): void {
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  const stamp = session.stoppedAt ?? session.startedAt ?? "session";
-  const safeStamp = stamp.replace(/[:.]/g, "-");
   anchor.href = url;
-  anchor.download = `recording-${safeStamp}.recording.json`;
+  anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadRecordingJson(session: RecordingSession): void {
+  const json = serializeRecordingSession(session);
+  const stamp = session.stoppedAt ?? session.startedAt ?? "session";
+  const safeStamp = stamp.replace(/[:.]/g, "-");
+  downloadTextJson(`recording-${safeStamp}.recording.json`, json);
 }
 
 /**
@@ -208,6 +230,7 @@ function downloadRecordingJson(session: RecordingSession): void {
 export function StudioNavRecordingModeSlot({
   getStartOptions,
   onReplay,
+  onSaveAsJourney,
   recModeLocked = false,
 }: StudioNavRecordingControlsProps) {
   const [recMode, setRecMode] = useState(false);
@@ -291,6 +314,7 @@ export function StudioNavRecordingModeSlot({
               <StudioNavRecordingControls
                 getStartOptions={getStartOptions}
                 onReplay={onReplay}
+                onSaveAsJourney={onSaveAsJourney}
               />
             </motion.div>
           ) : null}
@@ -308,6 +332,7 @@ export function StudioNavRecordingModeSlot({
 export function StudioNavRecordingControls({
   getStartOptions,
   onReplay,
+  onSaveAsJourney,
 }: StudioNavRecordingControlsProps) {
   const ui = useRecordingUiSnapshot();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -405,10 +430,41 @@ export function StudioNavRecordingControls({
     try {
       await onReplay(target);
     } catch (error) {
-      console.warn("[ProtoRecording] replay failed", error);
+      console.warn("[StudioRecording] replay failed", error);
       setStatusNote("REPLAY FAIL");
     } finally {
       setReplaying(false);
+    }
+  };
+
+  const handleSaveAsJourney = (event: React.MouseEvent<HTMLButtonElement>) => {
+    let session = getActiveRecordingSession() ?? getLastRecordingSession();
+    logControlPanel("recording:save-as-journey", {
+      blocked: !session || replaying,
+      eventCount: session?.events.length ?? 0,
+    });
+    flashTap(event.currentTarget);
+    if (!session || replaying) return;
+    try {
+      if (isRecordingActive()) {
+        session = stopRecording() ?? session;
+      }
+      const defaults = getStartOptions();
+      const saved = saveRecordingAsJourney(session, {
+        projectId: session.projectId ?? defaults.projectId,
+        personaId: session.personaId ?? defaults.personaId,
+      });
+      const stamp = session.stoppedAt ?? session.startedAt ?? "session";
+      const safeStamp = stamp.replace(/[:.]/g, "-");
+      downloadTextJson(
+        `journey-${saved.journey.id}-${safeStamp}.json`,
+        saved.json
+      );
+      onSaveAsJourney?.(session);
+      setStatusNote(`JOURNEY · ${saved.summary.beatCount}`);
+    } catch (error) {
+      console.warn("[StudioRecording] save-as-journey failed", error);
+      setStatusNote("JOURNEY FAIL");
     }
   };
 
@@ -486,6 +542,16 @@ export function StudioNavRecordingControls({
         onClick={handleReplay}
       >
         <ReplayIcon />
+      </button>
+      <button
+        type="button"
+        className="studio-nav-step-btn studio-nav-scenario__btn"
+        aria-label="Save recording as journey"
+        title="Compile → journey catalog (play in CJM) + download .json"
+        disabled={!ui.canExport || replaying}
+        onClick={handleSaveAsJourney}
+      >
+        <JourneySaveIcon />
       </button>
       <input
         ref={fileInputRef}

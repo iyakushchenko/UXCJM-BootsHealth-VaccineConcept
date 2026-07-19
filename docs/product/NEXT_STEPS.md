@@ -9,17 +9,18 @@
 
 ## NOW
 
-1. [ ] **Recording compile→journeys** — only after human REC + director/retreat-sync matrix stays boring in real sessions ([RECORDING.md](../shell/RECORDING.md)).
+1. [x] **Recording compile→journeys** — Save as journey / `__studioSaveRecordingAsJourney` → ephemeral CJM catalog overlay ([RECORDING.md](../shell/RECORDING.md)). Durable `journeys.ts` write + free journey ids = later.
 2. [ ] **Versioning habit** — append notes on every user-visible ship; consider patch when PO wants a named demo ([VERSIONING.md](./VERSIONING.md)).
 
 ---
 
 ## NEXT
 
-3. [ ] **LEGACY retirement (by screen)** — no LEGACY growth; shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
-4. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain (recording bridge / beat advance) — not micro-files.
-5. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
-6. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
+3. [ ] **REC capture gaps** — beat-enter / scroll / typed-text replay (capture partial; replay unsupported) unless a trivial win appears.
+4. [ ] **LEGACY retirement (by screen)** — no LEGACY growth; shrink Make wire + `globals-screens` as React pages land. Concept `.proto-*` classes retire with their screen.
+5. [ ] **Engine monster splits** — on next touch of `App.tsx` / `useJourneyPlayback.ts`, extract by domain (recording bridge / beat advance) — not micro-files.
+6. [ ] **Grow UXDS by page** — extract only on second use ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+7. [ ] **Residual fidelity (low)** — Book Steps 1–3 Make-only hexes with no bridge token yet. Do **not** invent aliases.
 
 ---
 
@@ -34,6 +35,7 @@
 
 ## Done recently (context)
 
+- [x] **Recording compile→journeys (vertical)** — `compileRecordingToJourney` + REC **Save as journey** / `__studioSaveRecordingAsJourney` merges into `journeyRuntimeStore`; play via CJM ([RECORDING.md](../shell/RECORDING.md)).
 - [x] **Recording v2 gaps (human + scripts)** — trusted human REC clicks → `demo-click`; `applyDirectorScript` + `retreat-sync` via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind` ([RECORDING.md](../shell/RECORDING.md)).
 - [x] **Version chip + felony gate** — tabs-row `vX.Y.Z` + channel; `check:felonies` + `check:version` in `npm test`; proto filename leftovers → 0 in src/scripts/docs ([VERSIONING.md](./VERSIONING.md)).
 - [x] **Recording v2 demo-click replay** — `resolvePlaybackSelectorChain` + `applyDemoClick` / partial `applyWireIntent`; book CTA `data-studio-action`.

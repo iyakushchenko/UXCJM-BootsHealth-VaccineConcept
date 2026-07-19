@@ -73,9 +73,11 @@ recordingCapture             (bridge + touchpoint hook in App.tsx)
        ↓
 recordingSession             (in-memory session + JSON export)
        ↓
-recordingReplay              (v1 transport; v2 demo-click / human click / wire / director)
+recordingReplay              (v2 transport / screen / demo-click / wire / director)
        ↓
-compileRecordingToBeatTimeline    (future journeys.ts compiler input)
+compileRecordingToBeatTimeline → compileRecordingToJourney
+       ↓
+journeyRuntimeStore          (ephemeral catalog overlay — play in CJM)
 ```
 
 | Module | Path | Owns |
@@ -83,7 +85,8 @@ compileRecordingToBeatTimeline    (future journeys.ts compiler input)
 | **Types** | `app/recording/recordingTypes.ts` | Event union, session shape, replay options |
 | **Session** | `app/recording/recordingSession.ts` | start/stop/pause, append, serialize, last session |
 | **Capture** | `app/recording/recordingCapture.ts` | Snapshot provider, interaction bridge, touchpoint |
-| **Replay** | `app/recording/recordingReplay.ts` | `replayRecordingSession` (transport/screen/dwell/demo-click/wire-intent/director-script), `compileRecordingToBeatTimeline` |
+| **Replay** | `app/recording/recordingReplay.ts` | `replayRecordingSession`, `compileRecordingToBeatTimeline` |
+| **Compile** | `app/recording/recordingCompile.ts` | `compileRecordingToJourney` / `saveRecordingAsJourney` → runtime catalog |
 | **Script apply** | `app/recording/recordingScriptApply.ts` | Shared `applyRecordingProjectScript` (director + retreat-sync) |
 | **App bridge** | `app/recording/useRecordingReplayBridge.ts` | Replay options + human click install + MCP register |
 | **MCP** | `app/recording/recordingMcpHelpers.ts` | `window.__studioStartRecording` (legacy `__protoStartRecording` alias) etc. |
@@ -117,6 +120,7 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ↓ | Download `.recording.json` |
 | ↑ | Import a saved `.recording.json` |
 | ↺ | Replay last stopped or imported session (v2: transport + screen + demo/human-click + wire-intent + director-script) |
+| ⌁ (save) | **Save as journey** — compile → replace current CJM slot in the runtime catalog + download `journey-*.json` |
 
 UI and MCP share `recordingSession` + `replayRecordingSession` — no second session store.
 
@@ -187,22 +191,37 @@ When `applyWireIntent` is wired (App / MCP):
 ## Start / stop via MCP
 
 ```javascript
-window.__protoEnsureCleanStudio?.()
-window.__protoStartRecording?.()          // uses current project/persona/journey
-window.__protoTriggerTransport?.('step-forward')
+window.__studioEnsureCleanStudio?.()
+window.__studioStartRecording?.()          // uses current project/persona/journey
+window.__studioTriggerTransport?.('step-forward')
 // … navigate freely …
-window.__protoStopRecording?.()
-window.__protoExportRecording?.()         // JSON string — copy to file
-window.__protoCompileRecording?.()        // beat segments from touchpoint markers
+window.__studioStopRecording?.()
+window.__studioExportRecording?.()         // JSON string — copy to file
+window.__studioCompileRecording?.()        // beat segments from touchpoint markers
+window.__studioCompileRecordingToJourney?.() // JourneyDefinition (no catalog write)
+window.__studioSaveRecordingAsJourney?.()  // compile + apply into runtime catalog
 ```
 
 Import a saved session:
 
 ```javascript
-window.__protoImportRecording?.(jsonString)
+window.__studioImportRecording?.(jsonString)
 ```
 
-Export / replay / compile fall back to the **last stopped or imported** session when nothing is live.
+Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall back to the **last stopped or imported** session when nothing is live.
+
+### Compile → journeys (PO path)
+
+1. Record (or ↑ import a `.recording.json`).
+2. Stop ■ then **Save as journey** (or `__studioSaveRecordingAsJourney()`).
+3. Studio merges the compiled journey over the matching CJM slot (`agentic-cjm` / `traditional-cjm`) via `journeyRuntimeStore` — same seam as `__studioApplyJourney` / journey bundle import.
+4. Turn **CJM** on and play/step — beats come from the recording (label ends with `(recorded)`).
+5. Optional: keep the downloaded `journey-*.json` and re-apply later with `__studioApplyJourney(json)`.
+6. Clear overlay: `__studioClearImportedJourneys()`.
+
+**Mapped into beats:** touchpoint segments (or screen/director fallback), `director-script` → home/avail/book/tab scripts, known `wire-intent` / `beat-enter` → `onEnter`, `dwell` → `dwellMs`, snapshot `protoTab` / `currentTabIndex`.
+
+**Not compiled (honest gaps — use REC ↺ replay):** `scroll`, unknown wire intents, typed-text / form capture, writing durable `journeys.ts` source (runtime overlay only).
 
 ---
 
@@ -210,10 +229,11 @@ Export / replay / compile fall back to the **last stopped or imported** session 
 
 | v2 (now) | Later |
 |----------|-------|
-| In-memory session + JSON export | Full compile to `journeys.ts` beats |
-| Studio REC deck + MCP helpers | beat-enter / scroll replay |
+| In-memory session + JSON export | Persist compile into persona `journeys.ts` / `data/journeys/` commit path |
+| Studio REC deck + MCP helpers | beat-enter / scroll **replay** (capture exists; replay still unsupported) |
 | Transport + screen + dwell + **demo-click** + **human REC click** | Richer human capture (forms / drag / typed text) |
-| Director-script + retreat-sync via shared script apply | Compile→journeys when matrix stays boring |
+| Director-script + retreat-sync via shared script apply | — |
+| **Compile → ephemeral journey catalog** (Save as journey) | Multi-journey free ids beyond the two CJM slots |
 
 ---
 

@@ -21,7 +21,7 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 | Work | Why | Status |
 |------|-----|--------|
-| Recording compile→journeys | Human/script matrix landed — compile only when boring in real sessions | **NOW** |
+| Recording compile→journeys | Ephemeral Save as journey → CJM catalog landed; durable `journeys.ts` later | **LANDED (vertical)** |
 | Versioning habit | notes + consider patch on named demos | Habit — every ship |
 
 ### NEXT
@@ -52,9 +52,9 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 Shareable `?project=&screen=`; URL wins on refresh; strip `proof` / ephemeral. Optional beat query later.
 
-### 2. Recording fidelity — v2 MATRIX LANDED (compile still open)
+### 2. Recording fidelity — v2 MATRIX + COMPILE VERTICAL LANDED
 
-`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay (`isTrusted` capture → same selector chain). **Director-script** + **retreat-sync** via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind`. Wire-intent for known `JourneyBeatActionId`. Compile→journeys only after the matrix stays boring in real sessions. Still open: beat-enter / scroll / typed-text capture.
+`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay (`isTrusted` capture → same selector chain). **Director-script** + **retreat-sync** via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind`. Wire-intent for known `JourneyBeatActionId`. **Compile→journeys:** `compileRecordingToJourney` / Save as journey overlays the CJM slot in `journeyRuntimeStore` (playable; not a durable `journeys.ts` write). Still open: beat-enter / scroll / typed-text **replay**; free journey ids beyond two CJM slots.
 
 ### 3. Interaction fidelity — ONGOING
 
@@ -128,7 +128,8 @@ Documented handshake; do not build a second studio inside Summarizer.
 2. Recording screen markers → replay — landed  
 3. Domain CSS/attrs + hygiene — landed  
 4. Version chip + agent felony gate — **this tip**  
-5. Recording compile→journeys (NOW) + Boots fidelity debt (parallel)  
+5. Recording compile→journeys vertical — landed; durable journeys.ts + REC capture gaps next  
+
 6. LEGACY shrink by screen + UXDS extract-on-second-use  
 7. Second project rabbit  
 8. Release CI + broader CSS contracts  

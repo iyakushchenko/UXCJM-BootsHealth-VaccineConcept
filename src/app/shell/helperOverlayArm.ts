@@ -23,6 +23,7 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "ExportJourney",
   "ExportJourneyBundle",
   "CompileRecording",
+  "CompileRecordingToJourney",
   "ListJourneys",
   "HasImportedJourneys",
   "ImportJourney",

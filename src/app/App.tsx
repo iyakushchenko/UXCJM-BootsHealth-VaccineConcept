@@ -1326,6 +1326,11 @@ export default function App() {
     [orchestraModeId, studioJourneys]
   );
 
+  const refreshJourneysAfterImport = useCallback(() => {
+    resetBeatIndex();
+    transportActionsRef.current.jumpToStart();
+  }, [resetBeatIndex]);
+
   const { replayRecordingOptions } = useRecordingReplayBridge({
     transportActionsRef,
     screenNav: {
@@ -1342,6 +1347,7 @@ export default function App() {
     journeyRuntime,
     projectPlayback,
     getStartOptions: getRecordingStartOptions,
+    onJourneySaved: refreshJourneysAfterImport,
   });
 
   useEffect(() => {
@@ -1350,12 +1356,15 @@ export default function App() {
       personaId: studioPersonaId,
       getJourneys: () => studioJourneys,
       getActiveJourneyId: () => activeJourney?.id,
-      onJourneysApplied: () => {
-        resetBeatIndex();
-        transportActionsRef.current.jumpToStart();
-      },
+      onJourneysApplied: refreshJourneysAfterImport,
     });
-  }, [activeJourney?.id, studioJourneys, studioPersonaId, studioProjectId, resetBeatIndex]);
+  }, [
+    activeJourney?.id,
+    refreshJourneysAfterImport,
+    studioJourneys,
+    studioPersonaId,
+    studioProjectId,
+  ]);
 
   useEffect(() => {
     return registerStudioMcpHelpers({
@@ -1638,6 +1647,7 @@ export default function App() {
                   onReplay={(session) =>
                     replayRecordingSession(session, replayRecordingOptions())
                   }
+                  onSaveAsJourney={refreshJourneysAfterImport}
                 />
               }
             />
@@ -1650,6 +1660,7 @@ export default function App() {
                 onReplay={(session) =>
                   replayRecordingSession(session, replayRecordingOptions())
                 }
+                onSaveAsJourney={refreshJourneysAfterImport}
               />
             </div>
           )

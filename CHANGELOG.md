@@ -21,6 +21,7 @@
 - **shell:** Version chip on tabs row (v+channel alpha) + agent felony gate in npm test
 - **engine:** Recording v2: human REC click capture + director-script / retreat-sync replay via shared script apply
 - **shell:** Fix agent-testing overlay root class to `.studio-agent-testing-overlay` (PANEL CSS + REC chrome skip)
+- **engine:** Recording compile→journeys vertical: Save as journey / __studioSaveRecordingAsJourney → ephemeral CJM catalog
 
 ## v0.0.1 - 190726
 

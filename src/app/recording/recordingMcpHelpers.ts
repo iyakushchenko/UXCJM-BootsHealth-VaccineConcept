@@ -12,6 +12,11 @@ import {
 } from "@/app/recording/recordingSession";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import {
+  compileRecordingToJourney,
+  saveRecordingAsJourney,
+  type CompileRecordingJourneyOptions,
+} from "@/app/recording/recordingCompile";
+import {
   compileRecordingToBeatTimeline,
   replayRecordingSession,
   summarizeRecordingSession,
@@ -40,6 +45,14 @@ declare global {
     __protoCompileRecording?: (
       session?: RecordingSession
     ) => ReturnType<typeof compileRecordingToBeatTimeline>;
+    __protoCompileRecordingToJourney?: (
+      session?: RecordingSession,
+      options?: CompileRecordingJourneyOptions
+    ) => ReturnType<typeof compileRecordingToJourney>;
+    __protoSaveRecordingAsJourney?: (
+      session?: RecordingSession,
+      options?: CompileRecordingJourneyOptions
+    ) => ReturnType<typeof saveRecordingAsJourney>;
     __protoReplayRecording?: (
       session?: RecordingSession
     ) => Promise<import("@/app/recording/recordingTypes").RecordingReplayResult>;
@@ -53,6 +66,7 @@ export function registerRecordingMcpHelpers(options?: {
   applyDemoClick?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyDemoClick"];
   applyWireIntent?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyWireIntent"];
   applyDirectorScript?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyDirectorScript"];
+  onJourneySaved?: () => void;
 }): () => void {
   if (typeof window === "undefined") return () => {};
 
@@ -89,6 +103,29 @@ export function registerRecordingMcpHelpers(options?: {
       throw new Error("No recording session to compile");
     }
     return compileRecordingToBeatTimeline(target);
+  };
+
+  window.__protoCompileRecordingToJourney = (session, compileOptions) => {
+    const target = resolveRecordingSession(session);
+    if (!target) {
+      throw new Error("No recording session to compile");
+    }
+    return compileRecordingToJourney(target, compileOptions);
+  };
+
+  window.__protoSaveRecordingAsJourney = (session, compileOptions) => {
+    const target = resolveRecordingSession(session);
+    if (!target) {
+      throw new Error("No recording session to save as journey");
+    }
+    const defaults = options?.getDefaultStartOptions?.() ?? {};
+    const saved = saveRecordingAsJourney(target, {
+      ...compileOptions,
+      projectId: (target.projectId ?? defaults.projectId) as string | undefined,
+      personaId: (target.personaId ?? defaults.personaId) as string | undefined,
+    });
+    options?.onJourneySaved?.();
+    return saved;
   };
 
   window.__protoReplayRecording = async (session) => {
@@ -129,6 +166,8 @@ export function registerRecordingMcpHelpers(options?: {
     delete window.__protoExportRecording;
     delete window.__protoImportRecording;
     delete window.__protoCompileRecording;
+    delete window.__protoCompileRecordingToJourney;
+    delete window.__protoSaveRecordingAsJourney;
     delete window.__protoReplayRecording;
   };
 }
