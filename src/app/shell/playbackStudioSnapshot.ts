@@ -20,6 +20,10 @@ export type PlaybackStudioSnapshot = {
   protoTab?: number | null;
   currentTabIndex?: number;
   childIndex?: number | null;
+  /** Address-bar screen id (`book-step-2`, `home`, `hub`, …). */
+  screenId?: string;
+  /** Canonical studio query (`?project=…&screen=…`). */
+  studioUrl?: string;
   touchpointKey?: string;
   touchpointLabel?: string;
   scenarioProgress?: string;
@@ -42,6 +46,8 @@ export function buildPlaybackStudioSnapshot(options: {
   currentBeat?: JourneyBeat;
   currentTabIndex: number;
   childIndex: number | null;
+  screenId?: string;
+  studioUrl?: string;
   touchpointKey?: string;
   touchpointLabel?: string;
   scenarioProgress?: string;
@@ -69,6 +75,8 @@ export function buildPlaybackStudioSnapshot(options: {
     protoTab: currentBeat?.protoTab ?? null,
     currentTabIndex: options.currentTabIndex,
     childIndex: options.childIndex,
+    screenId: options.screenId,
+    studioUrl: options.studioUrl,
     touchpointKey: options.touchpointKey,
     touchpointLabel: options.touchpointLabel,
     scenarioProgress: options.scenarioProgress,

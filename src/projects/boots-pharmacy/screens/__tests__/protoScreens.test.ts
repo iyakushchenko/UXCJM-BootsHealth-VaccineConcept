@@ -39,4 +39,14 @@ describe("PROTO_SCREENS", () => {
     const indices = PROTO_SCREENS.map((s) => s.childIndex);
     expect(new Set(indices).size).toBe(indices.length);
   });
+
+  it("exposes stable screenId deep-link keys for book flow + home", () => {
+    const byId = Object.fromEntries(
+      PROTO_SCREENS.map((s) => [s.screenId, s.childIndex])
+    );
+    expect(byId.home).toBe(11);
+    expect(byId["book-step-1"]).toBe(7);
+    expect(byId["book-step-2"]).toBe(4);
+    expect(byId["book-step-3"]).toBe(3);
+  });
 });

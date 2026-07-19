@@ -1,7 +1,7 @@
 export const PROTO_HUB_LABEL = "Hub";
 
 export const PROTO_SCREENS = [
-  { label: "Coming soon", childIndex: 1 },
+  { label: "Coming soon", childIndex: 1, screenId: "home" },
 ] as const;
 
 export type ProtoScreen = (typeof PROTO_SCREENS)[number];

@@ -13,7 +13,7 @@ Content (screens, scenarios, personas, DOM wiring) lives in **`src/projects/`** 
 | `src/app/nav/` | Tab strip, zoom, transport controls (cassette deck), studio dropdowns |
 | `src/app/orchestra/` | Journey playback engine, beat types, script dispatch |
 | `docs/shell/PLAYBACK.md` | How to change scripts + smoke checklist |
-| `src/app/shell/` | Studio state (`useProtoStudio`) — project / persona / CJM selection |
+| `src/app/shell/` | Studio state (`useProtoStudio`) — project / persona / CJM selection; URL sync ([URL.md](./URL.md)) |
 | `src/app/proto/protoScenarioEngine.ts` | Generic frame-reveal scenario runner |
 | `src/app/proto/protoDemoCursor.ts` | Shared demo cursor + scroll helpers |
 

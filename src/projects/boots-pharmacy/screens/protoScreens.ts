@@ -1,17 +1,18 @@
 /**
  * Prototype screen nav index (tabs 1…N).
  * Hub wiki is slot 0 and is not listed here.
+ * `screenId` is the address-bar deep-link id (`?screen=book-step-2`).
  */
 export const PROTO_SCREENS = [
-  { label: "Agentic. Site Pilot. Home", childIndex: 11 },
-  { label: "Agentic. Site Pilot. Chat", childIndex: 10 },
-  { label: "PLP. Vaccinations", childIndex: 9 },
-  { label: "PDP. Vaccine Details Page", childIndex: 8 },
-  { label: "Book - Step 1 - Location", childIndex: 7 },
-  { label: "Book - Step 2 - Date and Time", childIndex: 4 },
-  { label: "Book - Step 3 - Confirmation", childIndex: 3 },
-  { label: "Appointment History", childIndex: 2 },
-  { label: "Appointment Details", childIndex: 1 },
+  { label: "Agentic. Site Pilot. Home", childIndex: 11, screenId: "home" },
+  { label: "Agentic. Site Pilot. Chat", childIndex: 10, screenId: "chat" },
+  { label: "PLP. Vaccinations", childIndex: 9, screenId: "plp" },
+  { label: "PDP. Vaccine Details Page", childIndex: 8, screenId: "pdp" },
+  { label: "Book - Step 1 - Location", childIndex: 7, screenId: "book-step-1" },
+  { label: "Book - Step 2 - Date and Time", childIndex: 4, screenId: "book-step-2" },
+  { label: "Book - Step 3 - Confirmation", childIndex: 3, screenId: "book-step-3" },
+  { label: "Appointment History", childIndex: 2, screenId: "appointment-history" },
+  { label: "Appointment Details", childIndex: 1, screenId: "appointment-details" },
 ] as const;
 
 export type ProtoScreen = (typeof PROTO_SCREENS)[number];

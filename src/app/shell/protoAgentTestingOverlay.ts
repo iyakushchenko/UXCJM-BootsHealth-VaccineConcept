@@ -3,13 +3,17 @@
  * Invisible full-viewport capture blocks page clicks; page stays visible.
  *
  *   window.__protoAgentTestingOverlay?.start()
+ *   window.__protoAgentTestingOverlay?.touch() // arm if inactive (no nest bump)
  *   window.__protoAgentTestingOverlay?.log("clicked Book Step 2")
  *   window.__protoAgentTestingOverlay?.stop() // nest-aware; no reload
  *   window.__protoAgentTestingOverlay?.stop({ force: true, reload: true })
  *
  * MCP helpers should call stop({ reload: true }) so the PO gets a clean tab.
  * Manual console experiments default to reload: false.
+ * Ephemeral `?proof=*` (and friends) are stripped on install + stop.
  */
+
+import { stripEphemeralStudioQuery } from "@/app/shell/protoStudioUrl";
 
 const ROOT_ID = "proto-agent-testing-overlay";
 const LOG_LIMIT = 80;
@@ -27,6 +31,8 @@ export type StopAgentTestingOverlayOptions = {
 
 type OverlayApi = {
   start: (title?: string) => void;
+  /** Arm overlay if inactive; refresh safety timer if already active. Never nests. */
+  touch: (title?: string) => void;
   stop: (options?: StopAgentTestingOverlayOptions) => void;
   log: (line: string) => void;
   isActive: () => boolean;
@@ -91,13 +97,16 @@ function onBeforeUnload(): void {
 
 function bindBeforeUnload(): void {
   if (beforeUnloadBound || typeof window === "undefined") return;
+  if (typeof window.addEventListener !== "function") return;
   window.addEventListener("beforeunload", onBeforeUnload);
   beforeUnloadBound = true;
 }
 
 function unbindBeforeUnload(): void {
   if (!beforeUnloadBound || typeof window === "undefined") return;
-  window.removeEventListener("beforeunload", onBeforeUnload);
+  if (typeof window.removeEventListener === "function") {
+    window.removeEventListener("beforeunload", onBeforeUnload);
+  }
   beforeUnloadBound = false;
 }
 
@@ -208,8 +217,22 @@ export function stopAgentTestingOverlay(
   clearPersist();
   unbindBeforeUnload();
   teardownDom();
+  stripEphemeralStudioQuery();
 
   if (options?.reload) scheduleReload();
+}
+
+/**
+ * Ensure the BR panel is visible while an agent drives the tab.
+ * Safe to call on every helper / DevTools evaluate — does not bump nest.
+ */
+export function touchAgentTestingOverlay(title?: string): void {
+  if (active) {
+    armSafetyTimer();
+    if (title?.trim()) setTitle(title.trim());
+    return;
+  }
+  startAgentTestingOverlay(title);
 }
 
 export function logAgentTestingOverlay(line: string): void {
@@ -232,6 +255,8 @@ export function isAgentTestingOverlayActive(): boolean {
 export function installAgentTestingOverlayApi(): void {
   if (typeof window === "undefined") return;
 
+  stripEphemeralStudioQuery();
+
   if (!shouldContinueFromPersist()) {
     clearPersist();
     // Orphan DOM from a hard refresh / HMR — do not leave it active.
@@ -251,6 +276,7 @@ export function installAgentTestingOverlayApi(): void {
 
   const api: OverlayApi = {
     start: startAgentTestingOverlay,
+    touch: touchAgentTestingOverlay,
     stop: (options) => stopAgentTestingOverlay(options),
     log: logAgentTestingOverlay,
     isActive: isAgentTestingOverlayActive,

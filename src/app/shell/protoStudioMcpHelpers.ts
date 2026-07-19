@@ -36,6 +36,8 @@ import {
   stopAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/protoAgentTestingOverlay";
+import { armOverlayOnProtoHelpers } from "@/app/shell/protoHelperOverlayArm";
+import { stripEphemeralStudioQuery } from "@/app/shell/protoStudioUrl";
 
 export type ProtoStudioMcpState = {
   diagnosticOpen: boolean;
@@ -602,6 +604,7 @@ export function registerProtoStudioMcpHelpers(options: {
   if (typeof window === "undefined") return () => {};
 
   installAgentTestingOverlayApi();
+  stripEphemeralStudioQuery();
 
   window.__protoDismissPlaybackDiagnostic = () => {
     if (!options.isDiagnosticOpen()) return false;
@@ -1159,6 +1162,8 @@ export function registerProtoStudioMcpHelpers(options: {
 
   window.__protoRunTraditionalControlRoomRobotQa = () =>
     withMcpTestSession("robot-qa", runTraditionalControlRoomRobotQa);
+
+  armOverlayOnProtoHelpers();
 
   return () => {
     uninstallAgentTestingOverlayApi();

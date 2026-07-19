@@ -17,6 +17,7 @@ import {
   summarizeRecordingSession,
 } from "@/app/recording/protoRecordingReplay";
 import type { StartRecordingOptions } from "@/app/recording/protoRecordingSession";
+import { armOverlayOnProtoHelpers } from "@/app/shell/protoHelperOverlayArm";
 
 function resolveRecordingSession(
   session?: ProtoRecordingSession
@@ -99,6 +100,8 @@ export function registerProtoRecordingMcpHelpers(options?: {
       stepDelayMs: 200,
     });
   };
+
+  armOverlayOnProtoHelpers();
 
   return () => {
     delete window.__protoStartRecording;

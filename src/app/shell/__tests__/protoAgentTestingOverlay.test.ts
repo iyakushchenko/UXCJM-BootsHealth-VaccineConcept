@@ -3,6 +3,7 @@ import {
   isAgentTestingOverlayActive,
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
+  touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/protoAgentTestingOverlay";
 
@@ -11,6 +12,14 @@ describe("protoAgentTestingOverlay", () => {
     uninstallAgentTestingOverlayApi();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  it("touch arms once without nesting", () => {
+    touchAgentTestingOverlay("AGENT TESTING — touch");
+    expect(isAgentTestingOverlayActive()).toBe(true);
+    touchAgentTestingOverlay("still active");
+    stopAgentTestingOverlay();
+    expect(isAgentTestingOverlayActive()).toBe(false);
   });
 
   it("nests start/stop and force-clears", () => {

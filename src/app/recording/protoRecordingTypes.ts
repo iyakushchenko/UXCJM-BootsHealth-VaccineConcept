@@ -91,6 +91,16 @@ export type ProtoRecordedBeatEnterEvent = {
   snapshot?: ProtoRecordingSnapshot;
 };
 
+/** Address-bar / tab screen transition — ordered for replay deep-link restore. */
+export type ProtoRecordedScreenEvent = {
+  kind: "screen";
+  screenId: string;
+  projectId?: string;
+  studioUrl?: string;
+  atMs: number;
+  snapshot?: ProtoRecordingSnapshot;
+};
+
 export type ProtoRecordedEvent =
   | ProtoRecordedTransportEvent
   | ProtoRecordedStudioEvent
@@ -100,7 +110,8 @@ export type ProtoRecordedEvent =
   | ProtoRecordedTouchpointEvent
   | ProtoRecordedDwellEvent
   | ProtoRecordedDirectorEvent
-  | ProtoRecordedBeatEnterEvent;
+  | ProtoRecordedBeatEnterEvent
+  | ProtoRecordedScreenEvent;
 
 export type ProtoRecordingJourneyCatalogEntry = {
   id: string;

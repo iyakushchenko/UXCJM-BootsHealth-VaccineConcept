@@ -98,6 +98,13 @@ import {
   storeNavIndex,
   protoNavStorageKey,
 } from "@/app/shell/protoNavStorage";
+import {
+  parseStudioUrl,
+  resolveNavFromScreenId,
+  resolveScreenIdFromNav,
+  serializeStudioUrl,
+} from "@/app/shell/protoStudioUrl";
+import { useProtoStudioUrlSync } from "@/app/shell/useProtoStudioUrlSync";
 import { getProjectWire } from "@/projects/registry";
 import { useProtoNavTransition } from "@/app/shell/useProtoNavTransition";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
@@ -155,10 +162,16 @@ export default function App() {
     protoTabToIndex,
   } = projectContent;
 
-  const [current, setCurrent] = useState(() =>
-    readStoredNavIndex(studioProjectId, SCREENS.length)
-  );
-  const [hubOpen, setHubOpen] = useState(() => readStoredHubOpen(studioProjectId));
+  const [current, setCurrent] = useState(() => {
+    const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
+    if (fromUrl && !fromUrl.hubOpen) return fromUrl.current;
+    return readStoredNavIndex(studioProjectId, SCREENS.length);
+  });
+  const [hubOpen, setHubOpen] = useState(() => {
+    const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
+    if (fromUrl) return fromUrl.hubOpen;
+    return readStoredHubOpen(studioProjectId);
+  });
   const [wireTick, setWireTick] = useState(0);
   const [playbackDiagnostic, setPlaybackDiagnostic] =
     useState<PlaybackDiagnosticError | null>(null);
@@ -219,15 +232,36 @@ export default function App() {
   useEffect(() => {
     if (prevProjectIdRef.current === studioProjectId) return;
     prevProjectIdRef.current = studioProjectId;
-    setCurrent(readStoredNavIndex(studioProjectId, SCREENS.length));
-    setHubOpen(readStoredHubOpen(studioProjectId));
+    // Deep link wins over per-project session nav when `screen` is present.
+    const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
+    if (fromUrl) {
+      setHubOpen(fromUrl.hubOpen);
+      if (!fromUrl.hubOpen) setCurrent(fromUrl.current);
+    } else {
+      setCurrent(readStoredNavIndex(studioProjectId, SCREENS.length));
+      setHubOpen(readStoredHubOpen(studioProjectId));
+    }
     wireApiRef.current = null;
-  }, [SCREENS.length, studioProjectId]);
+  }, [SCREENS, studioProjectId]);
 
   useEffect(() => {
     storeNavIndex(studioProjectId, current);
     storeHubOpen(studioProjectId, hubOpen);
   }, [current, hubOpen, studioProjectId]);
+
+  useProtoStudioUrlSync({
+    projectId: studioProjectId,
+    personaId: studioPersonaId,
+    modeId: orchestraModeId,
+    screens: SCREENS,
+    current,
+    hubOpen,
+    setProjectId: setStudioProjectId,
+    setPersonaId: setStudioPersonaId,
+    setModeId: setOrchestraModeId,
+    setCurrent,
+    setHubOpen,
+  });
 
   const journeyRuntime = useMemo<JourneyRuntime>(
     () => ({
@@ -955,6 +989,18 @@ export default function App() {
 
   const currentBeat = activeJourney?.beats[journeyBeatIndex];
 
+  const snapshotScreenId = resolveScreenIdFromNav({
+    hubOpen,
+    current,
+    screens: SCREENS,
+  });
+  const snapshotStudioUrl = serializeStudioUrl({
+    projectId: studioProjectId,
+    screenId: snapshotScreenId,
+    personaId: studioPersonaId,
+    modeId: orchestraModeId,
+  });
+
   playbackSnapshotRef.current = buildPlaybackStudioSnapshot({
     projectId: studioProjectId,
     personaId: studioPersonaId,
@@ -965,6 +1011,8 @@ export default function App() {
     currentBeat,
     currentTabIndex: current,
     childIndex: hubOpen ? null : (SCREENS[current]?.childIndex ?? null),
+    screenId: snapshotScreenId,
+    studioUrl: snapshotStudioUrl || undefined,
     touchpointKey: studioTouchpoint.key,
     touchpointLabel: studioTouchpoint.label,
     scenarioProgress: `${studioProgress.visibleCount}/${studioProgress.totalFrames}`,

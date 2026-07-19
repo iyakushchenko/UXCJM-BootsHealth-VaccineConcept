@@ -15,6 +15,7 @@ import {
   getImportedJourneys,
 } from "@/app/journey/protoJourneyRuntimeStore";
 import type { ProtoPersonaId, ProtoProjectId } from "@/projects/types";
+import { armOverlayOnProtoHelpers } from "@/app/shell/protoHelperOverlayArm";
 
 declare global {
   interface Window {
@@ -93,6 +94,8 @@ export function registerProtoJourneyMcpHelpers(options: {
   };
 
   window.__protoHasImportedJourneys = () => getImportedJourneys().length > 0;
+
+  armOverlayOnProtoHelpers();
 
   return () => {
     delete window.__protoListJourneys;

@@ -26,11 +26,14 @@ import {
   PROTO_PROJECTS,
 } from "@/projects/registry";
 import { personaDisplayFirstName } from "@/app/shell/personaDisplayName";
+import { parseStudioUrl } from "@/app/shell/protoStudioUrl";
 
 const PROJECT_STORAGE_KEY = "proto-studio-project";
 const PERSONA_STORAGE_KEY = "proto-studio-persona";
 
 function readStoredProjectId(): ProtoProjectId {
+  const fromUrl = parseStudioUrl().projectId;
+  if (fromUrl && getProjectById(fromUrl)) return fromUrl;
   try {
     const raw = sessionStorage.getItem(PROJECT_STORAGE_KEY);
     if (raw && getProjectById(raw)) return raw;
@@ -41,14 +44,15 @@ function readStoredProjectId(): ProtoProjectId {
 }
 
 function readStoredPersonaId(projectId: ProtoProjectId): ProtoPersonaId {
+  const fromUrl = parseStudioUrl().personaId;
+  const project = getProjectById(projectId) ?? getDefaultProject();
+  if (fromUrl && getPersonaById(project, fromUrl)) return fromUrl;
   try {
     const raw = sessionStorage.getItem(`${PERSONA_STORAGE_KEY}:${projectId}`);
-    const project = getProjectById(projectId);
-    if (raw && project && getPersonaById(project, raw)) return raw;
+    if (raw && getPersonaById(project, raw)) return raw;
   } catch {
     /* ignore */
   }
-  const project = getProjectById(projectId) ?? getDefaultProject();
   return getDefaultPersona(project).id;
 }
 
@@ -95,7 +99,11 @@ export function useProtoStudio() {
     [persona.journeys, importVersion]
   );
 
-  const [modeId, setModeIdState] = useState<ProtoOrchestraModeId>(readStoredOrchestraMode);
+  const [modeId, setModeIdState] = useState<ProtoOrchestraModeId>(() => {
+    const fromUrl = parseStudioUrl().modeId;
+    if (fromUrl === "agentic-cjm" || fromUrl === "traditional-cjm") return fromUrl;
+    return readStoredOrchestraMode();
+  });
   const [beatIndex, setBeatIndex] = useState(0);
 
   const journey = useMemo(

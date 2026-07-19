@@ -65,6 +65,8 @@ function eventDedupeKey(event: ProtoRecordedEvent): string {
       return `director:${event.scriptId}:${event.beatId ?? ""}:${event.manual ? "m" : "a"}`;
     case "beat-enter":
       return `beat-enter:${event.actionId}:${event.beatId ?? ""}`;
+    case "screen":
+      return `screen:${event.projectId ?? ""}:${event.screenId}:${event.studioUrl ?? ""}`;
     default:
       return "unknown";
   }

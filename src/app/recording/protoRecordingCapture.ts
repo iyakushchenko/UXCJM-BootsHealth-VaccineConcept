@@ -121,6 +121,27 @@ export function captureDwell(durationMs?: number): void {
   });
 }
 
+let lastScreenKey: string | undefined;
+
+/** Ordered page/URL transition for replay deep-link restore. */
+export function captureScreenChange(options: {
+  screenId: string;
+  projectId?: string;
+  studioUrl?: string;
+}): void {
+  if (!getActiveRecordingSession()) return;
+  const key = `${options.projectId ?? ""}|${options.screenId}|${options.studioUrl ?? ""}`;
+  if (lastScreenKey === key) return;
+  lastScreenKey = key;
+
+  captureRecordingEvent({
+    kind: "screen",
+    screenId: options.screenId,
+    projectId: options.projectId,
+    studioUrl: options.studioUrl,
+  });
+}
+
 /** Bridge from protoPlaybackInteractionContext — maps diagnostic records to recording events. */
 export function notifyRecordingFromInteraction(
   interaction: PlaybackInteractionRecord
@@ -205,4 +226,5 @@ function parseTransportAction(label: string): ManualTransportAction | null {
 export function resetRecordingCaptureForTests(): void {
   snapshotProvider = null;
   lastTouchpointKey = undefined;
+  lastScreenKey = undefined;
 }

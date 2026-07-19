@@ -6,14 +6,15 @@ See also: [PLAYBACK.md](./PLAYBACK.md) (engine), [SHELL.md](./SHELL.md) (shell a
 
 ---
 
-## Agent testing overlay (MCP / `__protoRun*`)
+## Agent testing overlay (MCP / `__protoRun*` / DevTools)
 
-While agent-led MCP tests run, Studio shows a **compact bottom-right status panel** (title + scrolling actions log). The page stays **fully visible** underneath — no lightbox / opaque modal.
+While an agent drives localhost, Studio shows a **compact bottom-right status panel** (title + scrolling actions log). The page stays **fully visible** underneath — no lightbox / opaque modal.
 
 **Click guard:** an invisible full-viewport capture layer (`pointer-events: auto`, transparent) plus `#root { pointer-events: none }` blocks PO clicks into the concept UI. The BR panel itself stays interactive (log + **Dismiss**).
 
 ```js
 window.__protoAgentTestingOverlay?.start("optional title")
+window.__protoAgentTestingOverlay?.touch("optional title") // arm if inactive; no nest bump
 window.__protoAgentTestingOverlay?.log("clicked Book Step 2")
 window.__protoAgentTestingOverlay?.stop() // nest-aware; no reload (manual / console)
 window.__protoAgentTestingOverlay?.stop({ force: true }) // clear immediately
@@ -26,14 +27,19 @@ window.__protoAgentTestingOverlay?.isActive()
 | Event | Behavior |
 |-------|----------|
 | `__protoRunMcpSanityCheck` / `__protoRun*` session `finally` | Always `stop({ reload: true })` — clean tab for PO after verify |
+| Mutating `__proto*` helpers | Auto-`touch()` on first/each call (read-only getters skipped) |
+| DevTools MCP clicks only | Agent **must** call `touch()` at session start |
 | Safety timeout | Auto `stop({ force: true })` after **3 min** |
 | `beforeunload` | Clears active state + sessionStorage persist |
+| Page load / overlay install / stop | Strip ephemeral query (`proof`, …) — never leave `?proof=unmount-race` |
 | Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
 | Dismiss button / `stop({ force: true })` | Immediate clear; no reload unless `reload: true` |
 
 `reload: true` defers `location.reload()` (~120ms) so MCP `evaluate_script` can still return the run result. Manual console experiments should omit reload (default `false`).
 
-Auto-shown for `__protoRunMcpSanityCheck` and any `__protoRun*` smoke that uses the MCP test session. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/protoAgentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
+Auto-shown for `__protoRun*` MCP sessions and any mutating `__proto*` helper. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/protoAgentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
+
+**Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 
 ---
 
@@ -117,6 +123,7 @@ UI and MCP share `protoRecordingSession` + `replayRecordingSession` — no secon
 |------|---------------|-----------|
 | `transport` | Step/Play/Jump via `notePlaybackTransport` | Yes |
 | `touchpoint` | Touchpoint key change in `App.tsx` | Boundary marker only |
+| `screen` | Address-bar / tab screen change (`useProtoStudioUrlSync`) | Restore via `screenId` / `studioUrl` (v1.1+) |
 | `demo-click` | Robo-cursor via `notePlaybackDemoClick` | No (selector chain stored) |
 | `director-script` | Journey director via `notePlaybackDirectorScript` | No |
 | `beat-enter` | Beat onEnter via `notePlaybackBeatEnter` | No |
@@ -125,7 +132,7 @@ UI and MCP share `protoRecordingSession` + `replayRecordingSession` — no secon
 | `scroll` | Manual API | No |
 | `dwell` | Manual API or compiled pauses | Yes (delay) |
 
-Each event may include a `snapshot` (`PlaybackStudioSnapshot` + journey/orchestra fields).
+Each event may include a `snapshot` (`PlaybackStudioSnapshot` + journey/orchestra fields), including `screenId` and `studioUrl` when the bar is synced.
 
 ---
 
