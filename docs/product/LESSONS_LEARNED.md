@@ -12,13 +12,15 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ### Typical DS checks mandatory before screen PROVEN (PO)
 
-- **Symptom / class:** Screens stamped **PROVEN** while UXDS controls (SearchField, Button, checkbox, link) were flat at rest — missing kit/Make **hover / focus / active / disabled**.
-- **PO callout:** **Missing DS hover = fidelity FAIL class** — not a polish nicety.
+- **Symptom / class:** Screens stamped **PROVEN** while UXDS controls (SearchField, Button, checkbox, link) were flat at rest — missing kit/Make **hover / focus / active / disabled**. Concrete miss: PLP filter SearchField had **focus-only** kit (no `:hover`); Make / Availability / Book Step 1 use inset navy ring on hover+focus.
+- **PO callout:** **Missing DS hover = fidelity FAIL class** — not a polish nicety. “Why no typical DS checks as rule of thumb?”
 - **Gate (GLOBAL rule of thumb):**
-  1. Before any screen **PROVEN**, for **each** UXDS control used: verify hover/focus/active/disabled vs **UXDS kit + Make**.
-  2. **Uma (UI/UX)** signs `typical DS checks — PASS|FAIL` in audit + **team check**.
-  3. **Quinn (QA)** MCP-hovers **≥1 SearchField** (and the rest of the interaction matrix).
-  4. Arch **rejects** **PROVEN** if typical DS checks FAIL or MCP hover evidence is missing.
+  1. Before any screen **PROVEN**, Uma walks the **full state matrix** (default/hover/focus/active/filled/disabled/error + icon positions) per [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0a — vs **UXDS kit + Make**.
+  2. SearchField: `.uxds-search-field__control:hover` + `:focus-within` inset `2px` `--uxds-border-border-focus` (Boots → navy); magnifier stays borderless.
+  3. Ratchet **search-field-states** fails CI if kit omits control `:hover` / `:focus-within`.
+  4. **Uma (UI/UX)** signs `typical DS checks (state matrix) — PASS|FAIL` in audit + **team check**.
+  5. **Quinn (QA)** MCP-hovers **≥1 SearchField** (and the rest of the interaction matrix).
+  6. Arch **rejects** **PROVEN** if typical DS checks FAIL or MCP hover evidence is missing.
 - **Process:** Parallel callsigns still required for serious streams — DS checks do not collapse the team into one mega-agent ([TEAM.md](./TEAM.md), doctrine §0.2).
 
 ### Filter search parity — icon side, double X, View all, counters (PO rage)
