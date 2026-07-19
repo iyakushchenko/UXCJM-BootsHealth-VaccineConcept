@@ -151,11 +151,11 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
 | **Fixed localhost + reuse tab** — canonical `http://localhost:5173/`; Vite `strictPort`; one `npm run dev`; Chrome MCP `list_pages`→reuse (`new_page` only if empty); Auto-Rule R11 + felony | Arch, Finn, Ben, Quinn | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · `vite.config.ts` · LESSONS |
-| **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; Accordion height = Motion (not CSS `0fr/1fr`); chevron CSS; shell pilots: diagnostic overlay + studio select presence; PDP Accordion Motion → Final Pass NEEDS-REPROVE | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` · Accordion.tsx |
+| **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; Accordion height = Motion (not CSS `0fr/1fr`); chevron CSS; shell pilots: diagnostic overlay + studio select presence | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` · Accordion.tsx |
 | **Accordion invisible expand** — `prefers-reduced-motion` zeroed CSS grid transitions; root cause + Motion height fix | Uma, Finn, Arch, Quinn | LESSONS · accordion.css · MOTION.md |
 | **Robo-cursor travel** — Motion `animate` ease-in-out only (no back/overshoot/bounce); cancel via `.stop()` on forceClear; hang caps retained | Finn, Arch, Quinn | [MOTION.md](./MOTION.md) · `demoCursor.ts` · LESSONS bounce gate |
-| **PDP Accordion Motion re-prove** — Quinn MCP **PASS** 23/23 @ `5c1d90f` / v0.0.37; Motion height mid-tween assertable; teardown clean; Arch HARD-GREEN pending | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS |
-| **PDP PAGE FINAL PASS** — demoted **NEEDS-REPROVE** after Accordion Motion (prior HARD-GREEN @ `57775a3` / v0.0.36); Quinn re-prove done → Arch restore | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
+| **PDP Accordion Motion re-prove** — Quinn MCP **PASS** 23/23 @ `5c1d90f` / v0.0.37; Motion height mid-tween assertable; teardown clean; Arch HARD-GREEN restored | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass HARD-GREEN |
+| **PDP PAGE FINAL PASS** — **HARD-GREEN** @ `5c1d90f` / v0.0.37 (Quinn 23/23 Accordion Motion re-prove · Uma §0a @ `76e2433`; prior HARD-GREEN @ `57775a3` demoted NEEDS-REPROVE then restored) | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
 | **PDP Motion travel re-prove** — Quinn MCP **PASS** 23/23 @ `7c7c9e1` / v0.0.32; teardown clean; Uma §0a still PROVEN @ `76e2433` | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass HARD-GREEN |
 | **PDP hang-guard re-prove** — Quinn MCP **PASS** 23/23 @ `7bce2b3` / v0.0.31 (superseded MCP stamp by `7c7c9e1`) | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS |
 | **PDP FAQ 6/6 + Accordion motion + TertiaryCta soft** — Uma §0a PROVEN + Quinn MCP **PASS** 23/23 @ `76e2433` / v0.0.30 (superseded MCP stamp by `7bce2b3`) | Uma, Quinn, Arch, Finn | UMA_FIDELITY_PDP · FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS · DEV-20260719-tertiary-soft |
@@ -194,6 +194,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Ben (BE): R10 ratchet “everywhere not chat-only”; Vitest `:is()` + PDP secondary; patch bump — applied: STUDIO_AUTO_RULES + tests + LESSONS
 - Quinn (QA): MCP prove Check availability bg/border + Book now + popup close — applied: `__studioProveRoboCursorFeedback` border check
 - Arch (Director): shell-only; does not demote PDP Final Pass product matrix — applied: TEAM_KNOWLEDGE
+
+**Knowledge improved** (2026-07-19 · stream: PDP PAGE FINAL PASS HARD-GREEN restored · tip 5c1d90f · v0.0.37 · Accordion Motion):
+- Arch (Director): tip `5c1d90f` / v0.0.37 Accordion Motion past HARD-GREEN @ `57775a3` → honest NEEDS-REPROVE → Quinn 23/23 + Uma §0a → restore HARD-GREEN; veto Home until PO `+` — applied: PAGE_FINAL_PASS.json tip 5c1d90f + FE_AUDIT_PDP_* + NEXT_STEPS 3e
+- Quinn (QA): full PDP MCP `reload:false` 23/23 ~29s; Motion mid-tween assertable; teardown forceClear PASS — applied: FE_AUDIT_PDP_MCP (prove cdf5c5f)
+- Uma (UI/UX): §0a remains PROVEN @ `76e2433` — Motion height does not reopen FAQ copy/CTA — applied: no re-open
+- Pax (PO sim): sequencing hard-green ≠ start Home — applied: wait PO `+`
 
 **Knowledge improved** (2026-07-19 · stream: PDP Accordion Motion Quinn re-prove · tip 5c1d90f · v0.0.37 · prove `cdf5c5f`):
 - Quinn (QA): full PDP MCP `reload:false` 23/23 ~29s on canonical `:5173` reuse tab; Accordion Motion mid-tween assertable; teardown forceClear PASS — applied: FE_AUDIT_PDP_MCP + PAGE_FINAL_PASS mcpFinalPass PASS; Arch unblocked for HARD-GREEN

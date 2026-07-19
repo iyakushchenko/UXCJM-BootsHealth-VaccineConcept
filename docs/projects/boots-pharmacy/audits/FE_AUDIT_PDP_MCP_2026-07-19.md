@@ -8,7 +8,7 @@
 **Prior prove (superseded stamp):** `57775a3` · **v0.0.36** — playback panel + on-target cursor lock  
 **Uma §0a:** **PROVEN** @ tip `76e2433` / v0.0.30 — still valid; Motion height ship does not reopen FAQ copy / TertiaryCta §0a  
 **Policy:** [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md) · [RECORDING.md](../../../shell/RECORDING.md) · recipe `studioMcpPageProbe.ts`  
-**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — Quinn MCP **PASS**; Arch HARD-GREEN pending
+**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — Quinn MCP **PASS**; Arch **HARD-GREEN** restored
 
 ---
 
@@ -21,10 +21,10 @@
 | **Hang / travel residual** | **None observed** on full matrix (~29s). Accordion Motion tip did not regress probe. No unbounded robo. |
 | **Spot — FAQ Accordion Motion height** | **PASS** — 6× `data-studio-accordion-motion="height"`; mid-tween sampled `0 → ~111px → 144px` (closed→mid→open) |
 | **Uma fidelity §0a** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) @ `76e2433` |
-| **PAGE FINAL PASS HARD-GREEN?** | **Pending Arch** (`mcpFinalPass: PASS`; `hardGreen: false` until Arch restore) |
-| **PO green-light / Home?** | **Blocked** — wait Arch HARD-GREEN + PO `+` |
+| **PAGE FINAL PASS HARD-GREEN?** | **HARD-GREEN** (`mcpFinalPass: HARD-GREEN`; `hardGreen: true`) |
+| **PO green-light / Home?** | **Blocked** — wait PO `+` (HARD-GREEN alone does not open Home) |
 
-**Team check line:** `Quinn MCP — pdp — PASS` · `PAGE FINAL PASS — pdp — NOT-GREEN` (await Arch HARD-GREEN)
+**Team check line:** `Quinn MCP — pdp — PASS` · `PAGE FINAL PASS — pdp — HARD-GREEN`
 
 **Knowledge used:** QUINN_PDP_PROBE_CRITERIA · RECORDING.md (overlay + scroll-into-view + overlay-eyes + teardown + `reload:false`) · PAGE_FINAL_PASS.md · TEAM_KNOWLEDGE Quinn § · STUDIO_AUTO_RULES R11 (reuse `:5173` tab) · LESSONS crash-safe probe · Accordion Motion contract · Uma §0a PROVEN @ 76e2433
 
@@ -90,8 +90,8 @@
 | Quinn MCP interaction matrix | **PASS** (this re-prove · 23/23 · `5c1d90f` / v0.0.37) |
 | Accordion Motion height spot | **PASS** (mid-tween assertable) |
 | Uma §0a | **PROVEN** (`76e2433`) |
-| `PAGE_FINAL_PASS.json` `mcpFinalPass` | **PASS** @ `5c1d90f` (Arch HARD-GREEN next) |
-| `hardGreen` | **false** until Arch stamp |
+| `PAGE_FINAL_PASS.json` `mcpFinalPass` | **HARD-GREEN** @ `5c1d90f` (Arch restore) |
+| `hardGreen` | **true** |
 
 ---
 

@@ -121,21 +121,21 @@
     {
       "screenId": "pdp",
       "status": "proven",
-      "hardGreen": false,
+      "hardGreen": true,
       "stampedAt": {
-        "sha": "57775a3",
+        "sha": "5c1d90f",
         "date": "2026-07-19",
-        "note": "Finn structure/naming + UXDS Accordion kit + ButtonPrimary Book now; header crumbs + main RTB/below; BEM pdp; data-studio-react-screen + make-retired; FAQ 6/6 + TertiaryCta soft + muted chevrons. Structure retained. Quinn MCP PASS @ 5c1d90f / v0.0.37 (Accordion Motion). hardGreen false until Arch restore."
+        "note": "Finn structure/naming + UXDS Accordion kit + ButtonPrimary Book now; header crumbs + main RTB/below; BEM pdp; data-studio-react-screen + make-retired; FAQ 6/6 + TertiaryCta soft + muted chevrons. Restored HARD-GREEN after Quinn 23/23 re-prove on tip 5c1d90f / v0.0.37 (Accordion Motion height; prove docs cdf5c5f)."
       },
       "mcpFinalPass": {
-        "status": "PASS",
+        "status": "HARD-GREEN",
         "pass": true,
         "stampedAt": {
-          "sha": "cdf5c5f",
+          "sha": "5c1d90f",
           "date": "2026-07-19",
           "version": "0.0.37",
-          "auditor": "Quinn (QA)",
-          "note": "MCP __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false }) 23/23 PASS @ code tip 5c1d90f / v0.0.37 (~28686ms; prove docs cdf5c5f); Accordion Motion height spot PASS (6× data-studio-accordion-motion=height; mid-tween 0→~111→144); teardown forceClear + __studioAssertAgentTeardownClean PASS; canonical localhost:5173 reuse tab. Uma §0a PROVEN @ 76e2433. hardGreen false until Arch restore. Audit: FE_AUDIT_PDP_MCP_2026-07-19.md"
+          "auditor": "Arch (Director) — Quinn MCP + Uma §0a",
+          "note": "HARD-GREEN restored. Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 (prove docs cdf5c5f; reload:false ~28686ms; teardown clean); Accordion Motion height spot PASS (6× data-studio-accordion-motion=height; mid-tween 0→~111→144); Uma §0a still PROVEN @ 76e2433. Evidence: FE_AUDIT_PDP_MCP + FE_AUDIT_PDP_PAGE_FINAL_PASS. Home waits PO +."
         },
         "url": "http://localhost:5173/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
