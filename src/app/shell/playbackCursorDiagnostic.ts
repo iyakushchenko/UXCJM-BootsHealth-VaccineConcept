@@ -352,6 +352,19 @@ export function notePlaybackCursorEvent(
   // Always mirror to PLAYBACK_DIAG — even when QA eyes are off (PO cursor visibility).
   const parked = action === "park";
   const path = getCursorPathDiagnostic();
+  // Instant parks (type-in seed) skip travel path — log style left/top as travelEnd
+  // so PO can prove park coords vs field bbox without guessing.
+  let parkTravelEnd = path.settle;
+  if (parked && !parkTravelEnd && typeof document !== "undefined") {
+    const el = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+    if (el) {
+      const px = Number.parseFloat(el.style.left);
+      const py = Number.parseFloat(el.style.top);
+      if (Number.isFinite(px) && Number.isFinite(py)) {
+        parkTravelEnd = { x: px, y: py };
+      }
+    }
+  }
   playbackDiagCursor({
     action,
     beatId,
@@ -371,7 +384,7 @@ export function notePlaybackCursorEvent(
         ? "pointer"
         : "default",
     samples: path.sampleCount,
-    travelEnd: path.settle,
+    travelEnd: parkTravelEnd,
   });
 
   if (!track) {

@@ -174,8 +174,8 @@ export function readDemoCursorDomState(): {
 }
 
 /**
- * CJM type-in: keep robo-cursor visible near the composer field (caret-ish).
- * Call at type-in start — typed-text must never run with a missing cursor.
+ * CJM type-in: keep robo-cursor visible but OUTSIDE the field bbox.
+ * Never park on typed glyphs (PO: no cursor-on-text during type-in).
  */
 export function parkDemoCursorForTypeIn(
   target: HTMLElement,
@@ -197,12 +197,18 @@ export function parkDemoCursorForTypeIn(
     return;
   }
   const rect = target.getBoundingClientRect();
-  const x = Math.round(
-    Math.min(Math.max(rect.left + 36, rect.left + 8), rect.right - 20)
-  );
-  const y = Math.round(
-    Math.min(Math.max(rect.top + 16, rect.top + 4), rect.bottom - 8)
-  );
+  const gap = 28;
+  const midY = Math.round(rect.top + Math.max(rect.height, 1) / 2);
+  // Prefer right of field (toward send); fall back left if viewport-clipped.
+  let x = Math.round(rect.right + gap);
+  const vw =
+    typeof window !== "undefined" && Number.isFinite(window.innerWidth)
+      ? window.innerWidth
+      : x + 80;
+  if (x > vw - 40) {
+    x = Math.round(Math.max(12, rect.left - gap));
+  }
+  const y = midY;
   seedDemoCursorPosition(cursor, { x, y });
   applyDemoCursorParkedState(cursor);
   parkedRestAnchor = { left: x, top: y };
