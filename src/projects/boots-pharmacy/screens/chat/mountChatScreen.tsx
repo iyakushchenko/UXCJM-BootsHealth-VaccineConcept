@@ -6,7 +6,10 @@ import {
   CHAT_REACT_MOUNT_ENABLED,
   CHAT_REACT_SCREEN_ID,
   CHAT_SCREEN_SELECTOR,
+  isChatReactMounted,
 } from "./chatContract";
+
+export { isChatReactMounted };
 
 const HOST_CLASS = "studio-react-screen-host";
 /** Keep Studio chrome mounts; retire every Make Frame child under Chat. */
@@ -71,11 +74,6 @@ function restoreMakeChrome(page: HTMLElement): void {
   delete page.dataset.studioReactScreen;
 }
 
-/** True when Chat Make wire has been retired for the React migration. */
-export function isChatReactMounted(): boolean {
-  return !!pageEl()?.dataset.studioReactScreen;
-}
-
 export function mountChatScreen(props: ChatScreenProps): void {
   cancelDeferredUnmount();
   const page = pageEl();
@@ -111,7 +109,10 @@ export function unmountChatScreen(): void {
 }
 
 /** Wire into BootsPharmacyProjectView — keeps monster file under hygiene ceiling. */
-export function useChatScreenMount(activeChildIndex: number | undefined): void {
+export function useChatScreenMount(
+  activeChildIndex: number | undefined,
+  props: ChatScreenProps = {}
+): void {
   useLayoutEffect(() => {
     if (activeChildIndex !== CHAT_CHILD_INDEX) {
       unmountChatScreen();
@@ -121,8 +122,8 @@ export function useChatScreenMount(activeChildIndex: number | undefined): void {
       unmountChatScreen();
       return;
     }
-    mountChatScreen({});
-  }, [activeChildIndex]);
+    mountChatScreen(props);
+  }, [activeChildIndex, props]);
 
   useEffect(() => () => unmountChatScreen(), []);
 }

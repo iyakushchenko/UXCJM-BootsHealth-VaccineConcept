@@ -142,6 +142,15 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
 
+**Knowledge improved** (2026-07-19 · stream: Chat React parity behind flag · R12 batch):
+- Arch (Director): Flip veto until Quinn P1–P10 React smoke; PDP HARD-GREEN untouched; no Chat PROVEN — applied: NEXT_STEPS §6
+- Bea (BA): Register bands L/LE/SK → Partial for React port behind flag — applied: CHAT_MAKE_PARITY_REGISTER
+- Finn (FE): Thread×8 + CTAs + thinking bridge + shared composer dual-class (`proto-agentic-*`); static frame classes preserve scenario hide — applied: screens/chat · chatThinkingBridge · SitePilotComposer
+- Uma (UI/UX): Chat motion via `@/uxds/motion` (thinking + frame enter); Make `#dbebf5` body — applied: ChatScreen · chat.css (pixel PROVEN still PENDING)
+- Quinn (QA): Mount stays OFF — React P1–P10 not smokeable until flip; Make host still 4q/4r — applied: no false PROVEN
+- Ben (BE): Hygiene extract `chatScreenActions` / `useBootsChatScreenMount`; R12 push no-await — applied: check:hygiene under 4800
+- Pax (PO sim): no patch bump (flag OFF, not user-visible React mount) — applied: R12
+
 **Knowledge improved** (2026-07-19 · stream: Chat React kickoff · PO override · R12 batch):
 - Arch (Director): Chat kickoff under PAGE_FINAL_PASS discipline while Site Pilot NOT hard-green (PO override); PDP HARD-GREEN preserved; Chat NOT-GREEN — applied: NEXT_STEPS §6 · team check
 - Bea (BA): 69-band Chat Make register + CJM/playback contracts + shared composer SK rows — applied: CHAT_MAKE_PARITY_REGISTER · CHAT_REACT

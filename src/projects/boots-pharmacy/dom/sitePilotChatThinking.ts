@@ -1,4 +1,9 @@
 import { animateScrollTo } from "@/app/scenario/playbackScroll";
+import { isChatReactMounted } from "@/projects/boots-pharmacy/screens/chat/chatContract";
+import {
+  clearChatThinkingBridge,
+  publishChatThinkingBridge,
+} from "@/projects/boots-pharmacy/screens/chat/chatThinkingBridge";
 
 const THINKING_ATTR = "data-studio-chat-thinking";
 const THINKING_CLASS = "proto-chat-thinking-bubble";
@@ -8,6 +13,11 @@ const STOP_GLYPH_HTML = `<svg class="absolute block inset-0 size-full" fill="non
 export type SitePilotChatThinkingMode = "none" | "hint" | "playback" | "send";
 
 let thinkingMode: SitePilotChatThinkingMode = "none";
+
+function resolveAnchorFrameId(anchorFrame?: HTMLElement): string | null {
+  if (!anchorFrame) return null;
+  return anchorFrame.getAttribute("data-studio-chat-frame");
+}
 
 function resolveSummary(screenOrSummary: ParentNode): HTMLElement | null {
   if (
@@ -131,6 +141,16 @@ function showThinkingBubble(
   anchorFrame?: HTMLElement
 ): void {
   thinkingMode = mode;
+
+  if (isChatReactMounted()) {
+    publishChatThinkingBridge({
+      mode,
+      anchorFrameId: resolveAnchorFrameId(anchorFrame),
+    });
+    if (scroll) scrollChatToBottom();
+    return;
+  }
+
   const bubble = ensureThinkingBubble(summary, mode, anchorFrame);
   bubble.hidden = false;
   bubble.classList.toggle("proto-chat-thinking-bubble--hint", mode === "hint" || mode === "playback");
@@ -194,15 +214,17 @@ export function beginSitePilotChatPlaybackThinking(
 
 export function endSitePilotChatThinking(): void {
   thinkingMode = "none";
+  clearChatThinkingBridge();
   document.querySelectorAll<HTMLElement>(`[${THINKING_ATTR}]`).forEach((bubble) => {
     bubble.hidden = true;
     bubble.classList.remove(
       "proto-chat-thinking-bubble--reveal",
       "proto-chat-thinking-bubble--hint",
-      "proto-chat-thinking-bubble--exit"
+      "proto-chat-thinking-bubble--exit",
+      "chat__thinking--hint"
     );
     bubble
-      .querySelector(".proto-chat-thinking-dots")
+      .querySelector(".proto-chat-thinking-dots, .chat__thinking-dots")
       ?.classList.remove("proto-chat-thinking-dots--run");
   });
 }
@@ -211,6 +233,15 @@ const THINKING_EXIT_MS = 360;
 
 /** Fade thinking bubble out before the agent reply frame reveals (same motion language). */
 export async function fadeOutSitePilotChatThinking(): Promise<void> {
+  if (isChatReactMounted()) {
+    // React `AnimatePresence` owns the exit tween (~360ms).
+    endSitePilotChatThinking();
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, THINKING_EXIT_MS);
+    });
+    return;
+  }
+
   const bubbles = Array.from(
     document.querySelectorAll<HTMLElement>(`[${THINKING_ATTR}]`)
   ).filter((bubble) => !bubble.hidden);
@@ -239,6 +270,7 @@ export function setSitePilotChatSendThinkingMode(
   thinking: boolean
 ): void {
   sendBtn.classList.toggle("proto-agentic-send--stop", thinking);
+  sendBtn.classList.toggle("site-pilot-composer__send--stop", thinking);
   sendBtn.setAttribute("aria-label", thinking ? "Stop" : "Send message");
 
   const glyphHost = sendBtn.querySelector<HTMLElement>('[data-name="glyph"]');

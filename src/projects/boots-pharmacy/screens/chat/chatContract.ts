@@ -16,3 +16,12 @@ export const CHAT_REACT_MOUNT_ENABLED = false;
 export const CHAT_QUERY_ACTION = "agentic-chat-query";
 export const CHAT_MIC_ACTION = "agentic-chat-mic";
 export const CHAT_SEND_ACTION = "agentic-chat-send";
+
+/** True when Chat Make wire has been retired for the React migration (live DOM). */
+export function isChatReactMounted(): boolean {
+  const page = document.querySelector(CHAT_SCREEN_SELECTOR);
+  return (
+    page instanceof HTMLElement &&
+    page.dataset.studioReactScreen === CHAT_REACT_SCREEN_ID
+  );
+}

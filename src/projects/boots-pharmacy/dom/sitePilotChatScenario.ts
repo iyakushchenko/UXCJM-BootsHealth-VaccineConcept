@@ -3,7 +3,7 @@
  */
 
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
-import { isChatReactMounted } from "@/projects/boots-pharmacy/screens/chat/mountChatScreen";
+import { isChatReactMounted } from "@/projects/boots-pharmacy/screens/chat/chatContract";
 
 const LEGACY_THREAD_CLASS = "proto-chat-thread";
 const DOCK_CLASS = "proto-chat-composer-dock";
@@ -123,19 +123,29 @@ function applyComposerDockSuppressed(screen?: ParentNode | null): void {
   const suppressed = document.body.hasAttribute(
     "data-studio-chat-composer-suppressed"
   );
-  const composer = findInPlaceComposer(
+  const host =
     screen ??
-      document.querySelector<HTMLElement>(
-        ".studio-viewport > div > div:nth-child(10)"
-      ) ??
-      document
-  );
+    document.querySelector<HTMLElement>(
+      ".studio-viewport > div > div:nth-child(10)"
+    ) ??
+    document;
+
+  const reactDock =
+    host instanceof Element
+      ? host.querySelector<HTMLElement>(".chat__composer-dock")
+      : document.querySelector<HTMLElement>(".chat__composer-dock");
+  if (reactDock) {
+    reactDock.hidden = suppressed;
+    return;
+  }
+
+  const composer = findInPlaceComposer(host);
   if (composer) {
     composer.hidden = suppressed;
-    const screen = document.querySelector<HTMLElement>(
+    const page = document.querySelector<HTMLElement>(
       ".studio-viewport > div > div:nth-child(10)"
     );
-    const disclaimer = screen ? disclaimerByScreen.get(screen) : null;
+    const disclaimer = page ? disclaimerByScreen.get(page) : null;
     if (disclaimer) disclaimer.hidden = suppressed;
     return;
   }
@@ -227,12 +237,25 @@ export function isSitePilotChatComposerFrame(el: HTMLElement): boolean {
   return hasAskPrompt && /next dialog options/i.test(text);
 }
 
-/** Composer card — fixed in summary after setup. */
+/** Composer card — fixed in summary after setup (Make) or React dock. */
 export function findSitePilotChatComposerCard(): HTMLElement | null {
   const screen = document.querySelector<HTMLElement>(
     ".studio-viewport > div > div:nth-child(10)"
   );
   if (!screen) return null;
+
+  const reactCard = screen.querySelector<HTMLElement>(
+    '.proto-site-pilot-composer[data-studio-chat-composer="true"], [data-studio-react-screen="chat"] .proto-site-pilot-composer'
+  );
+  if (reactCard) {
+    return (
+      reactCard.matches('[data-name="component.co.order.summary"]')
+        ? reactCard
+        : reactCard.querySelector<HTMLElement>(
+            '[data-name="component.co.order.summary"]'
+          )
+    ) ?? reactCard;
+  }
 
   const inPlace = findInPlaceComposer(screen);
   if (inPlace) {

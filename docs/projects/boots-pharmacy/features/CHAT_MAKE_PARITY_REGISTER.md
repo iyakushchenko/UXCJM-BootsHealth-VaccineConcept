@@ -5,7 +5,7 @@
 **Updated:** 2026-07-19 (PO override kickoff — Site Pilot **not** Final Pass hard-green; Chat register only)  
 **Make source:** Frame child **10** (`Agentic. Site Pilot. Chat`) — `Frame337` microheader + `Body9` in `frame/index.tsx` (`left-[1535px]` UX frame) · wire `BootsPharmacyProjectView` child-10 effects · `dom/sitePilotChatScenario.ts` · `dom/sitePilotChatThinking.ts` · `playback/sitePilotChat.ts` · orchestra `App.tsx` (`site-pilot-chat`)  
 **Public `screenId`:** `chat` (URL `?screen=chat`; scenario id `site-pilot-chat`)  
-**React target:** `src/projects/boots-pharmacy/screens/chat/*` (**not created** — kickoff)  
+**React target:** `src/projects/boots-pharmacy/screens/chat/*` — thread/CTAs/thinking/composer **ported behind** `CHAT_REACT_MOUNT_ENABLED=false` (Make still live)  
 **Refs:** [CHAT_REACT.md](./CHAT_REACT.md) · [HOME_MAKE_PARITY_REGISTER.md](./HOME_MAKE_PARITY_REGISTER.md) (composer shared kit) · [URL.md](../../../shell/URL.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md)
 
 **Status legend:** Present · Partial · Missing · Fixed · N/A
@@ -31,11 +31,11 @@
 | L6 | **Rate your experience** + **More** — header aux actions | **Present** | **Missing** | `Frame340` |
 | L7 | **Body fill** — `#dbebf5` full-width `data-name="body"` | **Present** | **Missing** | `Body9` |
 | L8 | **Thread host** — `component.appointment.summary` 864px, `gap-[40px]`, centered in `p-[64px]` | **Present** | **Missing** | `ComponentAppointmentSummary2` |
-| L9 | **User bubbles (`query`)** — mint-tint card `bg-[rgba(245,255,254,0.35)]`, 438px, right-aligned column | **Present** | **Missing** | `Query`…`Query3` |
-| L10 | **Agent bubbles (`reply`)** — white `component.co.order.summary` 16px pad + inline CTAs | **Present** | **Missing** | `Reply`…`Reply3` |
-| L11 | **Per-reply helpful strip** — “Was this reply helpful?” Yes/No on **reply** frames (not finale) | **Present** | **Missing** | `ComponentGseSystemMessage` on `Reply` |
-| L12 | **Conversation feedback (finale band)** — “Was this conversation helpful so far?” — wire **hidden** until scripted | **Present** | **Missing** | `ComponentGseSystemMessage1`; `syncSitePilotChatFeedbackFrame` |
-| L13 | **Disclaimer** — “SitePilot can make mistakes…” + underlined support link below thread | **Present** | **Missing** | `Body9` sibling `<p>`; `proto-chat-composer-disclaimer` |
+| L9 | **User bubbles (`query`)** — mint-tint card `bg-[rgba(245,255,254,0.35)]`, 438px, right-aligned column | **Present** | **Partial** | `chatThreadContent.tsx` — gated off until mount flip |
+| L10 | **Agent bubbles (`reply`)** — white `component.co.order.summary` 16px pad + inline CTAs | **Present** | **Partial** | `ChatScreen` reply frames + CTAs — gated off |
+| L11 | **Per-reply helpful strip** — “Was this reply helpful?” Yes/No on **reply** frames (not finale) | **Present** | **Partial** | React helpful strip on r0 — gated off |
+| L12 | **Conversation feedback (finale band)** — “Was this conversation helpful so far?” — wire **hidden** until scripted | **Present** | **Partial** | React band `hidden` — gated off |
+| L13 | **Disclaimer** — “SitePilot can make mistakes…” + underlined support link below thread | **Present** | **Partial** | `chat__disclaimer` — gated off |
 | L14 | **Footer** — absent on Chat Make child 10 | **N/A** | **N/A** | Do not invent |
 | L15 | **Accordion / chat history sidebar** — absent on Chat Make | **N/A** | **N/A** | No `component.gse.accordion` in `Body9` |
 
@@ -45,11 +45,11 @@
 
 | # | Make behavior | Make | React status | Evidence |
 |---|---------------|------|--------------|----------|
-| LE1 | **Playback thinking bubble** — dots before each `reply` frame reveal (~**1400ms** `SITE_PILOT_CHAT_PLAYBACK_THINK_MS`) | **Present** | **Missing** | `beginSitePilotChatPlaybackThinking` · `proto-chat-thinking-bubble` |
-| LE2 | **Thinking fade-out** — exit class ~360ms before reply shows | **Present** | **Missing** | `fadeOutSitePilotChatThinking` |
-| LE3 | **Browse-mode reveal pause** — land on chat tab → thinking → jump to last frame | **Present** | **Missing** | `App.tsx` `runChatBrowseReveal` |
-| LE4 | **Send thinking** — user send → thinking bubble + send becomes **Stop** glyph | **Present** | **Missing** | `beginSitePilotChatThinking` · `setSitePilotChatSendThinkingMode` |
-| LE5 | **Ambient hint thinking** — frame 1 / after cancel → hint bubble before first reply | **Present** | **Missing** | `syncSitePilotChatThinkingHint` |
+| LE1 | **Playback thinking bubble** — dots before each `reply` frame reveal (~**1400ms** `SITE_PILOT_CHAT_PLAYBACK_THINK_MS`) | **Present** | **Partial** | React bridge + `@/uxds/motion` bubble — live only when mount ON |
+| LE2 | **Thinking fade-out** — exit class ~360ms before reply shows | **Present** | **Partial** | React `AnimatePresence` exit ~360ms via bridge |
+| LE3 | **Browse-mode reveal pause** — land on chat tab → thinking → jump to last frame | **Present** | **Partial** | Same `App.tsx` hooks; React summary when mounted |
+| LE4 | **Send thinking** — user send → thinking bubble + send becomes **Stop** glyph | **Present** | **Partial** | `SitePilotComposer sendThinking` + bridge |
+| LE5 | **Ambient hint thinking** — frame 1 / after cancel → hint bubble before first reply | **Present** | **Partial** | Bridge publishes hint mode |
 | LE6 | **Page load spinner / empty thread** | **N/A** | **N/A** | Static scripted thread — **forbidden** invent full-page loader |
 | LE7 | **“Updating results…”-style listing overlay** | **N/A** | **N/A** | Not in Make Chat |
 
@@ -88,9 +88,9 @@
 
 | # | Contract | Make | React status | Evidence |
 |---|----------|------|--------------|----------|
-| SK1 | **Single React component** for query row + mic + send + chip row — used by `site-pilot` **and** `chat` | **Present** (Make duplicates markup) | **Partial** | `screens/shared/SitePilotComposer.tsx` — Home live; Chat scaffold only (`CHAT_REACT_MOUNT_ENABLED=false`) |
+| SK1 | **Single React component** for query row + mic + send + chip row — used by `site-pilot` **and** `chat` | **Present** (Make duplicates markup) | **Partial** | `SitePilotComposer` shared; Chat wired but mount flag OFF |
 | SK2 | **Home variant** — “Suggested dialog options:” + 3 home chips; `data-studio-action=agentic-home-*` | **Present** | **Present** | Home → `SitePilotComposer surface="home"` |
-| SK3 | **Chat variant** — “Next dialog options:” + 3 chat chips; `data-studio-action=agentic-chat-query` | **Present** | **Partial** | ChatScreen wires shared composer; Make dock still authoritative until mount flip |
+| SK3 | **Chat variant** — “Next dialog options:” + 3 chat chips; `data-studio-action=agentic-chat-query` | **Present** | **Partial** | Chat chips in React; Make dock authoritative until flip |
 
 ---
 
@@ -151,8 +151,8 @@
 | Id | Note |
 |----|------|
 | B1 | **PO override:** Chat kickoff while **Site Pilot (`site-pilot`) NOT Final Pass hard-green** — document only; Arch accepted for register/brief. |
-| B2 | **Composer extraction** — SK1 Partial: `SitePilotComposer` shared; Chat live mount still gated off for playback. |
-| B3 | **Scenario frames** — 8 thread frames (`query`/`reply` ×4) + hidden feedback; React must feed same `collectSitePilotChatScenarioFrames` contract or migrate engine collector to React DOM. |
+| B2 | **Mount flip blocked** — React parity ported; `CHAT_REACT_MOUNT_ENABLED` stays `false` until Quinn P1–P10 playback smoke green on React host. |
+| B3 | **Scenario frames** — React emits `data-name=query|reply` + `data-studio-chat-frame`; static BEM classes avoid wiping `proto-scenario-frame*`. Flip still needs Quinn prove. |
 | B4 | **Thinking UI** — LEGACY CSS classes today (`proto-chat-thinking-*`); React should use `@/uxds/motion` for bubble enter/exit without inventing new copy/placement. |
 | B5 | **Wire DOM surgery** — textarea replace + dock must early-return when React mounted (mirror Home). |
 | B6 | **No PROVEN** — no `PARITY_PROVEN.json` row for `chat` on this kickoff. |

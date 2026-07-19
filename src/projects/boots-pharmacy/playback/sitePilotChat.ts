@@ -155,7 +155,9 @@ async function simulateSarahSendClick(sendBtn: HTMLElement): Promise<void> {
 
 async function pulseComposerSend(): Promise<void> {
   const card = findSitePilotChatComposerCard();
-  const sendBtn = card?.querySelector<HTMLElement>(".proto-agentic-send");
+  const sendBtn = card?.querySelector<HTMLElement>(
+    ".proto-agentic-send, .site-pilot-composer__send"
+  );
   if (!sendBtn) return;
   await simulateSarahSendClick(sendBtn);
 }
@@ -167,7 +169,9 @@ async function simulateSarahCtaSend(): Promise<void> {
 
 export async function simulateSarahTypingInComposer(text: string): Promise<void> {
   const card = findSitePilotChatComposerCard();
-  const ta = card?.querySelector<HTMLTextAreaElement>("textarea.proto-agentic-query");
+  const ta = card?.querySelector<HTMLTextAreaElement>(
+    "textarea.proto-agentic-query, textarea.site-pilot-composer__query"
+  );
   if (!ta) {
     await delay(700);
     return;

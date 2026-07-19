@@ -137,10 +137,8 @@ import {
   mountHomeScreen,
   unmountHomeScreen,
 } from "@/projects/boots-pharmacy/screens/home/mountHomeScreen";
-import {
-  isChatReactMounted,
-  useChatScreenMount,
-} from "@/projects/boots-pharmacy/screens/chat/mountChatScreen";
+import { isChatReactMounted } from "@/projects/boots-pharmacy/screens/chat/mountChatScreen";
+import { useBootsChatScreenMount } from "@/projects/boots-pharmacy/screens/chat/useBootsChatScreenMount";
 import {
   HOME_CHILD_INDEX,
   type HomeChipLabel,
@@ -1655,7 +1653,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     return () => unmountHomeScreen();
   }, []);
 
-  useChatScreenMount(SCREENS[current]?.childIndex);
+  useBootsChatScreenMount(SCREENS[current]?.childIndex, {
+    openAvailabilityRef: openAvailabilityToolRef,
+    setCurrent,
+  });
 
   // Book – Step 1 (child 7): breadcrumb rewrite — Make path only
   useEffect(() => {

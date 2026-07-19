@@ -30,6 +30,8 @@ export type SitePilotComposerProps = {
   onChip?: (label: string) => void;
   className?: string;
   showSuggested?: boolean;
+  /** Chat send→stop while thinking (Make `proto-agentic-send--stop`). */
+  sendThinking?: boolean;
 };
 
 function MicGlyph() {
@@ -53,6 +55,14 @@ function SendGlyph() {
   );
 }
 
+function StopGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <rect x="3" y="3" width="10" height="10" rx="1.5" fill="#ffffff" />
+    </svg>
+  );
+}
+
 export function SitePilotComposer({
   surface,
   query,
@@ -64,6 +74,7 @@ export function SitePilotComposer({
   onChip,
   className,
   showSuggested = false,
+  sendThinking = false,
 }: SitePilotComposerProps) {
   const taRef = useRef<HTMLTextAreaElement>(null);
 
@@ -93,7 +104,7 @@ export function SitePilotComposer({
     >
       <textarea
         ref={taRef}
-        className="site-pilot-composer__query"
+        className="site-pilot-composer__query proto-agentic-query"
         name={`${surface}-query`}
         rows={surface === "chat" ? 5 : 1}
         spellCheck
@@ -114,12 +125,16 @@ export function SitePilotComposer({
       </button>
       <button
         type="submit"
-        className="site-pilot-composer__send"
+        className={`site-pilot-composer__send proto-agentic-send${
+          sendThinking ? " proto-agentic-send--stop site-pilot-composer__send--stop" : ""
+        }`}
         data-name="component.input.button"
-        aria-label="Send message"
+        aria-label={sendThinking ? "Stop" : "Send message"}
         data-studio-action={sitePilotSendAction(surface)}
       >
-        <SendGlyph />
+        <span data-name="glyph" className="site-pilot-composer__send-glyph">
+          {sendThinking ? <StopGlyph /> : <SendGlyph />}
+        </span>
       </button>
     </form>
   );

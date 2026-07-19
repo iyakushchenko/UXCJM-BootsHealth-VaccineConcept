@@ -69,7 +69,7 @@ function getAgenticHomeCard(): HTMLElement | null {
 async function waitForHomeTextarea(): Promise<HTMLTextAreaElement | null> {
   for (let i = 0; i < 60; i++) {
     const ta = getAgenticHomeCard()?.querySelector<HTMLTextAreaElement>(
-      "textarea.proto-agentic-query"
+      "textarea.proto-agentic-query, textarea.site-pilot-composer__query"
     );
     if (ta) return ta;
     await delay(40);
@@ -84,13 +84,17 @@ function getHomeSendButton(): HTMLElement | null {
   if (!subtotal) return null;
 
   return (
+    subtotal.querySelector<HTMLElement>(
+      ".proto-agentic-send, .site-pilot-composer__send"
+    ) ??
     Array.from(
       subtotal.querySelectorAll<HTMLElement>(
         '[data-name="component.input.button"]'
       )
     ).find((btn) =>
-      btn.querySelector('[data-name="icon / input / arrows"]')
-    ) ?? null
+      btn.querySelector('[data-name="icon / input / arrows"], [data-name="glyph"]')
+    ) ??
+    null
   );
 }
 

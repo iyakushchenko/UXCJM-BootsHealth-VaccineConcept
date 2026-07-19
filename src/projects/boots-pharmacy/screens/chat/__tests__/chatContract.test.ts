@@ -10,6 +10,7 @@ import {
   CHAT_SCREEN_SELECTOR,
   CHAT_SEND_ACTION,
 } from "../chatContract";
+import { CHAT_THREAD_FRAMES, CHAT_CHIP_LABELS } from "../chatThreadContent";
 
 describe("chatContract", () => {
   it("matches Studio screen registry child index for Chat", () => {
@@ -22,7 +23,7 @@ describe("chatContract", () => {
     expect(CHAT_REACT_SCREEN_ID).toBe("chat");
   });
 
-  it("keeps React mount off until playback + parity are ported", () => {
+  it("keeps React mount off until playback smoke P1–P10 is green", () => {
     expect(CHAT_REACT_MOUNT_ENABLED).toBe(false);
   });
 
@@ -30,5 +31,12 @@ describe("chatContract", () => {
     expect(CHAT_QUERY_ACTION).toBe("agentic-chat-query");
     expect(CHAT_MIC_ACTION).toBe("agentic-chat-mic");
     expect(CHAT_SEND_ACTION).toBe("agentic-chat-send");
+  });
+
+  it("ports Make scenario frame count (query/reply ×4)", () => {
+    expect(CHAT_THREAD_FRAMES).toHaveLength(8);
+    expect(CHAT_THREAD_FRAMES.filter((f) => f.kind === "query")).toHaveLength(4);
+    expect(CHAT_THREAD_FRAMES.filter((f) => f.kind === "reply")).toHaveLength(4);
+    expect(CHAT_CHIP_LABELS).toHaveLength(3);
   });
 });
