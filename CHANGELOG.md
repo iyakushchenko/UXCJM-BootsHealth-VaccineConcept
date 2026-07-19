@@ -12,6 +12,7 @@
 - **docs:** LESSONS_LEARNED + director/checklist/audit G7–G9 hard gates
 - **shell:** Agent testing overlay: BR status panel + invisible click capture; MCP stop({ reload: true })
 - **uxds:** Extract BookAppointmentProgress + AppointmentSummaryPill; wire Book Steps 1-3; retire triplicated screen CSS
+- **uxds:** Book Steps 1-3 + book kits: safe hex to UXDS/theme tokens (Make-only hex left); light audit PROVEN
 
 ## v0.0.1 - 190726
 

@@ -32,7 +32,7 @@
   font-size: 16px;
   line-height: 1.4;
   font-weight: 400;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .uxds-book-progress__step.is-active ol,
@@ -62,7 +62,7 @@
   flex-shrink: 0;
   border: none;
   border-radius: 0;
-  background: #ffffff;
+  background: var(--uxds-surface-neutral);
 }
 
 .uxds-book-progress__step.is-active .uxds-book-progress__bar,

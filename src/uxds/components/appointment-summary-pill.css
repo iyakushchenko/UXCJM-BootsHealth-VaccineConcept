@@ -15,7 +15,7 @@
   width: 100%;
   padding: 16px;
   border-radius: 24px;
-  background: #f5f5f5;
+  background: var(--uxds-surface-subtle);
   box-sizing: border-box;
 }
 
@@ -26,7 +26,7 @@
   font-size: 13px;
   line-height: 24px;
   font-weight: 400;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .uxds-summary-pill__value {
@@ -35,7 +35,7 @@
   font-size: 13px;
   line-height: 24px;
   font-weight: 600;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 /* Tertiary Change — icon+text nowrap; label→black, icon→navy on hover */
@@ -50,7 +50,7 @@
   border: none;
   border-radius: 360px;
   background: transparent;
-  color: #5c5c5c;
+  color: var(--uxds-text-text-secondary);
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
@@ -72,6 +72,7 @@
 .uxds-summary-pill__change:hover,
 .uxds-summary-pill__change:active {
   background: transparent;
+  /* Make hover black — no UXDS pure-black token yet */
   color: #000000;
 }
 

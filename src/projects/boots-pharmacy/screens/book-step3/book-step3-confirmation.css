@@ -16,9 +16,9 @@
   width: 100%;
   min-width: 1200px;
   flex: 1 1 auto;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
   font-family: "Open Sans", sans-serif;
-  background: #ffffff;
+  background: var(--uxds-surface-neutral);
 }
 
 .book-step3__shell {
@@ -41,7 +41,7 @@
 
 .book-step3__crumbs {
   width: 100%;
-  background: #ffffff;
+  background: var(--uxds-surface-neutral);
   position: relative;
   z-index: 1;
   padding-top: 16px;
@@ -105,7 +105,7 @@
 .book-step3__body-fill-solid {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: var(--uxds-surface-neutral);
 }
 
 .book-step3__body-fill-img {
@@ -139,7 +139,7 @@
   font-size: 39px;
   line-height: 48px;
   font-weight: 700;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 /* Progress + summary pills → UXDS kits */
@@ -152,7 +152,7 @@
   width: min(863px, 100%);
   padding: 64px;
   border-radius: 24px;
-  background: #ffffff;
+  background: var(--uxds-surface-neutral);
   box-shadow: 0 5px 9.75px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
 }
@@ -164,7 +164,7 @@
   font-size: 31px;
   line-height: 32px;
   font-weight: 600;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__ok {
@@ -193,7 +193,7 @@
   font-size: 13px;
   line-height: 24px;
   font-weight: 400;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
   white-space: nowrap;
 }
 
@@ -204,7 +204,7 @@
   font-size: 13px;
   line-height: 24px;
   font-weight: 400;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__meta-value {
@@ -213,15 +213,15 @@
   font-size: 13px;
   line-height: 24px;
   font-weight: 600;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__order {
   width: 100%;
   padding: 32px;
   border-radius: 16px;
-  border: 1px solid #d6d6d6;
-  background: #ffffff;
+  border: 1px solid var(--uxds-border-border-default);
+  background: var(--uxds-surface-neutral);
   box-shadow: 0 4px 4.45px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
   display: flex;
@@ -234,7 +234,7 @@
   font-size: 25px;
   line-height: 32px;
   font-weight: 600;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__order-list {
@@ -251,7 +251,7 @@
   width: 100%;
   font-size: 13px;
   line-height: 24px;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__order-row > p:first-child {
@@ -292,7 +292,7 @@
   gap: 16px;
   width: 100%;
   padding-top: 16px;
-  border-top: 1px solid #d6d6d6;
+  border-top: 1px solid var(--uxds-border-border-default);
   box-sizing: border-box;
 }
 
@@ -353,7 +353,7 @@
   box-sizing: border-box;
   font-size: 13px;
   line-height: 24px;
-  color: #3a3a3a;
+  color: var(--uxds-text-text-primary);
 }
 
 .book-step3__advantage-label {
@@ -413,7 +413,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #012169;
+  color: var(--uxds-text-link-link);
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
@@ -428,7 +428,7 @@
 }
 
 .book-step3__open-appt:hover {
-  color: #01318f;
+  color: var(--uxds-text-link-link-hover);
 }
 
 .book-step3__open-appt:hover .book-step3__open-appt-icon {
@@ -437,7 +437,7 @@
 }
 
 .book-step3__open-appt:focus-visible {
-  outline: 2px solid #012169;
+  outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
