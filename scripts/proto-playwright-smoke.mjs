@@ -46,9 +46,11 @@ async function main() {
   }
 
   await dismissAndClean(page);
-  const homePlay = await page.evaluate(async () =>
-    window.__protoRunHomePlaySmoke?.({ timeoutMs: 30_000 })
-  );
+  const homePlay = isFull
+    ? await page.evaluate(async () =>
+        window.__protoRunHomePlaySmoke?.({ timeoutMs: 30_000 })
+      )
+    : { pass: true, skipped: true };
 
   await dismissAndClean(page);
   const retreat = await page.evaluate(async () =>
@@ -94,8 +96,9 @@ async function main() {
     diagnosticOpen,
     pass:
       Boolean(sanity?.pass) &&
-      Boolean(homePlay?.pass) &&
+      Boolean(baseline?.pass) &&
       Boolean(retreat?.pass) &&
+      (isFull ? Boolean(homePlay?.pass) : true) &&
       (isFull
         ? Boolean(stepForward?.pass) &&
           Boolean(traditionalStepForward?.pass) &&
