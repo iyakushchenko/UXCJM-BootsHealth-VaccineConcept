@@ -1,6 +1,6 @@
 /**
- * UXDS Accordion kit defaults — chevron mute/open + grid-row expand/collapse.
- * Pages own typography/padding on the panel (inner); kit owns motion shell.
+ * UXDS Accordion kit defaults — chevron mute/open + Motion shell helpers.
+ * Height expand/collapse is owned by Motion (`AccordionContent`), not CSS grid.
  */
 
 [data-uxds-kit="accordion"] [data-name="uxds.interaction.accordion.chevron"] {
@@ -29,48 +29,23 @@
 }
 
 /*
- * Smooth expand/collapse without height:auto measurement thrash.
- * grid-template-rows 0fr ↔ 1fr + single clip child (grid-row span fix).
+ * Motion owns height (overflow:hidden inline). Keep layout containment so
+ * open/close doesn't spam page-wide reflow.
  */
 .uxds-accordion-content {
-  display: grid;
-  grid-template-rows: 0fr;
+  display: block;
   align-items: start;
-  /* Contain layout so open/close doesn't spam page-wide reflow. */
   contain: layout style;
-  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.uxds-accordion-content[data-state="open"] {
-  grid-template-rows: 1fr;
-}
-
-.uxds-accordion-content__clip {
-  /* Prevents mid-transition second-row stutter */
-  grid-row: 1 / span 2;
-  min-height: 0;
-  overflow: hidden;
 }
 
 .uxds-accordion-content__panel {
-  opacity: 0;
-  pointer-events: none;
-  /* Fade out faster on close so text doesn’t thrash while the row shrinks */
-  transition: opacity 0.14s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.uxds-accordion-content[data-state="open"] .uxds-accordion-content__panel {
-  opacity: 1;
-  pointer-events: auto;
-  /* Slight delay so the row leads; open ease a touch longer */
-  transition:
-    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1) 0.04s;
+  /* Opacity driven by Motion; CSS fallback closed state before hydrate. */
+  min-height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-uxds-kit="accordion"] [data-name="uxds.interaction.accordion.chevron"],
-  .uxds-accordion-content,
-  .uxds-accordion-content__panel {
+  /* Decorative chevron only — height remains Motion (functional expand). */
+  [data-uxds-kit="accordion"] [data-name="uxds.interaction.accordion.chevron"] {
     transition: none !important;
   }
 }

@@ -20,10 +20,16 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   4. Chrome MCP: `list_pages` → `select_page` / `navigate_page`; **`new_page` only if zero pages**.
 - **Refs:** [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · [../shell/URL.md](../shell/URL.md) · [AGENTS.md](../../AGENTS.md)
 
-### Platform motion — Motion (`framer-motion`) via `@/uxds/motion`; Accordion stays CSS (PO / Arch)
+### Platform motion — Accordion height via Motion; CSS reduced-motion hid expand (PO / Arch + Uma + Finn)
 
-- **Symptom / class:** Motion library listed but unused; dual `motion` + `framer-motion` deps; Accordion stutter when driven by Framer `height: auto`; callsigns unsure CSS vs Motion.
-- **Gate:** [MOTION.md](./MOTION.md) — import `@/uxds/motion` only; one package (`framer-motion`); CSS for trivial hover + Accordion `0fr/1fr`; Motion for enter/exit, panels, menus, layout. No React Spring. Shell-only Motion pilots do **not** demote PDP PAGE FINAL PASS.
+- **Symptom / class:** PO could not see Accordion collapse/expand; CSS `grid-template-rows 0fr↔1fr` “fixed” but still looked instant.
+- **Root cause:** OS/browser `prefers-reduced-motion: reduce` → kit CSS `transition: none !important` on `.uxds-accordion-content`. Computed `transitionDuration: 0s`. (Secondary: `grid-row: span 2` yielded two-track `0px 0px` computed rows.)
+- **Gate:** Accordion expand = Motion `height: 0↔auto` via `@/uxds/motion` (functional reveal; always-mounted; cancel on unmount). Chevron mute/rotate stays CSS (honors reduced-motion). Import `@/uxds/motion` only — never raw `framer-motion`. Shell presence pilots OK; **user-visible PDP Accordion Motion demotes Final Pass `mcpFinalPass` → NEEDS-REPROVE**. See [MOTION.md](./MOTION.md).
+
+### Platform motion — Motion (`framer-motion`) via `@/uxds/motion` (superseded Accordion CSS row — PO / Arch)
+
+- **Symptom / class:** Motion library listed but unused; dual `motion` + `framer-motion` deps; callsigns unsure CSS vs Motion.
+- **Gate (updated):** [MOTION.md](./MOTION.md) — import `@/uxds/motion` only; one package (`framer-motion`); CSS for trivial hover + Accordion chevron; Motion for Accordion height + enter/exit panels/menus. No React Spring. Shell-only presence pilots do **not** demote PDP; Accordion Motion on PDP **does**.
 
 ### Robo-cursor travel — ease-in-out only, no bounce (PO / Finn)
 

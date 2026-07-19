@@ -151,9 +151,10 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
 | **Fixed localhost + reuse tab** — canonical `http://localhost:5173/`; Vite `strictPort`; one `npm run dev`; Chrome MCP `list_pages`→reuse (`new_page` only if empty); Auto-Rule R11 + felony | Arch, Finn, Ben, Quinn | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · `vite.config.ts` · LESSONS |
-| **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; remove unused `motion` twin; Accordion stays CSS `0fr/1fr`; shell pilots: diagnostic overlay + studio select; PDP Final Pass not demoted (shell-only) | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` |
+| **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; Accordion height = Motion (not CSS `0fr/1fr`); chevron CSS; shell pilots: diagnostic overlay + studio select presence; PDP Accordion Motion → Final Pass NEEDS-REPROVE | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` · Accordion.tsx |
+| **Accordion invisible expand** — `prefers-reduced-motion` zeroed CSS grid transitions; root cause + Motion height fix | Uma, Finn, Arch, Quinn | LESSONS · accordion.css · MOTION.md |
 | **Robo-cursor travel** — Motion `animate` ease-in-out only (no back/overshoot/bounce); cancel via `.stop()` on forceClear; hang caps retained | Finn, Arch, Quinn | [MOTION.md](./MOTION.md) · `demoCursor.ts` · LESSONS bounce gate |
-| **PDP PAGE FINAL PASS** — **HARD-GREEN** @ `57775a3` / v0.0.36 (Quinn 23/23 re-prove after playback panel + cursor lock · Uma §0a @ `76e2433`; prior stamp `48f2016` demoted NEEDS-REPROVE then restored) | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
+| **PDP PAGE FINAL PASS** — **NEEDS-REPROVE** after Accordion Motion (prior HARD-GREEN @ `57775a3` / v0.0.36); Quinn re-prove before restore | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
 | **PDP Motion travel re-prove** — Quinn MCP **PASS** 23/23 @ `7c7c9e1` / v0.0.32; teardown clean; Uma §0a still PROVEN @ `76e2433` | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass HARD-GREEN |
 | **PDP hang-guard re-prove** — Quinn MCP **PASS** 23/23 @ `7bce2b3` / v0.0.31 (superseded MCP stamp by `7c7c9e1`) | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS |
 | **PDP FAQ 6/6 + Accordion motion + TertiaryCta soft** — Uma §0a PROVEN + Quinn MCP **PASS** 23/23 @ `76e2433` / v0.0.30 (superseded MCP stamp by `7bce2b3`) | Uma, Quinn, Arch, Finn | UMA_FIDELITY_PDP · FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS · DEV-20260719-tertiary-soft |
@@ -174,6 +175,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | **Auto-Rule `agent-teardown-clean`** — overlay gone + `&modal=` stripped + dialog closed after probe/sitrep/forceClear | Finn, Ben, Quinn, Arch | `studioAgentTeardownContract` · felonies §9 · `__studioAssertAgentTeardownClean` |
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
 | Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
+
+**Knowledge improved** (2026-07-19 · stream: Accordion Motion height · v0.0.37):
+- Arch (Director): root cause = `prefers-reduced-motion` killed CSS grid transitions; demote PDP mcpFinalPass NEEDS-REPROVE (user-visible) — applied: PAGE_FINAL_PASS.json + MOTION.md + NEXT_STEPS 3e
+- Finn (FE): AccordionContent Motion `height: 0↔auto` + panel opacity; hang-safe always-mounted; shell pilots StudioSelect + PlaybackDiagnostic — applied: Accordion.tsx · StudioNavStudioSelect · PlaybackDiagnosticOverlay
+- Uma (UI/UX): muted closed chevrons stay CSS; functional height Motion so expand visible under reduced-motion OS — applied: accordion.css · MCP mid-frame heights 0→68→130→144
+- Pax (PO sim): patch bump + push; Home still blocked on HARD-GREEN restore — applied: release:patch
 
 **Knowledge improved** (2026-07-19 · stream: fixed localhost + reuse tab · Auto-Rule R11):
 - Arch (Director): locked canonical `http://localhost:5173/` + Chrome MCP reuse-tab felony; no patch bump (docs/config) — applied: STUDIO_AUTO_RULES R11 · doctrine §4 · director #25 · AGENTS/TEAM

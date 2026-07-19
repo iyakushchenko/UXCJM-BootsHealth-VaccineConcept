@@ -2,7 +2,7 @@
 
 **Status:** Living — Arch + Finn own.  
 **Package:** `framer-motion` only (do **not** add a second `motion` twin).  
-**Import:** `@/uxds/motion` — never raw `framer-motion` / `motion` in new code.
+**Import:** `@/uxds/motion` — never raw `framer-motion` / `motion` in new callsign code.
 
 ---
 
@@ -10,12 +10,33 @@
 
 | Surface | Driver | Notes |
 |---------|--------|--------|
-| Enter / exit, panels, menus, layout | Motion (`AnimatePresence` / `motion.*`) | Shell pilots OK |
+| Accordion expand/collapse (height) | Motion `height: 0` ↔ `"auto"` | Functional reveal — keep tween so collapse/expand stays visible; always-mounted panel; `initial={false}`; cancels on unmount |
+| Enter / exit presence (menus, diagnostic overlays, modal pilots) | Motion (`AnimatePresence` / `motion.*`) | Opacity (+ tiny y) only; hang-safe; sync-mount XOR panels when `mode="wait"` stranded empty |
 | Imperative position tweens (robo-cursor travel) | Motion `animate(0, 1, { ease: "easeInOut", … })` | Stoppable via `.stop()` |
-| Trivial hover color/opacity | CSS | One property |
-| Accordion expand/collapse | CSS `grid-template-rows: 0fr` ↔ `1fr` | **Not** Framer `height: auto` |
+| Trivial hover color/opacity; Accordion chevron mute/rotate | CSS | One property / kit chevron; chevron honors `prefers-reduced-motion` |
+
+**Do not** drive Accordion with CSS `grid-template-rows: 0fr` ↔ `1fr` anymore — OS `prefers-reduced-motion: reduce` zeroed those transitions (`transition: none !important`), so expand looked instant. Motion height is the kit path.
 
 No React Spring. No bespoke `@keyframes` zoos unless registered in [DEVIATIONS.md](../uxds/DEVIATIONS.md).
+
+---
+
+## Callsign import rule
+
+```ts
+import { AnimatePresence, animate, motion, useReducedMotion } from "@/uxds/motion";
+```
+
+Never `from "framer-motion"` / `from "motion"` in new code. Shared timings: Accordion → `src/uxds/interactions/accordionMotion.ts`; shell panels → `src/app/nav/studioMotion.ts`.
+
+---
+
+## Accordion (kit)
+
+- **API:** `AccordionContent` → `motion.div` height + panel opacity (`data-studio-accordion-motion="height"`).
+- **Hang guards:** content stays mounted (no measure thrash from remount); declarative Motion cancels on unmount; no spring / bounce / layoutId storms.
+- **Chevron:** CSS color + rotate; muted when closed; respects reduced-motion (decorative).
+- **Probe settle:** `ACCORDION_PROBE_SETTLE_MS` in `accordionMotion.ts`.
 
 ---
 
@@ -29,12 +50,18 @@ No React Spring. No bespoke `@keyframes` zoos unless registered in [DEVIATIONS.m
 
 ---
 
-## Shell vs page Final Pass
+## Shell pilots (shipped)
 
-Shell-only Motion work (cursor, nav chrome) does **not** demote PDP / page PAGE FINAL PASS.
+| Pilot | Where | Motion |
+|-------|--------|--------|
+| Studio select menu | `StudioNavStudioSelect` | `AnimatePresence` opacity + y |
+| Playback diagnostic | `PlaybackDiagnosticOverlay` | `AnimatePresence` opacity |
+| Nav REC counters / panel | `StudioNavRecordingControls` / scenario controls | existing panel crossfade |
+
+Shell-only presence pilots do **not** demote PDP PAGE FINAL PASS. **User-visible PDP Accordion Motion does** → demote `mcpFinalPass` to **NEEDS-REPROVE** until Quinn re-proves.
 
 ---
 
 ## Knowledge
 
-Index: [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) · Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) (Platform motion + Chrome hang).
+Index: [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) · Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) (Platform motion + Chrome hang + Accordion reduced-motion).

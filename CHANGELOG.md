@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.37 - 190726
+- Accordion Motion height + shell presence pilots; PDP Final Pass NEEDS-REPROVE
+
 ## v0.0.36 - 190726
 - **shell:** Restore cassette playback panel (mode alias + no AnimatePresence wait strand); robo-cursor on-target lock + path diagnostics (drift=0).
 

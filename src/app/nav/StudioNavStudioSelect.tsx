@@ -4,6 +4,8 @@ import {
   logControlPanel,
   type ControlPanelAction,
 } from "@/app/shell/controlPanelLog";
+import { studioPanelTransition } from "@/app/nav/studioMotion";
+import { AnimatePresence, motion } from "@/uxds/motion";
 
 type Props<T extends string> = {
   options: StudioSelectOption<T>[];
@@ -167,34 +169,41 @@ export function StudioNavStudioSelect<T extends string>({
           />
         </svg>
       </button>
-      {open ? (
-        <div
-          id={listId}
-          role="listbox"
-          aria-label={ariaLabel}
-          className="studio-nav-journey-menu__panel"
-          tabIndex={-1}
-          onKeyDown={onListKeyDown}
-        >
-          {options.map((option, index) => (
-            <button
-              key={option.id}
-              type="button"
-              role="option"
-              aria-selected={option.id === value}
-              className={
-                option.id === value
-                  ? "studio-nav-journey-menu__option studio-nav-journey-menu__option--active"
-                  : "studio-nav-journey-menu__option"
-              }
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => selectOption(option.id)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            key="studio-select-panel"
+            id={listId}
+            role="listbox"
+            aria-label={ariaLabel}
+            className="studio-nav-journey-menu__panel"
+            tabIndex={-1}
+            onKeyDown={onListKeyDown}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={studioPanelTransition}
+          >
+            {options.map((option, index) => (
+              <button
+                key={option.id}
+                type="button"
+                role="option"
+                aria-selected={option.id === value}
+                className={
+                  option.id === value
+                    ? "studio-nav-journey-menu__option studio-nav-journey-menu__option--active"
+                    : "studio-nav-journey-menu__option"
+                }
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => selectOption(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

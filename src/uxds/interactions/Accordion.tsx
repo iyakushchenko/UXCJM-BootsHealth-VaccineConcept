@@ -6,6 +6,11 @@ import {
   type ReactNode,
   type SVGAttributes,
 } from "react";
+import { motion } from "@/uxds/motion";
+import {
+  accordionContentTransition,
+  accordionPanelOpacityTransition,
+} from "./accordionMotion";
 import { useAccordion, type UseAccordionOptions } from "./useAccordion";
 import "./accordion.css";
 
@@ -144,9 +149,10 @@ export function AccordionChevron({
 }
 
 /**
- * Always-mounted panel — CSS grid-template-rows 0fr↔1fr (no height:auto measure).
+ * Always-mounted panel — Motion height 0 ↔ auto (functional expand).
  * `data-studio-accordion-open` is stamped only while open (probe contract).
  * Page `className` / `data-name` land on the inner panel (padding-safe).
+ * Hang guard: declarative Motion cancels on unmount; content stays mounted.
  */
 export function AccordionContent({
   id,
@@ -168,28 +174,32 @@ export function AccordionContent({
   };
 
   return (
-    <div
+    <motion.div
       className="uxds-accordion-content"
       data-name="uxds.interaction.accordion.content"
       data-state={open ? "open" : "closed"}
       data-studio-accordion-open={open ? id : undefined}
+      data-studio-accordion-motion="height"
       aria-hidden={!open}
+      initial={false}
+      animate={{ height: open ? "auto" : 0 }}
+      transition={accordionContentTransition}
+      style={{ overflow: "hidden" }}
     >
-      <div
-        className="uxds-accordion-content__clip"
-        data-name="uxds.interaction.accordion.content.clip"
+      <motion.div
+        className={
+          className
+            ? `uxds-accordion-content__panel ${className}`
+            : "uxds-accordion-content__panel"
+        }
+        initial={false}
+        animate={{ opacity: open ? 1 : 0 }}
+        transition={accordionPanelOpacityTransition(open)}
+        style={{ pointerEvents: open ? "auto" : "none" }}
+        {...panelRest}
       >
-        <div
-          className={
-            className
-              ? `uxds-accordion-content__panel ${className}`
-              : "uxds-accordion-content__panel"
-          }
-          {...panelRest}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
+        {children}
+      </motion.div>
+    </motion.div>
   );
 }

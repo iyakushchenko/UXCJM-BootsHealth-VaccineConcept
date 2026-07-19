@@ -1,11 +1,11 @@
-# PAGE FINAL PASS — PDP (HARD-GREEN)
+# PAGE FINAL PASS — PDP (NEEDS-REPROVE)
 
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Arch (Director) stamp · Quinn (QA) MCP matrix · Uma (UI/UX) §0a  
-**Ship tip:** `57775a3` · **v0.0.36** — Quinn MCP 23/23 re-prove after playback panel + on-target cursor lock (prior HARD-GREEN @ `48f2016` / v0.0.35 demoted NEEDS-REPROVE then restored)  
-**Prior tip (Uma §0a):** `76e2433` · **v0.0.30** — FAQ 6/6 + Accordion grid motion + TertiaryCta soft + muted chevrons  
-**Prior HARD-GREEN (superseded):** `48f2016` / v0.0.35 — honest demote at tip advance to v0.0.36; restored here after Quinn re-prove  
+**Ship tip (prior HARD-GREEN):** `57775a3` · **v0.0.36** — Quinn MCP 23/23  
+**Demote:** Accordion Motion height (v0.0.37) — user-visible FAQ expand; `mcpFinalPass: NEEDS-REPROVE` until Quinn re-prove  
+**Prior tip (Uma §0a):** `76e2433` · **v0.0.30** — FAQ 6/6 + TertiaryCta soft + muted chevrons  
 **Policy:** [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · manifest [PAGE_FINAL_PASS.json](./PAGE_FINAL_PASS.json) · criteria [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md)
 
 ---
@@ -14,17 +14,15 @@
 
 | Field | Value |
 |-------|-------|
-| **PAGE FINAL PASS** | **HARD-GREEN** |
-| **mcpFinalPass** | **HARD-GREEN** |
-| **Quinn interaction matrix** | **PASS** — 23/23 @ `57775a3` / v0.0.36 |
-| **Teardown** | **Clean** — modal cleared; stay `screen=pdp`; overlay forceClear; teardown assert PASS |
-| **Spot checks** | Playback panel present · Check availability robo hover PASS |
-| **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `76e2433` / docs `331998b`) |
-| **PARITY_PROVEN `pdp`** | **proven** |
-| **Accordion gate** | **PASS** — UXDS `<Accordion>` + kit CSS 0fr↔1fr; `check:page-final-pass` Accordion contract green |
-| **Home unblocked?** | **Sequencing yes** — Arch still requires PO `+` before Bea/Finn start Home |
+| **PAGE FINAL PASS** | **NEEDS-REPROVE** (structure stamp still `status: proven`) |
+| **mcpFinalPass** | **NEEDS-REPROVE** |
+| **Quinn interaction matrix** | Prior **PASS** 23/23 @ `57775a3` — re-prove required after Accordion Motion |
+| **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `76e2433`) |
+| **PARITY_PROVEN `pdp`** | **proven** (MCP re-stamp after Motion ship) |
+| **Accordion gate** | Motion `height: 0↔auto` via `@/uxds/motion` (`data-studio-accordion-motion="height"`); chevron CSS |
+| **Home unblocked?** | **No** — wait HARD-GREEN restore + PO `+` |
 
-**Team check line:** `PAGE FINAL PASS — pdp — HARD-GREEN`
+**Team check line:** `PAGE FINAL PASS — pdp — NOT-GREEN` (NEEDS-REPROVE · Accordion Motion)
 
 **Knowledge used:** TEAM_KNOWLEDGE Quinn § (RECORDING overlay/scroll/overlay-eyes + LESSONS false-PROVEN + crash-safe `reload:false`) · PAGE_FINAL_PASS.md · RECORDING.md MCP page-probe · QUINN_PDP_PROBE_CRITERIA · FE_AUDIT_PDP_MCP · UMA_FIDELITY_PDP · STUDIO_AUTO_RULES R10 · check:page-final-pass Accordion requirement
 
