@@ -99,6 +99,9 @@ function BookProgress() {
               ? "book-step1__progress-step is-active"
               : "book-step1__progress-step"
           }
+          {...(step.active
+            ? { "data-proto-step-active": "true" as const }
+            : {})}
         >
           <ol start={step.n}>
             <li>
@@ -185,30 +188,32 @@ export function BookStep1LocationScreen({
                   data-name="component.input.field"
                   onClick={onOpenSearch}
                 >
-                  <img src={iconSearch} alt="" width={16} height={16} />
-                  <span data-name="Text Field">
+                  <span data-name="Text Field" className="book-step1__search-text">
                     <p>Search for City, Postcode, Location...</p>
                   </span>
+                  <img src={iconSearch} alt="" width={22} height={22} />
                 </button>
 
-                <FilterChipGroup className="book-step1__near-me" mode="single">
-                  {({ isSelected, toggle }) => (
-                    <FilterChipRow>
-                      <FilterChip
-                        id="near-me"
-                        selected={isSelected("near-me")}
-                        onToggle={(id) => {
-                          toggle(id);
-                          onOpenNearMe();
-                        }}
-                        data-name="component.input.button"
-                      >
-                        <img src={iconMapPin} alt="" width={14} height={14} />
-                        Available near me
-                      </FilterChip>
-                    </FilterChipRow>
-                  )}
-                </FilterChipGroup>
+                <div className="book-step1__near-me">
+                  <FilterChipGroup mode="single">
+                    {({ isSelected, toggle }) => (
+                      <FilterChipRow>
+                        <FilterChip
+                          id="near-me"
+                          selected={isSelected("near-me")}
+                          onToggle={(id) => {
+                            toggle(id);
+                            onOpenNearMe();
+                          }}
+                          data-name="component.input.button"
+                        >
+                          <img src={iconMapPin} alt="" width={16} height={16} />
+                          See what&apos;s available near me
+                        </FilterChip>
+                      </FilterChipRow>
+                    )}
+                  </FilterChipGroup>
+                </div>
               </>
             ) : (
               <div className={`${BOOK_STEP1_CHOSEN_SLOT_CLASS} book-step1__chosen`}>

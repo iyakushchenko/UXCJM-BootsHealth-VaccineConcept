@@ -16,9 +16,8 @@
   width: 100%;
   min-width: 1200px;
   flex: 1 1 auto;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f7fbfb 42%, #ebf5ff 100%);
-  color: var(--uxds-text-text-primary);
+  background: #ffffff;
+  color: #3a3a3a;
   font-family: "Open Sans", sans-serif;
 }
 
@@ -75,65 +74,85 @@
   font-size: 39px;
   line-height: 48px;
   font-weight: 700;
-  color: var(--uxds-text-text-primary);
+  color: #3a3a3a;
 }
 
+/* Match Make Body4/Body5 `component.book.appointment.progress` */
 .book-step1__progress {
   display: flex;
-  gap: var(--gap-space-m);
+  align-items: flex-start;
+  gap: 16px;
   width: 560px;
   max-width: 100%;
   min-height: 40px;
+  overflow: clip;
 }
 
 .book-step1__progress-step {
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-space-s);
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+  height: 40px;
   min-width: 0;
 }
 
 .book-step1__progress-step ol {
+  display: block;
+  flex: 1 1 0;
   margin: 0;
   padding: 0;
   list-style: decimal;
+  width: 100%;
+  min-height: 0;
   font-size: 10px;
   line-height: 12px;
   font-weight: 400;
-  color: var(--uxds-text-text-primary);
+  color: #3a3a3a;
 }
 
-.book-step1__progress-step.is-active ol {
+.book-step1__progress-step.is-active ol,
+.book-step1__progress-step[data-proto-step-active="true"] ol {
   font-weight: 600;
+  color: #3a3a3a;
 }
 
 .book-step1__progress-step li {
   margin-left: 15px;
 }
 
+.book-step1__progress-step li span {
+  line-height: 12px;
+}
+
+/* Flat 8px underlines — teal active / white inactive (Make: no radius, no border) */
 .book-step1__progress-bar {
   height: 8px;
   width: 100%;
-  border-radius: var(--radius-xs);
-  background: var(--uxds-surface-neutral);
-  border: 1px solid var(--uxds-border-border-default);
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0;
+  background: #ffffff;
 }
 
-.book-step1__progress-step.is-active .book-step1__progress-bar {
+.book-step1__progress-step.is-active .book-step1__progress-bar,
+.book-step1__progress-step[data-proto-step-active="true"] .book-step1__progress-bar {
   background: #c6e5e1;
-  border-color: #c6e5e1;
 }
 
 .book-step1__card {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-space-2xl);
+  gap: 72px;
+  align-items: center;
   width: min(758px, 100%);
-  padding: var(--gap-space-3xl);
+  padding: 64px;
   border-radius: 24px;
-  background: var(--uxds-surface-neutral);
+  background: #ffffff;
   box-shadow: 0 5px 9.75px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .book-step1__pill-stack {
@@ -147,11 +166,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--gap-space-s) var(--gap-space-l);
+  gap: 8px 24px;
   width: 100%;
-  padding: var(--gap-space-m);
+  padding: 16px;
   border-radius: 24px;
-  background: var(--uxds-surface-subtle);
+  background: #f5f5f5;
   box-sizing: border-box;
 }
 
@@ -199,6 +218,7 @@
   font-size: 31px;
   line-height: 32px;
   font-weight: 600;
+  color: #3a3a3a;
 }
 
 .book-step1__location {
@@ -209,46 +229,98 @@
   width: 100%;
 }
 
+/* Make Text Field: pill (360), #c3c3c3 border, icon right — live placeholder from wire */
 .book-step1__search {
   display: flex;
   align-items: center;
-  gap: var(--gap-space-s);
+  gap: 8px;
   width: 100%;
+  height: 48px;
   min-height: 48px;
-  padding: 12px 16px;
-  border: 1px solid var(--uxds-input-field-border-border-default);
-  border-radius: var(--radius-input);
-  background: var(--uxds-input-field-surface-surface-default);
-  color: var(--uxds-text-text-secondary);
+  padding: 0 16px;
+  border: 1px solid #c3c3c3;
+  border-radius: 360px;
+  background: #ffffff;
+  color: #3a3a3a;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .book-step1__search:hover,
 .book-step1__search:focus-visible {
-  border-color: var(--project-brand-cta-navy, #012169);
-  box-shadow: inset 0 0 0 1px var(--project-brand-cta-navy, #012169);
-  outline: none;
+  border-color: #c3c3c3;
+  outline: 2px solid #012169;
+  outline-offset: 2px;
+}
+
+.book-step1__search-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.book-step1__search img {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .book-step1__search p {
   margin: 0;
+  font-size: 13px;
+  line-height: 24px;
   font-weight: 400;
+  color: #5c5c5c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Near-me: Make text control (pill hit area, no chip chrome) */
+.book-step1__near-me {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding-top: 8px;
 }
 
 .book-step1__near-me .uxds-filter-chip {
-  gap: 6px;
+  gap: 8px;
+  min-height: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 360px;
+  background: transparent;
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.36px;
 }
 
+.book-step1__near-me .uxds-filter-chip.is-selected,
+.book-step1__near-me .uxds-filter-chip[data-state="on"] {
+  border: none;
+  background: transparent;
+  color: #5c5c5c;
+}
+
+.book-step1__near-me .uxds-filter-chip:hover {
+  background: rgba(175, 204, 202, 0.2);
+}
+
+/* Chosen store tile — same treatment as Make .proto-chosen-tile */
 .book-step1__chosen {
   display: flex;
   flex-direction: column;
   width: 100%;
-  border: 1px solid var(--uxds-border-border-default);
-  border-radius: var(--radius-m-base);
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--uxds-surface-neutral);
+  background: #ffffff;
+  box-sizing: border-box;
 }
 
 .book-step1__map {
@@ -356,12 +428,12 @@
 .book-step1__help {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-space-xl);
-  width: min(559px, 100%);
+  gap: 32px;
+  width: min(863px, 100%);
   text-align: center;
-  font-size: var(--font-body-size-m);
-  line-height: var(--font-body-line-height-m);
-  color: var(--uxds-text-text-primary);
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
 }
 
 .book-step1__help p {
@@ -369,5 +441,6 @@
 }
 
 .book-step1__help a {
-  color: var(--uxds-text-link-link-dark);
+  color: var(--project-brand-primary-darkest, #305854);
+  text-decoration: underline;
 }

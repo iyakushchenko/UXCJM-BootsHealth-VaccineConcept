@@ -40,11 +40,23 @@ Agentic CJM still lands on Book Step 2 after Availability Tool; this pilot prove
 
 ---
 
+## Visual fidelity (required for pilots)
+
+Unless PO explicitly asks to upgrade the look, React screen pilots must stay **visually close to the source concept / Make page** being replaced — layout, type, colors, radii, progress, inputs, CTAs. Prefer matching the computed Make+wire look over inventing a cleaner “DS” treatment.
+
+Book Step 1 targets (child 7):
+
+- Progress = Make `component.book.appointment.progress` instance (16px labels; active navy bold + `#c6e5e1` flat bar; inactive white bar)
+- Search = Make pill field (`border-radius: 360px`, `#c3c3c3` border, icon right, wire placeholder)
+- Near-me / summary pills / Continue = Make spacing and colors as-is
+
+---
+
 ## PO verify on localhost
 
 1. `npm run dev` → http://localhost:5173/
 2. Open **Boots Pharmacy** → nav tab **Book - Step 1 - Location** (or Traditional CJM → after PDP/login).
-3. Confirm React card (search / near-me / Continue); Make absolute layout gone for this tab.
+3. Confirm React card matches Make look (progress teal underline, pill search, near-me, Continue); Make absolute layout gone for this tab.
 4. Search or Near me → Availability Tool → choose Covent Garden → chosen card + map.
 5. Continue → Book Step 2 (Make).
 6. Optional: play Traditional CJM through `choose-location` beat.
