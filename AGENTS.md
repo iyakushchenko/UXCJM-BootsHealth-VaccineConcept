@@ -100,7 +100,7 @@ window.__studioDownloadAgentTestingDump?.()   // secondary postmortem dump
 // Legacy stable aliases (same functions): window.__proto*
 ```
 
-Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates. **R15:** mid-smoke agents MUST poll/consume PO signals each step — [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R15.
+Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates. **R15 overlay process:** PO Alarm/Cursor/Scroll = **STOP → understand diagSnapshot (ask PO if unclear — do not invent) → FIX → RESTART + prove that issue gone**. → [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R15 · [agent-testing/README.md](src/app/shell/agent-testing/README.md).
 
 ## CI
 

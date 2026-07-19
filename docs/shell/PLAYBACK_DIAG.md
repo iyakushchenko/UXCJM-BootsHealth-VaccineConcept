@@ -130,7 +130,17 @@ if (sig?.type === "alarm") {
 | Traditional Play → start | `__protoRunTraditionalPlaySmoke` |
 | Home Play (chat handoff) | `__protoRunHomePlaySmoke` |
 
-On `type:'alarm'`: pause Play (toggle transport) → **fail** result with `reason: "po-alarm:ALARM_SEQUENCE_MISMATCH"`, `poSignal` (+ `diagSnapshot`). Cursor/Scroll = soft-fail + `[PLAYBACK_DIAG]` log (matrix continues). Opt-in soft Alarm: `{ softFailPoAlarm: true }`.
+On `type:'alarm'|'cursor'|'scroll'`: pause Play → **fail** result with `reason: "po-<type>:<code>"`, `poSignal` (+ `diagSnapshot`).
+
+**Official overlay test & bugfix process (HARD):**
+
+1. **STOP** — consume latch; do not advance more beats.
+2. **Understand** from `diagSnapshot` (+ console `[PLAYBACK_DIAG]`). If the agent does **not** know exactly what the PO flagged, **ask PO for follow-up details before guessing** — do not invent the bug.
+3. **FIX** the reported issue.
+4. **RESTART** the test and **prove that exact issue is gone**.
+5. Continue journey until next PO signal or green end.
+
+Smokes cannot auto-fix; orchestrator session owns the loop. Opt-in soft continue: `{ softFailPoAlarm: true }` / `{ softFailCursorScroll: true }` — still not “ignore.” Type-in: CJM cursor must stay visible (`type-in-park`); hidden → `CURSOR_HIDDEN_DURING_TYPEIN` + `[PLAYBACK_DIAG] cursor`.
 
 **Note:** `__protoTriggerTransport` requires an active MCP session (`__protoRun*` / recording). UI Step buttons always work; for console step use a smoke runner or click the nav button. Helper arm coalesces identical transport rows on the overlay (no monotonous spam).
 

@@ -94,6 +94,8 @@ let typeInActive: {
   startedAt: number;
   targetChars: number;
   samples: number[];
+  /** Latch CURSOR_HIDDEN_DURING_TYPEIN at most once per type-in. */
+  hiddenLatched?: boolean;
 } | null = null;
 
 function now(): number {

@@ -44,7 +44,7 @@
 | R12 | **`batch-ship-push`** | **No push after every tiny fix** + **no await CI/Pages** on routine ships (push → move on; await only HARD-GREEN / release / PO-asked prove) | Process (Pax/Ben) — no static CI gate | — | — |
 | R13 | **`playback-diag`** | CJM type-in / step / retreat regressions checkable from console every night | `vitest` (`playbackDiag`) | `__studioPlaybackDiag` / `__studioAssertTypeIn` | Step-forward + retreat smokes + assertTypeIn |
 | R14 | **`agent-testing-midflight`** | Mid-flight QA shell (not helper spam) | `vitest` | overlay APIs | Alarm/Cursor/Scroll + timeline |
-| R15 | **`po-signal-consume`** | PO Alarm mid-smoke ignored / dump-only | `vitest` (`agentTestingPoSignal`) | `__studioConsumePoSignal` | Poll each beat; latch→consume prove |
+| R15 | **`po-signal-consume`** | PO Alarm/Cursor/Scroll mid-smoke ignored / dump-only / soft-continue | `vitest` (`agentTestingPoSignal` + `smokePoSignalPoll`) | `__studioConsumePoSignal` | Poll each beat; **STOP→FIX→reprove**; latch→consume prove |
 
 **Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table for **CI-gated** rules (R1–R11, R13). **R12** is process-only (docs + director); do not invent a fake CI assert.
 
@@ -214,7 +214,7 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 2. Helper arm uses coalesced/readable rows (beat/touchpoint when snapshot available).
 3. Outcome colors: fail red-ish · soft-fail amber · ok default.
 4. Elapsed timer + control-panel sitrep line visible while active.
-5. Alarm = **sequence / expected-steps mismatch** (`ALARM_SEQUENCE_MISMATCH`). Alarm + Cursor + Scroll latch **live** `__studioAgentTestingTakeover` / `__studioConsumePoSignal` (**primary**); dump secondary.
+5. Alarm = **sequence / expected-steps mismatch** (`ALARM_SEQUENCE_MISMATCH`). Alarm + Cursor + Scroll latch **live** `__studioAgentTestingTakeover` / `__studioConsumePoSignal` (**primary**); dump secondary. PO click = **STOP → understand (ask PO if unclear) → FIX → reprove that issue**.
 6. Probe sets script timeline strip; chips update by outcome.
 7. Console START/END separators per sequence.
 8. Dumps: last-N `sessionStorage` on FAIL/alarm/cursor/scroll — **not** every step (postmortem only).
@@ -227,18 +227,26 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 
 ## R15 — PO mid-flight signal consume (HARD process)
 
-**Fail class:** PO rings Alarm during MCP smoke; agent keeps stepping blind and only looks at dumps after the run (or never). Live latch ignored = process FAIL.
+**Fail class:** PO rings Alarm / Cursor / Scroll during MCP smoke; agent keeps stepping blind, soft-logs, or only looks at dumps after the run. Live latch ignored = process FAIL.
 
 **Contract:**
 
 1. Alarm / Cursor / Scroll set `window.__studioAgentTestingTakeover` + fire `studio-agent-testing-po-signal`.
 2. Quinn/Finn smokes poll `__studioPeekPoSignal` / `__studioConsumePoSignal` **each beat/step**.
-3. On `type:'alarm'` → pause/branch investigate (progressive disclosure etc.) using `diagSnapshot` — dump is secondary.
-4. Consume clears the latch so the next PO ring is visible.
+3. On **any** PO signal → smoke **STOP** (structured fail + `diagSnapshot`). Soft-continue flags are opt-in only.
+4. **Orchestrator session (HARD) — overlay test & bugfix process:**
+   1. **STOP**
+   2. **Understand** from `diagSnapshot` — if unclear, **ask PO for follow-up before guessing** (do not invent the bug)
+   3. **FIX** the reported issue
+   4. **RESTART** + prove that exact issue is gone
+   5. Continue until next signal or green end  
+   Not “log and move on.” Smokes cannot auto-fix.
+5. Consume clears the latch so the next PO ring is visible.
+6. Type-in: CJM cursor must stay visible (`parkDemoCursorForTypeIn`); hidden → `CURSOR_HIDDEN_DURING_TYPEIN`.
 
-**CI:** Vitest latch/consume + `smokePoSignalPoll`. Prove: R11 `:5173` Alarm click → takeover non-null → consume → null; mid-Play Alarm aborts `__protoRunAgenticPlaySmoke` with `po-alarm:*` + `poSignal.diagSnapshot`.  
+**CI:** Vitest latch/consume + `smokePoSignalPoll` (alarm/cursor/scroll abort). Prove: R11 `:5173` PO click → takeover → consume → null; mid-smoke abort with `po-<type>:*` + `diagSnapshot`; type-in cursor visible.  
 **Smokes that poll each beat:** agentic/traditional step-forward + Play (+ home-play). Helper: `smokePoSignalPoll.ts`.  
-**Docs:** [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · [RECORDING.md](../shell/RECORDING.md) · `scripts/smoke.mjs`.
+**Docs:** [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · [TEAM.md](./TEAM.md) · [PAINPOINTS.md](./PAINPOINTS.md) PP-11/PP-12 · [AGENTS.md](../../AGENTS.md).
 
 ---
 

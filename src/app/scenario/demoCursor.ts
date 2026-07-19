@@ -135,20 +135,88 @@ export function isDemoCursorFadedAtJourneyEnd(): boolean {
   return journeyEndCursorFaded;
 }
 
-/** DOM snapshot for QA / MCP cursor eyes. */
+/** DOM snapshot for QA / MCP cursor eyes (opacity/display count as hidden). */
 export function readDemoCursorDomState(): {
   visible: boolean;
   parked: boolean;
   faded: boolean;
+  opacity: number | null;
+  display: string | null;
+  missing: boolean;
 } {
   const cursor = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
-  const exiting =
-    cursor?.classList.contains("proto-chat-demo-cursor--exit") ?? false;
+  if (!cursor) {
+    return {
+      visible: false,
+      parked: false,
+      faded: journeyEndCursorFaded,
+      opacity: null,
+      display: null,
+      missing: true,
+    };
+  }
+  const exiting = cursor.classList.contains("proto-chat-demo-cursor--exit");
+  const style = getComputedStyle(cursor);
+  const opacity = Number.parseFloat(style.opacity);
+  const display = style.display;
+  const visibility = style.visibility;
+  const opaque = Number.isFinite(opacity) ? opacity > 0.05 : true;
+  const shown =
+    display !== "none" && visibility !== "hidden" && opaque && !exiting;
   return {
-    visible: cursor != null && !exiting,
+    visible: shown,
     parked: isDemoCursorParked(),
-    faded: journeyEndCursorFaded || exiting,
+    faded: journeyEndCursorFaded || exiting || !opaque,
+    opacity: Number.isFinite(opacity) ? opacity : null,
+    display,
+    missing: false,
   };
+}
+
+/**
+ * CJM type-in: keep robo-cursor visible near the composer field (caret-ish).
+ * Call at type-in start — typed-text must never run with a missing cursor.
+ */
+export function parkDemoCursorForTypeIn(target: HTMLElement): void {
+  if (!journeyModePinned) return;
+  cancelDemoCursorJourneyEndFade();
+  journeyEndCursorFaded = false;
+  cancelDemoCursorTravel();
+  const cursor = ensureDemoCursorElement();
+  const rect = target.getBoundingClientRect();
+  const x = Math.round(
+    Math.min(Math.max(rect.left + 36, rect.left + 8), rect.right - 20)
+  );
+  const y = Math.round(
+    Math.min(Math.max(rect.top + 16, rect.top + 4), rect.bottom - 8)
+  );
+  seedDemoCursorPosition(cursor, { x, y });
+  applyDemoCursorParkedState(cursor);
+  parkedRestAnchor = { left: x, top: y };
+  notePlaybackCursorEvent("park", {
+    detail: "type-in-park",
+    target: describeCursorTarget(target),
+  });
+}
+
+/** Nudge park pose along the field as characters land (caret tracking). */
+export function nudgeDemoCursorForTypeIn(
+  target: HTMLElement,
+  chars: number
+): void {
+  if (!journeyModePinned) return;
+  const existing = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+  if (!existing || existing.classList.contains("proto-chat-demo-cursor--exit")) {
+    parkDemoCursorForTypeIn(target);
+    return;
+  }
+  const rect = target.getBoundingClientRect();
+  const caretX = rect.left + 28 + Math.min(chars * 7.1, Math.max(0, rect.width - 48));
+  const x = Math.round(Math.min(caretX, rect.right - 18));
+  const y = Math.round(Math.min(rect.top + 16, rect.bottom - 8));
+  seedDemoCursorPosition(existing, { x, y });
+  applyDemoCursorParkedState(existing);
+  parkedRestAnchor = { left: x, top: y };
 }
 
 export function cancelDemoCursorJourneyEndFade(): void {

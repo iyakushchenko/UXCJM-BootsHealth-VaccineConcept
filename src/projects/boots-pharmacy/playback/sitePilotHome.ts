@@ -9,6 +9,10 @@ import {
   playbackDiagTypeInProgress,
   playbackDiagTypeInStart,
 } from "@/app/shell/playbackDiag";
+import {
+  beginTypeInCursorGuard,
+  tickTypeInCursorGuard,
+} from "@/app/shell/typeInCursorGuard";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import {
   scriptAborted,
@@ -144,10 +148,12 @@ async function simulateSarahHomeTyping(text: string): Promise<boolean> {
 
   // Always clear + type-in during CJM (never skip for prefilled HOME_QUERY_DEFAULT).
   // Prefill skip hid the animation after React Site Pilot mount — PLAYBACK_DIAG.
+  // CJM on = robo-cursor must stay visible for the whole typed-text beat.
   playbackDiagTypeInStart("site-pilot", text.length, "sarah-query-submit");
   setReactTextareaValue(ta, "");
   syncHomeQueryHeight(ta);
   ta.focus();
+  beginTypeInCursorGuard(ta);
   playbackDiagTypeInProgress(0);
 
   for (let i = 0; i < text.length; i++) {
@@ -159,6 +165,7 @@ async function simulateSarahHomeTyping(text: string): Promise<boolean> {
     }
     setReactTextareaValue(ta, text.slice(0, i + 1));
     syncHomeQueryHeight(ta);
+    tickTypeInCursorGuard(ta, i + 1);
     playbackDiagTypeInProgress(i + 1);
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);
   }

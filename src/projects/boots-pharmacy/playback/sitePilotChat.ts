@@ -17,6 +17,10 @@ import {
   playbackDiagTypeInStart,
 } from "@/app/shell/playbackDiag";
 import {
+  beginTypeInCursorGuard,
+  tickTypeInCursorGuard,
+} from "@/app/shell/typeInCursorGuard";
+import {
   beginSitePilotChatPlaybackThinking,
   endSitePilotChatThinking,
   fadeOutSitePilotChatThinking,
@@ -227,6 +231,7 @@ export async function simulateSarahTypingInComposer(text: string): Promise<void>
   syncComposerHeight(ta);
   ta.focus();
   scrollChatToBottom();
+  beginTypeInCursorGuard(ta);
   playbackDiagTypeInProgress(0);
 
   for (let i = 0; i < text.length; i++) {
@@ -238,6 +243,7 @@ export async function simulateSarahTypingInComposer(text: string): Promise<void>
     }
     setReactTextareaValue(ta, text.slice(0, i + 1));
     syncComposerHeight(ta);
+    tickTypeInCursorGuard(ta, i + 1);
     playbackDiagTypeInProgress(i + 1);
     if (i % 8 === 0) scrollChatToBottom();
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);

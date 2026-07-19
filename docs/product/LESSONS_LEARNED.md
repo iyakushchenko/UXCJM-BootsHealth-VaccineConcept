@@ -10,6 +10,17 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-20
 
+### CJM type-in hid robo-cursor on Site Pilot (PO / Finn + Quinn)
+
+- **Symptom / class:** Agentic home typed-text beat — robo-cursor missing / opacity 0; PO Cursor flag while eyes saw no cursor.
+- **Root cause:** Type-in path never parked/moved the demo cursor near the field; Play `isPlaying` left parkAfterInteraction false and prior wipe left DOM-null. No auto latch for “hidden mid type-in.”
+- **Gate:** `parkDemoCursorForTypeIn` + `nudgeDemoCursorForTypeIn` at type-in start/progress; `CURSOR_HIDDEN_DURING_TYPEIN` latch; `[PLAYBACK_DIAG] cursor` logs visibility. Prove R11: type-in with `.proto-chat-demo-cursor` visible + opacity>0.
+
+### PO Alarm/Cursor/Scroll must stop→(understand|ask)→fix→reprove (PO / Arch)
+
+- **Symptom / class:** Agents soft-logged Cursor/Scroll and continued; or guessed a fix without knowing what PO flagged.
+- **Gate:** `pollSmokePoSignal` aborts on alarm **and** cursor **and** scroll (structured fail + diagSnapshot). Session loop: STOP → understand from diagSnapshot (**ask PO if unclear — do not invent**) → FIX → RESTART + prove that issue gone. Stamp TEAM / COMMAND_DOCTRINE / PLAYBACK_DIAG / PAINPOINTS / AGENTS / R15 / agent-testing README.
+
 ### Smoke / Alarm abort still dumped PO to hub — `resetToHub: true` harness (PO / Finn + Quinn)
 
 - **Symptom / class:** Tip claimed journey-start never hub (`53f1348` goToTab) but PO eyes still landed `screen=hub` after Alarm abort / agentic step-forward smoke end.

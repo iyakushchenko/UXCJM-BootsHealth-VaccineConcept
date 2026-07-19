@@ -89,7 +89,7 @@ export const STUDIO_AUTO_RULES: readonly StudioAutoRule[] = [
   {
     id: "po-signal-consume",
     title:
-      "PO Alarm/Cursor/Scroll latch __studioAgentTestingTakeover; agents MUST __studioConsumePoSignal each beat (live primary, dump secondary)",
+      "PO Alarm/Cursor/Scroll: STOP→understand diagSnapshot (ask PO if unclear)→FIX→RESTART prove; poll __studioConsumePoSignal each beat",
     ciGate: "vitest",
     mcpAssert: "__studioConsumePoSignal",
   },

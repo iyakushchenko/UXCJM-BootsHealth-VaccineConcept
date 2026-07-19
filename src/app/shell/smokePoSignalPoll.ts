@@ -3,7 +3,10 @@
  *
  * Step-forward / Play runners call this each beat. Live latch is primary
  * (`__studioConsumePoSignal` / `__studioAgentTestingTakeover`); dump secondary.
- * Alarm → abort smoke with diagSnapshot (optional soft-fail + log).
+ *
+ * PO HARD process: Alarm / Cursor / Scroll → STOP smoke (structured fail with
+ * diagSnapshot). Orchestrator: STOP → understand (ask PO if unclear) → FIX →
+ * RESTART + prove that issue gone. Smokes cannot auto-fix; do not invent bugs.
  */
 
 import {
@@ -14,6 +17,7 @@ import { playbackDiagLog } from "@/app/shell/playbackDiag";
 
 export type SmokePoPollHit = {
   hit: true;
+  /** True → smoke must abort; agent owns stop→fix→reprove loop. */
   abort: boolean;
   reason?: string;
   signal: AgentTestingPoSignal;
@@ -24,8 +28,16 @@ export type SmokePoPollMiss = { hit: false };
 export type SmokePoPollResult = SmokePoPollHit | SmokePoPollMiss;
 
 export type SmokePoPollOptions = {
-  /** When true, Alarm logs + continues instead of aborting the smoke. */
+  /**
+   * When true, Alarm logs + continues instead of aborting.
+   * Default false — PO process: stop on Alarm.
+   */
   softFailAlarm?: boolean;
+  /**
+   * When true, Cursor/Scroll log + continue.
+   * Default false — PO process: stop on Cursor/Scroll too (fix→reprove).
+   */
+  softFailCursorScroll?: boolean;
   /** Pause Play transport before abort (toggle play while on-air). */
   pausePlay?: () => void;
   /** Label for diag / console (e.g. step index or play-smoke). */
@@ -33,7 +45,8 @@ export type SmokePoPollOptions = {
 };
 
 /**
- * Consume live PO latch once. Alarm aborts by default; cursor/scroll soft-log.
+ * Consume live PO latch once.
+ * Default: Alarm + Cursor + Scroll all abort with structured fail + diagSnapshot.
  */
 export function pollSmokePoSignal(
   options: SmokePoPollOptions = {}
@@ -49,52 +62,47 @@ export function pollSmokePoSignal(
     counter: signal.counter,
   });
 
-  if (signal.type === "alarm") {
-    try {
-      options.pausePlay?.();
-    } catch {
-      /* hang-safe */
-    }
-    const reason = `po-alarm:${signal.code}`;
-    try {
-      console.warn(
-        "[PLAYBACK_DIAG] PO Alarm mid-smoke — abort",
-        reason,
-        {
-          context: ctx,
-          beat: signal.beat,
-          screen: signal.screen,
-          diagSnapshot: signal.diagSnapshot,
-        }
-      );
-    } catch {
-      /* ignore */
-    }
-    if (options.softFailAlarm) {
-      try {
-        console.warn(
-          "[PLAYBACK_DIAG] PO Alarm soft-fail (continuing)",
-          reason,
-          ctx
-        );
-      } catch {
-        /* ignore */
-      }
-      return { hit: true, abort: false, reason, signal };
-    }
-    return { hit: true, abort: true, reason, signal };
+  const reason = `po-${signal.type}:${signal.code}`;
+  const soft =
+    signal.type === "alarm"
+      ? !!options.softFailAlarm
+      : !!options.softFailCursorScroll;
+
+  try {
+    options.pausePlay?.();
+  } catch {
+    /* hang-safe */
   }
 
-  // Cursor / Scroll — soft-fail + log; do not abort the matrix.
   try {
     console.warn(
-      "[PLAYBACK_DIAG] PO signal soft mid-smoke",
-      signal.type,
-      signal.code,
-      { context: ctx, beat: signal.beat, screen: signal.screen }
+      "[PLAYBACK_DIAG] PO signal mid-smoke — STOP (fix→reprove required)",
+      reason,
+      {
+        context: ctx,
+        abort: !soft,
+        beat: signal.beat,
+        screen: signal.screen,
+        diagSnapshot: signal.diagSnapshot,
+        process: "stop → fix using diagSnapshot → restart + prove that issue gone",
+      }
     );
   } catch {
     /* ignore */
   }
-  return { hit: true, abort: false, signal };
+
+  if (soft) {
+    try {
+      console.warn(
+        "[PLAYBACK_DIAG] PO signal soft-fail (continuing — session still owns fix)",
+        reason,
+        ctx
+      );
+    } catch {
+      /* ignore */
+    }
+    return { hit: true, abort: false, reason, signal };
+  }
+
+  return { hit: true, abort: true, reason, signal };
 }
