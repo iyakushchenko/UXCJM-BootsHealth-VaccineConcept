@@ -50,9 +50,9 @@ Aliases accepted on parse: `book-step2` → `book-step-2`, `onboarding` → `hub
 
 | `modal` | Surface | Opened from |
 |---------|---------|-------------|
-| `choose-pharmacy` | Availability / Choose Pharmacy (`.studio-avail-scrim`, `data-studio-modal`) | PDP Check availability, Book Step 1 Continue (no location), Search / Near me / Change location, journey beats |
+| `choose-pharmacy` | Availability Tool (`.studio-avail-scrim`, `data-studio-modal`) — steps: Find Pharmacy → list/map → Choose Date → Choose Time | PDP **Check availability** (no login gate): logged-out + no location → **Find Pharmacy** (`start`); logged-in or chosen location → **Choose Date**. Also Book Step 1 Continue / Search / Near me / Change location / journey beats |
 | `quick-view` | PLP Quick View lightbox | PLP tile Quick View CTA (single-SKU chickenpox RTB today; optional `&jab=` later if multi-SKU) |
-| `login` | Login / Create account | Header Sign in, PDP / Quick View account CTAs, Check availability when logged out |
+| `login` | Login / Create account | Header Sign in, PDP / Quick View account CTAs, **Book now** when logged out |
 | `vaccine-picker` | Vaccine picker | Book Step 1 / 2 Change vaccine |
 | `recipient-picker` | Recipient picker | Book Step 1 / 2 Change recipient |
 
@@ -81,3 +81,5 @@ While REC is live, screen **and modal** transitions append `kind: "screen"` even
 ## Agent note
 
 Do **not** put verify leftovers in the bar (`?proof=unmount-race`). Use `__protoAgentTestingOverlay` / `__studioAgentTestingOverlay` — bottom-right panel only. Overlay z-index sits **above** concept lightboxes (`2147483646`).
+
+**Logged-in flag (project-wide SSoT):** `src/app/shell/studioAuthSession.ts` — `isStudioLoggedIn()` / `setStudioLoggedIn(bool)`. Window: `__studioIsLoggedIn` / `__studioSetLoggedIn` (`__proto*` aliases). Header `isHeaderLoggedIn` / `setHeaderLoggedIn` are thin aliases.

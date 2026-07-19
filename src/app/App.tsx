@@ -141,7 +141,10 @@ import {
   isSitePilotChatPlaybackThinking,
   syncSitePilotChatThinkingHint,
 } from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
-import { isHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/headerMount";
+import {
+  installStudioAuthSessionWindowApi,
+  isStudioLoggedIn,
+} from "@/app/shell/studioAuthSession";
 import { AVAIL_INTENT } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
 
 const CHAT_SCREEN_SELECTOR = ".studio-viewport > div > div:nth-child(10)";
@@ -441,8 +444,7 @@ export default function App() {
   });
 
   const headerLoggedIn = useMemo(
-    () =>
-      (wireApiRef.current?.loggedInFlag ?? false) || isHeaderLoggedIn(),
+    () => (wireApiRef.current?.loggedInFlag ?? false) || isStudioLoggedIn(),
     [wireTick]
   );
 
@@ -1424,6 +1426,8 @@ export default function App() {
     studioPersonaId,
     studioProjectId,
   ]);
+
+  useEffect(() => installStudioAuthSessionWindowApi(), []);
 
   useEffect(() => {
     return registerStudioMcpHelpers({

@@ -23,7 +23,7 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 | Booster checkbox | Toggles shared `includeBoosterDose` (default **on**) |
 | Book now label price | `£150` when booster on · `£75` when off (`orderPricing.ts`) |
 | Book now click | Logged in → Book Step 1 · else → Login popup |
-| Check availability | Opens Availability Tool (browse intent) — no login gate on Make wire |
+| Check availability | Opens Availability Tool (browse intent) — no login gate; logged-out → **Find Pharmacy** first screen; logged-in / chosen location → Choose Date |
 | Myself / Someone else | Visual toggle only on PDP; default Myself |
 | Account CTAs | Quick Sign In / Create Boots Account → Login popup; block hidden when logged in |
 | Wishlist | `PDP_WISHLIST_ID` (`chickenpox`) — shared with Quick View + header |

@@ -55,6 +55,10 @@ import {
 import { initSearchFields, syncFigmaSearchClearIcons } from "@/projects/boots-pharmacy/dom/locationSearch";
 import { setupFooters } from "@/projects/boots-pharmacy/chrome/footerMount";
 import {
+  isStudioLoggedIn,
+  setStudioLoggedIn,
+} from "@/app/shell/studioAuthSession";
+import {
   setupHeader,
   syncHeaderLogin,
   syncMaAccountAvatars,
@@ -198,7 +202,7 @@ function findAgenticHomeHeading(screen: HTMLElement): HTMLElement | null {
 }
 
 function resolveAgenticHomeLoggedIn(loggedInFlag: boolean): boolean {
-  return loggedInFlag || isHeaderLoggedIn();
+  return loggedInFlag || isStudioLoggedIn();
 }
 
 function syncAgenticHomeHeading(isLoggedIn: boolean): void {
@@ -305,10 +309,13 @@ export const AVAIL_INTENT = {
     selectedDate: { month: "June", day: 25 },
     selectedTime: "16:30",
   } satisfies AvailOpenIntent,
-  /** PDP / generic entry — resolves to start or date from chosen location */
+  /**
+   * PDP / generic entry — no storeId (chat shortcuts keep explicit storeId).
+   * `resolveAvailIntent`: logged-out + no chosen → Find Pharmacy (start);
+   * logged-in or chosen location → Choose Date with store.
+   */
   browse: {
     step: "date",
-    storeId: AVAIL_DEMO_STORE,
     selectedDate: { month: "June", day: 24 },
   } satisfies AvailOpenIntent,
 } as const;
@@ -1584,7 +1591,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       includeBoosterDose,
       onToggleBooster: () => setIncludeBoosterDose((prev) => !prev),
       onBookNow: () => {
-        if (!isHeaderLoggedIn() && !loggedInFlag) {
+        if (!isStudioLoggedIn()) {
           openLoginPopup("signin");
           return;
         }
@@ -1594,7 +1601,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       onGoPlp: () => goRef.current(INDEX_PLP),
       onGoHome: () => goRef.current(INDEX_HOME),
       onOpenLogin: (tab) => openLoginPopup(tab),
-      loggedIn: loggedInFlag || isHeaderLoggedIn(),
+      loggedIn: isStudioLoggedIn(),
     });
 
     setupFooters({
@@ -2033,7 +2040,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const openLocations = (e: Event) => {
       stop(e);
       const intent: AvailOpenIntent = { step: "list", query: "London" };
-      if (isHeaderLoggedIn()) intent.storeId = AVAIL_DEMO_STORE;
+      if (isStudioLoggedIn()) intent.storeId = AVAIL_DEMO_STORE;
       openAvailabilityTool(intent);
     };
     const openAvailability = (intent: AvailOpenIntent) => (e: Event) => {
@@ -2288,7 +2295,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
     const goBookStep1 = (e: Event) => {
       stop(e);
-      if (!isHeaderLoggedIn() && !loggedInFlag) {
+      if (!isStudioLoggedIn()) {
         openLoginPopup("signin");
         return;
       }
@@ -2365,7 +2372,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     }
 
     // Hide only that block when logged in
-    if (isHeaderLoggedIn() && loginBlock) {
+    if (isStudioLoggedIn() && loginBlock) {
       (loginBlock as HTMLElement).style.display = "none";
       return () => { if (vacCrumb) vacCrumb.removeEventListener("click", onVacCrumb); };
     }
@@ -4563,7 +4570,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     }
   `;
 
-  const headerLoggedIn = loggedInFlag || isHeaderLoggedIn();
+  const headerLoggedIn = isStudioLoggedIn() || loggedInFlag;
 
   const wirePristine =
     !availabilityOpen &&
@@ -4702,7 +4709,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
           closeAvailabilityTool();
         }}
         onBookNow={handleAvailabilityBookNow}
-        loggedIn={loggedInFlag || isHeaderLoggedIn()}
+        loggedIn={isStudioLoggedIn()}
         onOpenLogin={() => {
           openLoginPopup("signin");
         }}
@@ -4729,7 +4736,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         initialTab={loginPopupTab}
         onClose={closeLoginPopup}
         onSignIn={() => {
-          setHeaderLoggedIn(true);
+          setStudioLoggedIn(true);
           setLoggedInFlag(true);
           if (SCREENS[current]?.childIndex === 11) {
             syncAgenticHomeHeading(true);
@@ -4740,7 +4747,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       <QuickViewPopup
         open={quickViewOpen && popupOnScreen(9)}
         includeBoosterDose={includeBoosterDose}
-        loggedIn={loggedInFlag || isHeaderLoggedIn()}
+        loggedIn={isStudioLoggedIn()}
         onClose={closeQuickView}
         onBookNow={onQuickViewBookNow}
         onViewDetails={onQuickViewViewDetails}

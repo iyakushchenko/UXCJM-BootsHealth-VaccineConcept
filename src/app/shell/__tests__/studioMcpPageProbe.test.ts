@@ -479,6 +479,12 @@ describe("runMcpPageProbe", () => {
     const plpBook = { tagName: "BUTTON" };
     const loginClose = { tagName: "BUTTON" };
     const availClose = { tagName: "BUTTON" };
+    const availCard = {
+      tagName: "DIV",
+      getAttribute: (name: string) =>
+        name === "data-studio-avail-step" ? "start" : null,
+    };
+    const availTitle = { tagName: "H2", textContent: "Find Pharmacy" };
 
     let modalOpen = false;
     let modalKind: "login" | "choose-pharmacy" | null = null;
@@ -563,7 +569,10 @@ describe("runMcpPageProbe", () => {
         ".pdp__checkbox-row:hover .pdp__checkbox-box{background:var(--uxds-surface-accent-soft)}",
     };
 
-    vi.stubGlobal("window", { location: locationState });
+    vi.stubGlobal("window", {
+      location: locationState,
+      __studioIsLoggedIn: () => false,
+    });
     vi.stubGlobal("document", {
       styleSheets: [
         {
@@ -585,7 +594,14 @@ describe("runMcpPageProbe", () => {
         if (sel === '[data-studio-react-screen="plp"]') return plpHost;
         if (sel.includes('data-studio-action="plp-book-now"')) return plpBook;
         if (sel.includes('data-studio-modal="login"')) return loginClose;
+        if (
+          sel.includes('data-studio-modal="choose-pharmacy"') &&
+          sel.includes("data-studio-avail-step")
+        ) {
+          return availCard;
+        }
         if (sel.includes('data-studio-modal="choose-pharmacy"')) return availClose;
+        if (sel === "#proto-avail-title") return availTitle;
         if (sel.includes("data-studio-probe-below-fold")) return belowFold;
         return null;
       },

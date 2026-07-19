@@ -51,7 +51,7 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 | 9 | `pdp-book-logged-out` | click Book now | `&modal=login` | |
 | 9b | `pdp-overlay-eyes-login` | refuse-click | under-modal click refused | mandatory overlay-eyes |
 | 10 | `pdp-login-close` | close login | `modal` cleared; stay `screen=pdp` | |
-| 11 | `pdp-check-avail` | click Check availability | `&modal=choose-pharmacy` | |
+| 11 | `pdp-check-avail` | click Check availability (logged-out) | `&modal=choose-pharmacy` + **Find Pharmacy** (`data-studio-avail-step="start"`) — FAIL if Choose Date | |
 | 11b | `pdp-overlay-eyes-avail` | refuse-click | under-modal click refused | mandatory overlay-eyes |
 | 12 | `pdp-avail-close` | close | modal cleared; stay `screen=pdp` | |
 | 13 | `pdp-crumb-plp` | click Vaccination crumb | `screen=plp` (React PLP) | |

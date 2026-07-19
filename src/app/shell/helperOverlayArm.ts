@@ -19,6 +19,7 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "AgentTestingOverlay",
   "StudioState",
   "IsRecording",
+  "IsLoggedIn",
   "GetRecording",
   "CursorDiagnostics",
   "McpEyes",

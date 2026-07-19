@@ -820,6 +820,7 @@ export default function AvailabilityTool({
         role="dialog"
         aria-modal="true"
         aria-labelledby="proto-avail-title"
+        data-studio-avail-step={step}
       >
         <div className="proto-avail-header">
           <h2 id="proto-avail-title" className="proto-avail-title">

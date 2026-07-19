@@ -49,7 +49,9 @@ Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each r
 
 **PLP recipe includes** `overlay-arm`, `plp-search-icons` (icon end + single clear), `plp-filter-view-all`, `plp-filter-option-counters`, `plp-below-fold-scroll`, overlay-eyes. Source contracts: [PARITY_RATCHETS.md](../product/PARITY_RATCHETS.md).
 
-**PDP recipe includes** `overlay-arm`, mount/leak + landmarks, Advantage, no invented loader, booster £150↔£75 (+ mint hover CSS), empty-heart hover CSS (not fuchsia), Book→`login` + overlay-eyes, Check avail→`choose-pharmacy` + overlay-eyes, Vaccination crumb→PLP, PLP Book→PDP, `pdp-below-fold-scroll` (`data-studio-probe-below-fold` on compact `.pdp__content-title`), `url-screen=pdp`. Quinn MCP matrix **PASS** 2026-07-19 — [FE_AUDIT_PDP_MCP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PDP_MCP_2026-07-19.md). Open PDP first (`?screen=pdp`), logged-out for Book→login; empty chickenpox heart before heart step.
+**PDP recipe includes** `overlay-arm`, mount/leak + landmarks, Advantage, no invented loader, booster £150↔£75 (+ mint hover CSS), empty-heart hover CSS (not fuchsia), Book→`login` + overlay-eyes, Check avail→`choose-pharmacy` + overlay-eyes (**logged-out must land Find Pharmacy / `data-studio-avail-step="start"`**, not Choose Date), Vaccination crumb→PLP, PLP Book→PDP, `pdp-below-fold-scroll` (`data-studio-probe-below-fold` on compact `.pdp__content-title`), `url-screen=pdp`. Quinn MCP matrix **PASS** 2026-07-19 — [FE_AUDIT_PDP_MCP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PDP_MCP_2026-07-19.md). Open PDP first (`?screen=pdp`), logged-out for Book→login and Check avail→Find Pharmacy; empty chickenpox heart before heart step.
+
+**Studio auth flag (SSoT):** `isStudioLoggedIn` / `setStudioLoggedIn` in `src/app/shell/studioAuthSession.ts`. Console: `window.__studioIsLoggedIn()` / `window.__studioSetLoggedIn(true|false)` (`__proto*` aliases). Header chrome + PDP CTAs + Availability hearts + journey skip hooks read this flag.
 
 ```js
 window.__studioAgentTestingOverlay?.start("optional title") // prefer __studio*; __proto* alias OK

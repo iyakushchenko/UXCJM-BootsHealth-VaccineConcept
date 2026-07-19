@@ -723,6 +723,21 @@ function pdpProbeSteps(): ProbeStep[] {
         if (modalId !== "choose-pharmacy") {
           return `expected &modal=choose-pharmacy, got ${modalId ?? "missing"}`;
         }
+        // Logged-out + no chosen location → Make first screen (Find Pharmacy), not Choose Date
+        const loggedIn = window.__studioIsLoggedIn?.() ?? false;
+        if (!loggedIn) {
+          const step = document
+            .querySelector<HTMLElement>(
+              '[data-studio-modal="choose-pharmacy"] [data-studio-avail-step]'
+            )
+            ?.getAttribute("data-studio-avail-step");
+          const title = document
+            .querySelector<HTMLElement>("#proto-avail-title")
+            ?.textContent?.trim();
+          if (step !== "start" || title !== "Find Pharmacy") {
+            return `logged-out Check availability must open Find Pharmacy (start), got step=${step ?? "?"} title=${title ?? "?"}`;
+          }
+        }
         return true;
       },
     },

@@ -86,7 +86,7 @@
 | I7 | **Checked label weight** — booster label **bold** when checked | **Present** | **Missing** | Book Step 7 pattern + QV CSS L1543–1552 |
 | I8 | **Book now** → Book Step 1 if logged in; else **Login** popup | **Present** | **Missing** | Wire L2241–2248 |
 | I9 | **Book now price** reflects booster (£150 checked / £75 unchecked) | **Present** | **Missing** | Wire L4253–4264 |
-| I10 | **Check availability** → Availability Tool (`AVAIL_INTENT.browse`) — **no** login gate on wire | **Present** | **Missing** | Wire L2237–2240 |
+| I10 | **Check availability** → Availability Tool (`AVAIL_INTENT.browse`) — **no** login gate; logged-out + no location → **Find Pharmacy** (`start`); logged-in / chosen → **Choose Date** | **Present** | **Present** | `resolveAvailIntent` + browse without storeId; probe asserts `data-studio-avail-step="start"` |
 | I11 | **Wishlist heart** — `PDP_WISHLIST_ID` (`chickenpox`); shared with Quick View + header flyout | **Present** | **Missing** | Wire L4315–4335; `headerMount.tsx` |
 | I12 | **Heart hover (P0)** — empty: mint wash + navy glyph; filled: fuchsia `#e91e8c` on hover (not fuchsia on empty) | **Present** | **Missing** | `globals-chrome` L653–674; PLP I10 lesson |
 | I13 | **Share icon** — icon-only hit target hover (mint wash); **no** navigation wire | **Partial** (hover only) | **Missing** | `wireIconHits` / `studio-icon-hit` |
@@ -158,6 +158,7 @@
 | Book now logged out → `modal=login` | Yes | URL + overlay-eyes |
 | Book now logged in → `screen=book-step-1` | Yes | Tab / URL |
 | Check availability → `modal=choose-pharmacy` | Yes | URL + overlay |
+| Check availability logged-out → Find Pharmacy (`start`), not Choose Date | Yes | `data-studio-avail-step` + title |
 | Booster unchecked → Book now **£75**; checked → **£150** | Yes | Click checkbox |
 | Checkbox unchecked mint hover | Yes | MCP hover |
 | Heart empty hover **navy** (not fuchsia); filled fuchsia | Yes | MCP computed styles |

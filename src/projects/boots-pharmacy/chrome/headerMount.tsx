@@ -6,6 +6,11 @@
 
 import userAvatar from "@/assets/user-avatar.jpg";
 import {
+  isStudioLoggedIn,
+  setStudioLoggedIn,
+  subscribeStudioLoggedIn,
+} from "@/app/shell/studioAuthSession";
+import {
   getSavedLocationsCount,
   isInSavedLocations,
   SAVED_LOCATIONS_CHANGE_EVENT,
@@ -194,9 +199,14 @@ loadWishlist();
 if (wishlistSet.size === 0) { wishlistSet.add("chickenpox"); saveWishlist(); }
 
 let headerClone: HTMLElement | null = null;
-let loggedIn = false;
 let flyoutEl: HTMLElement | null = null;
 let loginCallbacks: { onLoginChange?: (isLoggedIn: boolean) => void; onLoginClick?: (tab?: "signin" | "create") => void; onSignOut?: () => void; onNavigate?: (screenIndex: number) => void } = {};
+
+/** Keep header chrome + wire mirrors in sync with studio auth SSoT. */
+subscribeStudioLoggedIn((next) => {
+  updateLoginLabel();
+  loginCallbacks.onLoginChange?.(next);
+});
 
 function findLoginLabel(el: HTMLElement): HTMLElement | null {
   const allP = el.querySelectorAll<HTMLElement>("p");
@@ -243,6 +253,7 @@ function updateLoginLabel(): void {
   const label = findLoginLabel(headerClone);
   if (!label) return;
 
+  const loggedIn = isStudioLoggedIn();
   label.textContent = loggedIn ? "Sarah" : "Log in";
 
   const item = label.closest('[data-name="component.header.aux.nav.item"]') || label.parentElement;
@@ -300,9 +311,8 @@ function fixSearchIcon(): void {
 }
 
 function setLoggedIn(state: boolean): void {
-  loggedIn = state;
-  updateLoginLabel();
-  loginCallbacks.onLoginChange?.(loggedIn);
+  // UI + onLoginChange run via subscribeStudioLoggedIn
+  setStudioLoggedIn(state);
 }
 
 function createFlyout(anchorItem: HTMLElement): HTMLElement {
@@ -341,7 +351,7 @@ function hideFlyout(): void {
 function updateFlyoutContent(): void {
   if (!flyoutEl) return;
 
-  if (loggedIn) {
+  if (isStudioLoggedIn()) {
     flyoutEl.innerHTML = `
       <div style="padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: 600; color: #3a3a3a;">Hi Sarah</div>
       <button class="proto-header-flyout-item" data-action="account">
@@ -488,7 +498,7 @@ export function setupHeader(
     // Detect initial login state from cloned label text
     const initLabel = findLoginLabel(headerClone);
     if (initLabel && initLabel.textContent?.trim() === "Sarah") {
-      loggedIn = true;
+      setStudioLoggedIn(true);
     }
 
     // Find the login aux nav item and attach flyout
@@ -563,19 +573,17 @@ export function setupHeader(
 
 export function syncHeaderLogin(childIndex: number): void {
   const shouldBeLoggedIn = LOGGED_IN_CHILD_INDICES.includes(childIndex);
-  if (shouldBeLoggedIn && !loggedIn) {
-    loggedIn = true;
-    updateLoginLabel();
-    loginCallbacks.onLoginChange?.(loggedIn);
+  if (shouldBeLoggedIn && !isStudioLoggedIn()) {
+    setLoggedIn(true);
   }
 }
 
+/** @deprecated Prefer `setStudioLoggedIn` — alias kept for Boots wire / playback. */
 export function setHeaderLoggedIn(state: boolean): void {
-  loggedIn = state;
-  updateLoginLabel();
-  loginCallbacks.onLoginChange?.(loggedIn);
+  setLoggedIn(state);
 }
 
+/** @deprecated Prefer `isStudioLoggedIn` — alias kept for Boots wire / playback. */
 export function isHeaderLoggedIn(): boolean {
-  return loggedIn;
+  return isStudioLoggedIn();
 }

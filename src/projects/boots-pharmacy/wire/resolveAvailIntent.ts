@@ -1,4 +1,4 @@
-import { isHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/headerMount";
+import { isStudioLoggedIn } from "@/app/shell/studioAuthSession";
 import { resolveAvailStoreId } from "@/projects/boots-pharmacy/data/availStores";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 
@@ -21,6 +21,9 @@ function mapChosenToAvailStoreId(chosen: AvailChosenLocation): string {
  * Location-gated availability intents:
  *   no location  → Find Pharmacy (start)
  *   has location → date / time (or no-slots) with chosen store
+ *
+ * Logged-in (studio auth SSoT) counts as having a demo location when none chosen.
+ * Chat/playback shortcuts may pass explicit `storeId` to bypass the gate.
  */
 export function resolveAvailIntent(
   intent: AvailOpenIntent,
@@ -30,7 +33,7 @@ export function resolveAvailIntent(
   if (intent.step === "start") return intent;
 
   // When logged in, treat as having a location even if none explicitly chosen
-  const hasLocation = !!chosen || isHeaderLoggedIn();
+  const hasLocation = !!chosen || isStudioLoggedIn();
 
   if (!hasLocation) {
     // Chat/playback shortcuts: explicit storeId bypasses location gate
