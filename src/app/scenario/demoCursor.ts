@@ -68,6 +68,13 @@ let journeyEndFadeTimer: ReturnType<typeof setTimeout> | null = null;
 let journeyEndFadeGeneration = 0;
 let journeyEndCursorFaded = false;
 let cursorFadeGeneration = 0;
+/** Bumped on forceClear / remove — cancels in-flight travel rAF (Chrome hang guard). */
+let travelGeneration = 0;
+let activeTravelRaf: number | null = null;
+/** Rate-limit synthetic pointer flood from hover bridge path. */
+const SYNTHETIC_MOVE_MIN_MS = 48;
+let lastSyntheticMoveAt = 0;
+let lastSyntheticMoveKey = "";
 
 export type RemoveDemoCursorOptions = {
   /** Hard-remove with no fade — aborts, resets, mode teardown. */
@@ -205,6 +212,15 @@ export function resolveDemoCursorRestPosition(options?: {
 function cancelDemoCursorParkInFlight(): void {
   parkGeneration += 1;
   parkPromise = null;
+}
+
+/** Abort in-flight cursor travel rAF — call from forceClear / remove / teardown. */
+export function cancelDemoCursorTravel(): void {
+  travelGeneration += 1;
+  if (activeTravelRaf != null) {
+    cancelAnimationFrame(activeTravelRaf);
+    activeTravelRaf = null;
+  }
 }
 
 function prepareDemoCursorForTravel(cursor: HTMLElement): { x: number; y: number } {
@@ -446,6 +462,10 @@ async function animateCursorTravel(
     shouldAbort?: () => boolean;
   }
 ): Promise<boolean> {
+  const generation = travelGeneration;
+  const aborted = () =>
+    generation !== travelGeneration || !!options?.shouldAbort?.();
+
   const resolveEnd = () => {
     if (options?.trackTarget) {
       const tracked = cursorPositionForTarget(options.trackTarget);
@@ -471,7 +491,7 @@ async function animateCursorTravel(
   let approached = false;
 
   const tryApproach = (left: number, top: number) => {
-    if (approached || !options?.onApproach) return;
+    if (approached || !options?.onApproach || aborted()) return;
     if (options.approachElement) {
       const { x: hotspotX, y: hotspotY } = cursorHotspotFromPos(left, top);
       if (!hotspotIntersectsElement(hotspotX, hotspotY, options.approachElement)) {
@@ -487,7 +507,8 @@ async function animateCursorTravel(
   let completed = false;
   await new Promise<void>((resolve) => {
     const tick = (now: number) => {
-      if (options?.shouldAbort?.()) {
+      activeTravelRaf = null;
+      if (aborted()) {
         resolve();
         return;
       }
@@ -511,25 +532,30 @@ async function animateCursorTravel(
         x += randomInRange(-0.9, 0.9);
         y += randomInRange(-0.6, 0.6);
       }
-      cursor.style.left = `${x}px`;
-      cursor.style.top = `${y}px`;
+      if (cursor.isConnected) {
+        cursor.style.left = `${x}px`;
+        cursor.style.top = `${y}px`;
+      }
       tryApproach(x, y);
-      if (t < 1) requestAnimationFrame(tick);
-      else {
+      if (t < 1) {
+        activeTravelRaf = requestAnimationFrame(tick);
+      } else {
         completed = true;
         resolve();
       }
     };
-    requestAnimationFrame(tick);
+    activeTravelRaf = requestAnimationFrame(tick);
   });
 
-  if (!completed || options?.shouldAbort?.()) {
+  if (!completed || aborted()) {
     return false;
   }
 
   const finalEnd = resolveEnd();
-  cursor.style.left = `${finalEnd.x}px`;
-  cursor.style.top = `${finalEnd.y}px`;
+  if (cursor.isConnected) {
+    cursor.style.left = `${finalEnd.x}px`;
+    cursor.style.top = `${finalEnd.y}px`;
+  }
   lastCursorPos = { x: finalEnd.x, y: finalEnd.y };
   return true;
 }
@@ -690,6 +716,8 @@ export function delay(ms: number): Promise<void> {
 }
 
 export function clearDemoCtaStates(): void {
+  lastSyntheticMoveAt = 0;
+  lastSyntheticMoveKey = "";
   document
     .querySelectorAll<HTMLElement>(`.${DEMO_HOVER_CLASS}, .${DEMO_PRESSED_CLASS}`)
     .forEach((el) => {
@@ -758,14 +786,13 @@ function setDemoInteractionHover(
   activeHoverRoot = root;
   setDemoCursorPointerMode(true);
   root.classList.add(DEMO_HOVER_CLASS);
-  if (already) {
-    dispatchDemoPointerMove(root, c.x, c.y);
-  } else {
-    dispatchDemoPointerEnter(root, c.x, c.y);
-  }
+  // Already hovering: keep class; do NOT re-flood enter/move (hang guard).
+  if (already) return;
+  dispatchDemoPointerEnter(root, c.x, c.y);
 }
 
 function clearDemoCursorImmediate(): void {
+  cancelDemoCursorTravel();
   cancelDemoCursorJourneyEndFade();
   cancelDemoCursorParkInFlight();
   cursorFadeGeneration += 1;
@@ -946,8 +973,26 @@ function demoMouseInit(
   };
 }
 
+function allowSyntheticMove(target: HTMLElement, x: number, y: number): boolean {
+  const now =
+    typeof performance !== "undefined" && typeof performance.now === "function"
+      ? performance.now()
+      : Date.now();
+  const key = `${target === activeHoverRoot ? "h" : "t"}:${Math.round(x)}:${Math.round(y)}`;
+  if (
+    key === lastSyntheticMoveKey &&
+    now - lastSyntheticMoveAt < SYNTHETIC_MOVE_MIN_MS
+  ) {
+    return false;
+  }
+  lastSyntheticMoveKey = key;
+  lastSyntheticMoveAt = now;
+  return true;
+}
+
 /** Enter + over + move — drives React hover handlers; classes bridge CSS :hover. */
 function dispatchDemoPointerEnter(target: HTMLElement, x: number, y: number): void {
+  if (!target.isConnected) return;
   const move = demoPointerInit(x, y, { buttons: 0, button: -1 });
   const mouseMove = demoMouseInit(x, y, { buttons: 0, button: -1 });
   target.dispatchEvent(new PointerEvent("pointerover", move));
@@ -958,10 +1003,23 @@ function dispatchDemoPointerEnter(target: HTMLElement, x: number, y: number): vo
   target.dispatchEvent(
     new MouseEvent("mouseenter", { ...mouseMove, bubbles: false })
   );
-  dispatchDemoPointerMove(target, x, y);
+  // One move with enter is enough — do not let callers re-enter flood.
+  lastSyntheticMoveKey = `h:${Math.round(x)}:${Math.round(y)}`;
+  lastSyntheticMoveAt =
+    typeof performance !== "undefined" && typeof performance.now === "function"
+      ? performance.now()
+      : Date.now();
+  target.dispatchEvent(
+    new PointerEvent("pointermove", demoPointerInit(x, y, { buttons: 0, button: -1 }))
+  );
+  target.dispatchEvent(
+    new MouseEvent("mousemove", demoMouseInit(x, y, { buttons: 0, button: -1 }))
+  );
 }
 
 function dispatchDemoPointerMove(target: HTMLElement, x: number, y: number): void {
+  if (!target.isConnected) return;
+  if (!allowSyntheticMove(target, x, y)) return;
   target.dispatchEvent(
     new PointerEvent("pointermove", demoPointerInit(x, y, { buttons: 0, button: -1 }))
   );
@@ -1046,16 +1104,24 @@ export async function moveDemoCursorTo(
     shouldAbort?: () => boolean;
   }
 ): Promise<HTMLElement | null> {
+  const travelToken = travelGeneration;
+  const travelAborted = () =>
+    travelToken !== travelGeneration || !!options?.shouldAbort?.();
+
   const bail = async (): Promise<null> => {
     notePlaybackCursorEvent("abort", {
       target: describeCursorTarget(target),
-      abortReason: options?.shouldAbort?.() ? "shouldAbort" : "travel-incomplete",
+      abortReason: options?.shouldAbort?.()
+        ? "shouldAbort"
+        : travelToken !== travelGeneration
+          ? "travel-cancelled"
+          : "travel-incomplete",
     });
     await releaseDemoCursorAfterScript();
     return null;
   };
 
-  if (options?.shouldAbort?.()) return bail();
+  if (travelAborted()) return bail();
 
   cancelDemoCursorParkInFlight();
 
@@ -1067,7 +1133,7 @@ export async function moveDemoCursorTo(
     !isPrototypeOverlayTarget(target);
 
   const scrollOpts: PlaybackScrollOptions = {
-    shouldAbort: options?.shouldAbort,
+    shouldAbort: () => travelAborted(),
   };
   let scrollDurationMs = 0;
   let scrollPromise: Promise<void> = Promise.resolve();
@@ -1098,7 +1164,7 @@ export async function moveDemoCursorTo(
     }
   }
 
-  if (options?.shouldAbort?.()) return bail();
+  if (travelAborted()) return bail();
 
   const cursor = acquireDemoCursorElement();
 
@@ -1113,7 +1179,7 @@ export async function moveDemoCursorTo(
   cursor.style.top = `${travelStart.y}px`;
 
   await delay(randomInRange(24, 72));
-  if (options?.shouldAbort?.()) return bail();
+  if (travelAborted()) return bail();
 
   const cursorBaseMs = CTA_TRAVEL_MS * randomInRange(0.88, 1.14);
   const durationMs = Math.max(cursorBaseMs, scrollDurationMs);
@@ -1130,14 +1196,14 @@ export async function moveDemoCursorTo(
       trackTarget: syncPageScroll && scrollDurationMs > 0 ? target : undefined,
       onApproach: applyHover
         ? () => {
-            setDemoInteractionHover(interactionRoot, true);
+            if (!travelAborted()) setDemoInteractionHover(interactionRoot, true);
           }
         : undefined,
-      shouldAbort: options?.shouldAbort,
+      shouldAbort: () => travelAborted(),
     }
   );
   await scrollPromise;
-  if (!traveled || options?.shouldAbort?.()) return bail();
+  if (!traveled || travelAborted()) return bail();
 
   notePlaybackCursorEvent("travel", {
     target: describeCursorTarget(target),
@@ -1149,7 +1215,7 @@ export async function moveDemoCursorTo(
     setDemoInteractionHover(interactionRoot, true);
   }
   await delay(randomInRange(20, 60));
-  if (options?.shouldAbort?.()) return bail();
+  if (travelAborted()) return bail();
   return cursor;
 }
 

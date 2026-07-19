@@ -71,7 +71,11 @@ function bookStep2DefaultDomGoalMet(): boolean {
   );
 }
 
-function checkRetreatViewportGoal(beat: JourneyBeat): RetreatViewportGoal | null {
+function checkRetreatViewportGoal(
+  beat: JourneyBeat | undefined
+): RetreatViewportGoal | null {
+  // Hub / no-beat frames call the monitor with undefined — never throw (Chrome hang/crash class).
+  if (!beat) return null;
   if (beat.id === "avail-continue" || beat.id === "avail-time" || beat.id === "avail-book") {
     const goal = checkRetreatSelectionGoal(beat);
     return goal

@@ -2,8 +2,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   bridgeDemoPseudoSelector,
+  DEMO_PSEUDO_BRIDGE_MAX_RULES,
   ensureDemoPseudoBridge,
   removeDemoPseudoBridge,
+  shouldBridgeStyleSheet,
 } from "@/app/scenario/demoCursorPseudoBridge";
 
 describe("bridgeDemoPseudoSelector", () => {
@@ -59,5 +61,30 @@ describe("ensureDemoPseudoBridge", () => {
     expect(bridge?.textContent).toContain(
       ".probe-hover-target.proto-chat-cta--pressed"
     );
+  });
+
+  it("caps bridged rule count (Chrome hang guard)", () => {
+    const sheet = document.createElement("style");
+    sheet.setAttribute("data-test-hover-sheet", "1");
+    const rules: string[] = [];
+    for (let i = 0; i < DEMO_PSEUDO_BRIDGE_MAX_RULES + 40; i++) {
+      rules.push(`.flood-hover-${i}:hover{color:red}`);
+    }
+    sheet.textContent = rules.join("");
+    document.head.appendChild(sheet);
+
+    ensureDemoPseudoBridge();
+    const bridge = document.getElementById("studio-demo-pseudo-bridge");
+    const count = Number(bridge?.getAttribute("data-studio-bridge-rules") ?? 0);
+    expect(count).toBeLessThanOrEqual(DEMO_PSEUDO_BRIDGE_MAX_RULES);
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it("skips vendor stylesheet identities", () => {
+    const fake = {
+      href: "https://cdn.example/node_modules/framer-motion/dist/x.css",
+      ownerNode: null,
+    } as unknown as CSSStyleSheet;
+    expect(shouldBridgeStyleSheet(fake)).toBe(false);
   });
 });

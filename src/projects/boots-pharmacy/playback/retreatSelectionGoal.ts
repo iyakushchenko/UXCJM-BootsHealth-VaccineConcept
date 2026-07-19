@@ -185,8 +185,9 @@ function availBookGoal(): RetreatSelectionGoal {
 
 /** DOM selection baseline for CJM step-back — avail + book beats with stateful UI. */
 export function checkRetreatSelectionGoal(
-  beat: JourneyBeat
+  beat: JourneyBeat | undefined
 ): RetreatSelectionGoal | null {
+  if (!beat) return null;
   switch (beat.id) {
     case "avail-continue":
       return availContinueGoal();

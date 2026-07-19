@@ -14,7 +14,7 @@
   transition:
     color 0.18s ease,
     transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  /* No permanent will-change — avoids composited-layer thrash on FAQ lists. */
 }
 
 [data-uxds-kit="accordion"]
@@ -36,6 +36,8 @@
   display: grid;
   grid-template-rows: 0fr;
   align-items: start;
+  /* Contain layout so open/close doesn't spam page-wide reflow. */
+  contain: layout style;
   transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 

@@ -10,6 +10,11 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Platform motion — Motion (`framer-motion`) via `@/uxds/motion`; Accordion stays CSS (PO / Arch)
+
+- **Symptom / class:** Motion library listed but unused; dual `motion` + `framer-motion` deps; Accordion stutter when driven by Framer `height: auto`; callsigns unsure CSS vs Motion.
+- **Gate:** [MOTION.md](./MOTION.md) — import `@/uxds/motion` only; one package (`framer-motion`); CSS for trivial hover + Accordion `0fr/1fr`; Motion for enter/exit, panels, menus, layout. No React Spring. Shell-only Motion pilots do **not** demote PDP PAGE FINAL PASS.
+
 ### PAGE FINAL PASS — no next migrated page until previous hard-green (PO / Arch)
 
 - **Symptom / class:** Team starts PDP (or next erase-Make page) while PLP (previous) still has open Final Pass gaps — PROVEN/tests green used as a false “open next page” signal.
@@ -102,7 +107,23 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   2. `forceClear` / mid-settle re-arm **cancels** pending reload timers (`cancelPendingReload`); never nest start/stop loops.
   3. Modal URL bridge suppresses URL→open while intentional close waits for `&modal=` clear (`studioModalUrlBridgePlan`).
   4. Cap probe reveal/scroll calls per run; overlay `forceClear` hard-removes DOM + all timers.
+  5. Reload storm cooldown (~4s) — refuse stacked `scheduleReload` (agent loops).
 - **PO recovery:** refresh once → `window.__studioAgentTestingOverlay?.forceClear()` → do not re-run probe with `reload: true` in a loop.
+
+### Chrome hang — robo-cursor hover bridge + uncanceled travel rAF (P0)
+
+- **Symptom / class:** Chrome tab hung (not just reload-loop) during agent/robo testing on PDP / avail — same P0 family as prior crash storms.
+- **Root cause (v0.0.29–0.0.30 area):**
+  1. `demoCursorPseudoBridge` mirrored **all** `:hover`/`:active` rules from readable sheets → mega stylesheet + class toggles → style-recalc storm.
+  2. Cursor travel `requestAnimationFrame` kept ticking after `forceClear` / `removeDemoCursor` (no cancel token).
+  3. Re-applying hover on an already-hovered root re-dispatched enter/move events.
+  4. Accordion permanent `will-change` + rapid open/close amplified layout thrash.
+- **Gate (GLOBAL HARD FAIL — Finn + Ben + Quinn):**
+  1. Cap bridged CSS rules (`DEMO_PSEUDO_BRIDGE_MAX_RULES`); skip vendor sheets.
+  2. `cancelDemoCursorTravel()` on remove/forceClear; travel rAF checks generation.
+  3. Rate-limit synthetic move; no re-flood when hover class already active.
+  4. Accordion: no permanent `will-change`; `contain: layout style`; toggle min-interval.
+- **PO recovery:** refresh once → `__studioAgentTestingOverlay?.forceClear()` → `__studioWaitAgentTeardownClean()`.
 
 ### Overlay eyes — MCP/robo must not click through open dialogs (PO rage)
 

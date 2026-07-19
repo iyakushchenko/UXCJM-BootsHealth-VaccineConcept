@@ -99,9 +99,13 @@ export type ProjectPlayback = {
     options?: RetreatSyncOptions
   ) => Promise<void>;
   /** Optional DOM/scroll goal check after step-back (~520ms viewport guard). */
-  checkRetreatViewportGoal?: (beat: JourneyBeat) => RetreatViewportGoal | null;
+  checkRetreatViewportGoal?: (
+    beat: JourneyBeat | undefined
+  ) => RetreatViewportGoal | null;
   /** Optional date/time/overlay selection check after step-back (~520ms retreat guard). */
-  checkRetreatSelectionGoal?: (beat: JourneyBeat) => RetreatSelectionGoal | null;
+  checkRetreatSelectionGoal?: (
+    beat: JourneyBeat | undefined
+  ) => RetreatSelectionGoal | null;
 };
 
 export type StudioSelectOption<T extends string = string> = {

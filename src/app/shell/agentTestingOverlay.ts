@@ -511,17 +511,32 @@ function teardownDom(hard = false): void {
   else hideOverlayDom();
 }
 
+/** Hard stop — at most one reload per window (Chrome hang / reload-storm class). */
+let lastReloadScheduledAt = 0;
+const RELOAD_STORM_COOLDOWN_MS = 4000;
+
 function cancelPendingReload(): void {
   reloadPending = false;
   if (reloadTimer != null) {
     clearTimeout(reloadTimer);
     reloadTimer = null;
   }
+  // Cleared path may schedule a fresh intentional reload later.
+  lastReloadScheduledAt = 0;
 }
 
 function scheduleReload(delayMs = 120): void {
   if (reloadPending || typeof window === "undefined") return;
+  const now = Date.now();
+  // Refuse stacked reload storms (agent loops + mid-settle races).
+  if (
+    lastReloadScheduledAt > 0 &&
+    now - lastReloadScheduledAt < RELOAD_STORM_COOLDOWN_MS
+  ) {
+    return;
+  }
   reloadPending = true;
+  lastReloadScheduledAt = now;
   const resetToHub = settleResetToHub;
   // Defer so MCP evaluate_script can return the run result before navigation.
   // forceClear / mid-settle re-arm must cancel this — never leave a stray reload.

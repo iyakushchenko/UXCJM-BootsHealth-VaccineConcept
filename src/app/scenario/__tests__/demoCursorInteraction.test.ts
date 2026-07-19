@@ -1,8 +1,10 @@
 /** @vitest-environment happy-dom */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  cancelDemoCursorTravel,
   clearDemoCtaStates,
   isDemoCursorPointerMode,
+  moveDemoCursorTo,
   removeDemoCursor,
   settleDemoCursorAfterClick,
   simulateDemoPointerClick,
@@ -166,5 +168,43 @@ describe("demoCursor interaction contract", () => {
     );
     expect(btn.classList.contains("proto-chat-cta--hover")).toBe(false);
     expect(btn.classList.contains("proto-chat-cta--pressed")).toBe(false);
+  });
+
+  it("remove/forceClear cancels in-flight travel rAF (hang guard)", async () => {
+    const btn = mountButton();
+    const travel = moveDemoCursorTo(btn, {
+      applyHover: true,
+      syncPageScroll: false,
+    });
+    // Mid-travel teardown — must not leave orphan rAF ticking.
+    cancelDemoCursorTravel();
+    removeDemoCursor({ immediate: true });
+    await vi.runAllTimersAsync();
+    const result = await travel;
+    expect(result).toBeNull();
+    expect(document.querySelector(".proto-chat-demo-cursor")).toBeNull();
+  });
+
+  it("does not re-flood enter/move when hover already active", async () => {
+    const btn = mountButton();
+    const seen: string[] = [];
+    for (const type of [
+      "pointerover",
+      "pointerenter",
+      "pointermove",
+      "mousemove",
+    ] as const) {
+      btn.addEventListener(type, () => seen.push(type));
+    }
+
+    const hoverPromise = simulateDemoPointerHover(btn, 80, { scroll: false });
+    await vi.runAllTimersAsync();
+    expect(await hoverPromise).toBe(true);
+
+    const enters = seen.filter((t) => t === "pointerenter").length;
+    const moves = seen.filter((t) => t === "pointermove").length;
+    expect(enters).toBe(1);
+    // Enter path fires one move; no per-frame / re-set flood.
+    expect(moves).toBeLessThanOrEqual(2);
   });
 });

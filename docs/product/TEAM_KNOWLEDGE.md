@@ -163,6 +163,7 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Agent overlay: **pre-arm** before steps; sitrep **PASS/FAIL** green/red; **forceClear** hard-remove (no stale popup) | Uma, Finn, Quinn | RECORDING.md · LESSONS · `agentTestingOverlay` |
 | **Studio Auto-Rules framework** — dismiss/modal, auth SSoT, avail start, §0b rhythm, brand-active pills → CI; PO must not re-ask | Arch, Ben, Quinn, Finn, Uma | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) · `studioAutoRules.ts` · `check:theme-brand` · felonies §9–10 |
 | **Auto-Rule `robo-cursor-native-feedback`** — robo/agent cursor fires hover+press like native; default graphic after click; CSS `:hover`/`:active` bridged | Finn, Ben, Quinn | `demoCursor` · `demoCursorPseudoBridge` · STUDIO_AUTO_RULES R10 |
+| **Chrome hang class** — uncapped hover-bridge CSS + travel rAF after forceClear + accordion thrash = P0 hang; cap bridge, cancel rAF, rate-limit synthetic hover, Accordion contain/toggle floor | Finn, Ben, Quinn | LESSONS · `demoCursor` · `demoCursorPseudoBridge` · accordion.css |
 | **Auto-Rule `agent-teardown-clean`** — overlay gone + `&modal=` stripped + dialog closed after probe/sitrep/forceClear | Finn, Ben, Quinn, Arch | `studioAgentTeardownContract` · felonies §9 · `__studioAssertAgentTeardownClean` |
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
 | Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
@@ -177,12 +178,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Arch (Director): Final Pass only after Quinn MCP PASS on polish tip — applied: PAGE_FINAL_PASS was NEEDS-REPROVE until Quinn
 - Quinn (QA): must re-run `__studioRunMcpPageProbe({ screenId:"pdp" })` on `76e2433` before Arch stamp — applied: done (PASS)
 
-**Knowledge improved** (2026-07-19 · stream: platform Motion standard · `@/uxds/motion`):
-- Arch (Director): locked Motion (`framer-motion`) over React Spring; Accordion CSS policy; shell pilots only — applied: MOTION.md + COMMAND_DOCTRINE §4 + no Final Pass demote
-- Finn (FE): UXDS motion entry + presets; diagnostic overlay + studio select presence; nav imports via `@/uxds/motion` — applied: `src/uxds/motion/` + shell pilots
-- Uma (UI/UX): Accordion stays `0fr/1fr` (stutter class); Motion for overlay/menu presence — applied: MOTION.md §3 + Accordion comment
-- Ben (BE): remove unused `motion` twin; single `framer-motion` dep — applied: package.json + lockfile
-- Pax (PO sim): user-visible shell motion → patch bump + push — applied: release when ship
+**Knowledge improved** (2026-07-19 · stream: Chrome hang P0 · robo hover bridge / travel rAF):
+- Finn (FE): cap `demoCursorPseudoBridge` rules + skip vendor sheets; cancel travel rAF on remove/forceClear; no re-flood hover enter/move; Accordion contain + no permanent will-change + toggle floor — applied: demoCursor* + accordion.css + useAccordion
+- Ben (BE): reload-storm cooldown on `scheduleReload`; Vitest hang-guard contracts — applied: agentTestingOverlay + demoCursor tests
+- Quinn (QA): prove PDP load + FAQ toggle + forceClear + `__studioWaitAgentTeardownClean` without hang (bridge capped; no reload storm) — applied: DevTools prove on tip
+- Ben (BE): also guard `checkRetreatViewportGoal` / selection when beat undefined — tip PDP crash blocked prove — applied: boots playback index
+- Arch (Director): same P0 class as reload storms; abandon half-done Motion adopt (no hang risk) — applied: LESSONS + TEAM_KNOWLEDGE; Motion deferred
 
 **Knowledge improved** (2026-07-19 · stream: robo-cursor native feedback · Auto-Rule R10):
 - Finn (FE): global agent/robo click path — full pointer enter/move/down/up + CSS `:hover`/`:active` bridge; settle clears hand → default; mild travel overshoot — applied: `demoCursor` + `demoCursorPseudoBridge` + popup-close pressed wash
