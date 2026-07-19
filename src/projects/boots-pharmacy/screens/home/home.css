@@ -1,0 +1,249 @@
+/* Agentic. Site Pilot. Home — React migration; visual source = Make child 11 (Body10) */
+
+.studio-react-screen-host[data-studio-react-screen="home"] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 1200px;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.home {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  min-width: 1200px;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #f5f5f5;
+  font-family: "Open Sans", sans-serif;
+}
+
+.home__bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/*
+ * Make sized these fills for the static 1440×876 export frame. Studio's host
+ * stretches to the full available viewport height (isViewportLocked), so the
+ * fills cover the actual (variable) container instead of Make's fixed px box.
+ */
+.home__bg-blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(12.4px);
+}
+
+.home__bg-glow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: bottom;
+}
+
+.home__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+  padding: 64px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Make `boots.ai assistant 3` — layered wordmark + mark + outline, 258×54 */
+.home__logo {
+  position: relative;
+  width: 258px;
+  height: 54px;
+  flex-shrink: 0;
+}
+
+.home__logo-wordmark,
+.home__logo-mark,
+.home__logo-outline {
+  position: absolute;
+  display: block;
+}
+
+.home__logo-wordmark svg,
+.home__logo-mark svg,
+.home__logo-outline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home__logo-wordmark {
+  top: 40.13%;
+  right: 11.13%;
+  bottom: 36.3%;
+  left: 33.46%;
+}
+
+.home__logo-mark {
+  top: 18.18%;
+  right: 73.66%;
+  bottom: 17.85%;
+  left: 0;
+}
+
+.home__logo-outline {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 15.29%;
+}
+
+.home__heading {
+  margin: 0;
+  max-width: 640px;
+  color: #012169;
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 32px;
+  text-align: center;
+}
+
+.home__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  width: 640px;
+  padding: 32px;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0px 4px 4.45px rgba(1, 33, 105, 0.1);
+}
+
+.home__query-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.home__query {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 24px;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #3a3a3a;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  padding: 0;
+}
+
+.home__query::placeholder {
+  color: #9a9a9a;
+}
+
+.home__mic,
+.home__send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 360px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.home__mic {
+  background: #fff;
+  border: 1px solid #efefef;
+}
+
+.home__mic:hover {
+  border-color: #012169;
+}
+
+.home__send {
+  background: #003fcc;
+}
+
+.home__send:hover {
+  background: #012169;
+}
+
+.home__send:focus-visible,
+.home__mic:focus-visible {
+  outline: 2px solid var(--uxds-border-border-focus, #012169);
+  outline-offset: 2px;
+}
+
+.home__suggested {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.home__suggested-label {
+  margin: 0;
+  flex-shrink: 0;
+  color: #7a7d87;
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+.home__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.home__chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(204, 224, 242, 0.57);
+  color: #012169;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.home__chip:hover {
+  background: rgba(204, 224, 242, 0.85);
+}
+
+.home__chip:focus-visible {
+  outline: 2px solid var(--uxds-border-border-focus, #012169);
+  outline-offset: 2px;
+}

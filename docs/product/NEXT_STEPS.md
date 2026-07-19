@@ -40,7 +40,7 @@ A screen is **DONE** only when **all** are true:
 
 **Gate:** each page starts only after the previous is **PAGE FINAL PASS hard-green** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Parallel callsigns + Knowledge used still required. **Do not start Home without PO `+`.**
 
-5. [ ] **Home React migration** — after PDP Final Pass hard-green **+ PO `+`**. Site Pilot Home (child 11).
+5. [~] **Home React migration** — **PO `+` START** (2026-07-19). Register [HOME_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/HOME_MAKE_PARITY_REGISTER.md) · brief [HOME_REACT.md](../projects/boots-pharmacy/features/HOME_REACT.md) · React `screens/home/*` first visible mount · Uma [UMA_FIDELITY_HOME_2026-07-19.md](../projects/boots-pharmacy/audits/UMA_FIDELITY_HOME_2026-07-19.md) **IN PROGRESS** · Quinn criteria stub. **PDP 3e HARD-GREEN unchanged** — do not demote. Site Pilot Home (child 11).
 6. [ ] **Chat React migration** — after Home Final Pass hard-green. Site Pilot Chat (child 10).
 7. [ ] **Appointment History + Details** — after Chat Final Pass hard-green. Children 2 + 1.
 8. [ ] **Delete Book Step 1–3 Make children** — after History/Details Final Pass hard-green + CJM/playback green; until then keep `data-studio-make-retired` residual.

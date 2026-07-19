@@ -132,6 +132,15 @@ import {
   mountPdpScreen,
   unmountPdpScreen,
 } from "@/projects/boots-pharmacy/screens/pdp/mountPdpScreen";
+import {
+  isHomeReactMounted,
+  mountHomeScreen,
+  unmountHomeScreen,
+} from "@/projects/boots-pharmacy/screens/home/mountHomeScreen";
+import {
+  HOME_CHILD_INDEX,
+  type HomeChipLabel,
+} from "@/projects/boots-pharmacy/screens/home/homeContract";
 
 /**
  * DOM child order inside Frame219's root div (JSX order = DOM order):
@@ -1402,8 +1411,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, [current]);
 
   // Agentic home heading — re-sync after every commit (Figma export resets copy on re-render).
+  // React owns this once the Home screen is mounted (heading + attribute already correct).
   useLayoutEffect(() => {
     if (SCREENS[current]?.childIndex !== 11) return;
+    if (isHomeReactMounted()) return;
     const isLoggedIn = resolveAgenticHomeLoggedIn(loggedInFlag);
     return bindAgenticHomeHeadingSync(isLoggedIn);
   }, [current, loggedInFlag]);
@@ -1622,6 +1633,24 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     return () => unmountPdpScreen();
   }, []);
 
+  // Agentic. Site Pilot. Home — React + UXDS migration (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== HOME_CHILD_INDEX) {
+      unmountHomeScreen();
+      return;
+    }
+
+    mountHomeScreen({
+      loggedIn: resolveAgenticHomeLoggedIn(loggedInFlag),
+      onSend: () => setCurrent(1), // Agentic. Site Pilot. Chat
+      onChip: (_label: HomeChipLabel) => setCurrent(1), // Agentic. Site Pilot. Chat
+    });
+  }, [current, loggedInFlag]);
+
+  useEffect(() => {
+    return () => unmountHomeScreen();
+  }, []);
+
   // Book – Step 1 (child 7): breadcrumb rewrite — Make path only
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 7) return;
@@ -1642,8 +1671,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   // Agentic home (child 11): static prompt → multiline query textarea;
   // suggested chips fill the textarea on click.
+  // React owns this screen once mounted — see HomeScreen.tsx.
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 11) return;
+    if (isHomeReactMounted()) return;
     const screen = document.querySelector(
       ".studio-viewport > div > div:nth-child(11)"
     ) as HTMLElement | null;

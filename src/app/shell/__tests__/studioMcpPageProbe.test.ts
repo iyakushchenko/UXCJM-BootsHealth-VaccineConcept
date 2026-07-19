@@ -71,6 +71,36 @@ describe("runMcpPageProbe", () => {
     isElementBlockedByModal.mockReturnValue(false);
   });
 
+  it("home stub recipe fails until React host mounts", async () => {
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=home",
+        search: "?project=boots-pharmacy&screen=home",
+        pathname: "/",
+        hash: "",
+      },
+      history: { state: null, replaceState: vi.fn(), pushState: vi.fn() },
+      dispatchEvent: vi.fn(() => true),
+    });
+    vi.stubGlobal("document", {
+      querySelector: () => null,
+      querySelectorAll: () => [],
+      styleSheets: [],
+    });
+
+    const result = await runMcpPageProbe({
+      screenId: "home",
+      reload: false,
+      settleMs: 0,
+    });
+
+    expect(result.pass).toBe(false);
+    expect(result.screenId).toBe("home");
+    expect(result.checks.some((c) => c.id === "probe-recipe")).toBe(false);
+    expect(result.checks.find((c) => c.id === "home-host")?.pass).toBe(false);
+    expect(result.checks.find((c) => c.id === "url-screen")?.pass).toBe(true);
+  });
+
   it("fails clearly when screen has no probe recipe", async () => {
     vi.stubGlobal("window", {
       location: {
