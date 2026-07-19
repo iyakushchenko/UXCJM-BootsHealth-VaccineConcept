@@ -151,7 +151,7 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Finn (FE): `revealDemoTargetForAgent` + demo-click `scroll: true`; abandon settle without deferred reload; exclude `RunMcpPageProbe` from helper nest-arm — applied: code
 - Quinn (QA): `overlay-arm` + `plp-below-fold-scroll` reveal step; overlay missing = FAIL every step — applied: probe recipe + RECORDING.md · MCP PLP prove PASS
 
-**Knowledge improved** (2026-07-19 · stream: PAGE FINAL PASS sequencing · tip after notes stamp):
+**Knowledge improved** (2026-07-19 · stream: PAGE FINAL PASS sequencing · SHA d95ff1d):
 - Arch (Director): no next migrated page until previous hard-green; doctrine/TEAM/NEXT_STEPS/AGENTS/director rule + PAGE_FINAL_PASS.md — applied: gate; PDP blocked until Quinn MCP HARD-GREEN
 - Uma (UI/UX): landmarks + BEM=`screenId` checklist keys; PLP/book stamps — applied: PAGE_FINAL_PASS.json
 - Finn (FE): landmark fix + `check:page-final-pass` source contracts — applied: code + npm test wire
