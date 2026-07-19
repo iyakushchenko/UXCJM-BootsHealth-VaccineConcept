@@ -2,11 +2,14 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.35 - 190726
+- **shell:** html + prototype scrollbar-gutter:stable so modal/body overflow lock never shifts content on X
+
 ## v0.0.34 - 190726
 - **shell:** Robo-cursor native hover+press everywhere: top-level :is() selector split + insertRule bridge (fixes PDP Check availability); ~64ms press dwell; R10 ratchet
 
 ## v0.0.33 - 190726
-- Maintenance update
+- **shell:** Prototype scroll pane uses `scrollbar-gutter: stable` so modal/journey lock no longer shifts page content on X
 
 ## v0.0.32 - 190726
 - **shell:** Robo-cursor travel via Motion `animate` ease-in-out (no bounce/overshoot); `@/uxds/motion` wire; cancel stoppable on forceClear

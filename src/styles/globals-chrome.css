@@ -2,6 +2,11 @@
   scroll-behavior: auto;
 }
 
+/* Shell/document — reserve classic scrollbar track before any modal/body overflow:hidden */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Prototype scroll pane — flex fill + zoom-safe min height (see useScrollFill) */
 .studio-scroll--prototype:not(.hidden) {
   display: flex;
