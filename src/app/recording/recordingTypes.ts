@@ -176,6 +176,13 @@ export type RecordingWireIntentApplyInput = {
   payload?: Record<string, unknown>;
 };
 
+export type RecordingDirectorScriptApplyInput = {
+  scriptId: string;
+  scriptKind?: string;
+  beatId?: string;
+  manual?: boolean;
+};
+
 export type RecordingReplayOptions = {
   triggerTransport?: (action: ManualTransportAction) => void | Promise<void>;
   /**
@@ -186,18 +193,27 @@ export type RecordingReplayOptions = {
     event: RecordingScreenApplyInput
   ) => boolean | void | Promise<boolean | void>;
   /**
-   * v2 — re-fire demo-clicks (resolve selectorChain → simulateDemoPointerClick).
+   * v2 — re-fire demo-clicks / human REC clicks
+   * (resolve selectorChain → simulateDemoPointerClick).
    * When omitted, demo-click events count as unsupported.
    */
   applyDemoClick?: (
     event: RecordingDemoClickApplyInput
   ) => boolean | void | Promise<boolean | void>;
   /**
-   * v2 — dispatch wire intents (project `runBeatAction` for known beat actions).
+   * v2 — dispatch wire intents (project `runBeatAction` for known beat actions;
+   * `retreat-sync` → script runner with syncState when scriptId resolves).
    * When omitted, wire-intent events count as unsupported.
    */
   applyWireIntent?: (
     event: RecordingWireIntentApplyInput
+  ) => boolean | void | Promise<boolean | void>;
+  /**
+   * v2 — re-run director scripts via project `run*Script` channels.
+   * When omitted, director-script events count as unsupported.
+   */
+  applyDirectorScript?: (
+    event: RecordingDirectorScriptApplyInput
   ) => boolean | void | Promise<boolean | void>;
   /** Delay between transport / screen / demo-click events (ms). Default 400. */
   stepDelayMs?: number;

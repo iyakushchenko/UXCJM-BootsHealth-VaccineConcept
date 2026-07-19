@@ -24,6 +24,8 @@ export type PlaybackInteractionRecord = {
   element?: string;
   beatId?: string;
   scriptId?: string;
+  /** home | avail | book | tab — for recording director-script replay */
+  scriptKind?: string;
   atMs: number;
 };
 
@@ -87,6 +89,7 @@ export function notePlaybackDirectorScript(options: {
       : `Director script — ${ref}${beat ? ` (${beat})` : ""}`,
     beatId: options.beatId,
     scriptId: options.scriptId,
+    scriptKind: options.scriptKind,
   });
 }
 
@@ -102,12 +105,14 @@ export function notePlaybackBeatEnter(actionId: string, beatId?: string): void {
 export function notePlaybackRetreatSync(options: {
   beatId: string;
   scriptId?: string;
+  scriptKind?: string;
 }): void {
   record({
     kind: "retreat-sync",
     label: `CJM step back — sync ${options.scriptId ?? options.beatId}`,
     beatId: options.beatId,
     scriptId: options.scriptId,
+    scriptKind: options.scriptKind,
   });
 }
 

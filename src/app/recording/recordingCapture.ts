@@ -2,6 +2,8 @@ import type { JourneyBeatActionId } from "@/app/orchestra/types";
 import {
   appendRecordingEventWithSnapshot,
   getActiveRecordingSession,
+  isRecordingActive,
+  subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
 import type {
   RecordedEvent,
@@ -14,6 +16,8 @@ import type {
 
 let snapshotProvider: (() => RecordingSnapshot | undefined) | null = null;
 let lastTouchpointKey: string | undefined;
+let humanClickCaptureInstalled = false;
+let humanClickUnsubSession: (() => void) | null = null;
 
 export function registerRecordingSnapshotProvider(
   provider: (() => RecordingSnapshot | undefined) | null
@@ -220,6 +224,7 @@ export function notifyRecordingFromInteraction(
         captureRecordingEvent({
           kind: "director-script",
           scriptId: interaction.scriptId,
+          scriptKind: interaction.scriptKind,
           beatId: interaction.beatId,
           manual: interaction.kind === "director-manual",
           ...base,
@@ -241,6 +246,7 @@ export function notifyRecordingFromInteraction(
         payload: {
           beatId: interaction.beatId,
           scriptId: interaction.scriptId,
+          scriptKind: interaction.scriptKind,
         },
         ...base,
       });
@@ -267,6 +273,114 @@ export function notifyRecordingDemoClick(
   });
 }
 
+const RECORDING_CHROME_SELECTOR = [
+  ".studio-nav-panel-host",
+  ".studio-agent-testing-overlay",
+  /* Overlay root still uses legacy class + id (children are studio-*). */
+  ".agent-testing-overlay",
+  "#agent-testing-overlay",
+  ".studio-playback-diagnostic",
+  ".studio-playback-shield",
+].join(", ");
+
+const RECORDING_CLICK_TARGET_SELECTOR = [
+  "button",
+  "a",
+  '[role="button"]',
+  '[role="option"]',
+  '[role="switch"]',
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "[data-studio-action]",
+  "[data-studio-avail-store]",
+  "[data-studio-beat]",
+  "[data-name]",
+].join(", ");
+
+/** Studio chrome / overlays — never record as concept clicks. */
+export function isRecordingChromeTarget(el: Element | null): boolean {
+  if (!el) return true;
+  return Boolean(el.closest(RECORDING_CHROME_SELECTOR));
+}
+
+/** Nearest interactive / named target for human REC click capture. */
+export function resolveRecordingHumanClickTarget(
+  raw: EventTarget | null
+): HTMLElement | null {
+  if (
+    !raw ||
+    typeof (raw as Element).closest !== "function"
+  ) {
+    return null;
+  }
+  const el = (raw as Element).closest<HTMLElement>(RECORDING_CLICK_TARGET_SELECTOR);
+  if (!el || isRecordingChromeTarget(el)) return null;
+  return el;
+}
+
+/**
+ * Trusted (human) clicks only — scripted `el.click()` / demo cursor are ignored
+ * so they stay on the `notePlaybackDemoClick` path without double-capture.
+ */
+export function shouldCaptureRecordingHumanClick(event: Event): boolean {
+  if (!isRecordingActive()) return false;
+  if (!("isTrusted" in event) || event.isTrusted !== true) return false;
+  return resolveRecordingHumanClickTarget(event.target) != null;
+}
+
+function describeRecordingClickTarget(el: HTMLElement): string {
+  const action = el.getAttribute("data-studio-action");
+  if (action) return `data-studio-action="${action}"`;
+  const dataName = el.getAttribute("data-name");
+  if (dataName) return `data-name="${dataName}"`;
+  const tag = el.tagName.toLowerCase();
+  const text = (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 48);
+  return text ? `<${tag}> text="${text}"` : `<${tag}>`;
+}
+
+function onRecordingHumanClick(event: Event): void {
+  if (!shouldCaptureRecordingHumanClick(event)) return;
+  const target = resolveRecordingHumanClickTarget(event.target);
+  if (!target) return;
+  const chain = buildPlaybackSelectorChain(target);
+  if (chain.length === 0) return;
+  notifyRecordingDemoClick(target, describeRecordingClickTarget(target));
+}
+
+function syncRecordingHumanClickListener(): void {
+  if (typeof document === "undefined") return;
+  const want = isRecordingActive();
+  if (want && !humanClickCaptureInstalled) {
+    document.addEventListener("click", onRecordingHumanClick, true);
+    humanClickCaptureInstalled = true;
+  } else if (!want && humanClickCaptureInstalled) {
+    document.removeEventListener("click", onRecordingHumanClick, true);
+    humanClickCaptureInstalled = false;
+  }
+}
+
+/**
+ * Install document click capture for human REC clicks.
+ * Listener is live only while `isRecordingActive()` (paused/stopped = off).
+ */
+export function ensureRecordingHumanClickCapture(): () => void {
+  if (typeof document === "undefined") return () => {};
+  if (!humanClickUnsubSession) {
+    humanClickUnsubSession = subscribeRecordingSession(syncRecordingHumanClickListener);
+  }
+  syncRecordingHumanClickListener();
+  return () => {
+    humanClickUnsubSession?.();
+    humanClickUnsubSession = null;
+    if (humanClickCaptureInstalled) {
+      document.removeEventListener("click", onRecordingHumanClick, true);
+      humanClickCaptureInstalled = false;
+    }
+  };
+}
+
 function parseTransportAction(label: string): ManualTransportAction | null {
   if (label.includes("Step forward")) return "step-forward";
   if (label.includes("Step back")) return "step-back";
@@ -281,4 +395,10 @@ export function resetRecordingCaptureForTests(): void {
   snapshotProvider = null;
   lastTouchpointKey = undefined;
   lastScreenKey = undefined;
+  if (typeof document !== "undefined" && humanClickCaptureInstalled) {
+    document.removeEventListener("click", onRecordingHumanClick, true);
+  }
+  humanClickCaptureInstalled = false;
+  humanClickUnsubSession?.();
+  humanClickUnsubSession = null;
 }

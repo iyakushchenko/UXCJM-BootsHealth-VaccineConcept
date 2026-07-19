@@ -19,6 +19,8 @@
 - **engine:** Naming conventions + hard guardrails; Boots screen folders match screenId
 - **engine:** Recording v2: demo-click replay via selector chain + simulateDemoPointerClick; partial wire-intent for JourneyBeatActionId
 - **shell:** Version chip on tabs row (v+channel alpha) + agent felony gate in npm test
+- **engine:** Recording v2: human REC click capture + director-script / retreat-sync replay via shared script apply
+- **shell:** Fix agent-testing overlay root class to `.studio-agent-testing-overlay` (PANEL CSS + REC chrome skip)
 
 ## v0.0.1 - 190726
 

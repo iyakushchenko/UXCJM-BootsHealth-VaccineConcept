@@ -228,7 +228,7 @@ function ensureRoot(): HTMLElement | null {
 
   root = document.createElement("div");
   root.id = ROOT_ID;
-  root.className = "agent-testing-overlay";
+  root.className = "studio-agent-testing-overlay";
   root.setAttribute("aria-live", "polite");
   root.innerHTML = `
     <div class="studio-agent-testing-overlay__capture" aria-hidden="true"></div>

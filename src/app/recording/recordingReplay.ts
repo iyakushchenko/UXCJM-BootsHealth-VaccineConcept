@@ -11,6 +11,7 @@ const TRANSPORT_KIND = "transport" as const;
 const SCREEN_KIND = "screen" as const;
 const DEMO_CLICK_KIND = "demo-click" as const;
 const WIRE_INTENT_KIND = "wire-intent" as const;
+const DIRECTOR_SCRIPT_KIND = "director-script" as const;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -66,8 +67,8 @@ export function compileRecordingToBeatTimeline(
 }
 
 /**
- * v2 replays transport + screen + dwell + demo-click + wire-intent (when wired).
- * scroll, director-script, beat-enter, studio, touchpoint — counted as unsupported.
+ * v2 replays transport + screen + dwell + demo-click + wire-intent + director-script
+ * (when wired). scroll, beat-enter, studio, touchpoint — counted as unsupported.
  */
 export async function replayRecordingSession(
   session: RecordingSession,
@@ -84,9 +85,16 @@ export async function replayRecordingSession(
   const applyScreen = options.applyScreen;
   const applyDemoClick = options.applyDemoClick;
   const applyWireIntent = options.applyWireIntent;
-  if (!trigger && !applyScreen && !applyDemoClick && !applyWireIntent) {
+  const applyDirectorScript = options.applyDirectorScript;
+  if (
+    !trigger &&
+    !applyScreen &&
+    !applyDemoClick &&
+    !applyWireIntent &&
+    !applyDirectorScript
+  ) {
     result.errors.push(
-      "triggerTransport, applyScreen, applyDemoClick, or applyWireIntent is required for replay"
+      "triggerTransport, applyScreen, applyDemoClick, applyWireIntent, or applyDirectorScript is required for replay"
     );
     return result;
   }
@@ -214,6 +222,39 @@ export async function replayRecordingSession(
       continue;
     }
 
+    if (event.kind === DIRECTOR_SCRIPT_KIND) {
+      if (!applyDirectorScript) {
+        result.unsupported += 1;
+        continue;
+      }
+      try {
+        const applied = await applyDirectorScript({
+          scriptId: event.scriptId,
+          scriptKind: event.scriptKind,
+          beatId: event.beatId,
+          manual: event.manual,
+        });
+        if (applied === false) {
+          result.skipped += 1;
+          result.errors.push(
+            `director-script ${event.scriptId}: apply returned false`
+          );
+          continue;
+        }
+        result.replayed += 1;
+        if (stepDelayMs > 0) {
+          await delay(stepDelayMs);
+        }
+      } catch (err) {
+        result.errors.push(
+          `director-script ${event.scriptId}: ${
+            err instanceof Error ? err.message : String(err)
+          }`
+        );
+      }
+      continue;
+    }
+
     result.unsupported += 1;
   }
 
@@ -229,6 +270,7 @@ export function summarizeRecordingSession(session: RecordingSession): {
   screenCount: number;
   demoClickCount: number;
   wireIntentCount: number;
+  directorScriptCount: number;
   durationMs: number | null;
 } {
   const byKind: Record<string, number> = {};
@@ -249,6 +291,7 @@ export function summarizeRecordingSession(session: RecordingSession): {
     screenCount: byKind.screen ?? 0,
     demoClickCount: byKind["demo-click"] ?? 0,
     wireIntentCount: byKind["wire-intent"] ?? 0,
+    directorScriptCount: byKind["director-script"] ?? 0,
     durationMs,
   };
 }

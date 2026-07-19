@@ -45,6 +45,20 @@ const HOME_SCRIPTS: Record<HomeScriptId, PlaybackScriptSource> = {
   "sarah-query-submit": { file: HOME, symbol: "runSitePilotHomeScript" },
 };
 
+export type RunnablePlaybackScriptKind = "home" | "avail" | "book" | "tab";
+
+/** Infer script channel from a known script id (recording / retreat-sync replay). */
+export function resolvePlaybackScriptKind(
+  scriptId: string | undefined
+): RunnablePlaybackScriptKind | undefined {
+  if (!scriptId) return undefined;
+  if (scriptId in HOME_SCRIPTS) return "home";
+  if (scriptId in AVAIL_SCRIPTS) return "avail";
+  if (scriptId in BOOK_SCRIPTS) return "book";
+  if (scriptId in TAB_SCRIPTS) return "tab";
+  return undefined;
+}
+
 export function resolvePlaybackScriptSource(
   kind: PlaybackScriptKind | undefined,
   scriptId: string | undefined

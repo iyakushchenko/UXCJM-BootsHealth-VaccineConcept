@@ -21,11 +21,16 @@ import {
 } from "@/app/recording/recordingReplay";
 import {
   buildPlaybackSelectorChain,
+  isRecordingChromeTarget,
   notifyRecordingFromInteraction,
   resetRecordingCaptureForTests,
   resolvePlaybackSelectorChain,
+  resolveRecordingHumanClickTarget,
+  shouldCaptureRecordingHumanClick,
 } from "@/app/recording/recordingCapture";
+import { applyRecordingProjectScript } from "@/app/recording/recordingScriptApply";
 import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
+import { resolvePlaybackScriptKind } from "@/app/shell/playbackScriptRegistry";
 
 type FakeEl = {
   attrs: Record<string, string>;
@@ -206,6 +211,7 @@ describe("recordingCapture bridge", () => {
       kind: "director-auto",
       label: "Director script — home/sarah-query-submit",
       scriptId: "sarah-query-submit",
+      scriptKind: "home",
       beatId: "agentic-home",
       atMs: 42,
     });
@@ -213,9 +219,112 @@ describe("recordingCapture bridge", () => {
     expect(getActiveRecordingSession()?.events[0]).toMatchObject({
       kind: "director-script",
       scriptId: "sarah-query-submit",
+      scriptKind: "home",
       beatId: "agentic-home",
       manual: false,
     });
+  });
+
+  it("stores retreat-sync wire-intent with scriptKind payload", () => {
+    notifyRecordingFromInteraction({
+      kind: "retreat-sync",
+      label: "CJM step back — sync select-book-date",
+      scriptId: "select-book-date",
+      scriptKind: "book",
+      beatId: "book-step2",
+      atMs: 55,
+    });
+
+    expect(getActiveRecordingSession()?.events[0]).toMatchObject({
+      kind: "wire-intent",
+      intentId: "retreat-sync",
+      payload: {
+        beatId: "book-step2",
+        scriptId: "select-book-date",
+        scriptKind: "book",
+      },
+    });
+  });
+});
+
+describe("recording human click capture", () => {
+  beforeEach(() => {
+    resetRecordingSessionForTests();
+    resetRecordingCaptureForTests();
+  });
+
+  afterEach(() => {
+    resetRecordingSessionForTests();
+    resetRecordingCaptureForTests();
+  });
+
+  function mockClickTarget(options: {
+    action?: string;
+    chrome?: boolean;
+  }): HTMLElement {
+    const el = {
+      getAttribute: (name: string) =>
+        name === "data-studio-action" ? options.action ?? null : null,
+      closest: (sel: string) => {
+        if (options.chrome && sel.includes("studio-nav-panel-host")) {
+          return el;
+        }
+        if (
+          options.action &&
+          (sel.includes("data-studio-action") || sel.includes("button"))
+        ) {
+          return el;
+        }
+        if (!options.chrome && sel.includes("studio-nav-panel-host")) {
+          return null;
+        }
+        if (sel.includes("button") || sel.includes("data-studio-action")) {
+          return options.action || !options.chrome ? el : null;
+        }
+        return null;
+      },
+    } as unknown as HTMLElement;
+    return el;
+  }
+
+  it("ignores untrusted clicks and chrome targets", () => {
+    startRecording();
+    const btn = mockClickTarget({ action: "book-step-1-continue" });
+    const chromeBtn = mockClickTarget({ chrome: true });
+
+    expect(
+      shouldCaptureRecordingHumanClick({
+        isTrusted: false,
+        target: btn,
+      } as unknown as Event)
+    ).toBe(false);
+
+    expect(isRecordingChromeTarget(chromeBtn)).toBe(true);
+    expect(resolveRecordingHumanClickTarget(chromeBtn)).toBeNull();
+    expect(
+      shouldCaptureRecordingHumanClick({
+        isTrusted: true,
+        target: btn,
+      } as unknown as Event)
+    ).toBe(true);
+  });
+
+  it("requires active recording for trusted concept clicks", () => {
+    const btn = mockClickTarget({ action: "book-step-1-continue" });
+    expect(
+      shouldCaptureRecordingHumanClick({
+        isTrusted: true,
+        target: btn,
+      } as unknown as Event)
+    ).toBe(false);
+
+    startRecording();
+    expect(
+      shouldCaptureRecordingHumanClick({
+        isTrusted: true,
+        target: btn,
+      } as unknown as Event)
+    ).toBe(true);
   });
 });
 
@@ -417,9 +526,9 @@ describe("replayRecordingSession", () => {
     expect(result.errors[0]).toMatch(/demo-click/);
   });
 
-  it("replays wire-intent beat actions and skips retreat-sync when apply returns false", async () => {
+  it("replays wire-intent beat actions and retreat-sync when apply succeeds", async () => {
     const applyWireIntent = vi.fn((event: { intentId: string }) => {
-      if (event.intentId === "retreat-sync") return false;
+      if (event.intentId === "retreat-sync") return true;
       return event.intentId === "apply-demo-location";
     });
 
@@ -437,7 +546,11 @@ describe("replayRecordingSession", () => {
           {
             kind: "wire-intent",
             intentId: "retreat-sync",
-            payload: { beatId: "book-step2" },
+            payload: {
+              beatId: "book-step2",
+              scriptId: "select-book-date",
+              scriptKind: "book",
+            },
             atMs: 2,
           },
         ],
@@ -449,9 +562,94 @@ describe("replayRecordingSession", () => {
     );
 
     expect(applyWireIntent).toHaveBeenCalledTimes(2);
-    expect(result.replayed).toBe(1);
-    expect(result.skipped).toBe(1);
-    expect(result.errors.some((e) => e.includes("retreat-sync"))).toBe(true);
+    expect(result.replayed).toBe(2);
+    expect(result.skipped).toBe(0);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("replays director-script events via applyDirectorScript", async () => {
+    const applyDirectorScript = vi.fn(() => true);
+    const result = await replayRecordingSession(
+      {
+        id: "director-replay",
+        version: 1,
+        startedAt: "2026-07-19T00:00:00.000Z",
+        events: [
+          {
+            kind: "director-script",
+            scriptId: "select-book-date",
+            scriptKind: "book",
+            beatId: "book-step2",
+            atMs: 1,
+          },
+          {
+            kind: "director-script",
+            scriptId: "sarah-query-submit",
+            scriptKind: "home",
+            atMs: 2,
+          },
+        ],
+      },
+      {
+        applyDirectorScript,
+        stepDelayMs: 0,
+      }
+    );
+
+    expect(applyDirectorScript).toHaveBeenCalledTimes(2);
+    expect(applyDirectorScript.mock.calls.map((c) => c[0].scriptId)).toEqual([
+      "select-book-date",
+      "sarah-query-submit",
+    ]);
+    expect(result.replayed).toBe(2);
+    expect(result.unsupported).toBe(0);
+  });
+});
+
+describe("applyRecordingProjectScript", () => {
+  it("resolves script kind from id and routes runners", async () => {
+    expect(resolvePlaybackScriptKind("select-book-date")).toBe("book");
+    expect(resolvePlaybackScriptKind("sarah-query-submit")).toBe("home");
+    expect(resolvePlaybackScriptKind("plp-open-pdp")).toBe("tab");
+
+    const runBookScript = vi.fn().mockResolvedValue({ ok: true });
+    const playback = {
+      runBookScript,
+      runHomeScript: vi.fn(),
+      runAvailScript: vi.fn(),
+      runTabScript: vi.fn(),
+      runBeatAction: vi.fn(),
+      abortAll: vi.fn(),
+    };
+
+    const ok = await applyRecordingProjectScript(
+      { scriptId: "select-book-date" },
+      playback as never,
+      {} as never,
+      { skip: true, syncState: true }
+    );
+
+    expect(ok).toBe(true);
+    expect(runBookScript).toHaveBeenCalledWith("select-book-date", {
+      skip: true,
+      syncState: true,
+    });
+  });
+
+  it("returns false for unknown script ids", async () => {
+    const ok = await applyRecordingProjectScript(
+      { scriptId: "not-a-real-script" },
+      {
+        runBookScript: vi.fn(),
+        runHomeScript: vi.fn(),
+        runAvailScript: vi.fn(),
+        runTabScript: vi.fn(),
+        runBeatAction: vi.fn(),
+        abortAll: vi.fn(),
+      } as never,
+      {} as never
+    );
+    expect(ok).toBe(false);
   });
 });
 

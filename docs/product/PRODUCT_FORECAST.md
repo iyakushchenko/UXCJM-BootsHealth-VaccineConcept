@@ -21,7 +21,7 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 | Work | Why | Status |
 |------|-----|--------|
-| Recording v2 gaps | Human REC clicks + script/retreat-sync matrix before compile→journeys | **Parked NOW** (resume after version pack) |
+| Recording compile→journeys | Human/script matrix landed — compile only when boring in real sessions | **NOW** |
 | Versioning habit | notes + consider patch on named demos | Habit — every ship |
 
 ### NEXT
@@ -52,9 +52,9 @@ Ship the **control room** first: deep-linkable screens, recordable interactions,
 
 Shareable `?project=&screen=`; URL wins on refresh; strip `proof` / ephemeral. Optional beat query later.
 
-### 2. Recording fidelity — v2 PARTIAL
+### 2. Recording fidelity — v2 MATRIX LANDED (compile still open)
 
-`kind: "screen"` + `applyStudioScreen` landed. **Demo-click replay** landed (`resolvePlaybackSelectorChain` → `simulateDemoPointerClick`). Wire-intent for known `JourneyBeatActionId` only; `retreat-sync` / director scripts / human REC clicks still open. Compile→journeys only after that matrix is boring.
+`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay (`isTrusted` capture → same selector chain). **Director-script** + **retreat-sync** via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind`. Wire-intent for known `JourneyBeatActionId`. Compile→journeys only after the matrix stays boring in real sessions. Still open: beat-enter / scroll / typed-text capture.
 
 ### 3. Interaction fidelity — ONGOING
 
@@ -128,7 +128,7 @@ Documented handshake; do not build a second studio inside Summarizer.
 2. Recording screen markers → replay — landed  
 3. Domain CSS/attrs + hygiene — landed  
 4. Version chip + agent felony gate — **this tip**  
-5. Recording v2 gaps (NOW) + Boots fidelity debt (parallel)  
+5. Recording compile→journeys (NOW) + Boots fidelity debt (parallel)  
 6. LEGACY shrink by screen + UXDS extract-on-second-use  
 7. Second project rabbit  
 8. Release CI + broader CSS contracts  

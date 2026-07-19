@@ -9,7 +9,7 @@
 
 ## NOW
 
-1. [ ] **Recording v2 gaps** — resume after version-chip/felony pack: human REC click capture; `retreat-sync` / director-script / tab·home·book·avail **script** replay; only then compile→journeys ([RECORDING.md](../shell/RECORDING.md)).
+1. [ ] **Recording compile→journeys** — only after human REC + director/retreat-sync matrix stays boring in real sessions ([RECORDING.md](../shell/RECORDING.md)).
 2. [ ] **Versioning habit** — append notes on every user-visible ship; consider patch when PO wants a named demo ([VERSIONING.md](./VERSIONING.md)).
 
 ---
@@ -34,8 +34,9 @@
 
 ## Done recently (context)
 
+- [x] **Recording v2 gaps (human + scripts)** — trusted human REC clicks → `demo-click`; `applyDirectorScript` + `retreat-sync` via shared `applyRecordingProjectScript` / `resolvePlaybackScriptKind` ([RECORDING.md](../shell/RECORDING.md)).
 - [x] **Version chip + felony gate** — tabs-row `vX.Y.Z` + channel; `check:felonies` + `check:version` in `npm test`; proto filename leftovers → 0 in src/scripts/docs ([VERSIONING.md](./VERSIONING.md)).
-- [x] **Recording v2 demo-click replay** — `resolvePlaybackSelectorChain` + `applyDemoClick` / partial `applyWireIntent`; book CTA `data-studio-action` (gaps = NOW).
+- [x] **Recording v2 demo-click replay** — `resolvePlaybackSelectorChain` + `applyDemoClick` / partial `applyWireIntent`; book CTA `data-studio-action`.
 - [x] **Domain CSS/attrs phase 2** — `.proto-nav-*` / shell chrome → `.studio-*`; `data-proto-*` → `data-studio-*`; events/storage migrate with legacy read ([NAMING.md](./NAMING.md)).
 - [x] **Hygiene gate** — Summarizer-lean LOC ratchet; LEGACY allowlisted.
 - [x] **Retire `proto*` filenames** — modules → `studio*` / domain; `__studio*` + `__proto*` aliases.

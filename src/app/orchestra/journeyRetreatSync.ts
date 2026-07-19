@@ -6,6 +6,7 @@ import {
 import type { JourneyBeat, JourneyRuntime } from "@/app/orchestra/types";
 import { notePlaybackRetreatSync } from "@/app/shell/playbackInteractionContext";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
+import { resolvePlaybackScriptKind } from "@/app/shell/playbackScriptRegistry";
 import { syncAvailBeatRetreat } from "@/projects/boots-pharmacy/playback/availRetreatSync";
 import { retreatScriptOptions } from "@/projects/playbackScriptOptions";
 import type {
@@ -56,7 +57,11 @@ export async function syncBeatRetreatState(
     beatDirectorScriptLabel(beat) ??
     beat.id;
 
-  notePlaybackRetreatSync({ beatId: beat.id, scriptId });
+  notePlaybackRetreatSync({
+    beatId: beat.id,
+    scriptId,
+    scriptKind: channel ?? resolvePlaybackScriptKind(scriptId),
+  });
 
   playbackScrollMonitor.noteRetreatSync();
 

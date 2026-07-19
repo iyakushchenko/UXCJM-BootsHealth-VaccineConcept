@@ -73,7 +73,7 @@ recordingCapture             (bridge + touchpoint hook in App.tsx)
        ↓
 recordingSession             (in-memory session + JSON export)
        ↓
-recordingReplay              (v1 transport replay; v2 demo-click / wire-intent)
+recordingReplay              (v1 transport; v2 demo-click / human click / wire / director)
        ↓
 compileRecordingToBeatTimeline    (future journeys.ts compiler input)
 ```
@@ -83,7 +83,9 @@ compileRecordingToBeatTimeline    (future journeys.ts compiler input)
 | **Types** | `app/recording/recordingTypes.ts` | Event union, session shape, replay options |
 | **Session** | `app/recording/recordingSession.ts` | start/stop/pause, append, serialize, last session |
 | **Capture** | `app/recording/recordingCapture.ts` | Snapshot provider, interaction bridge, touchpoint |
-| **Replay** | `app/recording/recordingReplay.ts` | `replayRecordingSession` (transport/screen/dwell/demo-click/wire-intent), `compileRecordingToBeatTimeline` |
+| **Replay** | `app/recording/recordingReplay.ts` | `replayRecordingSession` (transport/screen/dwell/demo-click/wire-intent/director-script), `compileRecordingToBeatTimeline` |
+| **Script apply** | `app/recording/recordingScriptApply.ts` | Shared `applyRecordingProjectScript` (director + retreat-sync) |
+| **App bridge** | `app/recording/useRecordingReplayBridge.ts` | Replay options + human click install + MCP register |
 | **MCP** | `app/recording/recordingMcpHelpers.ts` | `window.__studioStartRecording` (legacy `__protoStartRecording` alias) etc. |
 | **UI** | `app/nav/StudioNavRecordingControls.tsx` | Studio shell REC deck (same session APIs) |
 
@@ -114,7 +116,7 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ■ | Stop — keeps session for export / replay |
 | ↓ | Download `.recording.json` |
 | ↑ | Import a saved `.recording.json` |
-| ↺ | Replay last stopped or imported session (v2: transport + screen + demo-click + wire-intent) |
+| ↺ | Replay last stopped or imported session (v2: transport + screen + demo/human-click + wire-intent + director-script) |
 
 UI and MCP share `recordingSession` + `replayRecordingSession` — no second session store.
 
@@ -127,10 +129,10 @@ UI and MCP share `recordingSession` + `replayRecordingSession` — no second ses
 | `transport` | Step/Play/Jump via `notePlaybackTransport` | Yes |
 | `touchpoint` | Touchpoint key change in `App.tsx` | Boundary marker only |
 | `screen` | Address-bar / tab screen change (`useStudioUrlSync`) | Yes — `applyStudioScreen` via `screenId` / `studioUrl` |
-| `demo-click` | Robo-cursor via `notePlaybackDemoClick` | Yes — `resolvePlaybackSelectorChain` → `simulateDemoPointerClick` |
-| `director-script` | Journey director via `notePlaybackDirectorScript` | No |
+| `demo-click` | Robo-cursor via `notePlaybackDemoClick` **or** trusted human REC clicks | Yes — `resolvePlaybackSelectorChain` → `simulateDemoPointerClick` |
+| `director-script` | Journey director via `notePlaybackDirectorScript` | Yes — `applyRecordingProjectScript` → `run*Script` by channel |
 | `beat-enter` | Beat onEnter via `notePlaybackBeatEnter` | No |
-| `wire-intent` | Retreat sync / `captureWireIntent` / beat actions | Partial — known `JourneyBeatActionId` via `runBeatAction`; `retreat-sync` skipped |
+| `wire-intent` | Retreat sync / `captureWireIntent` / beat actions | Yes — known `JourneyBeatActionId` via `runBeatAction`; `retreat-sync` → script runner with `syncState` when `scriptId` resolves |
 | `studio` | Journey/orchestra mode changes (manual API) | No |
 | `scroll` | Manual API | No |
 | `dwell` | Manual API or compiled pauses | Yes (delay) |
@@ -147,22 +149,37 @@ Capture already appends `kind: "screen"` when the address bar / tab changes. On 
 
 Boots book steps (`book-step-1` … `book-step-3`) and mapped screens (`home`, `chat`, …, `hub`) restore in event order before/alongside transport.
 
-### Demo-click replay (v2)
+### Demo-click + human REC click replay (v2)
 
-Capture stores a **selector chain** (`data-studio-action` / `data-studio-*` / `data-name`). On **↺ Replay**:
+Capture stores a **selector chain** (`data-studio-action` / `data-studio-*` / `data-name`). Sources:
+
+| Source | Path |
+|--------|------|
+| Robo-cursor | `notePlaybackDemoClick` → `notifyRecordingDemoClick` |
+| Human REC | Trusted `click` (capture phase) via `ensureRecordingHumanClickCapture` — skips Studio chrome; ignores `isTrusted === false` so demo `.click()` does not double-capture |
+
+On **↺ Replay**:
 
 1. Each `demo-click` resolves via `resolvePlaybackSelectorChain` (nested outer→inner, then most-specific unique fallback).
 2. Hit calls shared `simulateDemoPointerClick` (same path as journey director CTAs).
 3. Prefer stable `data-studio-action` on book CTAs (`book-step-1-continue`, `book-step-2-reserve`, …).
 
-### Wire-intent replay (v2 partial)
+### Director-script replay (v2)
+
+When `applyDirectorScript` is wired (App / MCP):
+
+1. Capture stores `scriptId` + `scriptKind` (`home` / `avail` / `book` / `tab`).
+2. Replay calls shared `applyRecordingProjectScript` → project `runHomeScript` / `runAvailScript` / `runBookScript` / `runTabScript`.
+3. If `scriptKind` is missing, kind is inferred via `resolvePlaybackScriptKind(scriptId)`.
+
+### Wire-intent replay (v2)
 
 When `applyWireIntent` is wired (App / MCP):
 
 | `intentId` | Replay |
 |------------|--------|
 | `open-availability-start` / `open-availability-date-chat` / `close-availability` / `apply-demo-location` | Yes — `projectPlayback.runBeatAction` |
-| `retreat-sync` | Skipped (diagnostic marker only; not a beat action) |
+| `retreat-sync` | Yes when payload has resolvable `scriptId` — same script runner with `retreatScriptOptions` (`syncState`) |
 | Other strings | Skipped until a beat-action / script bridge exists |
 
 ---
@@ -194,9 +211,9 @@ Export / replay / compile fall back to the **last stopped or imported** session 
 | v2 (now) | Later |
 |----------|-------|
 | In-memory session + JSON export | Full compile to `journeys.ts` beats |
-| Studio REC deck + MCP helpers | Human click capture during REC (not only robo-cursor) |
-| Transport + screen + dwell + **demo-click** replay | Director-script / beat-enter / scroll replay |
-| Wire-intent for known `JourneyBeatActionId` | Retreat-sync + tab/home/book/avail **script** replay matrix |
+| Studio REC deck + MCP helpers | beat-enter / scroll replay |
+| Transport + screen + dwell + **demo-click** + **human REC click** | Richer human capture (forms / drag / typed text) |
+| Director-script + retreat-sync via shared script apply | Compile→journeys when matrix stays boring |
 
 ---
 

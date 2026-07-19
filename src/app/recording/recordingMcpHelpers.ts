@@ -52,6 +52,7 @@ export function registerRecordingMcpHelpers(options?: {
   applyScreen?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyScreen"];
   applyDemoClick?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyDemoClick"];
   applyWireIntent?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyWireIntent"];
+  applyDirectorScript?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyDirectorScript"];
 }): () => void {
   if (typeof window === "undefined") return () => {};
 
@@ -99,10 +100,11 @@ export function registerRecordingMcpHelpers(options?: {
       !options?.triggerTransport &&
       !options?.applyScreen &&
       !options?.applyDemoClick &&
-      !options?.applyWireIntent
+      !options?.applyWireIntent &&
+      !options?.applyDirectorScript
     ) {
       throw new Error(
-        "triggerTransport, applyScreen, applyDemoClick, or applyWireIntent not available"
+        "triggerTransport, applyScreen, applyDemoClick, applyWireIntent, or applyDirectorScript not available"
       );
     }
     return replayRecordingSession(target, {
@@ -110,6 +112,7 @@ export function registerRecordingMcpHelpers(options?: {
       applyScreen: options.applyScreen,
       applyDemoClick: options.applyDemoClick,
       applyWireIntent: options.applyWireIntent,
+      applyDirectorScript: options.applyDirectorScript,
       stepDelayMs: 200,
     });
   };
