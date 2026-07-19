@@ -22,14 +22,15 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 4. [docs/product/PRODUCT_OWNER_BRIEF.md](docs/product/PRODUCT_OWNER_BRIEF.md) — PO A–Z + decisions log  
 5. [docs/product/CONCEPT_INTAKE.md](docs/product/CONCEPT_INTAKE.md) — messy concepts in; agent fills UXDS gap  
 6. [docs/product/PROJECT_STYLEGUIDE.md](docs/product/PROJECT_STYLEGUIDE.md) — brand delta → project theme.css (remaps only; theme optional)  
-7. [docs/product/DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered  
-8. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
-9. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
-10. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
-11. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
-12. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
-13. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)  
-14. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
+7. [docs/product/CSS_BASE_THEME.md](docs/product/CSS_BASE_THEME.md) — **BASE → THEME → PANEL → LEGACY**; no CSS dump  
+8. [docs/product/DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered; **no new React styles in LEGACY**  
+9. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
+10. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
+11. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
+12. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
+13. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
+14. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)  
+15. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
 
 ## Quick start
 
@@ -78,6 +79,7 @@ Full transport smokes require `__protoRun*` helpers — use sparingly; prefer sa
 - Concept pages target: React + UXDS ([PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md))
 - **UI motion default = `framer-motion`** — import from `framer-motion`; use `AnimatePresence` / `motion.*` for enter/exit/layout. No bespoke `@keyframes` zoos or hand-rolled width/opacity animators unless registered as a DS deviation. Trivial one-property CSS (`color`/`opacity` hover) and Make-parity ports are OK. See [FE_STANDARDS.md](docs/product/FE_STANDARDS.md) §9.
 - FE standards — icon+text nowrap, one tertiary icon language, 1440/64/1312 content column, scoped CSS ([FE_STANDARDS.md](docs/product/FE_STANDARDS.md))
+- CSS layers — BASE → THEME → PANEL → LEGACY; no new React styles in LEGACY ([CSS_BASE_THEME.md](docs/product/CSS_BASE_THEME.md))
 - DS strictness — one pattern per role; `var(--uxds-…)`; theme remaps only; no anonymous page CSS ([DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md), [DEVIATIONS.md](docs/uxds/DEVIATIONS.md))
 - Visual fidelity + no zoo + rebuild behavior parity ([VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md))
 - Interaction fidelity before record — shared kits `src/uxds/interactions/` ([INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md))

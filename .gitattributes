@@ -1,0 +1,2 @@
+# Keep CSS as LF so Tailwind v4 never sees CRCRLF empty declarations.
+*.css text eol=lf

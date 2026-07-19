@@ -48,6 +48,8 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | Repo identity | Engine `ux-studio`; Boots = first test rabbit |
 | Concept UI | React + UXDS structure; PO feeds may be messy — agent upgrades ([CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)) |
 | Brand identity | Per-project styleguide **delta** (colors, logos) → small `theme.css` remaps only ([PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md)); theme optional — UXDS baselines remain ([DS_STRICTNESS.md](./DS_STRICTNESS.md)) |
+| CSS layers | **BASE → THEME → PANEL → LEGACY** — locked ownership; no CSS dump / whack-a-mole ([CSS_BASE_THEME.md](./CSS_BASE_THEME.md)) |
+| LEGACY growth | **Forbidden for new React page work** — quarantine Make globals only; React → BASE / THEME / PANEL / page CSS |
 | DS strictness on pages | UXDS + theme only; no near-duplicate styles; deviations registered ([DS_STRICTNESS.md](./DS_STRICTNESS.md), [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)) |
 | Studio purpose (early) | Discovery, ideation, solution proofing, hypothesis validation |
 | Governance style | Summarizer-shaped docs/contracts; not a Figma-plugin clone |
@@ -174,6 +176,7 @@ Use [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) ruthlessly, plus [VISUAL_FIDELITY.m
 - [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)
 - [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md)
 - [FE_STANDARDS.md](./FE_STANDARDS.md)
+- [CSS_BASE_THEME.md](./CSS_BASE_THEME.md)
 - [DS_STRICTNESS.md](./DS_STRICTNESS.md)
 - [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)
 - [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)

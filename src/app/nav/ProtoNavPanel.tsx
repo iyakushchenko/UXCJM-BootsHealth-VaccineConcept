@@ -3,7 +3,7 @@ import { ProtoNavLogo } from "@/app/nav/ProtoNavLogo";
 import { protoNavIndex } from "@/projects/boots-pharmacy/screens/protoScreens";
 import { useProtoNavZoom } from "@/app/nav/protoNavZoom";
 import { logControlPanel } from "@/app/shell/protoControlPanelLog";
-import "./protoNavPanel.css";
+/* PANEL CSS: imported via src/styles/index.css (BASE → THEME → PANEL → LEGACY). */
 
 export type ProtoNavScreen = {
   label: string;

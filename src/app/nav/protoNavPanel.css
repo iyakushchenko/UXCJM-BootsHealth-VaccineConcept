@@ -1,4 +1,4 @@
-/* Isolated prototype nav panel — imported only by ProtoNavPanel.tsx */
+/* PANEL — engine chrome. Loaded via src/styles/index.css (BASE → THEME → PANEL → LEGACY). */
 /*
  * ⚠️ NAV PANEL — DO NOT “IMPROVE” LAYOUT HERE WITHOUT EXPLICIT OWNER REQUEST.
  * position:fixed, content padding-top, ResizeObserver height vars, host height/zoom

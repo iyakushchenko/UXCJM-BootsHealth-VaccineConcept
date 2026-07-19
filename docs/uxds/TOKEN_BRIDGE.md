@@ -55,14 +55,14 @@ src/projects/<id>/styleguide/
   assets/               # logos
 ```
 
-Import order (`src/styles/index.css`): UXDS tokens → UXDS component CSS → project `theme.css` → globals.
+Import order (`src/styles/index.css`): **BASE** (UXDS tokens + kits) → **THEME** (project `theme.css`) → **PANEL** (engine chrome) → **LEGACY** (Make `globals*.css`). Full map: [../product/CSS_BASE_THEME.md](../product/CSS_BASE_THEME.md).
 
 ### Turn theme off
 
 1. Remove `data-proto-project` from the host, and/or  
 2. Do not import the project `theme.css`.  
 
-Shared components must still look correct on UXDS defaults.
+Shared components must still look correct on UXDS defaults. Do **not** grow LEGACY for new React pages — use BASE / THEME / PANEL / colocated page CSS.
 
 ---
 

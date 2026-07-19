@@ -2,7 +2,7 @@
 
 **Status:** Locked (Product Owner directive, 2026-07-19)  
 **Audience:** Every agent building or restyling concept UI.  
-**Companions:** [FE_STANDARDS.md](./FE_STANDARDS.md) · [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) · [../uxds/TOKEN_BRIDGE.md](../uxds/TOKEN_BRIDGE.md) · [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)
+**Companions:** [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) · [FE_STANDARDS.md](./FE_STANDARDS.md) · [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) · [../uxds/TOKEN_BRIDGE.md](../uxds/TOKEN_BRIDGE.md) · [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)
 
 ---
 
@@ -15,24 +15,30 @@
 
 ---
 
-## 2. Token stack (mandatory)
+## 2. CSS layers + token stack (mandatory)
+
+**Architect rule:** styles land in the correct layer — no dump, no whack-a-mole.  
+Full map: [CSS_BASE_THEME.md](./CSS_BASE_THEME.md). Import order in `src/styles/index.css`: **BASE → THEME → PANEL → LEGACY**.
+
+| Layer | Path | Owns | Forbidden |
+|-------|------|------|-----------|
+| **BASE** | `src/uxds/**/*.css` | Tokens + shared kits | Project-only hex; engine chrome |
+| **THEME** | `src/projects/<id>/styleguide/theme.css` | Variable remaps under `[data-proto-project]` | Component rules, hover forks, layout |
+| **PANEL** | `src/app/nav/**/*.css` (+ future `src/app/shell/`) | Engine chrome (REC / CJM / cassette) | Boots Make page rules |
+| **LEGACY** | `src/styles/globals*.css` | Quarantined Make monster | **Any NEW React page styles** |
+| **Page CSS** | `src/projects/<id>/screens/**/*.css` | Layout / structure for React screens | Parallel palettes; dumping into LEGACY |
 
 ```
-UXDS baseline (:root in src/uxds/tokens/*.css)
+BASE (:root in src/uxds/tokens/*.css + kits)
         ↓ remapped by
-Project theme ([data-proto-project="<id>"] in styleguide/theme.css)
+THEME ([data-proto-project="<id>"] in styleguide/theme.css)
         ↓ consumed by
-Shared components / kits (var(--uxds-…), var(--gap-…), …)
+Shared components / kits + PANEL chrome
         ↓ composed by
 Page screens (structure + layout; no parallel palettes)
+        ↓ (unmigrated only)
+LEGACY Make globals — retire screen-by-screen; do not grow for React
 ```
-
-| Layer | Owns | Forbidden |
-|-------|------|-----------|
-| **UXDS baseline** | Semantic token **names** + default Concept values | Project-only hex living only in page CSS |
-| **Project `theme.css`** | Remap `--uxds-*` (and `--project-*` brand facts) under `[data-proto-project]` | Component rules, hover forks, layout hacks |
-| **Shared components** | Anatomy + states via `var(--uxds-…)` | Hardcoded Boots (or any brand) hex |
-| **Page CSS** | Layout, grid, concept structure measured from Make | Inventing a second link/chip/CTA palette |
 
 ---
 
@@ -45,7 +51,7 @@ Page screens (structure + layout; no parallel palettes)
 
 **Verify:** Shared controls (`.uxds-link`, `.uxds-filter-chip`, `.uxds-btn-primary`, tertiary CTA) still render with UXDS `:root` defaults — readable, consistent, no missing colors.
 
-Boots import order (see `src/styles/index.css`): UXDS tokens → UXDS component CSS → `boots-pharmacy/styleguide/theme.css` → globals.
+Boots import order (see `src/styles/index.css`): BASE (`src/uxds/`) → THEME (`boots-pharmacy/styleguide/theme.css`) → PANEL (`src/app/nav/protoNavPanel.css`) → LEGACY (`globals*.css`).
 
 ---
 
@@ -68,7 +74,7 @@ Allowed without a deviation entry:
 
 - Layout (shell 1440/64/1312, flex/grid, sticky mounts)
 - Concept structure that does not redefine a shared control’s color/hover language
-- Temporary Make bridge CSS while a screen is not yet React (retire screen-by-screen)
+- Temporary Make bridge CSS in LEGACY while a screen is not yet React (retire screen-by-screen — **do not add React page rules to LEGACY**)
 - Trivial one-property CSS transitions (hover color/opacity) — **not** UI enter/exit/layout motion
 
 Requires a **registered deviation** ([../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)):
@@ -86,12 +92,14 @@ Requires a **registered deviation** ([../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.
 2. Consume `var(--uxds-…)` in shared CSS; put brand hex only in `theme.css` (or UXDS baseline).  
 3. If inventing a class: name it, document it, register if it is a deviation.  
 4. Spot-check with theme off (no `data-proto-project` / theme import) — baselines still work.  
-5. Do not big-bang Make `globals-*.css`; migrate surfaces as they are touched.
+5. Do not big-bang Make `globals-*.css`; migrate surfaces as they are touched.  
+6. **Never grow LEGACY for new React work** — use BASE / THEME / PANEL / page CSS ([CSS_BASE_THEME.md](./CSS_BASE_THEME.md)).
 
 ---
 
 ## Related
 
+- [CSS_BASE_THEME.md](./CSS_BASE_THEME.md)  
 - [FE_STANDARDS.md](./FE_STANDARDS.md)  
 - [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)  
 - [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md)  
