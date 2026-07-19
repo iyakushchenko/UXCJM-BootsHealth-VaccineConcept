@@ -123,7 +123,7 @@ export function BookStep3ConfirmationScreen({
       data-name="body"
       data-studio-react-screen={BOOK_STEP3_REACT_SCREEN_ID}
     >
-      <div className="book-step-3__crumbs" data-name="module.breadcrumbs">
+      <header className="book-step-3__crumbs" data-name="module.breadcrumbs">
         <div className="book-step-3__shell">
           <nav
             className="book-step-3__shell-inner book-step-3__crumbs-inner"
@@ -139,9 +139,9 @@ export function BookStep3ConfirmationScreen({
             <span className="book-step-3__crumb-current">Book Appointment</span>
           </nav>
         </div>
-      </div>
+      </header>
 
-      <div className="book-step-3__body">
+      <main className="book-step-3__body">
         <div className="book-step-3__body-fill" aria-hidden>
           <div className="book-step-3__body-fill-solid" />
           <img
@@ -313,7 +313,7 @@ export function BookStep3ConfirmationScreen({
             </section>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

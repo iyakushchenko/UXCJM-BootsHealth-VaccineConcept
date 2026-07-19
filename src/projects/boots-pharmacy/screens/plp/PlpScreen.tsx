@@ -495,7 +495,7 @@ export function PlpScreen({
       data-name="body"
       data-studio-react-screen={PLP_REACT_SCREEN_ID}
     >
-      <div className="plp__crumbs" data-name="module.breadcrumbs">
+      <header className="plp__crumbs" data-name="module.breadcrumbs">
         <div className="plp__shell">
           <nav
             className="plp__shell-inner plp__crumbs-inner"
@@ -515,7 +515,7 @@ export function PlpScreen({
             <span className="plp__crumb-current">Vaccinations</span>
           </nav>
         </div>
-      </div>
+      </header>
 
       <section className="plp__hero" data-name="module.plp.hero">
         <div className="plp__hero-bg" data-name="component.plp.hero.bg" aria-hidden>
@@ -537,7 +537,7 @@ export function PlpScreen({
         </div>
       </section>
 
-      <div className="plp__body" data-name="module.laptop.specs">
+      <main className="plp__body" data-name="module.laptop.specs">
         {/* Make ModuleLaptopSpecs: white base + decorative fill @ opacity 0.41 */}
         <div className="plp__body-fill" aria-hidden>
           <div className="plp__body-fill-solid" />
@@ -774,7 +774,7 @@ export function PlpScreen({
             </aside>
 
             {/* Make Body8 listing wrapper — white card + drop-shadow over page fill */}
-            <div className="plp__listing" data-name="module.plp.listing">
+            <section className="plp__listing" data-name="module.plp.listing">
               <div className="plp__results">
                 <div
                   className="plp__results-summary"
@@ -927,11 +927,11 @@ export function PlpScreen({
                   ) : null}
                 </div>
               </div>
-            </div>
+            </section>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

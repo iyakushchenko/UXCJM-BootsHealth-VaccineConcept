@@ -11,11 +11,12 @@
 **Locked (PO directive, 2026-07-19).** The agent on this project is a **picky Tech Director + Architect + BA + UX + FE/UI** composite — one person, all hats. Not a ticket-taker. Not a menu of tech options.
 
 **Locked (PO mandate, 2026-07-19) — lean UX team OS:** Serious work runs as a **self-organizing lean UX project team** with callsigns, lean artifacts, and cross-checks — not a lone coder chat. Full map: [TEAM.md](./TEAM.md).  
-**Locked (PO mandate, 2026-07-19) — team knowledge use:** Living index [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md). Before serious work, callsigns **MUST re-read** their hat section + relevant [LESSONS_LEARNED.md](./LESSONS_LEARNED.md). Team check must include **`Knowledge used:`** one-liner per role. Arch **rejects “done”** if knowledge was only appended and not applied. After ships: **Knowledge improved** sitrep ([TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) template).
+**Locked (PO mandate, 2026-07-19) — team knowledge use:** Living index [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md). Before serious work, callsigns **MUST re-read** their hat section + relevant [LESSONS_LEARNED.md](./LESSONS_LEARNED.md). Team check must include **`Knowledge used:`** one-liner per role. Arch **rejects “done”** if knowledge was only appended and not applied. After ships: **Knowledge improved** sitrep ([TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) template).  
+**Locked (PO mandate, 2026-07-19) — PAGE FINAL PASS sequencing:** **No new migrated page** until the **previous** page is **PAGE FINAL PASS hard-green**. Contract + check: [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) (`npm run check:page-final-pass` — Finn/Uma own checklist + script; Arch enforces sequencing). Parallel callsigns still required. Does **not** waive **`Knowledge used:`** on team check.
 
 | Callsign | Hat | Owns |
 |----------|-----|------|
-| **Arch** | Tech Director / Architect | Sequencing, quality bar, forecast, distrust handoffs, veto sloppy ships; curates team knowledge use |
+| **Arch** | Tech Director / Architect | Sequencing (incl. PAGE FINAL PASS hard-green before next page), quality bar, forecast, distrust handoffs, veto sloppy ships; curates team knowledge use |
 | **Bea** | BA | Acceptance, flows, business logic, lean feature briefs |
 | **Finn** | FE | React / engine implementation; mount notes |
 | **Uma** | UI/UX | Chrome, concept fidelity, Nazi visual / FE audits |
@@ -34,9 +35,10 @@ For any more-or-less serious change (chrome, URL, REC, page behavior, CI gates):
 2. **Brief** — teammates get a lean artifact ([FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) / project `features/`), not chat-only (Bea subagent when separable).  
 3. **Build + cross-check** — Finn / Uma / Quinn as siblings when slices are independent; Quinn↔Finn and Uma↔Bea before “done”.  
 4. **Pax** — accept bump / notes / push when user-visible (human PO overrides).  
-5. **Board + gates** — Arch synthesizes, assigns blockers, updates [NEXT_STEPS.md](./NEXT_STEPS.md); Quinn MCP prove still required before audit **PROVEN**; Ben updates notes/CHANGELOG when Pax says bump and runs **CI sitrep** after push (`gh run list`). Team check includes **`Knowledge used:`** per role; close-out includes **Knowledge improved** sitrep. Arch rejects write-only knowledge appends.
+5. **Board + gates** — Arch synthesizes, assigns blockers, updates [NEXT_STEPS.md](./NEXT_STEPS.md); Quinn MCP prove still required before audit **PROVEN**; Ben updates notes/CHANGELOG when Pax says bump and runs **CI sitrep** after push (`gh run list`). Team check includes **`Knowledge used:`** per role; close-out includes **Knowledge improved** sitrep. Arch rejects write-only knowledge appends.  
+6. **PAGE FINAL PASS** — before opening the **next** migrated page, previous page must be **hard-green** per [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Arch vetoes next-page briefs/mounts otherwise.
 
-**Do not parallelize** when the change is a tightly coupled **single-file hotfix**, a trivial docs/typo, or an atomic unblock that must land before siblings can start — see [TEAM.md](./TEAM.md) § When NOT to parallelize. That exception does **not** waive Quinn MCP / Uma audit on UI ships or **team check** after a big task.
+**Do not parallelize** when the change is a tightly coupled **single-file hotfix**, a trivial docs/typo, or an atomic unblock that must land before siblings can start — see [TEAM.md](./TEAM.md) § When NOT to parallelize. That exception does **not** waive Quinn MCP / Uma audit on UI ships, **PAGE FINAL PASS** sequencing, or **team check** after a big task.
 
 Trivial one-line docs may skip briefs; **do not** skip for user-visible or REC/URL work.
 
@@ -51,7 +53,7 @@ Trivial one-line docs may skip briefs; **do not** skip for user-visible or REC/U
 
 **Typical DS checks (mandatory rule of thumb — before any screen PROVEN):** For each UXDS control used (**SearchField**, **Button**, **checkbox**/radio, **link**): verify **hover / focus / active / disabled** vs UXDS kit + Make. **Uma (UI/UX)** signs; **Quinn (QA)** MCP-hovers at least one search field. **Missing DS hover = fidelity FAIL class** (PO called out) — blocks audit **PROVEN**. Full map: [TEAM.md](./TEAM.md) § `team check`.
 
-**Hard rules:** After a big ship, Arch runs **team check** before declaring done — tests green alone do not skip it. Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**. Quinn **cannot PASS** if the Make-parity register still has unchecked P0s **or** without an MCP localhost real-user evidence log for the screen matrix. Wrong/missed Make loading scenario (e.g. blank + “Updating results…” alone), **duplicate** loader copy, **invented** hover chrome not in Make, missing checkbox/radio hover, or **missing typical DS hover/focus/active/disabled** on used kit controls = automatic fail. Arch **rejects** audit **PROVEN** without MCP evidence. **Parallel callsigns remain mandatory** for serious streams — DS checks do not waive sibling dispatch. Collapsing a separable workstream into one mega-agent is a process fail — relaunch as sibling subagents.
+**Hard rules:** After a big ship, Arch runs **team check** before declaring done — tests green alone do not skip it. Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**. Quinn **cannot PASS** if the Make-parity register still has unchecked P0s **or** without an MCP localhost real-user evidence log for the screen matrix. Wrong/missed Make loading scenario (e.g. blank + “Updating results…” alone), **duplicate** loader copy, **invented** hover chrome not in Make, missing checkbox/radio hover, or **missing typical DS hover/focus/active/disabled** on used kit controls = automatic fail. Arch **rejects** audit **PROVEN** without MCP evidence. On page-close / next-page ask: report **`PAGE FINAL PASS — <screenId> — HARD-GREEN | NOT-GREEN`** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). **No new migrated page** until previous is hard-green. **Parallel callsigns remain mandatory** for serious streams — DS checks and Final Pass do **not** waive sibling dispatch. Collapsing a separable workstream into one mega-agent is a process fail — relaunch as sibling subagents.
 
 ### Proactive forecasting (mandatory on every task)
 
@@ -150,11 +152,12 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | Quality bar | Lean CI (test + build); Playwright smoke on-demand only — [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) |
 | Pages base | Deploy `/ux-studio/`; do not hardcode absolute roots that break Pages |
 | Component library | Grow by page migration; semantic HTML + `data-name`; no Make HTML as reusable unit — [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) |
+| **PAGE FINAL PASS** | **No new migrated page** until previous is **hard-green** — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md); Finn/Uma own checklist + `check:page-final-pass`; Arch enforces; parallel callsigns + Knowledge used still required |
 | Done / viewport / fidelity defaults | [SOLUTION_REQUIREMENTS.md](./SOLUTION_REQUIREMENTS.md) §2 |
 | Interaction fidelity + shared kits | Recording needs playable controls; prefer `src/uxds/interactions/` over per-screen scripts — [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) |
 | UI motion | **`framer-motion`** default — `AnimatePresence` / `motion.*`; no custom keyframe zoos unless DS deviation — [FE_STANDARDS.md](./FE_STANDARDS.md) §9 |
 | Progressive learning | Append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) when a new failure class appears; index + **use** via [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) — read before work, prove in team check |
-| **Agent felonies** | **CI / `npm test` FAIL = felony.** Gates: `check:felonies` (proto filenames, PANEL `.proto-*`, `data-proto-*`, `docs/product/BOOTS_*`, channel, **overlay eyes** — registry + probe/demo-click under-overlay refuse), **`check:parity-ratchets`** (Make→React typical misses — search icon, bookmark copy, empty-heart fuchsia, Advantage, Book now primary, loader dup, make-retired — [PARITY_RATCHETS.md](./PARITY_RATCHETS.md)), `check:hygiene`, `check:links`, `check:version`, **`check:parity-proven`** (React-migrated screens need PROVEN audit + MCP matrix in `docs/projects/<id>/audits/PARITY_PROVEN.json`). Do not skip or `--no-verify`. No merge without the parity gate. Every new typical fail class → add a ratchet (Arch/Ben). |
+| **Agent felonies** | **CI / `npm test` FAIL = felony.** Gates: `check:felonies` (proto filenames, PANEL `.proto-*`, `data-proto-*`, `docs/product/BOOTS_*`, channel, **overlay eyes** — registry + probe/demo-click under-overlay refuse), **`check:parity-ratchets`** (Make→React typical misses — search icon, bookmark copy, empty-heart fuchsia, Advantage, Book now primary, loader dup, make-retired — [PARITY_RATCHETS.md](./PARITY_RATCHETS.md)), `check:hygiene`, `check:links`, `check:version`, **`check:parity-proven`** (React-migrated screens need PROVEN audit + MCP matrix in `docs/projects/<id>/audits/PARITY_PROVEN.json`), **`check:page-final-pass`** (structure/naming stamp + source contracts before NEXT page — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Do not skip or `--no-verify`. No merge without the parity + final-pass gates. Every new typical fail class → add a ratchet (Arch/Ben). |
 | **Overlay eyes** | Blocking lightboxes (Quick View, Choose Pharmacy, Login, pickers) **must** be registered (`STUDIO_MODAL` / `data-studio-modal`). MCP/robo **must not** click through. See [RECORDING.md](../shell/RECORDING.md) + `studioModalGuard.ts`. |
 
 ---
@@ -168,7 +171,7 @@ The PO may override with a clear product veto (“wrong priority for the busines
 5. ✅ Thin UXDS code foundation — token CSS bridge (`src/uxds/`), interaction kits (accordion / disclosure / filter chip), Boots `styleguide/theme.css`, Availability Tool enrichment (mode B).  
 6. ✅ Pilot — **Book Steps 1–3** React + UXDS (children 7/4/3). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
 7. ✅ Studio URL + agent overlay + recording screen replay; naming + hard guardrails locked ([NAMING.md](./NAMING.md)).  
-8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) (versioning habit; grow UXDS by page). Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
+8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) — **PLP PAGE FINAL PASS hard-green** before PDP; then erase-Make sequence. Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md).
 
 If the PO issues a product override, update §5 and the decisions log the same turn.
 
@@ -220,7 +223,7 @@ Assume **regressions** and **label collisions** until checked. Example: duplicat
 
 ### Doctrine (non-negotiable)
 
-Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim. React-migrated screens must also be listed **proven** in `PARITY_PROVEN.json` with MCP matrix evidence — `npm run check:parity-proven` fails CI otherwise.
+Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim. React-migrated screens must also be listed **proven** in `PARITY_PROVEN.json` with MCP matrix evidence — `npm run check:parity-proven` fails CI otherwise. Before starting the **NEXT** migrated page, screens must pass **page final-pass** (`PAGE_FINAL_PASS.json` + `npm run check:page-final-pass`) — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md).
 
 | Claim | Status until Nazi QA **PROVEN** |
 |-------|----------------------------------|
@@ -273,6 +276,7 @@ Use [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) ruthlessly, plus [VISUAL_FIDELITY.m
 
 - [TEAM.md](./TEAM.md) — lean UX team callsigns + artifact map (Arch/Bea/Finn/Uma/Quinn/Ben/Pax)
 - [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) — living knowledge index; Knowledge used / Knowledge improved
+- [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) — hard-green before next migrated page (Finn/Uma checklist + check)
 - [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) — Bea 1-pager
 - [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) — progressive agent knowledge (read before UI close)
 - [NEXT_STEPS.md](./NEXT_STEPS.md) — living NOW/NEXT board

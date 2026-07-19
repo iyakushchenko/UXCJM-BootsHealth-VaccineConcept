@@ -214,7 +214,7 @@ export function BookStep2DateTimeScreen({
       data-name="body"
       data-studio-react-screen={BOOK_STEP2_REACT_SCREEN_ID}
     >
-      <div className="book-step-2__crumbs" data-name="module.breadcrumbs">
+      <header className="book-step-2__crumbs" data-name="module.breadcrumbs">
         <div className="book-step-2__shell">
           <nav
             className="book-step-2__shell-inner book-step-2__crumbs-inner"
@@ -230,9 +230,9 @@ export function BookStep2DateTimeScreen({
             <span className="book-step-2__crumb-current">Book Appointment</span>
           </nav>
         </div>
-      </div>
+      </header>
 
-      <div className="book-step-2__body">
+      <main className="book-step-2__body">
         <div className="book-step-2__body-fill" aria-hidden>
           <div className="book-step-2__body-fill-solid" />
           <img
@@ -342,7 +342,7 @@ export function BookStep2DateTimeScreen({
             </section>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

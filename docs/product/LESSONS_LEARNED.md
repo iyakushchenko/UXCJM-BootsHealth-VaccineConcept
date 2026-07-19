@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### PAGE FINAL PASS — no next migrated page until previous hard-green (PO / Arch)
+
+- **Symptom / class:** Team starts PDP (or next erase-Make page) while PLP (previous) still has open Final Pass gaps — PROVEN/tests green used as a false “open next page” signal.
+- **Gate (GLOBAL sequencing):** **No new migrated page** until previous is **PAGE FINAL PASS hard-green** — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Finn/Uma own checklist + `check:page-final-pass` (single contract; do not duplicate). Arch vetoes next-page brief/mount otherwise. Team check reports `PAGE FINAL PASS — <screenId> — HARD-GREEN | NOT-GREEN`.
+- **Process:** Parallel callsigns still required; **`Knowledge used:`** still mandatory on team check. Board: [NEXT_STEPS.md](./NEXT_STEPS.md) NOW 2e blocks PDP.
+
 ### MCP page probe — scroll-into-view + overlay visible every probe (PO / Quinn)
 
 - **Symptom / class:** MCP / robo page probe interacted with off-screen or partially scrolled targets; or ran steps while the agent testing overlay was missing/hidden — prove looked “green” without visible PASS/FAIL chrome the PO can trust.

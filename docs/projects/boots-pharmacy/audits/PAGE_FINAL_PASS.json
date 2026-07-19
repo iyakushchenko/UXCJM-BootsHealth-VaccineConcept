@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "projectId": "boots-pharmacy",
+  "updatedAt": "2026-07-19",
+  "note": "Hard gate before NEXT page. npm run check:page-final-pass (via npm test) fails unless each required screen has status=proven, full checklist keys true, stampedAt, and source contracts (main/header, BEM=screenId, data-studio-react-screen, make-retired, kits). Policy: docs/product/PAGE_FINAL_PASS.md. Quinn MCP proves after stamp.",
+  "requiredScreens": [
+    "book-step-1",
+    "book-step-2",
+    "book-step-3",
+    "plp"
+  ],
+  "screens": [
+    {
+      "screenId": "book-step-1",
+      "status": "proven",
+      "stampedAt": {
+        "sha": "c5cce1a",
+        "date": "2026-07-19",
+        "note": "Uma+Finn structure/naming final pass — header+main landmarks; BEM book-step-1; data-studio-react-screen + make-retired; ButtonPrimary + search-icon markers. Quinn MCP follow-up."
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "book-step-2",
+      "status": "proven",
+      "stampedAt": {
+        "sha": "c5cce1a",
+        "date": "2026-07-19",
+        "note": "Uma+Finn structure/naming final pass — header+main; BEM book-step-2; ButtonPrimary; Make time-rule hrs retained (not invent filter seps). Quinn MCP follow-up."
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "book-step-3",
+      "status": "proven",
+      "stampedAt": {
+        "sha": "c5cce1a",
+        "date": "2026-07-19",
+        "note": "Uma+Finn structure/naming final pass — header+main; BEM book-step-3; ButtonPrimary kits. Quinn MCP follow-up."
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "plp",
+      "status": "proven",
+      "stampedAt": {
+        "sha": "c5cce1a",
+        "date": "2026-07-19",
+        "note": "Uma+Finn structure/naming final pass — header crumbs + main body + section listing + aside filters; BEM plp; SearchField + ButtonPrimary; no filter-section invent seps; DS states via kit ratchets. Board lock: PDP blocked until this stamp. Quinn MCP follow-up."
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    }
+  ]
+}

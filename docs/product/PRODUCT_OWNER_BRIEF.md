@@ -215,5 +215,6 @@ Avoid:
 | 2026-07-19 | **Modal navigable URL + sitrep stacking:** blocking lightboxes (Choose Pharmacy) use `&modal=`; recording/replay must not click through; agent sitrep above concept modals. See shell/URL.md, RECORDING.md |
 | 2026-07-19 | **Standing PO commands `team report` / `team check`:** lean full-team sitrep on demand; workstream cross-check on demand **or** Arch auto after every big ship before “done”. Always display `Name (Role)`. See TEAM.md, COMMAND_DOCTRINE §0.2 |
 | 2026-07-19 | **Team knowledge database — use, not only write:** living index TEAM_KNOWLEDGE.md; callsigns re-read hat section + LESSONS before serious work; team check `Knowledge used:` one-liner; **Knowledge improved** sitrep after ships; Arch rejects write-only appends. MCP probe: scroll-into-view + overlay visible every step or FAIL. See TEAM.md § Knowledge use, TEAM_KNOWLEDGE.md, LESSONS_LEARNED.md |
+| 2026-07-19 | **PAGE FINAL PASS sequencing:** no new migrated page until previous page is PAGE FINAL PASS hard-green. Contract PAGE_FINAL_PASS.md; Finn/Uma own checklist + `check:page-final-pass`; Arch enforces; parallel callsigns + Knowledge used still required. PDP blocked until PLP Final Pass hard-green. See PAGE_FINAL_PASS.md, NEXT_STEPS.md, COMMAND_DOCTRINE §0/§4 |
 
 New durable decisions get a row here in the same session they are made.

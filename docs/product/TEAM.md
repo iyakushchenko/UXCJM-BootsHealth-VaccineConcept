@@ -26,10 +26,10 @@ Trivial docs/typos may skip the full re-read; **do not** skip for chrome, URL, R
 
 | Display (always) | Owns | Artifacts for teammates |
 |------------------|------|-------------------------|
-| **Arch (Director)** | Sequencing, forecast, distrust handoffs, veto sloppy ships | [NEXT_STEPS.md](./NEXT_STEPS.md), [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md), doctrine |
-| **Bea (BA)** | Acceptance, flows, business logic | Lean feature briefs (`FEATURE_BRIEF_TEMPLATE.md` / `docs/projects/<id>/features/`) |
-| **Finn (FE)** | React / engine implementation | Code + mount notes in brief or PR |
-| **Uma (UI/UX)** | Chrome, concept fidelity, Nazi visual | FE audits under `docs/projects/<id>/audits/` |
+| **Arch (Director)** | Sequencing (incl. **PAGE FINAL PASS** hard-green before next page), forecast, distrust handoffs, veto sloppy ships | [NEXT_STEPS.md](./NEXT_STEPS.md), [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md), [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md), doctrine |
+| **Bea (BA)** | Acceptance, flows, business logic | Lean feature briefs (`FEATURE_BRIEF_TEMPLATE.md` / `docs/projects/<id>/features/`) — **no next-page brief** until previous Final Pass hard-green |
+| **Finn (FE)** | React / engine implementation; co-owns Final Pass checklist + `check:page-final-pass` with Uma | Code + mount notes in brief or PR · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) |
+| **Uma (UI/UX)** | Chrome, concept fidelity, Nazi visual; co-owns Final Pass checklist + check with Finn | FE audits under `docs/projects/<id>/audits/` · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) |
 | **Quinn (QA)** | Prove, MCP, felonies, CI sitrep | Prove notes (localhost / MCP / gate evidence). Owns prove for post-agent clean slate (no sticky Choose Pharmacy after `__protoRun*` / `stop({ reload: true })`). **After every version bump:** prove tab-bar chip `v` + `package.json` semver + channel (localhost; note Pages) |
 | **Ben (BE)** | Version / changelog / CI / gates / push mechanics | [VERSIONING.md](./VERSIONING.md), check scripts, `gh run list` |
 | **Pax (PO sim)** | Acts like this project’s human PO: intolerant of near-dups / missed chrome; wants hard guardrails, Pages truth, no Actions burn, decisive next steps. **Decides whether/when to bump version + changelog + push** (human PO overrides) | [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md) decisions log |
@@ -57,7 +57,8 @@ Never bare callsign alone in team output — always `Name (Role)` as above.
 3. **Role-scoped prompts** — each subagent prompt states callsign + owns + out-of-scope + artifact path; no “do everyone’s job.”  
 4. **Arch synthesizes** — merge sitreps; reopen BAD handoffs; assign concrete blockers to the owning callsign.  
 5. **Quinn MCP prove before PROVEN** — Arch **rejects** FE audit **PROVEN** without MCP localhost real-user evidence ([§ Standing PO commands](#standing-po-commands-hard-process)).  
-6. **Ben CI sitrep** — after push / CI-impacting change, Ben (or Arch wearing Ben with explicit sitrep) runs `gh run list` per [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5.
+6. **Ben CI sitrep** — after push / CI-impacting change, Ben (or Arch wearing Ben with explicit sitrep) runs `gh run list` per [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5.  
+7. **PAGE FINAL PASS before next page** — **no new migrated page** until previous is **hard-green** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Finn/Uma own checklist + `check:page-final-pass` (do not duplicate the contract elsewhere). Parallel callsigns still required; **`Knowledge used:`** still mandatory on team check.
 
 ### When NOT to parallelize
 
@@ -67,7 +68,7 @@ Stay in one Arch session (no sibling spawn) when:
 - **Trivial docs / typo** — process note or one-line copy with no UI/behavior.  
 - **Atomic unblock** — a 2-minute blocker that must land before any sibling can start (then spawn siblings).
 
-Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, or to skip **team check** after a big task.
+Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, **PAGE FINAL PASS** sequencing, or **team check** after a big task.
 
 ---
 
@@ -102,7 +103,7 @@ Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, or to sk
 3. **`Knowledge used:`** one-liner **per in-scope callsign** (what they re-read from [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) / LESSONS / UMA / ratchets / register). Missing = Arch **FAIL** for that role.  
 4. **Quinn (QA):** verify CI / Pages if relevant + **interaction matrix** (hover/click feedback) PASS/FAIL.  
 5. **Ben (BE):** `gh` sitrep when push/CI touched.  
-6. **Arch (Director):** concrete task assignments until blockers cleared / stream green. Steer: Uma checklist + Bea register completeness + Quinn interaction matrix must all be green. **Reject done** if knowledge was write-only (appended but not applied).
+6. **Arch (Director):** concrete task assignments until blockers cleared / stream green. Steer: Uma checklist + Bea register completeness + Quinn interaction matrix must all be green. **Reject done** if knowledge was write-only (appended but not applied). On page-close / next-page ask: **`PAGE FINAL PASS — <screenId> — HARD-GREEN | NOT-GREEN`** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). **Veto** starting the next migrated page until previous is hard-green.
 
 **Mandatory per-role fidelity lines (UI / Make→React / chrome ships):**
 
@@ -131,8 +132,10 @@ For **each** UXDS control used on the screen (at minimum **SearchField**, **Butt
 - **Missing DS hover = fidelity FAIL class** (PO called out) — flat dead SearchField / Button / checkbox / link vs kit+Make blocks **PROVEN**.  
 - **Forbidden to invent** hover/loading chrome not in Make.  
 - **MCP real-user matrix mandatory for every screen ship** (Quinn + Ben). Prefer `__studioRunMcpPageProbe` so the PO sees the robo-cursor + overlay PASS/FAIL. Arch **rejects** audit **PROVEN** without MCP evidence log.  
-- **Parallel callsigns still required** for serious streams — do not skip sibling dispatch because DS checks exist ([§ Parallel dispatch](#parallel-dispatch-arch-must-spawn-siblings)).  
+- **Parallel callsigns still required** for serious streams — do not skip sibling dispatch because DS checks or PAGE FINAL PASS exist ([§ Parallel dispatch](#parallel-dispatch-arch-must-spawn-siblings)).  
+- **PAGE FINAL PASS (GLOBAL sequencing):** **no new migrated page** until previous is **hard-green** — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Finn/Uma land checklist + `check:page-final-pass`; Arch enforces. Team check still requires **`Knowledge used:`** per role.  
 - **No merge** without `npm run check:parity-proven` green (`PARITY_PROVEN.json` + audit PROVEN + MCP section).  
+- **Page final-pass (GLOBAL HARD FAIL):** `npm run check:page-final-pass` — every React-migrated screen needs proven stamp + checklist in `PAGE_FINAL_PASS.json` + source contracts (`<main>`/`<header>`, BEM=`screenId`, kits). **No NEXT page** (e.g. PDP) until prior screen final-pass proven ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)).  
 - **Parity ratchets (GLOBAL HARD FAIL):** `npm run check:parity-ratchets` — typical Make→React misses (search icon + **icon-pos end**, single clear, View all / 10-cap, filter counters, no filter hr, bookmark copy, empty-heart fuchsia, Advantage bar, Book now primary, loader dup, make-retired). Every new typical fail class → Arch/Ben add a ratchet ([PARITY_RATCHETS.md](./PARITY_RATCHETS.md)). Overlay registry stays in `check:felonies`.  
 
 - **Overlay eyes (GLOBAL HARD FAIL):** every blocking popup (Quick View, Choose Pharmacy, Login, pickers, …) must be in `studioModalGuard` registry + `data-studio-modal`. `__studioRunMcpPageProbe` / `simulateDemoPointerClick` **must refuse** clicks to targets under the topmost overlay (or only click inside it). Felony: `check:felonies` fails npm test if guard missing or known overlays unregistered. Quinn proves: open Quick View → under-tile refuse PASS.  
@@ -159,6 +162,7 @@ Serious work = this loop **with parallel sibling subagents** (§ Parallel dispat
 |----------|------|-------|
 | Team OS (this file) | `docs/product/TEAM.md` | Arch |
 | **Team knowledge index** | `docs/product/TEAM_KNOWLEDGE.md` | Arch (all hats feed) |
+| **Page Final Pass** | `docs/product/PAGE_FINAL_PASS.md` (+ `check:page-final-pass`) | Arch sequencing; Finn + Uma checklist/script |
 | Lessons (append-only) | `docs/product/LESSONS_LEARNED.md` | All (Arch curates) |
 | Feature brief template | `docs/product/FEATURE_BRIEF_TEMPLATE.md` | Bea |
 | Project feature briefs | `docs/projects/<id>/features/*.md` | Bea |
@@ -181,8 +185,9 @@ Arch spawns siblings → Bea brief → Finn (+ Uma) build → Quinn prove + Uma 
 | Step | Fail if… |
 |------|----------|
 | Dispatch | Separable serious stream collapsed into one mega-agent (no sibling subagents) |
-| Briefs | Chat-only “we’ll fix it” with no acceptance |
+| Briefs | Chat-only “we’ll fix it” with no acceptance; next-page brief while previous Final Pass not hard-green |
 | Cross-check | Finn “done” with no Quinn MCP evidence; Uma skipped on UI; Arch stamps PROVEN without MCP |
+| PAGE FINAL PASS | Next migrated page started while previous not hard-green ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)) |
 | Pax | Version/push on user-visible ship without Pax (or human PO) call |
 | Version bump | Ben bumps `package.json` but Quinn did not prove UI chip matches (chip lie = felony) |
 | CI | Push without Ben `gh` sitrep when CI was touched |
@@ -199,6 +204,7 @@ Arch spawns siblings → Bea brief → Finn (+ Uma) build → Quinn prove + Uma 
 ## Related
 
 - [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) — living index + Knowledge improved sitrep  
+- [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) — hard-green before next migrated page  
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md)  
 - [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)  
 - [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md)  

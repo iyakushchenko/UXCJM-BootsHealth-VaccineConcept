@@ -122,7 +122,7 @@ export function BookStep1LocationScreen({
         Content grid (same as Footer / header logo column):
         full-bleed band → max 1440 shell + 64px side pad → max 1312 inner.
       */}
-      <div className="book-step-1__crumbs" data-name="module.breadcrumbs">
+      <header className="book-step-1__crumbs" data-name="module.breadcrumbs">
         <div className="book-step-1__shell">
           <nav
             className="book-step-1__shell-inner book-step-1__crumbs-inner"
@@ -138,9 +138,9 @@ export function BookStep1LocationScreen({
             <span className="book-step-1__crumb-current">Book Appointment</span>
           </nav>
         </div>
-      </div>
+      </header>
 
-      <div className="book-step-1__body">
+      <main className="book-step-1__body">
         {/* Make Body5: white base + decorative fill image @ opacity 0.31 */}
         <div className="book-step-1__body-fill" aria-hidden>
           <div className="book-step-1__body-fill-solid" />
@@ -329,7 +329,7 @@ export function BookStep1LocationScreen({
           </aside>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

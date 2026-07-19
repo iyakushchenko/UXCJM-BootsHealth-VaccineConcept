@@ -13,7 +13,10 @@
 
 1b. **Standing PO commands:** `team report` = lean full-team sitrep (+ **Knowledge improved** after ships); `team check` = workstream cross-check (PO ask **or** Arch auto after every big ship before “done”). Always `Name (Role)`. Team check must include **`Knowledge used:`** one-liner per role + Uma fidelity checklist + Bea register completeness + Quinn interaction matrix (+ Ben CI sitrep when relevant) — ship blocked if Uma/Quinn FAIL. Arch rejects write-only LESSONS appends. → [TEAM.md](docs/product/TEAM.md) · [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) · [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §0.2 · [UMA_FIDELITY_NOTES.md](docs/product/UMA_FIDELITY_NOTES.md)
 
-1c. **Team knowledge (hard):** Before serious work, callsigns **MUST re-read** their [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) section + relevant [LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md). Database is for **use**, not only write.
+1c. **Team knowledge (hard):** Before serious work, callsigns **MUST re-read** their [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) section + relevant [LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md). Database is for **use**, not only write. Team check must include **`Knowledge used:`** per role.
+
+1d. **PAGE FINAL PASS (hard sequencing):** **No new migrated page** until the **previous** page is **PAGE FINAL PASS hard-green**. Contract: [PAGE_FINAL_PASS.md](docs/product/PAGE_FINAL_PASS.md). Finn/Uma own checklist + `check:page-final-pass` (do not duplicate). Arch enforces; parallel callsigns still required; Knowledge used still mandatory on team check.  
+   → [PAGE_FINAL_PASS.md](docs/product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](docs/product/NEXT_STEPS.md) · [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §0 / §4
 
 2. **Proactive forecasting is mandatory on every task.** Spot or forecast issues while doing the ask — layout drift, style zoo, bad handoffs, missing hover, unused `framer-motion`, CSS layer violations (BASE/THEME/PANEL/LEGACY), REC chrome bugs, CI gaps. Do **not** wait for the PO to chase ghosts.  
    → [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) §0
@@ -32,7 +35,7 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 ## Required reading (before big work)
 
 **Always (short):**  
-1. [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) · [TEAM.md](docs/product/TEAM.md) · [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) (your hat section) · [LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md) · [NAMING.md](docs/product/NAMING.md) · [NEXT_STEPS.md](docs/product/NEXT_STEPS.md) · [POST_CHANGE_CHECKLIST.md](docs/product/POST_CHANGE_CHECKLIST.md)  
+1. [COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) · [TEAM.md](docs/product/TEAM.md) · [TEAM_KNOWLEDGE.md](docs/product/TEAM_KNOWLEDGE.md) (your hat section) · [PAGE_FINAL_PASS.md](docs/product/PAGE_FINAL_PASS.md) · [LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md) · [NAMING.md](docs/product/NAMING.md) · [NEXT_STEPS.md](docs/product/NEXT_STEPS.md) · [POST_CHANGE_CHECKLIST.md](docs/product/POST_CHANGE_CHECKLIST.md)  
 2. [ARCHITECTURE.md](docs/product/ARCHITECTURE.md) · [HYGIENE.md](docs/product/HYGIENE.md) · [PRODUCT_FORECAST.md](docs/product/PRODUCT_FORECAST.md)
 
 **When the task touches that surface:**  
@@ -47,7 +50,7 @@ Catalog → [docs/README.md](docs/README.md)
 ```bash
 npm install
 npm run dev
-npm test             # check:links + hygiene + felonies + parity-ratchets + parity-proven + version + vitest
+npm test             # check:links + hygiene + felonies + parity-ratchets + parity-proven + page-final-pass + version + vitest
 npm run build
 npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_PROFILE=full for marathon
 ```

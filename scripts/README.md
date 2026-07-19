@@ -10,6 +10,7 @@
 | `release.mjs` | `npm run release:patch` etc. | Local semver bump + CHANGELOG promote (no GitHub Release CI) |
 | `check-release-version-changelog-sync.mjs` | `npm run check:version` | `package.json` ↔ latest `## vX.Y.Z` |
 | `check-parity-proven.mjs` | `npm run check:parity-proven` | React-migrated screens: PROVEN audit + MCP matrix (`PARITY_PROVEN.json`) |
+| `check-page-final-pass.mjs` | `npm run check:page-final-pass` | Structure/naming final pass stamp + source contracts before NEXT page |
 | `check-parity-ratchets.mjs` | `npm run check:parity-ratchets` | Make→React typical-miss contracts (search icon, bookmark copy, Advantage, loader dup, …) |
 | `check-agent-felonies.mjs` | `npm run check:felonies` | proto filenames, PANEL `.proto-*`, channel, version chip, overlay eyes |
 

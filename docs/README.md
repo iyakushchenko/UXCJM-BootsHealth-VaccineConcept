@@ -22,6 +22,7 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 1. [product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) — **composite role + proactive** + who decides + §6–§7 handoff + FE audit (read first every session)
 1b. [product/TEAM.md](./product/TEAM.md) — lean UX team callsigns + serious-work process (Pax bump/push)
 1c. [product/TEAM_KNOWLEDGE.md](./product/TEAM_KNOWLEDGE.md) — **living team knowledge index** (per-hat re-read; Knowledge used / Knowledge improved)
+1d. [product/PAGE_FINAL_PASS.md](./product/PAGE_FINAL_PASS.md) — **hard-green before next migrated page** (Finn/Uma checklist + check; Arch sequencing)
 2. [product/LESSONS_LEARNED.md](./product/LESSONS_LEARNED.md) — progressive failure/win capture (read before UI close)
 2b. [product/UMA_FIDELITY_NOTES.md](./product/UMA_FIDELITY_NOTES.md) — Uma Make→React fidelity checklist (mandatory before PROVEN)
 2c. [product/PARITY_RATCHETS.md](./product/PARITY_RATCHETS.md) — programmatic typical-miss contracts (`check:parity-ratchets`)
@@ -37,6 +38,7 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 12. [product/DS_STRICTNESS.md](./product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered; no React growth in LEGACY
 13. [product/UX_STUDIO_VISION.md](./product/UX_STUDIO_VISION.md) — product north star
 14. [product/PAGE_BUILD_CONTRACT.md](./product/PAGE_BUILD_CONTRACT.md) — React + UXDS
+14b. [product/PAGE_FINAL_PASS.md](./product/PAGE_FINAL_PASS.md) — **mandatory final pass before NEXT page** (`check:page-final-pass`)
 15. [product/COMPONENT_LIBRARY.md](./product/COMPONENT_LIBRARY.md) — migrated pages = real React kits; grow by migration
 16. [product/VISUAL_FIDELITY.md](./product/VISUAL_FIDELITY.md) — **concept L&F mandatory**, no visual zoo, rebuild behavior parity
 17. [product/INTERACTION_FIDELITY.md](./product/INTERACTION_FIDELITY.md) — **recording needs interactive pages** + shared behavior library

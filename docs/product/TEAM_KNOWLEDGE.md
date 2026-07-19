@@ -15,7 +15,9 @@
 | Lessons (append-only) | [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) | Failure classes → gates |
 | Uma fidelity checklist | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) | Make→React Nazi checklist |
 | Parity ratchets | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) | Programmatic typical-miss contracts |
+| Page final-pass | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Mandatory structure/naming before NEXT page |
 | Team OS | [TEAM.md](./TEAM.md) | Callsigns, dispatch, team check |
+| **Page Final Pass** | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Hard-green before next migrated page; Finn/Uma checklist + `check:page-final-pass` |
 | Feature brief template | [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) | Bea 1-pager |
 | Boots feature briefs | [../projects/boots-pharmacy/features/](../projects/boots-pharmacy/features/) | Project briefs |
 | PLP Make parity register | [../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md) | Band-by-band Make inventory |
@@ -33,11 +35,12 @@
 |--------------|--------|
 | This index + [TEAM.md](./TEAM.md) | Dispatch, team check, knowledge-use gate |
 | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 / §6–§7 | Parallel siblings, distrust handoffs, Nazi QA |
+| [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next migrated page until previous hard-green |
 | [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) (latest + surface) | Reject “done” without applied lessons |
 | [NEXT_STEPS.md](./NEXT_STEPS.md) · [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md) | Board / forecast |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) | New typical fail → ratchet same ship |
 
-**Knowledge used tip:** doctrine §0.1 + latest LESSONS for the stream + this Arch section.
+**Knowledge used tip:** doctrine §0.1 + PAGE_FINAL_PASS sequencing + latest LESSONS for the stream + this Arch section.
 
 ### Bea (BA)
 
@@ -45,10 +48,11 @@
 |--------------|--------|
 | [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) | Readiness of acceptance |
 | Project `features/*.md` + **PLP register** when PLP | Every Make band before Finn codes |
+| [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next-page brief until previous hard-green |
 | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0 | Loading/empty/updating = P0 rows when Make has them |
 | LESSONS: Make→React fidelity, wrong preloader | Register completeness |
 
-**Knowledge used tip:** brief/register + LESSONS loading/P0 rows.
+**Knowledge used tip:** brief/register + PAGE_FINAL_PASS gate + LESSONS loading/P0 rows.
 
 ### Finn (FE)
 
@@ -57,21 +61,23 @@
 | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) · [FE_STANDARDS.md](./FE_STANDARDS.md) | React + UXDS, column, nowrap |
 | [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) | No near-dups; BASE→THEME→PANEL→LEGACY |
 | [NAMING.md](./NAMING.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) | `data-studio-*`, domain folders |
+| [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Co-own checklist + `check:page-final-pass` with Uma; no next mount until previous hard-green |
 | LESSONS: hybrid mount, createRoot unmount, search/icon, DS hover | Do not re-ship known fail classes |
 | Screen brief + register for the page | Mount gates / Make-retired |
 
-**Knowledge used tip:** FE standards + LESSONS for the control class being touched.
+**Knowledge used tip:** FE standards + PAGE_FINAL_PASS + LESSONS for the control class being touched.
 
 ### Uma (UI/UX)
 
 | Must re-read | Focus |
 |--------------|--------|
 | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) | Full fidelity + state matrix |
+| [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Co-own Final Pass checklist + check with Finn; page-close hard-green |
 | [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) | Audit gate |
 | LESSONS: typical DS checks, invent-vs-Make, loading scenario | Nazi hover / no invent |
 | Make register for the screen | Side-by-side bands |
 
-**Knowledge used tip:** UMA notes §0/§0a + LESSONS DS hover / loading.
+**Knowledge used tip:** UMA notes §0/§0a + PAGE_FINAL_PASS + LESSONS DS hover / loading.
 
 ### Quinn (QA)
 
@@ -91,9 +97,9 @@
 | [VERSIONING.md](./VERSIONING.md) · [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5 | Bump DoD + `gh` sitrep |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · felonies in doctrine §4 | Keep gates honest |
 | LESSONS: version chip, post-push sitrep, overlay hygiene | BE + Quinn session hygiene |
-| `PARITY_PROVEN.json` ownership | No chat-only PROVEN |
+| `PARITY_PROVEN.json` · `PAGE_FINAL_PASS.json` ownership | No chat-only PROVEN / final-pass |
 
-**Knowledge used tip:** VERSIONING DoD + CI sitrep lesson + ratchet add path.
+**Knowledge used tip:** VERSIONING DoD + CI sitrep lesson + ratchet/final-pass add path.
 
 ### Pax (PO sim)
 
@@ -133,15 +139,28 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
+| **PAGE FINAL PASS** — no new migrated page until previous hard-green; Finn/Uma checklist + check; parallel callsigns + Knowledge used still required | Arch, Finn, Uma, Bea | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · TEAM · doctrine · NEXT_STEPS |
 | Typical DS checks mandatory before PROVEN; missing DS hover = FAIL | Uma, Quinn, Arch | LESSONS · UMA notes · ratchet search-field-states |
 | Filter search parity (icon end, single clear, View all, counters) | Finn, Uma, Bea, Quinn | LESSONS · PARITY_RATCHETS · PLP register |
 | Overlay eyes — no click-through open dialogs | Quinn, Ben, Finn | LESSONS · `studioModalGuard` · felonies |
 | MCP page probe: **scroll-into-view** before interact; **overlay must be visible on every probe** — FAIL if absent | Quinn, Finn, Ben | LESSONS 2026-07-19 (MCP probe visibility) |
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
+| Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
 
 **Knowledge improved** (2026-07-19 · stream: MCP probe scroll + overlay · SHA b1bdf62 · v0.0.16):
 - Finn (FE): `revealDemoTargetForAgent` + demo-click `scroll: true`; abandon settle without deferred reload; exclude `RunMcpPageProbe` from helper nest-arm — applied: code
 - Quinn (QA): `overlay-arm` + `plp-below-fold-scroll` reveal step; overlay missing = FAIL every step — applied: probe recipe + RECORDING.md · MCP PLP prove PASS
+
+**Knowledge improved** (2026-07-19 · stream: page final-pass gate · tip c5cce1a):
+- Uma (UI/UX): migrated pages need `<header>`/`<main>`/`<section>` + BEM=`screenId` before NEXT page — applied: checklist + PLP/book stamps
+- Finn (FE): PLP + book steps landmark fix; `check:page-final-pass` source contracts — applied: code + npm test wire
+- Ben (BE): final-pass felony in `npm test` — applied: script + package.json
+- Arch (Director): PDP blocked until PLP final-pass proven — applied: NEXT_STEPS + doctrine
+
+**Knowledge improved** (2026-07-19 · stream: PAGE FINAL PASS sequencing · SHA pending):
+- Arch (Director): no next migrated page until previous hard-green; doctrine/TEAM/NEXT_STEPS/AGENTS/director rule + thin PAGE_FINAL_PASS.md — applied: gate
+- Finn (FE) / Uma (UI/UX): own checklist rows + `check:page-final-pass` (do not fork contract) — applied: pending flesh
+- Bea (BA): no next-page brief until previous Final Pass hard-green — applied: TEAM artifact map
 
 ---
 
