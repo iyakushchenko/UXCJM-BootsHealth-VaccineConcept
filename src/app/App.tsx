@@ -426,17 +426,27 @@ export default function App() {
       onPreludeAbort: abortSitePilotChatPlaybackPrelude,
       onFinale: async () => {
         const shouldContinueJourney = scenarioIsPlayingRef.current;
+        const journey = activeJourneyRef.current;
+        const fromIndex = journeyBeatIndexRef.current;
+        const beat = journey?.beats[fromIndex];
+        // dateChat opens Choose date — advance beat BEFORE opening Availability
+        // so transport guard never sees agentic-chat + popup:availability:date
+        // (touchpoint-ahead-of-beat / diagnostic-on-step-8).
+        if (beat?.id === "agentic-chat" && journey) {
+          const availContinueIndex = journey.beats.findIndex(
+            (entry) => entry.id === "avail-continue"
+          );
+          const nextIndex =
+            availContinueIndex >= 0 ? availContinueIndex : fromIndex + 1;
+          journeyBeatIndexRef.current = nextIndex;
+          setJourneyBeatIndexRef.current(nextIndex);
+        }
         await runSitePilotChatScenarioFinale(
           (intent) => openAvailabilityToolRef.current(intent),
           AVAIL_INTENT.dateChat
         );
-        const journey = activeJourneyRef.current;
-        const beat = journey?.beats[journeyBeatIndexRef.current];
-        if (beat?.id === "agentic-chat") {
-          setJourneyBeatIndexRef.current((index) => index + 1);
-          if (shouldContinueJourney) {
-            resumeJourneyPlayRef.current();
-          }
+        if (beat?.id === "agentic-chat" && shouldContinueJourney) {
+          resumeJourneyPlayRef.current();
         }
       },
       onLeaveFinale: () => closeAvailabilityToolRef.current(),

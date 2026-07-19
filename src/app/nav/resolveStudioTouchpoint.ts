@@ -278,6 +278,20 @@ export function isPopupSubstepOfBeat(
   ) {
     return true;
   }
+  // avail-continue owns popup:availability:date; date/time substeps may lead the beat.
+  if (
+    (beatId === "avail-continue" || beatId === "avail-time") &&
+    touchpointKey.startsWith("popup:availability:")
+  ) {
+    return true;
+  }
+  // Chat finale dateChat handoff — brief race if beat flush lags Availability open.
+  if (
+    beatId === "agentic-chat" &&
+    touchpointKey.startsWith("popup:availability:")
+  ) {
+    return true;
+  }
   // PDP Book now opens login before beat index catches up (may still be on plp/pdp).
   if (
     touchpointKey === "popup:login" &&

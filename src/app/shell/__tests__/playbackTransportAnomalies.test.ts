@@ -39,6 +39,17 @@ describe("detectPlaylistFrameSkip", () => {
       })
     ).toBeNull();
   });
+
+  it("allows chat finale handoff to Availability date", () => {
+    expect(
+      detectPlaylistFrameSkip({
+        prevTouchpointIndex: 12,
+        nextTouchpointIndex: 15,
+        prevTouchpointKey: "beat:agentic-chat:frame:8",
+        nextTouchpointKey: "popup:availability:date",
+      })
+    ).toBeNull();
+  });
 });
 
 describe("detectTouchpointAheadOfBeat", () => {
@@ -90,6 +101,17 @@ describe("detectTouchpointAheadOfBeat", () => {
         touchpointPlaylistIndex: 2,
         beatId: "traditional-plp",
         touchpointKey: "popup:login",
+      })
+    ).toBeNull();
+  });
+
+  it("allows chat finale Availability date while beat still agentic-chat", () => {
+    expect(
+      detectTouchpointAheadOfBeat({
+        beatPlaylistIndex: 1,
+        touchpointPlaylistIndex: 15,
+        beatId: "agentic-chat",
+        touchpointKey: "popup:availability:date",
       })
     ).toBeNull();
   });

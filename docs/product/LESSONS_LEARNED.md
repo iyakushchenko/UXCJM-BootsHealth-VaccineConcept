@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-20
 
+### Agentic SF `touchpoint-ahead-of-beat` — chat finale opens Availability before beat advances (PO / Finn + Quinn)
+
+- **Symptom / class:** `__protoRunAgenticStepForwardSmoke` FAIL `diagnostic-on-step-8` / `touchpoint-ahead-of-beat` — counter jumps to “Choose date” while `beatId` still `agentic-chat`.
+- **Root cause:** `onFinale` called `runSitePilotChatScenarioFinale` (opens `dateChat`) **before** `setJourneyBeatIndex`. Transport guard saw chat beat + `popup:availability:date` (playlist gap ≫ 1).
+- **Gate:** Advance beat to `avail-continue` **before** opening Availability; allow chat→avail playlist skip + chat/avail popup substep. Prove agentic SF PASS on R11 `:5173` with `__studioPlaybackDiag`.
+
 ### PLAYBACK_DIAG cursor blindness + hub/`goToTab` + agentic CTA off-by-one (PO / Finn + Quinn + Ben)
 
 - **Symptom / class:** Micro-fails (PLP heart not fuchsia, Step2 Continue scroll-only, retreat no scrollIntoView, Play returns hub, agentic chat skips progressive CTAs) with no console proof the cursor did its job; panel mint/green dropdowns stale.

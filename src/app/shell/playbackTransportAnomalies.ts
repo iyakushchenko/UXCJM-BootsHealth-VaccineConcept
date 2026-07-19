@@ -12,12 +12,22 @@ export type TransportAnomaly = {
   detail?: string;
 };
 
-/** Manual director chains that legitimately skip one playlist frame in a single step. */
+/** Manual director chains that legitimately skip playlist frames in a single step. */
 function isAllowedPlaylistFrameSkip(options: {
   prevTouchpointKey?: string;
   nextTouchpointKey: string;
   delta: number;
 }): boolean {
+  // Chat virtual finale → Availability date (skips remaining chat playlist slots).
+  if (
+    options.prevTouchpointKey?.startsWith("beat:agentic-chat:frame:") &&
+    (options.nextTouchpointKey.startsWith("popup:availability:") ||
+      options.nextTouchpointKey === "beat:avail-continue" ||
+      options.nextTouchpointKey === "beat:avail-location")
+  ) {
+    return true;
+  }
+
   if (options.delta !== 2) return false;
   if (options.nextTouchpointKey !== "beat:appointment-details") return false;
   return (
