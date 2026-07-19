@@ -150,11 +150,11 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 |-------|------|--------------------|
 | **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; remove unused `motion` twin; Accordion stays CSS `0fr/1fr`; shell pilots: diagnostic overlay + studio select; PDP Final Pass not demoted (shell-only) | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` |
 | **Robo-cursor travel** — Motion `animate` ease-in-out only (no back/overshoot/bounce); cancel via `.stop()` on forceClear; hang caps retained | Finn, Arch, Quinn | [MOTION.md](./MOTION.md) · `demoCursor.ts` · LESSONS bounce gate |
-| **PDP Motion travel re-prove** — Quinn MCP **PASS** 23/23 @ `7c7c9e1` / v0.0.32; teardown clean; Uma §0a still PROVEN @ `76e2433`; Arch HARD-GREEN pending | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS |
+| **PDP PAGE FINAL PASS** — **HARD-GREEN** @ `581018f` (Quinn 23/23 @ `7c7c9e1` / prove `841ab32` · Uma §0a @ `76e2433`; prior `c6e8931` demoted then re-proved) | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
+| **PDP Motion travel re-prove** — Quinn MCP **PASS** 23/23 @ `7c7c9e1` / v0.0.32; teardown clean; Uma §0a still PROVEN @ `76e2433` | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass HARD-GREEN |
 | **PDP hang-guard re-prove** — Quinn MCP **PASS** 23/23 @ `7bce2b3` / v0.0.31 (superseded MCP stamp by `7c7c9e1`) | Quinn, Arch, Finn, Uma | FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS |
 | **PDP FAQ 6/6 + Accordion motion + TertiaryCta soft** — Uma §0a PROVEN + Quinn MCP **PASS** 23/23 @ `76e2433` / v0.0.30 (superseded MCP stamp by `7bce2b3`) | Uma, Quinn, Arch, Finn | UMA_FIDELITY_PDP · FE_AUDIT_PDP_MCP · PAGE_FINAL_PASS mcpFinalPass PASS · DEV-20260719-tertiary-soft |
 | **PDP FAQ/CTA/focus polish (PO)** — Make-sourced FAQ bodies 3/6; download tertiary unify (no leaflet stub); accordion focus-none; v0.0.28 | Bea, Uma, Finn, Quinn, Arch | PDP_MAKE_PARITY_REGISTER · UMA_FIDELITY_PDP · PAGE_FINAL_PASS.json |
-| **PDP PAGE FINAL PASS** — **HARD-GREEN** @ `c6e8931` (Quinn 23/23 @ `bf59041` · Uma §0a @ `8d80d5f`; prior `828ab2b` demoted then re-proved) | Arch, Finn, Uma, Quinn, Ben, Pax | PAGE_FINAL_PASS.json · FE_AUDIT_PDP_MCP · FE_AUDIT_PDP_PAGE_FINAL_PASS · check:page-final-pass |
 | **PDP RTB vertical rhythm** — LEGACY Make `module.pdp.rtb > div > div` stole React column gap (48≠32) + forced title-block 1:1; Uma must MCP-measure section gaps before fidelity IN PROGRESS; Quinn PASS ≠ rhythm done | Uma, Finn, Arch | UMA_FIDELITY_NOTES §0b · UMA_FIDELITY_PDP · globals-screens `:not(.pdp__rtb-card)` |
 | **PDP kickoff** — Bea register before code; Finn L1–L13 mount; Uma fidelity IN PROGRESS; Quinn probe criteria prep (no false PROVEN); accordion B1 static | Arch, Bea, Finn, Uma, Quinn, Ben | [PDP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PDP_MAKE_PARITY_REGISTER.md) · screens/pdp |
 | **PAGE FINAL PASS** — no new migrated page until previous hard-green; Finn/Uma checklist + check; parallel callsigns + Knowledge used still required | Arch, Finn, Uma, Bea | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · TEAM · doctrine · NEXT_STEPS |
@@ -171,10 +171,16 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
 | Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
 
+**Knowledge improved** (2026-07-19 · stream: PDP PAGE FINAL PASS HARD-GREEN restored · tip 581018f · v0.0.33):
+- Arch (Director): restore HARD-GREEN only after Quinn 23/23 (Motion travel) + Uma §0a PROVEN; shell scrollbar v0.0.33 mid-flight does not demote; veto Home until PO `+` — applied: PAGE_FINAL_PASS.json mcpFinalPass HARD-GREEN @ 581018f + FE_AUDIT_PDP_PAGE_FINAL_PASS + NEXT_STEPS 3e
+- Quinn (QA): re-prove MCP after shell Motion travel tip (not false-PROVEN from prior hang-guard PASS) — applied: FE_AUDIT_PDP_MCP 23/23 @ 7c7c9e1 / prove 841ab32 / tip ef5af38
+- Uma (UI/UX): §0a remains PROVEN @ `76e2433` — travel easing tip does not reopen FAQ/Accordion — applied: no re-open
+- Pax (PO sim): sequencing unblocked ≠ start Home — applied: wait PO `+`
+
 **Knowledge improved** (2026-07-19 · stream: PDP v0.0.32 Quinn MCP re-prove · tip 7c7c9e1):
 - Quinn (QA): full `__studioRunMcpPageProbe({ reload:false })` 23/23 PASS + clean teardown after Motion easeInOut travel tip — applied: FE_AUDIT_PDP_MCP + PAGE_FINAL_PASS mcpFinalPass PASS; Arch unblocked for HARD-GREEN
 - Uma (UI/UX): §0a remains PROVEN @ `76e2433` — travel easing tip does not reopen FAQ/Accordion — applied: no re-open
-- Arch (Director): restore HARD-GREEN only after this Quinn PASS — applied: hardGreen false until Arch stamp
+- Arch (Director): restore HARD-GREEN only after this Quinn PASS — applied: HARD-GREEN restored @ 581018f
 
 **Knowledge improved** (2026-07-19 · stream: PDP v0.0.31 Quinn MCP re-prove · tip 7bce2b3):
 - Quinn (QA): full `__studioRunMcpPageProbe({ reload:false })` 23/23 PASS + clean teardown; hang residual none (bounded R10 only; no unbounded robo) — applied: FE_AUDIT_PDP_MCP + PAGE_FINAL_PASS mcpFinalPass PASS; Arch unblocked for HARD-GREEN

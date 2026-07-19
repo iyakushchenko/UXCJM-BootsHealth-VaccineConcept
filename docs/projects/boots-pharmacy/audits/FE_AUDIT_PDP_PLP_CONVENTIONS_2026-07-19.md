@@ -42,7 +42,7 @@
 | No journey URL for download / Find out more clicks | Make had none — decorative until PO wires assets |
 | Three FAQ panels still have no Make Description | NHS / already-have / personal-data — residual static headers; 3 bodies from Make RTB/Description/specs |
 | A few Make-parity hexes in `pdp.css` (leaflet border `#c7e4ff`, mint `#e0fbf8`) | Same class as PLP Make-parity leftovers; not a second brand system |
-| Final Pass hardGreen restored | Arch HARD-GREEN @ `c6e8931` after Quinn 23/23 + Uma §0a (v0.0.28 polish) |
+| Final Pass hardGreen restored | Arch HARD-GREEN @ `581018f` after Quinn 23/23 @ `7c7c9e1` / v0.0.32 + Uma §0a @ `76e2433` |
 
 ---
 
@@ -52,4 +52,4 @@
 - Action probes use `data-studio-action` / `data-studio-accordion-*` (PLP-style studio hooks).
 - Accordion kit keeps `data-uxds-kit="accordion"`; Make `data-name` preserved on band/items.
 
-**Team check line:** `PAGE FINAL PASS — pdp — HARD-GREEN` (restored @ `c6e8931` after v0.0.28 Quinn 23/23 + Uma §0a)
+**Team check line:** `PAGE FINAL PASS — pdp — HARD-GREEN` (restored @ `581018f` after v0.0.32 Quinn 23/23 + Uma §0a)

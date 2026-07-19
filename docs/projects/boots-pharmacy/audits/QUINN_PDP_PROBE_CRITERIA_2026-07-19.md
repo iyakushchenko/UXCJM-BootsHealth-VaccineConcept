@@ -1,8 +1,8 @@
 # Quinn (QA) — PDP MCP prove criteria
 
 **Status:** MCP matrix **PASS** @ tip `7c7c9e1` / v0.0.32 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**PAGE FINAL PASS:** Quinn `mcpFinalPass: PASS` — Arch HARD-GREEN pending (`hardGreen: false`). Uma §0a PROVEN @ `76e2433`.  
-**Updated:** 2026-07-19 (Motion easeInOut travel re-prove after v0.0.31 hang guards)  
+**PAGE FINAL PASS:** **HARD-GREEN** (`hardGreen: true` @ tip `581018f`) — Uma §0a PROVEN @ `76e2433`; Quinn 23/23 PASS @ `7c7c9e1` / prove `841ab32`.  
+**Updated:** 2026-07-19 (Arch HARD-GREEN restore after Motion easeInOut travel re-prove)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  
 **Refs:** [RECORDING.md](../../../shell/RECORDING.md) · LESSONS overlay/scroll · `studioMcpPageProbe.ts`
@@ -29,4 +29,4 @@ await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 
 **Matrix:** 23 steps (overlay-arm → url-screen) — see [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).
 
-**Final Pass:** Arch stamps `PAGE FINAL PASS — pdp — HARD-GREEN` (Home still waits PO `+`).
+**Final Pass:** `PAGE FINAL PASS — pdp — HARD-GREEN` (Home still waits PO `+`).

@@ -2,7 +2,7 @@
 
 **Project:** `boots-pharmacy`  
 **Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
-**Status:** L1–L20 mounted · FAQ bodies **6/6** · TertiaryCta soft Find out more · Accordion kit motion + muted chevrons · Quinn MCP **PASS** · PAGE FINAL PASS awaiting Arch HARD-GREEN  
+**Status:** L1–L20 mounted · FAQ bodies **6/6** · TertiaryCta soft Find out more · Accordion kit motion + muted chevrons · Quinn MCP **PASS** · PAGE FINAL PASS **HARD-GREEN**  
 **Updated:** 2026-07-19  
 **Refs:** [BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md) · [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md) · [PLP_REACT.md](./PLP_REACT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) · Uma [../audits/UMA_FIDELITY_PDP_2026-07-19.md](../audits/UMA_FIDELITY_PDP_2026-07-19.md) · Quinn Final Pass [../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](../audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) · Convention [../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md](../audits/FE_AUDIT_PDP_PLP_CONVENTIONS_2026-07-19.md)
 
@@ -12,7 +12,7 @@
 
 Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`, Frame child **8**) is the Traditional CJM bridge between PLP and Book Step 1. Make truth: chickenpox single-SKU RTB + below-fold education bands. React mount follows Book Step 1 / PLP pilot pattern — UXDS + scoped CSS, Make child retired from view, no new LEGACY growth.
 
-**Gate:** Quinn MCP **PASS** @ `7c7c9e1` / v0.0.32 + Uma §0a **PROVEN** @ `76e2433` / v0.0.30 — Arch restores HARD-GREEN next. **Home waits PO `+`.**
+**Gate:** PAGE FINAL PASS **HARD-GREEN** @ tip `581018f` (Quinn 23/23 @ `7c7c9e1` · Uma §0a @ `76e2433`). **Home waits PO `+`.**
 
 ## Business logic
 
@@ -66,7 +66,7 @@ Erase-Make **closed for PDP** after PLP HARD-GREEN. Vaccine PDP (`screenId: pdp`
 ## Prove notes (Quinn)
 
 - **MCP matrix** — prior PASS @ `d6e4951` / 22/22 **stale** after FAQ body + CTA + focus ship; Quinn must re-prove (now includes `pdp-faq-help-body` + matched download CTAs)
-- Quinn MCP **PASS** (23/23) — Arch HARD-GREEN restored @ `c6e8931`
+- Quinn MCP **PASS** (23/23) — Arch HARD-GREEN restored @ `581018f`
 - Register: [PDP_MAKE_PARITY_REGISTER.md](./PDP_MAKE_PARITY_REGISTER.md)
 
 ## Pax
