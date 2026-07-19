@@ -55,15 +55,44 @@ function syncHomeQueryHeight(ta: HTMLTextAreaElement): void {
   );
 }
 
+/**
+ * Prefer live React Site Pilot card. Make body stays in DOM under
+ * `data-studio-make-retired` (display:none) and would otherwise win
+ * first-match `querySelector` — LESSONS hybrid first-match trap.
+ */
 function getAgenticHomeCard(): HTMLElement | null {
   const screen = document.querySelector<HTMLElement>(
     ".studio-viewport > div > div:nth-child(11)"
   );
+  if (!screen) return null;
+
+  const reactCard =
+    screen.querySelector<HTMLElement>(
+      '.studio-react-screen-host .home__card[data-name="component.co.order.summary"], [data-studio-react-screen="site-pilot"] .home__card[data-name="component.co.order.summary"]'
+    ) ??
+    screen.querySelector<HTMLElement>(
+      '.studio-react-screen-host [data-name="component.co.order.summary"]'
+    );
+  if (reactCard) return reactCard;
+
   return (
-    screen?.querySelector<HTMLElement>(
-      '[data-name="component.co.order.summary"]'
-    ) ?? null
+    Array.from(
+      screen.querySelectorAll<HTMLElement>(
+        '[data-name="component.co.order.summary"]'
+      )
+    ).find((el) => !el.closest("[data-studio-make-retired]")) ?? null
   );
+}
+
+/** Native setter so React controlled textareas receive playback typing. */
+function setReactTextareaValue(ta: HTMLTextAreaElement, value: string): void {
+  const proto = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype,
+    "value"
+  )?.set;
+  if (proto) proto.call(ta, value);
+  else ta.value = value;
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 async function waitForHomeTextarea(): Promise<HTMLTextAreaElement | null> {
@@ -71,24 +100,25 @@ async function waitForHomeTextarea(): Promise<HTMLTextAreaElement | null> {
     const ta = getAgenticHomeCard()?.querySelector<HTMLTextAreaElement>(
       "textarea.proto-agentic-query, textarea.site-pilot-composer__query"
     );
-    if (ta) return ta;
+    if (ta && !ta.closest("[data-studio-make-retired]")) return ta;
     await delay(40);
   }
   return null;
 }
 
 function getHomeSendButton(): HTMLElement | null {
-  const subtotal = getAgenticHomeCard()?.querySelector<HTMLElement>(
-    '[data-name="Subtotal"]'
-  );
-  if (!subtotal) return null;
+  const card = getAgenticHomeCard();
+  if (!card) return null;
+
+  const subtotal = card.querySelector<HTMLElement>('[data-name="Subtotal"]');
+  const scope = subtotal ?? card;
 
   return (
-    subtotal.querySelector<HTMLElement>(
+    scope.querySelector<HTMLElement>(
       ".proto-agentic-send, .site-pilot-composer__send"
     ) ??
     Array.from(
-      subtotal.querySelectorAll<HTMLElement>(
+      scope.querySelectorAll<HTMLElement>(
         '[data-name="component.input.button"]'
       )
     ).find((btn) =>
@@ -105,24 +135,30 @@ async function simulateSarahHomeTyping(text: string): Promise<boolean> {
   await delay(HOME_DOM_SETTLE_MS);
   if (shouldAbort()) return false;
 
-  ta.value = "";
+  // Default React home query already matches demo intent — click send only.
+  if (ta.value.trim() === text.trim()) {
+    const sendBtn = getHomeSendButton();
+    if (!sendBtn) return false;
+    return simulateDemoPointerClick(sendBtn, { shouldAbort });
+  }
+
+  setReactTextareaValue(ta, "");
   syncHomeQueryHeight(ta);
   ta.focus();
 
   for (let i = 0; i < text.length; i++) {
     if (shouldAbort()) {
-      ta.value = "";
+      setReactTextareaValue(ta, "");
       syncHomeQueryHeight(ta);
       return false;
     }
-    ta.value = text.slice(0, i + 1);
-    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    setReactTextareaValue(ta, text.slice(0, i + 1));
     syncHomeQueryHeight(ta);
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);
   }
 
   if (shouldAbort()) {
-    ta.value = "";
+    setReactTextareaValue(ta, "");
     syncHomeQueryHeight(ta);
     return false;
   }
@@ -143,9 +179,8 @@ async function runSarahQuerySubmit(
         ? scriptAborted()
         : scriptFail("waitForHomeTextarea: textarea.proto-agentic-query missing");
     }
-    ta.value = AGENTIC_HOME_DEMO_QUERY;
+    setReactTextareaValue(ta, AGENTIC_HOME_DEMO_QUERY);
     syncHomeQueryHeight(ta);
-    ta.dispatchEvent(new Event("input", { bubbles: true }));
     return scriptOk();
   }
 

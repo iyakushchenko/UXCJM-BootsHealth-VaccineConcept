@@ -142,6 +142,13 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
 
+**Knowledge improved** (2026-07-19 · stream: Chat React mount ON · step-forward unblock · R12):
+- Arch (Director): Mount ON after Make smoke unblock + React agentic P1–P10; no false Chat PROVEN/Final Pass; PDP HARD-GREEN untouched — applied: NEXT_STEPS §6
+- Finn (FE): Prefer React host over Make-retired first-match (`getAgenticHomeCard` / `getChatSummary`); React controlled textarea native setter; shared `SitePilotComposer` — applied: sitePilotHome · sitePilotChatScenario
+- Quinn (QA): Home play + agentic step through chat green on React host; traditional `pdp-book-now` no-op residual — applied: :5173 matrix
+- Ben (BE): Mount flag true + contract test; R12 one push no CI await — applied: chatContract
+- Pax (PO sim): user-visible Chat React mount → patch bump — applied: release:patch
+
 **Knowledge improved** (2026-07-19 · stream: Chat React parity behind flag · R12 batch):
 - Arch (Director): Flip veto until Quinn P1–P10 React smoke; PDP HARD-GREEN untouched; no Chat PROVEN — applied: NEXT_STEPS §6
 - Bea (BA): Register bands L/LE/SK → Partial for React port behind flag — applied: CHAT_MAKE_PARITY_REGISTER

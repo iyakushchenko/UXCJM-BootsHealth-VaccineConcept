@@ -23,8 +23,8 @@ describe("chatContract", () => {
     expect(CHAT_REACT_SCREEN_ID).toBe("chat");
   });
 
-  it("keeps React mount off until playback smoke P1–P10 is green", () => {
-    expect(CHAT_REACT_MOUNT_ENABLED).toBe(false);
+  it("keeps React Chat mount ON after Make smoke unblock + P1–P10 gate", () => {
+    expect(CHAT_REACT_MOUNT_ENABLED).toBe(true);
   });
 
   it("locks chat composer recording action ids", () => {

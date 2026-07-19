@@ -7,10 +7,11 @@ export const CHAT_REACT_SCREEN_ID = "chat";
 export const CHAT_SCREEN_SELECTOR = `.studio-viewport > div > div:nth-child(${CHAT_CHILD_INDEX})`;
 
 /**
- * Flip to `true` when React chat retires Make + playback hooks are ported.
- * While `false`, Make wire + composer dock remain authoritative (playback-safe).
+ * React Chat host live — Make child 10 retired via `data-studio-make-retired`.
+ * Shared composer = `SitePilotComposer` (Home + Chat). Flip off only if Quinn
+ * playback P1–P10 regresses on tip.
  */
-export const CHAT_REACT_MOUNT_ENABLED = false;
+export const CHAT_REACT_MOUNT_ENABLED = true;
 
 /** Shared composer action ids — see `screens/shared/sitePilotComposerContract.ts`. */
 export const CHAT_QUERY_ACTION = "agentic-chat-query";

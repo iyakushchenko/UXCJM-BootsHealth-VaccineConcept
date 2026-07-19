@@ -5,7 +5,7 @@
 **Updated:** 2026-07-19 (PO override kickoff — Site Pilot **not** Final Pass hard-green; Chat register only)  
 **Make source:** Frame child **10** (`Agentic. Site Pilot. Chat`) — `Frame337` microheader + `Body9` in `frame/index.tsx` (`left-[1535px]` UX frame) · wire `BootsPharmacyProjectView` child-10 effects · `dom/sitePilotChatScenario.ts` · `dom/sitePilotChatThinking.ts` · `playback/sitePilotChat.ts` · orchestra `App.tsx` (`site-pilot-chat`)  
 **Public `screenId`:** `chat` (URL `?screen=chat`; scenario id `site-pilot-chat`)  
-**React target:** `src/projects/boots-pharmacy/screens/chat/*` — thread/CTAs/thinking/composer **ported behind** `CHAT_REACT_MOUNT_ENABLED=false` (Make still live)  
+**React target:** `src/projects/boots-pharmacy/screens/chat/*` — **live** (`CHAT_REACT_MOUNT_ENABLED=true`; Make child 10 `data-studio-make-retired`)  
 **Refs:** [CHAT_REACT.md](./CHAT_REACT.md) · [HOME_MAKE_PARITY_REGISTER.md](./HOME_MAKE_PARITY_REGISTER.md) (composer shared kit) · [URL.md](../../../shell/URL.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md)
 
 **Status legend:** Present · Partial · Missing · Fixed · N/A
@@ -31,11 +31,11 @@
 | L6 | **Rate your experience** + **More** — header aux actions | **Present** | **Missing** | `Frame340` |
 | L7 | **Body fill** — `#dbebf5` full-width `data-name="body"` | **Present** | **Missing** | `Body9` |
 | L8 | **Thread host** — `component.appointment.summary` 864px, `gap-[40px]`, centered in `p-[64px]` | **Present** | **Missing** | `ComponentAppointmentSummary2` |
-| L9 | **User bubbles (`query`)** — mint-tint card `bg-[rgba(245,255,254,0.35)]`, 438px, right-aligned column | **Present** | **Partial** | `chatThreadContent.tsx` — gated off until mount flip |
-| L10 | **Agent bubbles (`reply`)** — white `component.co.order.summary` 16px pad + inline CTAs | **Present** | **Partial** | `ChatScreen` reply frames + CTAs — gated off |
-| L11 | **Per-reply helpful strip** — “Was this reply helpful?” Yes/No on **reply** frames (not finale) | **Present** | **Partial** | React helpful strip on r0 — gated off |
-| L12 | **Conversation feedback (finale band)** — “Was this conversation helpful so far?” — wire **hidden** until scripted | **Present** | **Partial** | React band `hidden` — gated off |
-| L13 | **Disclaimer** — “SitePilot can make mistakes…” + underlined support link below thread | **Present** | **Partial** | `chat__disclaimer` — gated off |
+| L9 | **User bubbles (`query`)** — mint-tint card `bg-[rgba(245,255,254,0.35)]`, 438px, right-aligned column | **Present** | **Partial** | React live — Uma pixel PROVEN still PENDING |
+| L10 | **Agent bubbles (`reply`)** — white `component.co.order.summary` 16px pad + inline CTAs | **Present** | **Partial** | React live — Uma pixel PROVEN still PENDING |
+| L11 | **Per-reply helpful strip** — “Was this reply helpful?” Yes/No on **reply** frames (not finale) | **Present** | **Partial** | React helpful strip on r0 — live |
+| L12 | **Conversation feedback (finale band)** — “Was this conversation helpful so far?” — wire **hidden** until scripted | **Present** | **Partial** | React band `hidden` — live |
+| L13 | **Disclaimer** — “SitePilot can make mistakes…” + underlined support link below thread | **Present** | **Partial** | `chat__disclaimer` — live |
 | L14 | **Footer** — absent on Chat Make child 10 | **N/A** | **N/A** | Do not invent |
 | L15 | **Accordion / chat history sidebar** — absent on Chat Make | **N/A** | **N/A** | No `component.gse.accordion` in `Body9` |
 
@@ -98,7 +98,7 @@
 
 | # | Behavior | Make | React status | Evidence |
 |---|----------|------|--------------|----------|
-| W1 | React host child 10 | — | **Partial** | `screens/chat/*` scaffold; `CHAT_REACT_MOUNT_ENABLED=false` (not live) |
+| W1 | React host child 10 | — | **Present** | `CHAT_REACT_MOUNT_ENABLED=true`; Make `data-studio-make-retired` |
 | W2 | `data-studio-make-retired=chat` | — | **Partial** | Mount path ready; retired attr only when flag true |
 | W3 | URL `?project=boots-pharmacy&screen=chat` | **Present** | **Present** | `screens.ts` · `studioUrl.ts` |
 | W4 | Make wire early-return when React mounted | — | **Partial** | `isChatReactMounted()` gates wire + dock; inactive while flag false |
@@ -151,8 +151,8 @@
 | Id | Note |
 |----|------|
 | B1 | **PO override:** Chat kickoff while **Site Pilot (`site-pilot`) NOT Final Pass hard-green** — document only; Arch accepted for register/brief. |
-| B2 | **Mount flip blocked** — React parity ported; `CHAT_REACT_MOUNT_ENABLED` stays `false` until Quinn P1–P10 playback smoke green on React host. |
-| B3 | **Scenario frames** — React emits `data-name=query|reply` + `data-studio-chat-frame`; static BEM classes avoid wiping `proto-scenario-frame*`. Flip still needs Quinn prove. |
+| B2 | **Mount ON** — Quinn agentic P1–P10 playback smoke green on React host (2026-07-19); Make retired. No Chat PROVEN / Final Pass yet. |
+| B3 | **Scenario frames** — React emits `data-name=query|reply` + `data-studio-chat-frame`; `getChatSummary` prefers React host (Make first-match trap fixed). |
 | B4 | **Thinking UI** — LEGACY CSS classes today (`proto-chat-thinking-*`); React should use `@/uxds/motion` for bubble enter/exit without inventing new copy/placement. |
 | B5 | **Wire DOM surgery** — textarea replace + dock must early-return when React mounted (mirror Home). |
 | B6 | **No PROVEN** — no `PARITY_PROVEN.json` row for `chat` on this kickoff. |

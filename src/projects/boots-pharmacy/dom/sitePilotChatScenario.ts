@@ -22,9 +22,22 @@ function getScrollHost(): HTMLElement | null {
   );
 }
 
+/**
+ * Prefer React Chat summary. Make body remains under `data-studio-make-retired`
+ * and would win first-match `querySelector` after mount flip.
+ */
 function getChatSummary(screen: ParentNode): HTMLElement | null {
-  return screen.querySelector<HTMLElement>(
-    '[data-name="component.appointment.summary"]'
+  const reactSummary = screen.querySelector<HTMLElement>(
+    '.studio-react-screen-host .chat__summary[data-name="component.appointment.summary"], [data-studio-react-screen="chat"] [data-name="component.appointment.summary"], .chat__summary[data-name="component.appointment.summary"]'
+  );
+  if (reactSummary) return reactSummary;
+
+  return (
+    Array.from(
+      screen.querySelectorAll<HTMLElement>(
+        '[data-name="component.appointment.summary"]'
+      )
+    ).find((el) => !el.closest("[data-studio-make-retired]")) ?? null
   );
 }
 
