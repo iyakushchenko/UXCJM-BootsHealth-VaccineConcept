@@ -131,11 +131,11 @@
         "status": "NEEDS-REPROVE",
         "pass": false,
         "stampedAt": {
-          "sha": "cb91a25",
+          "sha": "5d42df1",
           "date": "2026-07-19",
           "version": "0.0.37",
           "auditor": "Arch (Director) — Accordion Motion demote",
-          "note": "Honest demote: PDP FAQ Accordion moved CSS grid→Motion height (user-visible). Prior HARD-GREEN @ 57775a3 / v0.0.36. Quinn must re-prove MCP matrix + accordion height tween before HARD-GREEN restore. Root cause of invisible CSS anim: prefers-reduced-motion zeroed transitions. Ship tip cb91a25 / v0.0.37."
+          "note": "Honest demote: PDP FAQ Accordion moved CSS grid→Motion height (user-visible). Prior HARD-GREEN @ 57775a3 / v0.0.36. Quinn must re-prove MCP matrix + accordion height tween before HARD-GREEN restore. Root cause of invisible CSS anim: prefers-reduced-motion zeroed transitions. Ship tip 5d42df1 / v0.0.37."
         },
         "url": "http://localhost:5173/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
