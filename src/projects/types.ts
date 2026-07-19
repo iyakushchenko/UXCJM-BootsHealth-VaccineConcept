@@ -6,18 +6,18 @@ import type {
   JourneyBeat,
   JourneyBeatActionId,
   JourneyRuntime,
-  ProtoJourneyDefinition,
+  JourneyDefinition,
   TabScriptId,
 } from "@/app/orchestra/types";
-import type { useProtoJourneyPlayback } from "@/app/orchestra/useProtoJourneyPlayback";
-import type { useProtoScenarioPlayback } from "@/app/nav/useProtoScenarioPlayback";
-import type { useProtoStudio } from "@/app/shell/useProtoStudio";
+import type { useJourneyPlayback } from "@/app/orchestra/useJourneyPlayback";
+import type { useScenarioPlayback } from "@/app/nav/useScenarioPlayback";
+import type { useStudio } from "@/app/shell/useStudio";
 import type {
   AvailOpenIntent,
   AvailStep,
   ChosenBookingSlot,
 } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
-import type { ProtoScenarioScreenConfig } from "@/app/proto/protoScenarioEngine";
+import type { ScenarioScreenConfig } from "@/app/scenario/scenarioEngine";
 import type { PlaybackScriptResult } from "@/projects/playbackScriptResult";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 
@@ -29,10 +29,10 @@ export type StudioTouchpointEntry = {
 };
 
 /** e.g. `boots-pharmacy`, `boots`, `puma` */
-export type ProtoProjectId = string;
+export type ProjectId = string;
 
 /** e.g. `sarah-jenkins` */
-export type ProtoPersonaId = string;
+export type PersonaId = string;
 
 export type JourneyPlaybackContext = {
   headerLoggedIn: boolean;
@@ -43,10 +43,10 @@ export type JourneyPlaybackHooks = {
   shouldSkipBeat?: (beat: JourneyBeat, context: JourneyPlaybackContext) => boolean;
 };
 
-export type ProtoPersonaDefinition = {
-  id: ProtoPersonaId;
+export type PersonaDefinition = {
+  id: PersonaId;
   label: string;
-  journeys: ProtoJourneyDefinition[];
+  journeys: JourneyDefinition[];
   journeyHooks?: JourneyPlaybackHooks;
 };
 
@@ -70,7 +70,7 @@ export type RetreatSelectionGoal = {
 /** @deprecated Use PlaybackScriptOptions — kept for gradual migration. */
 export type BookScriptOptions = PlaybackScriptOptions;
 
-export type ProtoProjectPlayback = {
+export type ProjectPlayback = {
   abortAll: () => void;
   runBeatAction: (actionId: JourneyBeatActionId, runtime: JourneyRuntime) => void;
   runHomeScript: (
@@ -113,7 +113,7 @@ export type StudioSelectOption<T extends string = string> = {
 };
 
 /** Product surface reported by the active project wire (popup + pristine state). */
-export type ProtoProjectWireApi = {
+export type ProjectWireApi = {
   availabilityOpen: boolean;
   availActiveStep: AvailStep | null;
   availIntent: AvailOpenIntent;
@@ -157,13 +157,13 @@ export type ProtoProjectWireApi = {
 };
 
 /** Orchestra refs + playback handles shared between shell and wire. */
-export type ProtoProjectOrchestraBridge = {
-  activeScreenScenario: ProtoScenarioScreenConfig | null | undefined;
-  scenarioPlayback: ReturnType<typeof useProtoScenarioPlayback>;
-  transport: ReturnType<typeof useProtoJourneyPlayback>;
+export type ProjectOrchestraBridge = {
+  activeScreenScenario: ScenarioScreenConfig | null | undefined;
+  scenarioPlayback: ReturnType<typeof useScenarioPlayback>;
+  transport: ReturnType<typeof useJourneyPlayback>;
   journeyBeatIndexRef: MutableRefObject<number>;
   setJourneyBeatIndexRef: MutableRefObject<(index: number | ((prev: number) => number)) => void>;
-  activeJourneyRef: MutableRefObject<ReturnType<typeof useProtoStudio>["journey"]>;
+  activeJourneyRef: MutableRefObject<ReturnType<typeof useStudio>["journey"]>;
   openAvailabilityToolRef: MutableRefObject<(intent?: AvailOpenIntent) => void>;
   closeAvailabilityToolRef: MutableRefObject<() => void>;
   screenFadeChildRef: MutableRefObject<number | null>;
@@ -180,15 +180,15 @@ export type ProtoProjectOrchestraBridge = {
 };
 
 /** Shell ↔ project bridge passed into the project wire view. */
-export type ProtoProjectShellBridge = {
-  projectId: ProtoProjectId;
+export type ProjectShellBridge = {
+  projectId: ProjectId;
   current: number;
   setCurrent: (index: number) => void;
   hubOpen: boolean;
   setHubOpen: (open: boolean) => void;
-  studio: ReturnType<typeof useProtoStudio>;
-  journeyPlayback: ReturnType<typeof useProtoJourneyPlayback>;
-  scenarioPlayback: ReturnType<typeof useProtoScenarioPlayback>;
+  studio: ReturnType<typeof useStudio>;
+  journeyPlayback: ReturnType<typeof useJourneyPlayback>;
+  scenarioPlayback: ReturnType<typeof useScenarioPlayback>;
   activeScreenScenarioId?: string | null;
   showOrchestraControls: boolean;
   navPlaybackLocked: boolean;
@@ -198,36 +198,36 @@ export type ProtoProjectShellBridge = {
   tabsScrollRef: RefObject<HTMLDivElement | null>;
   tabBtnRefs: RefObject<(HTMLButtonElement | null)[]>;
   onResetPrototype: () => void;
-  isProtoPristine: boolean;
+  isStudioPristine: boolean;
   go: (index: number) => void;
   openHub: () => void;
   navPlaybackLockedRef: MutableRefObject<boolean>;
   goRef: MutableRefObject<(index: number) => void>;
   currentRef: MutableRefObject<number>;
-  protoNavKey: string;
+  studioNavKey: string;
   onWireApiChange?: () => void;
   /** Browse mode — free screen navigation; chat uses static showcase playback. */
   studioJourneyMode: boolean;
-  orchestra: ProtoProjectOrchestraBridge;
+  orchestra: ProjectOrchestraBridge;
 };
 
-export type ProtoProjectWireComponent = ComponentType<{
-  bridge: ProtoProjectShellBridge;
-  apiRef?: MutableRefObject<ProtoProjectWireApi | null>;
+export type ProjectWireComponent = ComponentType<{
+  bridge: ProjectShellBridge;
+  apiRef?: MutableRefObject<ProjectWireApi | null>;
 }>;
 
-export type ProtoProjectDefinition = {
+export type ProjectDefinition = {
   /** Canonical id — `brand-subbrand` or `brand` when no sub-brand. */
-  id: ProtoProjectId;
+  id: ProjectId;
   brand: string;
   subbrand?: string;
   /** Display label in studio project dropdown. */
   label: string;
-  personas: ProtoPersonaDefinition[];
-  defaultPersonaId: ProtoPersonaId;
+  personas: PersonaDefinition[];
+  defaultPersonaId: PersonaId;
   /** Optional popup rows in the studio touchpoint timeline per journey + beat. */
   popupTouchpoints?: Record<string, Record<string, StudioTouchpointEntry[]>>;
-  playback: ProtoProjectPlayback;
+  playback: ProjectPlayback;
   /** Renders project DOM, popups, and screen wiring inside the shell layout. */
-  wireComponent?: ProtoProjectWireComponent;
+  wireComponent?: ProjectWireComponent;
 };

@@ -1,5 +1,5 @@
 import imgBodyFill from "@/projects/boots-pharmacy/frame/6d60145a5be9172088977b4513e3f4859a70c66a.png";
-import { PROTO_TODAY_TOOLTIP } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
+import { TODAY_TOOLTIP } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import type { ChosenBookingSlot } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import type { RecipientMode } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
 import { recipientModeLabel } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
@@ -101,10 +101,10 @@ function MonthCalendar({
                     data-proto-cal-today={isToday ? "true" : undefined}
                     data-proto-cal-selected={isSelected ? "true" : undefined}
                     disabled={!available}
-                    title={isToday ? PROTO_TODAY_TOOLTIP : undefined}
+                    title={isToday ? TODAY_TOOLTIP : undefined}
                     aria-label={
                       isToday
-                        ? PROTO_TODAY_TOOLTIP
+                        ? TODAY_TOOLTIP
                         : available
                           ? `${label} ${cell.day}`
                           : undefined

@@ -47,7 +47,7 @@ Aliases accepted on parse: `book-step2` → `book-step-2`, `onboarding` → `hub
 4. **Back/forward** — `popstate` re-applies query.
 5. **Ephemeral strip** — `proof`, `mcpDebug`, `agentTest`, `agentOverlay` removed on boot, overlay install, and overlay stop. Never re-written by studio sync.
 
-Implementation: `src/app/shell/protoStudioUrl.ts` · `useProtoStudioUrlSync.ts`.
+Implementation: `src/app/shell/studioUrl.ts` · `useStudioUrlSync.ts`.
 
 ## Recording
 

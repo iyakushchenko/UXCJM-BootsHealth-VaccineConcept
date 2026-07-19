@@ -77,18 +77,19 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 | **UXDS docs** | `docs/uxds/` | Variables, components, deviations |
 | **Shell docs** | `docs/shell/` | Recording, playback, projects shell |
 | **Tests** | `**/__tests__/` | Vitest |
-| **Smoke** | `scripts/proto-playwright-smoke.mjs` | CI lean + optional full profile |
+| **Smoke** | `scripts/playwright-smoke.mjs` | CI lean + optional full profile |
 
 ## MCP helpers (browser console)
 
 ```javascript
-window.__protoRunMcpSanityCheck?.()           // safe default — no transport
-window.__protoExportJourneyBundle?.()         // journey.json
-window.__protoApplyJourneyBundle?.(json)      // runtime import
-window.__protoStartRecording?.()              // recording session
+window.__studioRunMcpSanityCheck?.()          // preferred — safe default, no transport
+window.__studioExportJourneyBundle?.()        // journey.json
+window.__studioApplyJourneyBundle?.(json)     // runtime import
+window.__studioStartRecording?.()             // recording session
+// Legacy stable aliases (same functions): window.__proto*
 ```
 
-Full transport smokes require `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates.
+Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates.
 
 ## CI
 
@@ -100,7 +101,7 @@ Full transport smokes require `__protoRun*` helpers — use sparingly. Day-to-da
 
 ## Conventions
 
-- **Naming (new files):** [NAMING.md](docs/product/NAMING.md) — PascalCase components; camelCase modules/hooks; kebab CSS + screen folders **= `screenId`**; SCREAMING product docs; `*.test.ts` in `__tests__/`. Legacy names OK until touched.
+- **Naming (new files):** [NAMING.md](docs/product/NAMING.md) — PascalCase components; camelCase modules/hooks; kebab CSS + screen folders **= `screenId`**; SCREAMING product docs; `*.test.ts` in `__tests__/`. **No new `proto*` filenames** — use `studio*` / domain names; `__proto*` window APIs stay as aliases.
 - Engine code in `src/app/` — project-agnostic
 - Boots-specific DOM/scripts in `src/projects/boots-pharmacy/` only until React+UXDS rebuild
 - Concept pages target: React + UXDS ([PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md))

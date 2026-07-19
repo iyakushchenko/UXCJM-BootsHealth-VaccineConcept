@@ -1,24 +1,24 @@
 import {
   getProtoScenarioById,
   getProtoScenarioForChildIndex,
-  type ProtoScenarioScreenConfig,
-} from "@/app/proto/protoScenarioEngine";
+  type ScenarioScreenConfig,
+} from "@/app/scenario/scenarioEngine";
 import { getJourneyForMode } from "@/app/orchestra/journeyUtils";
-import type { ProtoOrchestraModeId, ProtoJourneyDefinition } from "@/app/orchestra/types";
+import type { OrchestraModeId, JourneyDefinition } from "@/app/orchestra/types";
 
 export function resolveActiveScreenScenario(options: {
   hubOpen: boolean;
-  modeId: ProtoOrchestraModeId;
+  modeId: OrchestraModeId;
   beatIndex: number;
   currentTabIndex: number;
-  /** Screen childIndex from PROTO_SCREENS — enables browse-mode chat disclosure. */
+  /** Screen childIndex from PROJECT_SCREENS — enables browse-mode chat disclosure. */
   currentChildIndex?: number | null;
   /** CJM off — stepped scenarios reveal full content on the active screen. */
   browseMode?: boolean;
-  journeys: ProtoJourneyDefinition[];
-  scenarioScreens: readonly ProtoScenarioScreenConfig[];
-  protoTabToIndex: (tab: number) => number;
-}): ProtoScenarioScreenConfig | undefined {
+  journeys: JourneyDefinition[];
+  scenarioScreens: readonly ScenarioScreenConfig[];
+  studioTabToIndex: (tab: number) => number;
+}): ScenarioScreenConfig | undefined {
   const {
     hubOpen,
     modeId,
@@ -28,7 +28,7 @@ export function resolveActiveScreenScenario(options: {
     browseMode,
     journeys,
     scenarioScreens,
-    protoTabToIndex,
+    studioTabToIndex,
   } = options;
 
   if (hubOpen) return undefined;
@@ -38,7 +38,7 @@ export function resolveActiveScreenScenario(options: {
   if (beat?.kind === "screen-frames" && beat.scenarioId) {
     if (
       beat.protoTab == null ||
-      currentTabIndex === protoTabToIndex(beat.protoTab)
+      currentTabIndex === studioTabToIndex(beat.protoTab)
     ) {
       const resolved = getProtoScenarioById(scenarioScreens, beat.scenarioId);
       if (resolved) return resolved;
@@ -54,8 +54,8 @@ export function resolveActiveScreenScenario(options: {
 
 export function orchestraShowControls(options: {
   hubOpen: boolean;
-  modeId: ProtoOrchestraModeId;
-  journeys: ProtoJourneyDefinition[];
+  modeId: OrchestraModeId;
+  journeys: JourneyDefinition[];
 }): boolean {
   const { hubOpen, modeId, journeys } = options;
 

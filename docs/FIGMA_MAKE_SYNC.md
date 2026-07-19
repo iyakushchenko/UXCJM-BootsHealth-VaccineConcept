@@ -65,12 +65,12 @@ Run npm install if needed, then fix all build/import errors until the preview ru
 
 | Area | Paths |
 |------|--------|
-| App shell | `App.tsx`, `useProtoScrollFill.ts` |
-| Hub | `ProtoHub*.tsx`, `protoHubContent.ts`, `protoScreens.ts`, `src/assets/hub/*.jpg` |
-| Nav | `ProtoNavChrome.tsx`, `ProtoNavLogo.tsx`, `ProtoNavPanel.tsx`, `protoNavPanel.css`, `protoNavZoom.ts` |
-| Header / footer / auth | `protoHeaderMount.tsx`, `LoginPopup.tsx`, `protoFooter*`, `ProtoTertiaryCta.tsx`, `ProtoIconHit.tsx`, `protoIconHitWire.ts`, `ProtoSocialIcons.tsx`, `BootsPharmacyLogo.tsx`, `ProtoCloseIcon.tsx` |
-| PLP | `protoPlpListing.ts`, `protoInputControls.ts`, `protoLocationSearch.ts`, `proto-trash-icon.svg` |
-| Popups / booking | `QuickViewPopup.tsx`, `AvailabilityTool.tsx`, pickers, `protoPdpRtb.ts`, `protoOrderPricing.ts`, `protoMap.ts`, `protoVaccineList.ts` |
+| App shell | `App.tsx`, `useScrollFill.ts` |
+| Hub | `ProtoHub*.tsx`, `hubContent.ts`, `screens.ts`, `src/assets/hub/*.jpg` |
+| Nav | `StudioNavChrome.tsx`, `StudioNavLogo.tsx`, `StudioNavPanel.tsx`, `studioNavPanel.css`, `studioNavZoom.ts` |
+| Header / footer / auth | `headerMount.tsx`, `LoginPopup.tsx`, `protoFooter*`, `TertiaryCta.tsx`, `IconHit.tsx`, `iconHitWire.ts`, `SocialIcons.tsx`, `BootsPharmacyLogo.tsx`, `CloseIcon.tsx` |
+| PLP | `plpListing.ts`, `inputControls.ts`, `locationSearch.ts`, `trash-icon.svg` |
+| Popups / booking | `QuickViewPopup.tsx`, `AvailabilityTool.tsx`, pickers, `pdpRtb.ts`, `orderPricing.ts`, `locationsMap.ts`, `vaccineList.ts` |
 | Styles | `globals.css` |
 | Assets | `ux-dpt-logo.svg`, `user-avatar.jpg`, maps, avail icons, hub images |
 
@@ -92,6 +92,6 @@ Figma Make → GitHub is one-way. This repo is master; update Make via the zip a
 |-------|-----|
 | Preview blank after sync | Step 4 prompt |
 | Missing hub images | Zip includes `src/assets/hub/` (3 JPGs) |
-| PLP filters dead | Confirm `protoPlpListing.ts` + `protoInputControls.ts` were created |
-| Reset icon missing | Confirm `src/assets/proto-trash-icon.svg` was created |
+| PLP filters dead | Confirm `plpListing.ts` + `inputControls.ts` were created |
+| Reset icon missing | Confirm `src/assets/trash-icon.svg` was created |
 | Import errors for `@/app/...` | Ask Make to keep `@/` aliases; do not rewrite paths |

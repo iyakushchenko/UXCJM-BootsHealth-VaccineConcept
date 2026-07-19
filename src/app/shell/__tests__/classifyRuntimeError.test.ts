@@ -4,10 +4,10 @@ import { classifyRuntimeError } from "@/app/shell/classifyRuntimeError";
 describe("classifyRuntimeError", () => {
   it("detects missing import ReferenceError", () => {
     const hint = classifyRuntimeError(
-      new ReferenceError("useProtoJourneyPlayback is not defined")
+      new ReferenceError("useJourneyPlayback is not defined")
     );
     expect(hint.id).toBe("missing-reference");
-    expect(hint.summary).toContain("useProtoJourneyPlayback");
+    expect(hint.summary).toContain("useJourneyPlayback");
   });
 
   it("detects temporal dead zone ReferenceError", () => {
@@ -33,11 +33,11 @@ describe("classifyRuntimeError", () => {
   it("detects vite transform syntax errors", () => {
     const hint = classifyRuntimeError(
       new Error(
-        "Transform failed with 1 error:\nC:/proj/src/app/orchestra/useProtoJourneyPlayback.ts:312:2: ERROR: Unexpected \")\""
+        "Transform failed with 1 error:\nC:/proj/src/app/orchestra/useJourneyPlayback.ts:312:2: ERROR: Unexpected \")\""
       )
     );
     expect(hint.id).toBe("transform-error");
     expect(hint.summary).toContain("Unexpected");
-    expect(hint.summary).toContain("useProtoJourneyPlayback.ts");
+    expect(hint.summary).toContain("useJourneyPlayback.ts");
   });
 });

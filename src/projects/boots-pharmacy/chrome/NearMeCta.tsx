@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, MouseEventHandler } from "react";
-import { ProtoTertiaryCta } from "@/app/chrome/ProtoTertiaryCta";
+import { TertiaryCta } from "@/app/chrome/TertiaryCta";
 import iconMapPin from "@/assets/avail/map-pin.svg";
 
 /** Canonical copy — Book Step 1 + Availability search-row share this string/role. */
@@ -26,7 +26,7 @@ export function NearMeCta({
   const classes = ["proto-near-me-cta", className].filter(Boolean).join(" ");
 
   return (
-    <ProtoTertiaryCta
+    <TertiaryCta
       type={type}
       compact
       className={classes}
@@ -35,6 +35,6 @@ export function NearMeCta({
       icon={<img src={iconMapPin} alt="" width={16} height={16} />}
     >
       {NEAR_ME_CTA_LABEL}
-    </ProtoTertiaryCta>
+    </TertiaryCta>
   );
 }

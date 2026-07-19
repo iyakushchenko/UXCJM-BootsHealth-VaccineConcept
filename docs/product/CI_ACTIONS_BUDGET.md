@@ -88,4 +88,4 @@ gh run view <id> --log-failed
 - [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md) — local gates before “done”  
 - [NEXT_STEPS.md](./NEXT_STEPS.md) — living board  
 - [../../AGENTS.md](../../AGENTS.md) — Quick start / CI  
-- [../../scripts/proto-playwright-smoke.mjs](../../scripts/proto-playwright-smoke.mjs)  
+- [../../scripts/playwright-smoke.mjs](../../scripts/playwright-smoke.mjs)  

@@ -51,7 +51,7 @@ LEGACY Make globals — retire screen-by-screen; do not grow for React
 
 **Verify:** Shared controls (`.uxds-link`, `.uxds-filter-chip`, `.uxds-btn-primary`, tertiary CTA) still render with UXDS `:root` defaults — readable, consistent, no missing colors.
 
-Boots import order (see `src/styles/index.css`): BASE (`src/uxds/`) → THEME (`boots-pharmacy/styleguide/theme.css`) → PANEL (`src/app/nav/protoNavPanel.css`) → LEGACY (`globals*.css`).
+Boots import order (see `src/styles/index.css`): BASE (`src/uxds/`) → THEME (`boots-pharmacy/styleguide/theme.css`) → PANEL (`src/app/nav/studioNavPanel.css`) → LEGACY (`globals*.css`).
 
 ---
 

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo, typ
 import locationsMapChosen from "@/assets/locations-map-chosen.png";
 import bootsAdvantageCard from "@/assets/boots-advantage-card.png";
 import AvailabilityTool, {
-  PROTO_TODAY_TOOLTIP,
+  TODAY_TOOLTIP,
   type AvailOpenIntent,
   type AvailStep,
   type ChosenBookingSlot,
@@ -21,7 +21,7 @@ import {
   mountSitePilotChatComposerDock,
   syncSitePilotChatComposerDock,
   teardownSitePilotChatComposerDock,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatScenario";
 import {
   abortSitePilotChatPlaybackPrelude,
   runSitePilotChatBeforeReveal,
@@ -29,7 +29,7 @@ import {
   stripSitePilotChatDemoCursors,
 } from "@/projects/boots-pharmacy/playback/sitePilotChat";
 import { AGENTIC_HOME_DEMO_QUERY } from "@/projects/boots-pharmacy/playback/sitePilotHome";
-import { removeDemoCursor } from "@/app/proto/protoDemoCursor";
+import { removeDemoCursor } from "@/app/scenario/demoCursor";
 import {
   beginSitePilotChatThinking,
   endSitePilotChatThinking,
@@ -38,12 +38,12 @@ import {
   isSitePilotChatThinking,
   setSitePilotChatSendThinkingMode,
   syncSitePilotChatThinkingHint,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
 import { resolveAvailStoreId, getDemoChosenLocation } from "@/projects/boots-pharmacy/data/availStores";
 import { resolveAvailIntent } from "@/projects/boots-pharmacy/wire/resolveAvailIntent";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
-import type { VaccineItem } from "@/projects/boots-pharmacy/data/protoVaccineList";
-import { setupChosenPageMap } from "@/projects/boots-pharmacy/dom/protoMap";
+import type { VaccineItem } from "@/projects/boots-pharmacy/data/vaccineList";
+import { setupChosenPageMap } from "@/projects/boots-pharmacy/dom/locationsMap";
 import {
   arePlpFiltersActive,
   ensurePlpFiltersDefault,
@@ -51,34 +51,34 @@ import {
   PLP_FILTERS_CHANGE_EVENT,
   resetPlpFilters,
   syncPlpListingFilters,
-} from "@/projects/boots-pharmacy/data/protoPlpListing";
-import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/projects/boots-pharmacy/dom/protoLocationSearch";
-import { setupProtoFooters } from "@/projects/boots-pharmacy/chrome/protoFooterMount";
+} from "@/projects/boots-pharmacy/data/plpListing";
+import { initSearchFields, syncFigmaSearchClearIcons } from "@/projects/boots-pharmacy/dom/locationSearch";
+import { setupFooters } from "@/projects/boots-pharmacy/chrome/footerMount";
 import {
-  setupProtoHeader,
-  syncProtoHeaderLogin,
+  setupHeader,
+  syncHeaderLogin,
   syncMaAccountAvatars,
-  setProtoHeaderLoggedIn,
-  isProtoHeaderLoggedIn,
+  setHeaderLoggedIn,
+  isHeaderLoggedIn,
   toggleWishlist,
   isInWishlist,
   applyPlpTileHeartVisual,
   applyWishlistHeartVisual,
   plpTileWishlistId,
   syncChickenpoxWishlistHearts,
-  PROTO_PDP_WISHLIST_ID,
-} from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
-import { wireProtoIconHits } from "@/projects/boots-pharmacy/dom/protoIconHitWire";
-import { onProtoRetreatSync } from "@/app/proto/protoRetreatBridge";
+  PDP_WISHLIST_ID,
+} from "@/projects/boots-pharmacy/chrome/headerMount";
+import { wireIconHits } from "@/projects/boots-pharmacy/dom/iconHitWire";
+import { onRetreatSync } from "@/app/scenario/retreatBridge";
 import {
   applyBookStep2CalendarFromSlot,
   bookStep2Screen,
   isBookStep2RetreatSyncDetail,
   isBookStep2RetreatSlotDetail,
   syncBookStep2RetreatDefaultDom,
-} from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
-import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
-import { scrollPrototypeScrollToTopAfterLayout } from "@/app/proto/protoScenarioEngine";
+} from "@/projects/boots-pharmacy/dom/bookStep2Calendar";
+import { useScrollFill } from "@/app/scenario/useScrollFill";
+import { scrollPrototypeScrollToTopAfterLayout } from "@/app/scenario/scenarioEngine";
 import {
   boosterDoseSummaryLabel,
   PDP_CHECKBOX_LABEL,
@@ -86,22 +86,22 @@ import {
   PDP_PRICE_WITHOUT_BOOSTER,
   syncAccountOrderSummary,
   syncConfirmationOrderSummary,
-} from "@/projects/boots-pharmacy/data/protoOrderPricing";
+} from "@/projects/boots-pharmacy/data/orderPricing";
 import {
   ensureCheckboxRow,
   handleProtoInputClick,
   initProtoInputControls,
   markBoosterCheckboxRow,
-} from "@/projects/boots-pharmacy/dom/protoInputControls";
+} from "@/projects/boots-pharmacy/dom/inputControls";
 import {
   getSelectedAppointmentId,
-  PROTO_APPOINTMENT_PILOT_QUERY,
+  APPOINTMENT_PILOT_QUERY,
   syncAppointmentDetails,
   syncAppointmentHistory,
   wireAppointmentDetailsBreadcrumbs,
-} from "@/projects/boots-pharmacy/data/protoAppointments";
-import type { ProtoProjectShellBridge, ProtoProjectWireApi } from "@/projects/types";
-import { storeNavIndex } from "@/app/shell/protoNavStorage";
+} from "@/projects/boots-pharmacy/data/appointments";
+import type { ProjectShellBridge, ProjectWireApi } from "@/projects/types";
+import { storeNavIndex } from "@/app/shell/studioNavStorage";
 import {
   isBookStep1ReactMounted,
   mountBookStep1Screen,
@@ -188,7 +188,7 @@ function findAgenticHomeHeading(screen: HTMLElement): HTMLElement | null {
 }
 
 function resolveAgenticHomeLoggedIn(loggedInFlag: boolean): boolean {
-  return loggedInFlag || isProtoHeaderLoggedIn();
+  return loggedInFlag || isHeaderLoggedIn();
 }
 
 function syncAgenticHomeHeading(isLoggedIn: boolean): void {
@@ -641,17 +641,17 @@ function wireStoreWorkingHours(overlay: HTMLElement) {
   });
 }
 
-const PROTO_UI_LEGACY_KEYS = [
+const UI_LEGACY_KEYS = [
   "boots-vaccine-proto-ui",
   "boots-vaccine-proto-ui-v2",
   "boots-vaccine-proto-ui-v3",
 ];
 /** Persist global nav tab across refresh / Reset. */
-const PROTO_HUB_KEY = "boots-vaccine-proto-hub";
-const PROTO_AGENTIC_PENDING_QUERY_KEY = "boots-vaccine-proto-agentic-pending-query";
+const HUB_STORAGE_KEY = "boots-vaccine-proto-hub";
+const AGENTIC_PENDING_QUERY_KEY = "boots-vaccine-proto-agentic-pending-query";
 
 /** Screen interaction defaults. Nav index is separate. */
-const DEFAULT_PROTO_UI = {
+const DEFAULT_UI_STATE = {
   chosenLocation: null as ChosenLocation | null,
 };
 
@@ -766,8 +766,8 @@ function stripCalCellChrome(cell: HTMLElement) {
 }
 
 function clearProtoUiStorage() {
-  PROTO_UI_LEGACY_KEYS.forEach((k) => sessionStorage.removeItem(k));
-  sessionStorage.removeItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
+  UI_LEGACY_KEYS.forEach((k) => sessionStorage.removeItem(k));
+  sessionStorage.removeItem(AGENTIC_PENDING_QUERY_KEY);
 }
 
 function findBookProgressCol(
@@ -798,8 +798,8 @@ function markBookProgressCompleted(bar: HTMLElement) {
 }
 
 export type BootsPharmacyProjectViewProps = {
-  bridge: ProtoProjectShellBridge;
-  apiRef?: MutableRefObject<ProtoProjectWireApi | null>;
+  bridge: ProjectShellBridge;
+  apiRef?: MutableRefObject<ProjectWireApi | null>;
 };
 
 export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjectViewProps) {
@@ -819,7 +819,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     navPlaybackLockedRef,
     goRef,
     currentRef,
-    protoNavKey,
+    studioNavKey,
     orchestra,
     onWireApiChange,
     studioJourneyMode,
@@ -849,18 +849,18 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   } = orchestra;
 
   const {
-    PROTO_SCREENS: SCREENS,
-    PROTO_HUB_LABEL,
-    PROTO_SCENARIO_SCREENS,
-    PROTO_INDEX_APPOINTMENT_DETAILS,
-    PROTO_INDEX_APPOINTMENT_HISTORY,
-    PROTO_INDEX_BOOK_STEP1,
-    PROTO_INDEX_BOOK_STEP2,
-    PROTO_INDEX_BOOK_STEP3,
-    PROTO_INDEX_PLP,
-    protoTabToIndex,
+    PROJECT_SCREENS: SCREENS,
+    HUB_LABEL,
+    SCENARIO_SCREENS,
+    INDEX_APPOINTMENT_DETAILS,
+    INDEX_APPOINTMENT_HISTORY,
+    INDEX_BOOK_STEP1,
+    INDEX_BOOK_STEP2,
+    INDEX_BOOK_STEP3,
+    INDEX_PLP,
+    studioTabToIndex,
     ProjectFrame,
-    ProtoHubViewport,
+    HubViewport,
   } = projectContent;
 
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
@@ -869,7 +869,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   );
   const [availActiveStep, setAvailActiveStep] = useState<AvailStep | null>(null);
   const [chosenLocation, setChosenLocation] = useState<ChosenLocation | null>(
-    DEFAULT_PROTO_UI.chosenLocation
+    DEFAULT_UI_STATE.chosenLocation
   );
   const [chosenVaccine, setChosenVaccine] = useState<ChosenVaccine>(
     DEFAULT_CHOSEN_VACCINE
@@ -893,7 +893,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   );
 
   useEffect(() => {
-    return onProtoRetreatSync((detail) => {
+    return onRetreatSync((detail) => {
       if (isBookStep2RetreatSlotDetail(detail)) {
         const { month, day, time } = detail.data;
         queueMicrotask(() => {
@@ -977,7 +977,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   const goSitePilotHome = useCallback((query: string) => {
     pendingAgenticHomeQueryRef.current = query;
     try {
-      sessionStorage.setItem(PROTO_AGENTIC_PENDING_QUERY_KEY, query);
+      sessionStorage.setItem(AGENTIC_PENDING_QUERY_KEY, query);
     } catch {
       /* ignore */
     }
@@ -986,8 +986,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   }, [setCurrent, setHubOpen]);
   const onQuickViewBookNow = useCallback(() => {
     setQuickViewOpen(false);
-    setCurrent(PROTO_INDEX_BOOK_STEP1);
-  }, [setCurrent, PROTO_INDEX_BOOK_STEP1]);
+    setCurrent(INDEX_BOOK_STEP1);
+  }, [setCurrent, INDEX_BOOK_STEP1]);
   const onQuickViewViewDetails = useCallback(() => {
     setQuickViewOpen(false);
     setCurrent(3);
@@ -1039,7 +1039,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         return;
       }
       window.setTimeout(() => {
-        setCurrent(PROTO_INDEX_BOOK_STEP2);
+        setCurrent(INDEX_BOOK_STEP2);
         const datetimeBeatIndex =
           activeJourney?.beats.findIndex((beat) => beat.id === "book-step-2") ??
           -1;
@@ -1086,13 +1086,13 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     closeAllPopups();
     setAvailIntent(AVAIL_INTENT.start);
     setAvailActiveStep(null);
-    setChosenLocation(DEFAULT_PROTO_UI.chosenLocation);
+    setChosenLocation(DEFAULT_UI_STATE.chosenLocation);
     setChosenVaccine(DEFAULT_CHOSEN_VACCINE);
     setChosenRecipient(DEFAULT_CHOSEN_RECIPIENT);
     setIncludeBoosterDose(DEFAULT_INCLUDE_BOOSTER_DOSE);
     setChosenBookingSlot(DEFAULT_CHOSEN_BOOKING_SLOT);
     setLoggedInFlag(false);
-    setProtoHeaderLoggedIn(false);
+    setHeaderLoggedIn(false);
     setHomeQueryDirty(false);
     setChatComposerDirty(false);
     setPlpFiltersDirty(false);
@@ -1162,7 +1162,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     closeAllPopups();
   }, [current, hubOpen, closeAllPopups]);
 
-  useProtoScrollFill(prototypeScrollElRef, !hubOpen);
+  useScrollFill(prototypeScrollElRef, !hubOpen);
 
   // Boots Pharmacy logo, header “Home”, and breadcrumb “Home” → page 1 (Agentic Site Pilot Home)
   useEffect(() => {
@@ -1306,9 +1306,9 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const scrollEl = prototypeScrollElRef.current;
     if (!scrollEl) return;
-    setupProtoHeader(scrollEl, {
+    setupHeader(scrollEl, {
       onLoginChange: () => {
-        const isLoggedIn = isProtoHeaderLoggedIn();
+        const isLoggedIn = isHeaderLoggedIn();
         setLoggedInFlag(isLoggedIn);
         if (SCREENS[currentRef.current]?.childIndex === 11) {
           syncAgenticHomeHeading(isLoggedIn);
@@ -1338,8 +1338,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     document.documentElement.style.setProperty("--sticky-top", `${h}px`);
 
     // Sync login state: account pages force logged-in (browse stays as user left it)
-    syncProtoHeaderLogin(SCREENS[current]?.childIndex ?? 11);
-    const headerLoggedIn = isProtoHeaderLoggedIn();
+    syncHeaderLogin(SCREENS[current]?.childIndex ?? 11);
+    const headerLoggedIn = isHeaderLoggedIn();
     setLoggedInFlag(headerLoggedIn);
     if (SCREENS[current]?.childIndex === 11) {
       syncAgenticHomeHeading(headerLoggedIn);
@@ -1410,7 +1410,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         openPickLocations("list", { locationRequired: true });
         return;
       }
-      setCurrent(PROTO_INDEX_BOOK_STEP2);
+      setCurrent(INDEX_BOOK_STEP2);
     };
 
     mountBookStep1Screen({
@@ -1427,9 +1427,9 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       onContinue,
     });
 
-    // Ensure ProtoFooter remounts after Make footer is hidden.
-    setupProtoFooters({
-      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    // Ensure Footer remounts after Make footer is hidden.
+    setupFooters({
+      onGoToPlp: () => goRef.current(INDEX_PLP),
     });
   }, [
     current,
@@ -1459,12 +1459,12 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       onChangeRecipient: openRecipientPicker,
       onChangeLocation: () => openPickLocations("list"),
       onSlotChange: setChosenBookingSlot,
-      onReserve: () => setCurrent(PROTO_INDEX_BOOK_STEP3),
-      onBackToStep1: () => setCurrent(PROTO_INDEX_BOOK_STEP1),
+      onReserve: () => setCurrent(INDEX_BOOK_STEP3),
+      onBackToStep1: () => setCurrent(INDEX_BOOK_STEP1),
     });
 
-    setupProtoFooters({
-      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    setupFooters({
+      onGoToPlp: () => goRef.current(INDEX_PLP),
     });
   }, [
     current,
@@ -1491,12 +1491,12 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       recipient: chosenRecipient,
       slot: chosenBookingSlot,
       includeBoosterDose,
-      onExploreMore: () => setCurrent(PROTO_INDEX_PLP),
-      onOpenAppointments: () => setCurrent(PROTO_INDEX_APPOINTMENT_HISTORY),
+      onExploreMore: () => setCurrent(INDEX_PLP),
+      onOpenAppointments: () => setCurrent(INDEX_APPOINTMENT_HISTORY),
     });
 
-    setupProtoFooters({
-      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    setupFooters({
+      onGoToPlp: () => goRef.current(INDEX_PLP),
     });
   }, [
     current,
@@ -1567,7 +1567,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       pendingAgenticHomeQueryRef.current ??
       (() => {
         try {
-          return sessionStorage.getItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
+          return sessionStorage.getItem(AGENTIC_PENDING_QUERY_KEY);
         } catch {
           return null;
         }
@@ -1576,7 +1576,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       ta.value = pendingQuery;
       pendingAgenticHomeQueryRef.current = null;
       try {
-        sessionStorage.removeItem(PROTO_AGENTIC_PENDING_QUERY_KEY);
+        sessionStorage.removeItem(AGENTIC_PENDING_QUERY_KEY);
       } catch {
         /* ignore */
       }
@@ -1925,7 +1925,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const openLocations = (e: Event) => {
       stop(e);
       const intent: AvailOpenIntent = { step: "list", query: "London" };
-      if (isProtoHeaderLoggedIn()) intent.storeId = AVAIL_DEMO_STORE;
+      if (isHeaderLoggedIn()) intent.storeId = AVAIL_DEMO_STORE;
       setAvailIntent(intent);
       setAvailabilityOpen(true);
     };
@@ -2180,12 +2180,12 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
     const goBookStep1 = (e: Event) => {
       stop(e);
-      if (!isProtoHeaderLoggedIn() && !loggedInFlag) {
+      if (!isHeaderLoggedIn() && !loggedInFlag) {
         setLoginPopupTab("signin");
         setLoginPopupOpen(true);
         return;
       }
-      setCurrent(PROTO_INDEX_BOOK_STEP1);
+      setCurrent(INDEX_BOOK_STEP1);
     };
 
     const allBtns = Array.from(
@@ -2250,14 +2250,14 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
     // Wire "Vaccination" breadcrumb to navigate to PLP
     const vacCrumb = screen.querySelector<HTMLElement>('[data-proto-crumb="vaccination"]');
-    const onVacCrumb = (e: Event) => { e.preventDefault(); setCurrent(PROTO_INDEX_PLP); };
+    const onVacCrumb = (e: Event) => { e.preventDefault(); setCurrent(INDEX_PLP); };
     if (vacCrumb) {
       vacCrumb.style.cursor = "pointer";
       vacCrumb.addEventListener("click", onVacCrumb);
     }
 
     // Hide only that block when logged in
-    if (isProtoHeaderLoggedIn() && loginBlock) {
+    if (isHeaderLoggedIn() && loginBlock) {
       (loginBlock as HTMLElement).style.display = "none";
       return () => { if (vacCrumb) vacCrumb.removeEventListener("click", onVacCrumb); };
     }
@@ -2290,7 +2290,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const handlers: Array<[HTMLElement, () => void]> = [];
 
     hearts.forEach((heart, i) => {
-      // PDP / Quick View chickenpox heart uses PROTO_PDP_WISHLIST_ID (cross-experience).
+      // PDP / Quick View chickenpox heart uses PDP_WISHLIST_ID (cross-experience).
       if (heart.closest('[data-name="module.pdp.rtb"]')) return;
 
       const btn = heart.closest('[data-name="component.input.button"]') as HTMLElement | null;
@@ -2340,7 +2340,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
 
   useEffect(() => {
     initProtoInputControls();
-    initProtoSearchFields();
+    initSearchFields();
     ensurePlpFiltersDefault(document);
     const plpFilters = document.querySelector('[data-name="module.plp.filters"]');
     if (plpFilters) initProtoInputControls(plpFilters);
@@ -2362,7 +2362,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const root = prototypeScrollElRef.current;
     if (!root) return;
     const run = () => {
-      initProtoSearchFields(root);
+      initSearchFields(root);
       syncFigmaSearchClearIcons(root);
     };
     run();
@@ -2654,12 +2654,12 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current, chosenLocation]);
 
-  // ProtoFooter on all screens with static Figma footers (replaces native DOM)
+  // Footer on all screens with static Figma footers (replaces native DOM)
   useEffect(() => {
-    setupProtoFooters({
-      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    setupFooters({
+      onGoToPlp: () => goRef.current(INDEX_PLP),
     });
-    wireProtoIconHits();
+    wireIconHits();
   }, []);
 
   // My Account — Order → Appointment copy on Details + History pages
@@ -2685,8 +2685,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       cleanup?.();
       cleanup = syncAppointmentHistory(
         page,
-        () => setCurrent(PROTO_INDEX_APPOINTMENT_DETAILS),
-        () => goSitePilotHome(PROTO_APPOINTMENT_PILOT_QUERY),
+        () => setCurrent(INDEX_APPOINTMENT_DETAILS),
+        () => goSitePilotHome(APPOINTMENT_PILOT_QUERY),
         goSitePilotHome
       );
     };
@@ -2716,7 +2716,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         goSitePilotHome
       );
       const breadcrumbCleanup = wireAppointmentDetailsBreadcrumbs(page, () =>
-        setCurrent(PROTO_INDEX_APPOINTMENT_HISTORY)
+        setCurrent(INDEX_APPOINTMENT_HISTORY)
       );
       cleanup = () => {
         refundCleanup();
@@ -3116,8 +3116,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         const month = monthForCell(cell);
         if (month === "June" && label === "12") {
           cell.dataset.protoCalToday = "true";
-          cell.setAttribute("title", PROTO_TODAY_TOOLTIP);
-          cell.setAttribute("aria-label", PROTO_TODAY_TOOLTIP);
+          cell.setAttribute("title", TODAY_TOOLTIP);
+          cell.setAttribute("aria-label", TODAY_TOOLTIP);
         }
       }
 
@@ -3238,7 +3238,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       }
       const slot = readBookingSlotFromScreen(screen);
       if (slot) setChosenBookingSlot(slot);
-      setCurrent(PROTO_INDEX_BOOK_STEP3);
+      setCurrent(INDEX_BOOK_STEP3);
     };
 
     reserveBtns.forEach((btn) => {
@@ -3426,7 +3426,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const goHistory = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
-      setCurrent(protoTabToIndex(8));
+      setCurrent(studioTabToIndex(8));
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -3921,7 +3921,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       if ("stopImmediatePropagation" in e) {
         (e as Event).stopImmediatePropagation();
       }
-      setCurrent(PROTO_INDEX_BOOK_STEP1);
+      setCurrent(INDEX_BOOK_STEP1);
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -4023,7 +4023,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         openPickLocations("list", { locationRequired: true });
         return;
       }
-      setCurrent(PROTO_INDEX_BOOK_STEP2);
+      setCurrent(INDEX_BOOK_STEP2);
     };
 
     continueBtns.forEach((btn) => {
@@ -4252,10 +4252,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     const favBtn = favIcon?.closest<HTMLElement>("[data-name='component.input.button']");
     if (!favBtn || !favIcon) return;
 
-    applyWishlistHeartVisual(favIcon, isInWishlist(PROTO_PDP_WISHLIST_ID));
+    applyWishlistHeartVisual(favIcon, isInWishlist(PDP_WISHLIST_ID));
 
     const toggle = () => {
-      toggleWishlist(PROTO_PDP_WISHLIST_ID);
+      toggleWishlist(PDP_WISHLIST_ID);
     };
 
     favBtn.addEventListener("click", toggle);
@@ -4267,7 +4267,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   const isScreenChat = childIndex === 10 && !hubOpen;
   // Agentic home only — chat scrolls in the prototype scroller; overflow:hidden breaks sticky Site Pilot bar.
   const isViewportLocked = isScreen1;
-  const navLabel = hubOpen ? PROTO_HUB_LABEL : label;
+  const navLabel = hubOpen ? HUB_LABEL : label;
   const activeChildIndex = hubOpen ? null : childIndex;
   const popupOnScreen = (...allowed: number[]) =>
     activeChildIndex != null && allowed.includes(activeChildIndex);
@@ -4431,7 +4431,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     }
   `;
 
-  const headerLoggedIn = loggedInFlag || isProtoHeaderLoggedIn();
+  const headerLoggedIn = loggedInFlag || isHeaderLoggedIn();
 
   const wirePristine =
     !availabilityOpen &&
@@ -4526,7 +4526,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
           }`}
           onScroll={saveHubScroll}
         >
-          <ProtoHubViewport onGoToTab={go} />
+          <HubViewport onGoToTab={go} />
         </div>
         <div
           ref={prototypeScrollElRef}
@@ -4561,7 +4561,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
           closeAvailabilityTool();
         }}
         onBookNow={handleAvailabilityBookNow}
-        loggedIn={loggedInFlag || isProtoHeaderLoggedIn()}
+        loggedIn={loggedInFlag || isHeaderLoggedIn()}
         onOpenLogin={() => {
           setLoginPopupTab("signin");
           setLoginPopupOpen(true);
@@ -4589,7 +4589,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         initialTab={loginPopupTab}
         onClose={() => setLoginPopupOpen(false)}
         onSignIn={() => {
-          setProtoHeaderLoggedIn(true);
+          setHeaderLoggedIn(true);
           setLoggedInFlag(true);
           if (SCREENS[current]?.childIndex === 11) {
             syncAgenticHomeHeading(true);
@@ -4600,7 +4600,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       <QuickViewPopup
         open={quickViewOpen && popupOnScreen(9)}
         includeBoosterDose={includeBoosterDose}
-        loggedIn={loggedInFlag || isProtoHeaderLoggedIn()}
+        loggedIn={loggedInFlag || isHeaderLoggedIn()}
         onClose={closeQuickView}
         onBookNow={onQuickViewBookNow}
         onViewDetails={onQuickViewViewDetails}

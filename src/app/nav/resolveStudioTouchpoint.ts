@@ -1,5 +1,5 @@
 import type { AvailStep } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
-import type { JourneyBeat, ProtoJourneyDefinition } from "@/app/orchestra/types";
+import type { JourneyBeat, JourneyDefinition } from "@/app/orchestra/types";
 import type { StudioTouchpointEntry } from "@/projects/types";
 
 /** Site-pilot-chat playlist size: 8 DOM content frames + 1 virtual finale beat. */
@@ -104,7 +104,7 @@ function expandBeatToTouchpoints(
 }
 
 export function buildStudioTouchpointPlaylist(
-  journey: ProtoJourneyDefinition | undefined,
+  journey: JourneyDefinition | undefined,
   chatScenarioTotalFrames = DEFAULT_CHAT_SCENARIO_FRAMES,
   options?: {
     shouldSkipBeat?: (beat: JourneyBeat) => boolean;

@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
 import { getJourneyForMode } from "@/app/orchestra/journeyUtils";
 import {
-  PROTO_ORCHESTRA_MODE_OPTIONS,
+  ORCHESTRA_MODE_OPTIONS,
   readStoredOrchestraMode,
   storeOrchestraMode,
-} from "@/app/orchestra/protoOrchestraModes";
-import type { ProtoBrandPack, ProtoOrchestraModeId } from "@/app/orchestra/types";
+} from "@/app/orchestra/orchestraModes";
+import type { BrandPack, OrchestraModeId } from "@/app/orchestra/types";
 
-/** @deprecated Prefer `useProtoStudio` from `@/app/shell/useProtoStudio`. */
-export function useOrchestraMode(brandPack: ProtoBrandPack) {
-  const [modeId, setModeIdState] = useState<ProtoOrchestraModeId>(readStoredOrchestraMode);
+/** @deprecated Prefer `useStudio` from `@/app/shell/useStudio`. */
+export function useOrchestraMode(brandPack: BrandPack) {
+  const [modeId, setModeIdState] = useState<OrchestraModeId>(readStoredOrchestraMode);
   const [beatIndex, setBeatIndex] = useState(0);
 
   const journey = useMemo(
@@ -18,9 +18,9 @@ export function useOrchestraMode(brandPack: ProtoBrandPack) {
   );
 
   const modeLabel =
-    PROTO_ORCHESTRA_MODE_OPTIONS.find((m) => m.id === modeId)?.label ?? "Agentic CJM";
+    ORCHESTRA_MODE_OPTIONS.find((m) => m.id === modeId)?.label ?? "Agentic CJM";
 
-  const setModeId = useCallback((next: ProtoOrchestraModeId) => {
+  const setModeId = useCallback((next: OrchestraModeId) => {
     setModeIdState(next);
     storeOrchestraMode(next);
     setBeatIndex(0);
@@ -34,7 +34,7 @@ export function useOrchestraMode(brandPack: ProtoBrandPack) {
     modeId,
     setModeId,
     modeLabel,
-    modes: PROTO_ORCHESTRA_MODE_OPTIONS,
+    modes: ORCHESTRA_MODE_OPTIONS,
     journey,
     beatIndex,
     setBeatIndex,

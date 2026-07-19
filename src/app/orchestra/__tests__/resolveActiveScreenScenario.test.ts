@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveActiveScreenScenario } from "@/app/orchestra/resolveActiveScreenScenario";
 import { AGENTIC_CJM_JOURNEY } from "@/projects/boots-pharmacy/personas/sarah-jenkins/journeys";
 import { BOOTS_PHARMACY_SCENARIO_SCREENS } from "@/projects/boots-pharmacy/screens/scenarios";
-import { protoTabToIndex } from "@/projects/boots-pharmacy/screens/protoScreens";
+import { studioTabToIndex } from "@/projects/boots-pharmacy/screens/screens";
 
 describe("resolveActiveScreenScenario", () => {
   const chatBeatIndex = AGENTIC_CJM_JOURNEY.beats.findIndex((b) => b.id === "agentic-chat");
@@ -13,10 +13,10 @@ describe("resolveActiveScreenScenario", () => {
         hubOpen: true,
         modeId: "agentic-cjm",
         beatIndex: chatBeatIndex,
-        currentTabIndex: protoTabToIndex(2),
+        currentTabIndex: studioTabToIndex(2),
         journeys: [AGENTIC_CJM_JOURNEY],
         scenarioScreens: BOOTS_PHARMACY_SCENARIO_SCREENS,
-        protoTabToIndex,
+        studioTabToIndex,
       })
     ).toBeUndefined();
   });
@@ -26,10 +26,10 @@ describe("resolveActiveScreenScenario", () => {
       hubOpen: false,
       modeId: "agentic-cjm",
       beatIndex: chatBeatIndex,
-      currentTabIndex: protoTabToIndex(2),
+      currentTabIndex: studioTabToIndex(2),
       journeys: [AGENTIC_CJM_JOURNEY],
       scenarioScreens: BOOTS_PHARMACY_SCENARIO_SCREENS,
-      protoTabToIndex,
+      studioTabToIndex,
     });
     expect(scenario?.id).toBe("site-pilot-chat");
   });
@@ -40,10 +40,10 @@ describe("resolveActiveScreenScenario", () => {
         hubOpen: false,
         modeId: "agentic-cjm",
         beatIndex: chatBeatIndex,
-        currentTabIndex: protoTabToIndex(1),
+        currentTabIndex: studioTabToIndex(1),
         journeys: [AGENTIC_CJM_JOURNEY],
         scenarioScreens: BOOTS_PHARMACY_SCENARIO_SCREENS,
-        protoTabToIndex,
+        studioTabToIndex,
       })
     ).toBeUndefined();
   });
@@ -53,12 +53,12 @@ describe("resolveActiveScreenScenario", () => {
       hubOpen: false,
       modeId: "agentic-cjm",
       beatIndex: 0,
-      currentTabIndex: protoTabToIndex(2),
+      currentTabIndex: studioTabToIndex(2),
       currentChildIndex: 10,
       browseMode: true,
       journeys: [AGENTIC_CJM_JOURNEY],
       scenarioScreens: BOOTS_PHARMACY_SCENARIO_SCREENS,
-      protoTabToIndex,
+      studioTabToIndex,
     });
     expect(scenario?.id).toBe("site-pilot-chat");
   });

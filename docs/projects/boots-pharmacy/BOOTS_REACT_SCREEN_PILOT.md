@@ -2,7 +2,7 @@
 
 **Status:** Shipped (commander, mode B — from what we have)  
 **Date:** 2026-07-19  
-**Screen:** Book — Step 1 — Location (`PROTO_SCREENS` tab 5, Frame child index **7**)
+**Screen:** Book — Step 1 — Location (`PROJECT_SCREENS` tab 5, Frame child index **7**)
 
 ---
 
@@ -25,7 +25,7 @@ Agentic CJM still lands on Book Step 2 after Availability Tool; this pilot prove
 - `ButtonPrimary`, `FilterChip` / `FilterChipGroup`, `Disclosure`
 - Existing `AvailabilityTool` for location pick (unchanged overlay)
 - Vaccine / recipient popups (same wire state)
-- Sticky Proto header + ProtoFooter mounts
+- Sticky Proto header + Footer mounts
 - Stable `data-name` hooks for playback (`component.input.field`, `.proto-chosen-slot`, Continue button, progress)
 
 ---

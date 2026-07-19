@@ -4,7 +4,7 @@ import type {
   HomeScriptId,
   TabScriptId,
 } from "@/app/orchestra/types";
-import type { PlaybackScriptKind } from "@/app/shell/protoPlaybackDiagnostic";
+import type { PlaybackScriptKind } from "@/app/shell/playbackDiagnostic";
 
 export type PlaybackScriptSource = {
   file: string;

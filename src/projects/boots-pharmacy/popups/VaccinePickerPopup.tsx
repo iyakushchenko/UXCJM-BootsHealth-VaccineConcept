@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
-import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
+import { CloseIcon } from "@/app/chrome/CloseIcon";
+import { useOverlayDismiss } from "@/app/chrome/useOverlayDismiss";
 import {
   readVaccinesFromPlp,
   type VaccineItem,
-} from "@/projects/boots-pharmacy/data/protoVaccineList";
+} from "@/projects/boots-pharmacy/data/vaccineList";
 import iconCheckChosen from "@/assets/avail/check-chosen.svg";
 
 type Props = {
@@ -87,7 +87,7 @@ export default function VaccinePickerPopup({
   onClose,
   onSelect,
 }: Props) {
-  const { mounted, scrimClassName, onScrimAnimationEnd } = useProtoOverlayDismiss(open);
+  const { mounted, scrimClassName, onScrimAnimationEnd } = useOverlayDismiss(open);
   const [vaccines, setVaccines] = useState<VaccineItem[]>([]);
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function VaccinePickerPopup({
             aria-label="Close vaccine picker"
             onClick={onClose}
           >
-            <ProtoCloseIcon />
+            <CloseIcon />
           </button>
         </div>
 

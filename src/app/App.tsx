@@ -6,14 +6,14 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
-import { ProtoNavScenarioControls } from "@/app/nav/ProtoNavScenarioControls";
+import StudioNavPanel from "@/app/nav/StudioNavPanel";
+import { StudioNavScenarioControls } from "@/app/nav/StudioNavScenarioControls";
 import {
-  ProtoNavRecordingControls,
-  ProtoNavRecordingModeSlot,
-} from "@/app/nav/ProtoNavRecordingControls";
-import { ProtoNavJourneyMenu } from "@/app/nav/ProtoNavJourneyMenu";
-import { ProtoNavStudioSelect } from "@/app/nav/ProtoNavStudioSelect";
+  StudioNavRecordingControls,
+  StudioNavRecordingModeSlot,
+} from "@/app/nav/StudioNavRecordingControls";
+import { StudioNavJourneyMenu } from "@/app/nav/StudioNavJourneyMenu";
+import { StudioNavStudioSelect } from "@/app/nav/StudioNavStudioSelect";
 import {
   resolveStudioTouchpoint,
   buildStudioTouchpointPlaylist,
@@ -21,7 +21,7 @@ import {
   resolveStudioTouchpointProgressForBeat,
   resolveStableChatScenarioPlaylistFrames,
 } from "@/app/nav/resolveStudioTouchpoint";
-import { useProtoScenarioPlayback, type PlaybackStepHooks } from "@/app/nav/useProtoScenarioPlayback";
+import { useScenarioPlayback, type PlaybackStepHooks } from "@/app/nav/useScenarioPlayback";
 import {
   orchestraShowControls,
   resolveActiveScreenScenario,
@@ -31,8 +31,8 @@ import {
   resolveBeatIndexForScreenTab,
   resolveJourneyStartBeat,
 } from "@/app/orchestra/journeyUtils";
-import type { JourneyRuntime, ProtoJourneyDefinition, ProtoOrchestraModeId } from "@/app/orchestra/types";
-import type { ProtoPersonaId, ProtoProjectId, ProtoProjectWireApi } from "@/projects/types";
+import type { JourneyRuntime, JourneyDefinition, OrchestraModeId } from "@/app/orchestra/types";
+import type { PersonaId, ProjectId, ProjectWireApi } from "@/projects/types";
 import {
   cancelDemoCursorJourneyEndFade,
   removeDemoCursor,
@@ -40,74 +40,74 @@ import {
   reviveDemoCursorAfterJourneyEndRetreat,
   scheduleDemoCursorJourneyEndFade,
   setDemoCursorJourneyMode,
-} from "@/app/proto/protoDemoCursor";
-import { cancelPlaybackScroll } from "@/app/proto/protoPlaybackScroll";
-import { useProtoJourneyPlayback } from "@/app/orchestra/useProtoJourneyPlayback";
+} from "@/app/scenario/demoCursor";
+import { cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
+import { useJourneyPlayback } from "@/app/orchestra/useJourneyPlayback";
 import {
   createShouldSkipBeat,
   personaSelectOptions,
   projectSelectOptions,
-  useProtoStudio,
-} from "@/app/shell/useProtoStudio";
-import { ProtoProjectPlaceholder } from "@/app/shell/ProtoProjectPlaceholder";
-import { ProtoPlaybackShield } from "@/app/shell/ProtoPlaybackShield";
-import { ProtoPlaybackDiagnosticOverlay } from "@/app/shell/ProtoPlaybackDiagnosticOverlay";
-import type { PlaybackDiagnosticError } from "@/app/shell/protoPlaybackDiagnostic";
+  useStudio,
+} from "@/app/shell/useStudio";
+import { ProjectPlaceholder } from "@/app/shell/ProjectPlaceholder";
+import { PlaybackShield } from "@/app/shell/PlaybackShield";
+import { PlaybackDiagnosticOverlay } from "@/app/shell/PlaybackDiagnosticOverlay";
+import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
 import {
   attachPlaybackInteractionToDiagnostic,
   buildPlaybackStudioSnapshot,
   enrichPlaybackDiagnosticSnapshot,
   type PlaybackStudioSnapshot,
 } from "@/app/shell/playbackStudioSnapshot";
-import { notePlaybackTransport } from "@/app/shell/protoPlaybackInteractionContext";
+import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
 import {
   disableCursorQaEyes,
   resetPlaybackCursorDiagnosticContext,
-} from "@/app/shell/protoPlaybackCursorDiagnostic";
+} from "@/app/shell/playbackCursorDiagnostic";
 import {
   recordPlaybackDiagnosticDismiss,
   recordPlaybackDiagnosticOpen,
-} from "@/app/shell/protoPlaybackDiagnosticFlash";
+} from "@/app/shell/playbackDiagnosticFlash";
 import {
   logControlPanel,
   registerControlPanelSnapshotProvider,
-} from "@/app/shell/protoControlPanelLog";
-import { registerProtoStudioMcpHelpers } from "@/app/shell/protoStudioMcpHelpers";
+} from "@/app/shell/controlPanelLog";
+import { registerStudioMcpHelpers } from "@/app/shell/studioMcpHelpers";
 import {
   captureTouchpointChange,
   registerRecordingSnapshotProvider,
-} from "@/app/recording/protoRecordingCapture";
-import { registerProtoRecordingMcpHelpers } from "@/app/recording/protoRecordingMcpHelpers";
-import { replayRecordingSession } from "@/app/recording/protoRecordingReplay";
-import { registerProtoJourneyMcpHelpers } from "@/app/journey/protoJourneyMcpHelpers";
-import { summarizeJourney } from "@/app/journey/protoJourneyFile";
-import { useProtoPlaybackGuard } from "@/app/shell/useProtoPlaybackGuard";
-import { useProtoPlaybackScrollGuard } from "@/app/shell/useProtoPlaybackScrollGuard";
-import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
-import { useProtoJourneyScrollLock } from "@/app/shell/useProtoJourneyScrollLock";
-import { useProtoPlaybackCursorGuard } from "@/app/shell/useProtoPlaybackCursorGuard";
-import { useProtoPlaybackDirectorGuard } from "@/app/shell/useProtoPlaybackDirectorGuard";
-import { useProtoPlaybackTransportGuard } from "@/app/shell/useProtoPlaybackTransportGuard";
-import { useProtoPlaybackViewportGuard } from "@/app/shell/useProtoPlaybackViewportGuard";
-import { playbackCursorMonitor } from "@/app/shell/protoPlaybackCursorMonitor";
-import { playbackViewportMonitor } from "@/app/shell/protoPlaybackViewportMonitor";
+} from "@/app/recording/recordingCapture";
+import { registerRecordingMcpHelpers } from "@/app/recording/recordingMcpHelpers";
+import { replayRecordingSession } from "@/app/recording/recordingReplay";
+import { registerJourneyMcpHelpers } from "@/app/journey/journeyMcpHelpers";
+import { summarizeJourney } from "@/app/journey/journeyFile";
+import { usePlaybackGuard } from "@/app/shell/usePlaybackGuard";
+import { usePlaybackScrollGuard } from "@/app/shell/usePlaybackScrollGuard";
+import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
+import { useJourneyScrollLock } from "@/app/shell/useJourneyScrollLock";
+import { usePlaybackCursorGuard } from "@/app/shell/usePlaybackCursorGuard";
+import { usePlaybackDirectorGuard } from "@/app/shell/usePlaybackDirectorGuard";
+import { usePlaybackTransportGuard } from "@/app/shell/usePlaybackTransportGuard";
+import { usePlaybackViewportGuard } from "@/app/shell/usePlaybackViewportGuard";
+import { playbackCursorMonitor } from "@/app/shell/playbackCursorMonitor";
+import { playbackViewportMonitor } from "@/app/shell/playbackViewportMonitor";
 import {
   readStoredHubOpen,
   readStoredNavIndex,
   storeHubOpen,
   storeNavIndex,
-  protoNavStorageKey,
-} from "@/app/shell/protoNavStorage";
+  studioNavStorageKey,
+} from "@/app/shell/studioNavStorage";
 import {
   applyStudioScreen,
   parseStudioUrl,
   resolveNavFromScreenId,
   resolveScreenIdFromNav,
   serializeStudioUrl,
-} from "@/app/shell/protoStudioUrl";
-import { useProtoStudioUrlSync } from "@/app/shell/useProtoStudioUrlSync";
+} from "@/app/shell/studioUrl";
+import { useStudioUrlSync } from "@/app/shell/useStudioUrlSync";
 import { getProjectWire } from "@/projects/registry";
-import { useProtoNavTransition } from "@/app/shell/useProtoNavTransition";
+import { useNavTransition } from "@/app/shell/useNavTransition";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import {
   collectSitePilotChatScenarioFrames,
@@ -117,7 +117,7 @@ import {
   setSitePilotChatComposerDockSuppressed,
   SITE_PILOT_CHAT_PLAYBACK_THINK_MS,
   syncSitePilotChatComposerDock,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatScenario";
 import {
   abortSitePilotChatPlaybackPrelude,
   runSitePilotChatBeforeReveal,
@@ -128,14 +128,14 @@ import {
   endSitePilotChatThinking,
   isSitePilotChatPlaybackThinking,
   syncSitePilotChatThinkingHint,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
-import { isProtoHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
+import { isHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/headerMount";
 import { AVAIL_INTENT } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
 
 const CHAT_SCREEN_SELECTOR = ".proto-viewport > div > div:nth-child(10)";
 
 export default function App() {
-  const studio = useProtoStudio();
+  const studio = useStudio();
   const {
     projects: studioProjects,
     projectId: studioProjectId,
@@ -157,10 +157,10 @@ export default function App() {
   } = studio;
 
   const {
-    PROTO_SCREENS: SCREENS,
-    PROTO_HUB_LABEL,
-    PROTO_SCENARIO_SCREENS,
-    protoTabToIndex,
+    PROJECT_SCREENS: SCREENS,
+    HUB_LABEL,
+    SCENARIO_SCREENS,
+    studioTabToIndex,
   } = projectContent;
 
   const [current, setCurrent] = useState(() => {
@@ -204,7 +204,7 @@ export default function App() {
   const appContentRef = useRef<HTMLDivElement>(null);
   const tabsScrollRef = useRef<HTMLDivElement>(null);
   const tabBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const wireApiRef = useRef<ProtoProjectWireApi | null>(null);
+  const wireApiRef = useRef<ProjectWireApi | null>(null);
   const goRef = useRef<(i: number) => void>(() => {});
   const currentRef = useRef(current);
   const navPlaybackLockedRef = useRef(false);
@@ -250,7 +250,7 @@ export default function App() {
     storeHubOpen(studioProjectId, hubOpen);
   }, [current, hubOpen, studioProjectId]);
 
-  useProtoStudioUrlSync({
+  useStudioUrlSync({
     projectId: studioProjectId,
     personaId: studioPersonaId,
     modeId: orchestraModeId,
@@ -300,8 +300,8 @@ export default function App() {
         currentChildIndex: hubOpen ? null : (SCREENS[current]?.childIndex ?? null),
         browseMode: !studioJourneyMode,
         journeys: studioJourneys,
-        scenarioScreens: PROTO_SCENARIO_SCREENS,
-        protoTabToIndex,
+        scenarioScreens: SCENARIO_SCREENS,
+        studioTabToIndex,
       }),
     [
       hubOpen,
@@ -310,8 +310,8 @@ export default function App() {
       current,
       studioJourneyMode,
       studioJourneys,
-      PROTO_SCENARIO_SCREENS,
-      protoTabToIndex,
+      SCENARIO_SCREENS,
+      studioTabToIndex,
       SCREENS,
     ]
   );
@@ -361,7 +361,7 @@ export default function App() {
     []
   );
 
-  const scenarioPlayback = useProtoScenarioPlayback({
+  const scenarioPlayback = useScenarioPlayback({
     active: activeScreenScenario != null,
     collectFrames: collectScenarioFrames,
     screenSelector: activeScreenScenario
@@ -381,7 +381,7 @@ export default function App() {
 
   const headerLoggedIn = useMemo(
     () =>
-      (wireApiRef.current?.loggedInFlag ?? false) || isProtoHeaderLoggedIn(),
+      (wireApiRef.current?.loggedInFlag ?? false) || isHeaderLoggedIn(),
     [wireTick]
   );
 
@@ -457,7 +457,7 @@ export default function App() {
     SCREENS,
   ]);
 
-  const journeyPlayback = useProtoJourneyPlayback({
+  const journeyPlayback = useJourneyPlayback({
     active: !hubOpen,
     journey: activeJourney,
     beatIndex: journeyBeatIndex,
@@ -468,7 +468,7 @@ export default function App() {
     screenBeatActive: activeScreenScenario != null,
     shouldSkipBeat,
     playback: projectPlayback,
-    protoTabToIndex,
+    studioTabToIndex,
     studioPlaylist,
     currentTouchpointKey: studioTouchpoint.key,
     onDiagnostic: handlePlaybackDiagnostic,
@@ -513,7 +513,7 @@ export default function App() {
     }
   }, [studioJourneyMode, transport.isPlaying]);
 
-  const { runNavTransition, navTransitionClass } = useProtoNavTransition();
+  const { runNavTransition, navTransitionClass } = useNavTransition();
   runNavTransitionRef.current = runNavTransition;
   /** Blocks wire clicks in journey mode or while transport scripts run. */
   const wireInteractionShield = studioJourneyMode || navTransportLocked;
@@ -660,14 +660,14 @@ export default function App() {
   ]);
 
   const applyJourneyStartTab = useCallback(
-    (journey: ProtoJourneyDefinition | undefined) => {
+    (journey: JourneyDefinition | undefined) => {
       const { beatIndex: startIndex, beat } = resolveJourneyStartBeat(
         journey,
         shouldSkipBeat
       );
       setJourneyBeatIndex(startIndex);
       if (beat?.protoTab != null) {
-        const tabIndex = protoTabToIndex(beat.protoTab);
+        const tabIndex = studioTabToIndex(beat.protoTab);
         runNavTransitionRef.current(() => {
           setHubOpen(false);
           setCurrent(tabIndex);
@@ -677,7 +677,7 @@ export default function App() {
         });
       }
     },
-    [protoTabToIndex, setJourneyBeatIndex, shouldSkipBeat, SCREENS]
+    [studioTabToIndex, setJourneyBeatIndex, shouldSkipBeat, SCREENS]
   );
 
   const restartStudioJourney = useCallback(() => {
@@ -717,7 +717,7 @@ export default function App() {
   );
 
   const handleOrchestraModeChange = useCallback(
-    (next: ProtoOrchestraModeId) => {
+    (next: OrchestraModeId) => {
       resetStudioPlayback();
 
       if (next !== orchestraModeId) {
@@ -736,7 +736,7 @@ export default function App() {
   );
 
   const handleStudioProjectChange = useCallback(
-    (next: ProtoProjectId) => {
+    (next: ProjectId) => {
       if (next === studioProjectId) return;
       resetStudioPlayback();
       setStudioProjectId(next);
@@ -745,7 +745,7 @@ export default function App() {
   );
 
   const handleStudioPersonaChange = useCallback(
-    (next: ProtoPersonaId) => {
+    (next: PersonaId) => {
       if (next === studioPersonaId) return;
       resetStudioPlayback();
       setStudioPersonaId(next);
@@ -1034,7 +1034,7 @@ export default function App() {
     journeyAtEnd,
   };
 
-  useProtoPlaybackGuard({
+  usePlaybackGuard({
     snapshot: {
       isOnAir: transport.isOnAir,
       isScripting: transport.isScripting,
@@ -1052,7 +1052,7 @@ export default function App() {
     onDiagnostic: handlePlaybackDiagnostic,
   });
 
-  useProtoPlaybackScrollGuard({
+  usePlaybackScrollGuard({
     snapshot: {
       isOnAir: transport.isOnAir,
       isScripting: transport.isScripting,
@@ -1073,12 +1073,12 @@ export default function App() {
     onDiagnostic: handlePlaybackDiagnostic,
   });
 
-  useProtoJourneyScrollLock({
+  useJourneyScrollLock({
     active: studioJourneyMode && !hubOpen,
     scrollRootRef: prototypeScrollElRef,
   });
 
-  useProtoPlaybackCursorGuard({
+  usePlaybackCursorGuard({
     snapshot: {
       active: studioJourneyMode && !hubOpen,
       isOnAir: transport.isOnAir,
@@ -1095,7 +1095,7 @@ export default function App() {
     onDiagnostic: handlePlaybackDiagnostic,
   });
 
-  useProtoPlaybackDirectorGuard({
+  usePlaybackDirectorGuard({
     snapshot: {
       active: !hubOpen,
       journeyId: activeJourney?.id,
@@ -1108,7 +1108,7 @@ export default function App() {
     onDiagnostic: handlePlaybackDiagnostic,
   });
 
-  useProtoPlaybackTransportGuard({
+  usePlaybackTransportGuard({
     snapshot: {
       active: !hubOpen,
       journeyMode: studioJourneyMode,
@@ -1136,7 +1136,7 @@ export default function App() {
     activeScreenScenario != null &&
     activeJourney?.beats[journeyBeatIndex]?.kind === "screen-frames";
 
-  useProtoPlaybackViewportGuard({
+  usePlaybackViewportGuard({
     snapshot: {
       active: !hubOpen,
       isOnAir: transport.isOnAir,
@@ -1228,7 +1228,7 @@ export default function App() {
     wire?.recipientPickerOpen,
   ]);
 
-  const isProtoPristine =
+  const isStudioPristine =
     (wire?.wirePristine ?? true) && !transport.isDirty;
 
   const go = useCallback(
@@ -1272,7 +1272,7 @@ export default function App() {
     wireApiRef.current?.resetPrototype();
   }, []);
 
-  const navLabel = hubOpen ? PROTO_HUB_LABEL : SCREENS[current]?.label ?? "";
+  const navLabel = hubOpen ? HUB_LABEL : SCREENS[current]?.label ?? "";
 
   useEffect(() => {
     const el = tabsScrollRef.current;
@@ -1325,7 +1325,7 @@ export default function App() {
 
   const triggerRecordingTransport = useCallback(
     (
-      action: import("@/app/shell/protoPlaybackInteractionContext").ManualTransportAction
+      action: import("@/app/shell/playbackInteractionContext").ManualTransportAction
     ) => {
       switch (action) {
         case "play":
@@ -1383,7 +1383,7 @@ export default function App() {
   );
 
   useEffect(() => {
-    return registerProtoRecordingMcpHelpers({
+    return registerRecordingMcpHelpers({
       getDefaultStartOptions: () => ({
         ...getRecordingStartOptions(),
         metadata: { recordedFrom: "mcp" },
@@ -1394,7 +1394,7 @@ export default function App() {
   }, [applyRecordingScreen, getRecordingStartOptions, triggerRecordingTransport]);
 
   useEffect(() => {
-    return registerProtoJourneyMcpHelpers({
+    return registerJourneyMcpHelpers({
       projectId: studioProjectId,
       personaId: studioPersonaId,
       getJourneys: () => studioJourneys,
@@ -1407,7 +1407,7 @@ export default function App() {
   }, [activeJourney?.id, studioJourneys, studioPersonaId, studioProjectId, resetBeatIndex]);
 
   useEffect(() => {
-    return registerProtoStudioMcpHelpers({
+    return registerStudioMcpHelpers({
       dismissDiagnostic: () => {
         recordPlaybackDiagnosticDismiss("mcp-helper");
         setPlaybackDiagnostic(null);
@@ -1506,13 +1506,13 @@ export default function App() {
       tabsScrollRef,
       tabBtnRefs,
       onResetPrototype: resetPrototype,
-      isProtoPristine,
+      isStudioPristine,
       go,
       openHub,
       navPlaybackLockedRef,
       goRef,
       currentRef,
-      protoNavKey: protoNavStorageKey(studioProjectId),
+      studioNavKey: studioNavStorageKey(studioProjectId),
       onWireApiChange,
       studioJourneyMode,
       orchestra: {
@@ -1544,7 +1544,7 @@ export default function App() {
       navBrowseLocked,
       navTransportLocked,
       studioJourneyMode,
-      isProtoPristine,
+      isStudioPristine,
       go,
       openHub,
       transitionSetCurrent,
@@ -1557,7 +1557,7 @@ export default function App() {
   const WireComponent = getProjectWire(studioProjectId);
 
   const projectStudioSelect = (
-    <ProtoNavStudioSelect
+    <StudioNavStudioSelect
       options={projectSelectOptions(studioProjects)}
       value={studioProjectId}
       onChange={handleStudioProjectChange}
@@ -1574,7 +1574,7 @@ export default function App() {
       data-proto-project={studioProjectId}
       style={{ fontFamily: "'Open Sans', sans-serif" }}
     >
-      <ProtoPlaybackDiagnosticOverlay
+      <PlaybackDiagnosticOverlay
         error={playbackDiagnostic}
         onDismiss={() => {
           recordPlaybackDiagnosticDismiss("overlay");
@@ -1584,13 +1584,13 @@ export default function App() {
         }}
       />
 
-      <ProtoNavPanel
+      <StudioNavPanel
         screens={SCREENS}
-        hubLabel={PROTO_HUB_LABEL}
+        hubLabel={HUB_LABEL}
         current={current}
         hubOpen={hubOpen}
         navLabel={navLabel}
-        isProtoPristine={isProtoPristine}
+        isStudioPristine={isStudioPristine}
         navBrowseLocked={navBrowseLocked}
         navResetLocked={navTransportLocked}
         journeyMode={studioJourneyMode}
@@ -1602,11 +1602,11 @@ export default function App() {
         onReset={resetPrototype}
         scenarioControls={
           showOrchestraControls ? (
-            <ProtoNavScenarioControls
+            <StudioNavScenarioControls
               studioMenus={
                 <div className="proto-nav-studio-menus">
                   {projectStudioSelect}
-                  <ProtoNavStudioSelect
+                  <StudioNavStudioSelect
                     options={personaSelectOptions(studioProject)}
                     value={studioPersonaId}
                     onChange={handleStudioPersonaChange}
@@ -1615,7 +1615,7 @@ export default function App() {
                     isPlaying={transport.isPlaying}
                     controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
                   />
-                  <ProtoNavJourneyMenu
+                  <StudioNavJourneyMenu
                     modes={orchestraModes}
                     value={orchestraModeId}
                     onChange={handleOrchestraModeChange}
@@ -1682,7 +1682,7 @@ export default function App() {
               qaBeatId={currentBeat?.id ?? null}
               qaBeatLabel={currentBeat?.label ?? studioTouchpoint.label}
               recordingControls={
-                <ProtoNavRecordingControls
+                <StudioNavRecordingControls
                   getStartOptions={getRecordingStartOptions}
                   onReplay={(session) =>
                     replayRecordingSession(session, {
@@ -1697,7 +1697,7 @@ export default function App() {
           ) : (
             <div className="proto-nav-scenario">
               <div className="proto-nav-studio-menus">{projectStudioSelect}</div>
-              <ProtoNavRecordingModeSlot
+              <StudioNavRecordingModeSlot
                 getStartOptions={getRecordingStartOptions}
                 recModeLocked={navTransportLocked}
                 onReplay={(session) =>
@@ -1719,7 +1719,7 @@ export default function App() {
         }${navTransitionClass}`}
       >
         {wireInteractionShield && !(wire?.availabilityOpen ?? false) ? (
-          <ProtoPlaybackShield />
+          <PlaybackShield />
         ) : null}
         <div
           id="proto-chat-composer-portal-host"
@@ -1729,7 +1729,7 @@ export default function App() {
         {WireComponent ? (
           <WireComponent bridge={bridge} apiRef={wireApiRef} />
         ) : (
-          <ProtoProjectPlaceholder projectLabel={studioProject.label} />
+          <ProjectPlaceholder projectLabel={studioProject.label} />
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
-import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
+import { CloseIcon } from "@/app/chrome/CloseIcon";
+import { useOverlayDismiss } from "@/app/chrome/useOverlayDismiss";
 
 type Props = {
   open: boolean;
@@ -12,7 +12,7 @@ type Props = {
 type Tab = "signin" | "create" | "forgot";
 
 export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Props) {
-  const { mounted, scrimClassName, onScrimAnimationEnd } = useProtoOverlayDismiss(open);
+  const { mounted, scrimClassName, onScrimAnimationEnd } = useOverlayDismiss(open);
   const [tab, setTab] = useState<Tab>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,7 +118,7 @@ export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Prop
             aria-label="Close login"
             onClick={onClose}
           >
-            <ProtoCloseIcon />
+            <CloseIcon />
           </button>
         </div>
 

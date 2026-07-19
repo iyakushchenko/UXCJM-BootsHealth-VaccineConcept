@@ -4,7 +4,7 @@ import {
   resolveInitialScenarioVisibleCount,
   resolveScenarioEndVisibleCount,
   scenarioTotalFor,
-} from "@/app/nav/useProtoScenarioPlayback";
+} from "@/app/nav/useScenarioPlayback";
 
 describe("scenario playback counts", () => {
   it("adds one virtual finale frame when onFinale is configured", () => {

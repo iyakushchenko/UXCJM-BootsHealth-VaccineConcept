@@ -13,9 +13,9 @@ Content (screens, scenarios, personas, DOM wiring) lives in **`src/projects/`** 
 | `src/app/nav/` | Tab strip, zoom, transport controls (cassette deck), studio dropdowns |
 | `src/app/orchestra/` | Journey playback engine, beat types, script dispatch |
 | `docs/shell/PLAYBACK.md` | How to change scripts + smoke checklist |
-| `src/app/shell/` | Studio state (`useProtoStudio`) — project / persona / CJM selection; URL sync ([URL.md](./URL.md)) |
-| `src/app/proto/protoScenarioEngine.ts` | Generic frame-reveal scenario runner |
-| `src/app/proto/protoDemoCursor.ts` | Shared demo cursor + scroll helpers |
+| `src/app/shell/` | Studio state (`useStudio`) — project / persona / CJM selection; URL sync ([URL.md](./URL.md)) |
+| `src/app/scenario/scenarioEngine.ts` | Generic frame-reveal scenario runner |
+| `src/app/scenario/demoCursor.ts` | Shared demo cursor + scroll helpers |
 
 ## What belongs in a project
 
@@ -54,19 +54,19 @@ Changing project or persona resets beat index and stops playback.
 ## Data model
 
 ```ts
-ProtoProjectDefinition {
+ProjectDefinition {
   id: "boots-pharmacy"   // formatProjectId("boots", "pharmacy")
   brand: "boots"
   subbrand?: "pharmacy"
   label: "Boots Pharmacy"
-  personas: ProtoPersonaDefinition[]
+  personas: PersonaDefinition[]
   defaultPersonaId: "sarah-jenkins"
 }
 
-ProtoPersonaDefinition {
+PersonaDefinition {
   id: "sarah-jenkins"
   label: "Sarah Jenkins"
-  journeys: ProtoJourneyDefinition[]   // agentic + traditional
+  journeys: JourneyDefinition[]   // agentic + traditional
   journeyHooks?: { shouldSkipBeat? } // e.g. skip login when logged in
 }
 ```
@@ -81,12 +81,12 @@ Project ids use `formatProjectId(brand, subbrand?)`:
 ## How App.tsx wires the shell
 
 ```tsx
-const studio = useProtoStudio();
+const studio = useStudio();
 const { project, persona, modeId, journey, beatIndex } = studio;
 
 const shouldSkipBeat = createShouldSkipBeat(persona, headerLoggedIn);
 
-useProtoJourneyPlayback({ journey, shouldSkipBeat, ... });
+useJourneyPlayback({ journey, shouldSkipBeat, ... });
 buildStudioTouchpointPlaylist(journey, frames, { shouldSkipBeat });
 resolveActiveScreenScenario({ journeys: persona.journeys, modeId, ... });
 ```
@@ -100,7 +100,7 @@ The shell never imports project-specific beat ids or script modules directly —
 All projects are listed in `src/projects/registry.ts`:
 
 ```ts
-export const PROTO_PROJECTS = [BOOTS_PHARMACY_PROJECT, PUMA_PROJECT];
+export const STUDIO_PROJECTS = [BOOTS_PHARMACY_PROJECT, PUMA_PROJECT];
 ```
 
 Add a new project by creating its folder and appending to this array. See [PROJECTS.md](./PROJECTS.md).
@@ -113,14 +113,14 @@ Add a new project by creating its folder and appending to this array. See [PROJE
 |------|---------|
 | Project / persona types + registry | Dynamic project import / code-splitting |
 | Journey beats + personas in `projects/boots-pharmacy/` | Generalise script ID types per project |
-| Generic `journeyUtils`, `shouldSkipBeat`, `playback.abortAll()` | Move `useProtoScrollFill` into shell or project util |
-| Studio dropdowns; `ProtoNavPanel` screens from project | Puma wire + Figma frame |
-| `useProtoStudio` + `getProjectContent()` + `getProjectWire()` | Delete legacy duplicate trees under `src/app/hub/`, `src/app/popups/` (export script still references them) |
+| Generic `journeyUtils`, `shouldSkipBeat`, `playback.abortAll()` | Move `useScrollFill` into shell or project util |
+| Studio dropdowns; `StudioNavPanel` screens from project | Puma wire + Figma frame |
+| `useStudio` + `getProjectContent()` + `getProjectWire()` | Delete legacy duplicate trees under `src/app/hub/`, `src/app/popups/` (export script still references them) |
 | **2a–2f:** data, dom, screens, playback, chrome, hub, popups, overlays, Figma frame | |
 | **Phase 3:** `BootsPharmacyProjectView` wire + slim `App.tsx` shell host | |
-| **Phase 4:** Per-project nav/hub via `protoNavStorage.ts`; project switch resets tab | |
-| **Phase 5:** Playback abort imports point at `projects/boots-pharmacy/playback/`; shell keeps `protoScenarioEngine`, `protoDemoCursor` | |
+| **Phase 4:** Per-project nav/hub via `studioNavStorage.ts`; project switch resets tab | |
+| **Phase 5:** Playback abort imports point at `projects/boots-pharmacy/playback/`; shell keeps `scenarioEngine`, `demoCursor` | |
 
-`App.tsx` is the shell host: studio state, orchestra playback, `ProtoNavPanel`, and `getProjectWire(projectId)`. Boots product DOM, popups, and effects live in `projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx`. Projects without `wireComponent` (e.g. Puma) render `ProtoProjectPlaceholder`.
+`App.tsx` is the shell host: studio state, orchestra playback, `StudioNavPanel`, and `getProjectWire(projectId)`. Boots product DOM, popups, and effects live in `projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx`. Projects without `wireComponent` (e.g. Puma) render `ProjectPlaceholder`.
 
 **Playback changes:** see [PLAYBACK.md](./PLAYBACK.md). Run `npm run test` after editing beats or scripts.

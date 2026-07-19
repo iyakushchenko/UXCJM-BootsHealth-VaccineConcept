@@ -11,7 +11,7 @@ const importBlock = `import { useState, useRef, useEffect, useLayoutEffect, useC
 import locationsMapChosen from "@/assets/locations-map-chosen.png";
 import bootsAdvantageCard from "@/assets/boots-advantage-card.png";
 import AvailabilityTool, {
-  PROTO_TODAY_TOOLTIP,
+  TODAY_TOOLTIP,
   type AvailOpenIntent,
   type AvailStep,
   type ChosenBookingSlot,
@@ -28,7 +28,7 @@ import {
   ensureSitePilotChatComposerDock,
   findSitePilotChatComposerCard,
   teardownSitePilotChatComposerDock,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatScenario";
 import {
   abortSitePilotChatPlaybackPrelude,
   runSitePilotChatBeforeReveal,
@@ -44,11 +44,11 @@ import {
   isSitePilotChatThinking,
   setSitePilotChatSendThinkingMode,
   syncSitePilotChatThinkingHint,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
 import { resolveAvailStoreId, getDemoChosenLocation } from "@/projects/boots-pharmacy/data/availStores";
 import iconArrowsSecondary from "@/assets/avail/arrows-secondary.svg";
-import type { VaccineItem } from "@/projects/boots-pharmacy/data/protoVaccineList";
-import { setupChosenPageMap } from "@/projects/boots-pharmacy/dom/protoMap";
+import type { VaccineItem } from "@/projects/boots-pharmacy/data/vaccineList";
+import { setupChosenPageMap } from "@/projects/boots-pharmacy/dom/locationsMap";
 import {
   arePlpFiltersActive,
   ensurePlpFiltersDefault,
@@ -56,23 +56,23 @@ import {
   PLP_FILTERS_CHANGE_EVENT,
   resetPlpFilters,
   syncPlpListingFilters,
-} from "@/projects/boots-pharmacy/data/protoPlpListing";
-import { initProtoSearchFields, syncFigmaSearchClearIcons } from "@/projects/boots-pharmacy/dom/protoLocationSearch";
-import { setupProtoFooters } from "@/projects/boots-pharmacy/chrome/protoFooterMount";
+} from "@/projects/boots-pharmacy/data/plpListing";
+import { initSearchFields, syncFigmaSearchClearIcons } from "@/projects/boots-pharmacy/dom/locationSearch";
+import { setupFooters } from "@/projects/boots-pharmacy/chrome/footerMount";
 import {
-  setupProtoHeader,
-  syncProtoHeaderLogin,
+  setupHeader,
+  syncHeaderLogin,
   syncMaAccountAvatars,
-  setProtoHeaderLoggedIn,
-  isProtoHeaderLoggedIn,
+  setHeaderLoggedIn,
+  isHeaderLoggedIn,
   toggleWishlist,
   isInWishlist,
   applyWishlistHeartVisual,
   syncChickenpoxWishlistHearts,
-  PROTO_PDP_WISHLIST_ID,
-} from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
-import { wireProtoIconHits } from "@/projects/boots-pharmacy/dom/protoIconHitWire";
-import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
+  PDP_WISHLIST_ID,
+} from "@/projects/boots-pharmacy/chrome/headerMount";
+import { wireIconHits } from "@/projects/boots-pharmacy/dom/iconHitWire";
+import { useScrollFill } from "@/app/scenario/useScrollFill";
 import {
   boosterDoseSummaryLabel,
   PDP_CHECKBOX_LABEL,
@@ -80,29 +80,29 @@ import {
   PDP_PRICE_WITHOUT_BOOSTER,
   syncAccountOrderSummary,
   syncConfirmationOrderSummary,
-} from "@/projects/boots-pharmacy/data/protoOrderPricing";
+} from "@/projects/boots-pharmacy/data/orderPricing";
 import {
   ensureCheckboxRow,
   handleProtoInputClick,
   initProtoInputControls,
   markBoosterCheckboxRow,
-} from "@/projects/boots-pharmacy/dom/protoInputControls";
+} from "@/projects/boots-pharmacy/dom/inputControls";
 import {
   getSelectedAppointmentId,
-  PROTO_APPOINTMENT_PILOT_QUERY,
+  APPOINTMENT_PILOT_QUERY,
   syncAppointmentDetails,
   syncAppointmentHistory,
   wireAppointmentDetailsBreadcrumbs,
-} from "@/projects/boots-pharmacy/data/protoAppointments";
-import type { ProtoProjectShellBridge, ProtoProjectWireApi } from "@/projects/types";
+} from "@/projects/boots-pharmacy/data/appointments";
+import type { ProjectShellBridge, ProjectWireApi } from "@/projects/types";
 
 `;
 
 componentBody = componentBody.replace(
   /^export default function App\(\) \{/,
   `export type BootsPharmacyProjectViewProps = {
-  bridge: ProtoProjectShellBridge;
-  apiRef?: MutableRefObject<ProtoProjectWireApi | null>;
+  bridge: ProjectShellBridge;
+  apiRef?: MutableRefObject<ProjectWireApi | null>;
 };
 
 export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjectViewProps) {
@@ -122,7 +122,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     navPlaybackLockedRef,
     goRef,
     currentRef,
-    protoNavKey,
+    studioNavKey,
     orchestra,
   } = bridge;
 
@@ -146,31 +146,31 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   } = orchestra;
 
   const {
-    PROTO_SCREENS: SCREENS,
-    PROTO_HUB_LABEL,
-    PROTO_SCENARIO_SCREENS,
-    PROTO_INDEX_APPOINTMENT_DETAILS,
-    PROTO_INDEX_APPOINTMENT_HISTORY,
-    PROTO_INDEX_PLP,
-    protoTabToIndex,
+    PROJECT_SCREENS: SCREENS,
+    HUB_LABEL,
+    SCENARIO_SCREENS,
+    INDEX_APPOINTMENT_DETAILS,
+    INDEX_APPOINTMENT_HISTORY,
+    INDEX_PLP,
+    studioTabToIndex,
     ProjectFrame,
-    ProtoHubViewport,
+    HubViewport,
   } = projectContent;`
 );
 
 const removals = [
-  /  const studio = useProtoStudio\(\);[\s\S]*?  \} = studio;\n\n/,
-  /  const \{\n    PROTO_SCREENS: SCREENS,[\s\S]*?  \} = projectContent;\n\n/,
+  /  const studio = useStudio\(\);[\s\S]*?  \} = studio;\n\n/,
+  /  const \{\n    PROJECT_SCREENS: SCREENS,[\s\S]*?  \} = projectContent;\n\n/,
   /  const journeyRuntime = useMemo[\s\S]*?  \);\n\n/,
   /  const activeScreenScenario = useMemo[\s\S]*?  \);\n\n/,
   /  const journeyBeatIndexRef = useRef[\s\S]*?activeJourneyRef\.current = activeJourney;\n/,
   /  const scenarioIsPlayingRef = useRef[\s\S]*?resumeJourneyPlayRef\.current[\s\S]*?;\n\n/,
   /  const collectScenarioFrames = useCallback[\s\S]*?  \);\n\n/,
   /  const sitePilotChatPlaybackHooks = useMemo[\s\S]*?  \);\n\n/,
-  /  const scenarioPlayback = useProtoScenarioPlayback\([\s\S]*?  \);\n\n/,
-  /  const headerLoggedIn = loggedInFlag \|\| isProtoHeaderLoggedIn\(\);\n\n/,
+  /  const scenarioPlayback = useScenarioPlayback\([\s\S]*?  \);\n\n/,
+  /  const headerLoggedIn = loggedInFlag \|\| isHeaderLoggedIn\(\);\n\n/,
   /  const shouldSkipBeat = useMemo[\s\S]*?  \);\n\n/,
-  /  const journeyPlayback = useProtoJourneyPlayback\([\s\S]*?  \);\n\n/,
+  /  const journeyPlayback = useJourneyPlayback\([\s\S]*?  \);\n\n/,
   /  const transport = journeyPlayback;\n  const navPlaybackLocked[\s\S]*?navPlaybackLockedRef\.current = navPlaybackLocked;\n\n/,
   /  const chatFramesForPlaylist[\s\S]*?;\n\n/,
   /  const studioPlaylist = useMemo[\s\S]*?  \);\n\n/,
@@ -203,7 +203,7 @@ for (const re of removals) {
   componentBody = componentBody.replace(re, "");
 }
 
-componentBody = componentBody.replace(/PROTO_NAV_KEY/g, "protoNavKey");
+componentBody = componentBody.replace(/PROTO_NAV_KEY/g, "studioNavKey");
 
 // Wire assigns availability tool callbacks to orchestra refs owned by App shell.
 componentBody = componentBody.replace(
@@ -224,7 +224,7 @@ componentBody = componentBody.replace(
 );
 
 componentBody = componentBody.replace(
-  /  return \(\n    <div\n      className="proto-app-root[\s\S]*?<ProtoNavPanel[\s\S]*?\/>\n\n      <div/,
+  /  return \(\n    <div\n      className="proto-app-root[\s\S]*?<StudioNavPanel[\s\S]*?\/>\n\n      <div/,
   "  return (\n    <>\n      <style>{dynamicCSS}</style>\n      <div"
 );
 
@@ -236,7 +236,7 @@ componentBody = componentBody.replace(
 componentBody = componentBody.replace(/\n    <\/div>\n  \);\n\}$/, "\n    </>\n  );\n}");
 
 const apiSync = `
-  const headerLoggedIn = loggedInFlag || isProtoHeaderLoggedIn();
+  const headerLoggedIn = loggedInFlag || isHeaderLoggedIn();
 
   const wirePristine =
     !availabilityOpen &&

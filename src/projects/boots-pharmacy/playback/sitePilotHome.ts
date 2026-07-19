@@ -2,7 +2,7 @@ import {
   delay,
   removeDemoCursor,
   simulateDemoPointerClick,
-} from "@/app/proto/protoDemoCursor";
+} from "@/app/scenario/demoCursor";
 import type { HomeScriptId } from "@/app/orchestra/types";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import {

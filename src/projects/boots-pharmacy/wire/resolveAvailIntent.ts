@@ -1,4 +1,4 @@
-import { isProtoHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
+import { isHeaderLoggedIn } from "@/projects/boots-pharmacy/chrome/headerMount";
 import { resolveAvailStoreId } from "@/projects/boots-pharmacy/data/availStores";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 
@@ -30,7 +30,7 @@ export function resolveAvailIntent(
   if (intent.step === "start") return intent;
 
   // When logged in, treat as having a location even if none explicitly chosen
-  const hasLocation = !!chosen || isProtoHeaderLoggedIn();
+  const hasLocation = !!chosen || isHeaderLoggedIn();
 
   if (!hasLocation) {
     // Chat/playback shortcuts: explicit storeId bypasses location gate

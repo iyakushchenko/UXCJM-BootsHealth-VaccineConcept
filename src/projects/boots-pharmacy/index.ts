@@ -1,11 +1,11 @@
-import type { ProtoProjectDefinition } from "@/projects/types";
+import type { ProjectDefinition } from "@/projects/types";
 import { formatProjectId } from "@/projects/formatProjectId";
 import { SARAH_JENKINS_PERSONA } from "@/projects/boots-pharmacy/personas/sarah-jenkins";
 import { BOOTS_PHARMACY_POPUP_TOUCHPOINTS } from "@/projects/boots-pharmacy/touchpoints";
 import { BOOTS_PHARMACY_PLAYBACK } from "@/projects/boots-pharmacy/playback";
 import { BootsPharmacyProjectView } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
 
-export const BOOTS_PHARMACY_PROJECT: ProtoProjectDefinition = {
+export const BOOTS_PHARMACY_PROJECT: ProjectDefinition = {
   id: formatProjectId("boots", "pharmacy"),
   brand: "boots",
   subbrand: "pharmacy",

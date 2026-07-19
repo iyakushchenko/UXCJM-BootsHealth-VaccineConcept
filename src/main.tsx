@@ -1,6 +1,6 @@
-import { ProtoAppErrorBoundary, renderBootstrapError } from "@/app/shell/ProtoAppErrorBoundary";
-import { renderStudioRoot } from "@/app/shell/protoStudioFatalError";
-import { stripEphemeralStudioQuery } from "@/app/shell/protoStudioUrl";
+import { StudioAppErrorBoundary, renderBootstrapError } from "@/app/shell/StudioAppErrorBoundary";
+import { renderStudioRoot } from "@/app/shell/studioFatalError";
+import { stripEphemeralStudioQuery } from "@/app/shell/studioUrl";
 import "./styles/index.css";
 
 async function boot(): Promise<void> {
@@ -13,9 +13,9 @@ async function boot(): Promise<void> {
   try {
     const { default: App } = await import("./app/App.tsx");
     renderStudioRoot(
-      <ProtoAppErrorBoundary>
+      <StudioAppErrorBoundary>
         <App />
-      </ProtoAppErrorBoundary>
+      </StudioAppErrorBoundary>
     );
   } catch (error) {
     renderBootstrapError(root, error);

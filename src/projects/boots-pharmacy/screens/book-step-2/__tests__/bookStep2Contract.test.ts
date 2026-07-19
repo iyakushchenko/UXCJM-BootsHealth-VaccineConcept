@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PROTO_SCREENS } from "@/projects/boots-pharmacy/screens/protoScreens";
+import { PROJECT_SCREENS } from "@/projects/boots-pharmacy/screens/screens";
 import {
   BOOK_STEP2_AFTERNOON,
   BOOK_STEP2_EVENING,
@@ -15,7 +15,7 @@ import {
 
 describe("bookStep2Contract", () => {
   it("matches Studio screen registry child index for Book Step 2", () => {
-    const screen = PROTO_SCREENS.find((s) =>
+    const screen = PROJECT_SCREENS.find((s) =>
       /book - step 2/i.test(s.label)
     );
     expect(screen?.childIndex).toBe(BOOK_STEP2_CHILD_INDEX);

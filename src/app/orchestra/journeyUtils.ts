@@ -3,7 +3,7 @@ import {
   resolvePlaylistTouchpointIndex,
   type StudioTouchpointEntry,
 } from "@/app/nav/resolveStudioTouchpoint";
-import type { JourneyBeat, ProtoJourneyDefinition, ProtoOrchestraModeId } from "@/app/orchestra/types";
+import type { JourneyBeat, JourneyDefinition, OrchestraModeId } from "@/app/orchestra/types";
 
 export type JourneyRetreatTarget =
   | { kind: "close-popups" }
@@ -90,9 +90,9 @@ export function canRetreatJourneyTouchpoint(
 }
 
 export function getJourneyForMode(
-  journeys: ProtoJourneyDefinition[],
-  modeId: ProtoOrchestraModeId
-): ProtoJourneyDefinition | undefined {
+  journeys: JourneyDefinition[],
+  modeId: OrchestraModeId
+): JourneyDefinition | undefined {
   return journeys.find((journey) => journey.id === modeId);
 }
 
@@ -131,7 +131,7 @@ export function firstPlayableBeatIndex(
 
 /** First beat + index after applying persona skip hooks (journey restart / mode pick). */
 export function resolveJourneyStartBeat(
-  journey: ProtoJourneyDefinition | undefined,
+  journey: JourneyDefinition | undefined,
   shouldSkip: (beat: JourneyBeat | undefined) => boolean
 ): { beatIndex: number; beat: JourneyBeat | undefined } {
   const beats = journey?.beats ?? [];
@@ -141,7 +141,7 @@ export function resolveJourneyStartBeat(
 
 /** Map zero-based screen index → first playable beat on that proto tab (manual nav / refresh). */
 export function resolveBeatIndexForScreenTab(
-  journey: ProtoJourneyDefinition | undefined,
+  journey: JourneyDefinition | undefined,
   screenIndex: number,
   shouldSkip: (beat: JourneyBeat | undefined) => boolean
 ): number {

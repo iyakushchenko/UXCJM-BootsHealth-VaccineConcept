@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
-import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
-import { ProtoTertiaryCta } from "@/app/chrome/ProtoTertiaryCta";
+import { CloseIcon } from "@/app/chrome/CloseIcon";
+import { useOverlayDismiss } from "@/app/chrome/useOverlayDismiss";
+import { TertiaryCta } from "@/app/chrome/TertiaryCta";
 import { NearMeCta } from "@/projects/boots-pharmacy/chrome/NearMeCta";
-import { ProtoWishlistHeart } from "@/projects/boots-pharmacy/chrome/ProtoWishlistHeart";
+import { WishlistHeart } from "@/projects/boots-pharmacy/chrome/WishlistHeart";
 import {
   DisclosureContent,
   DisclosureTrigger,
@@ -22,16 +22,16 @@ import accentMap from "@/assets/avail/accent-map.svg";
 import accentGlyphCheck from "@/assets/avail/accent-glyph-check.svg";
 import accentGlyphSearch from "@/assets/avail/accent-glyph-search.svg";
 import promoAppointmentIcon from "@/projects/boots-pharmacy/frame/9d46d8f7966cc26795f1d8689d9132bdf6e13c15.png";
-import { setupProtoMapView } from "@/projects/boots-pharmacy/dom/protoMap";
+import { setupProtoMapView } from "@/projects/boots-pharmacy/dom/locationsMap";
 import {
   dismissLocationFieldFocus,
   isListSearchView,
   isNearMeMapView,
-  PROTO_LOC_COUNT_NEAR,
-  PROTO_LOC_SEARCH_DEFAULT,
-  PROTO_LOC_SEARCH_NEAR,
+  LOC_COUNT_NEAR,
+  LOC_SEARCH_DEFAULT,
+  LOC_SEARCH_NEAR,
   shouldShowLocationSearchClear,
-} from "@/projects/boots-pharmacy/dom/protoLocationSearch";
+} from "@/projects/boots-pharmacy/dom/locationSearch";
 import {
   AVAIL_STORES,
   formatAvailLocationCount,
@@ -40,11 +40,11 @@ import {
 import {
   isInSavedLocations,
   SAVED_LOCATIONS_CHANGE_EVENT,
-} from "@/projects/boots-pharmacy/data/protoSavedLocations";
-import { toggleSavedLocationWithNotify } from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
+} from "@/projects/boots-pharmacy/data/savedLocations";
+import { toggleSavedLocationWithNotify } from "@/projects/boots-pharmacy/chrome/headerMount";
 
 /** Native hover tooltip for the demo “today” cell (12 June 2026). */
-export const PROTO_TODAY_TOOLTIP = "Today is June 12 2026";
+export const TODAY_TOOLTIP = "Today is June 12 2026";
 
 export type { AvailStore } from "@/projects/boots-pharmacy/data/availStores";
 
@@ -204,10 +204,10 @@ const EVENING = [
   { t: "20:15", ok: true },
 ];
 
-const SEARCH_DEFAULT = PROTO_LOC_SEARCH_DEFAULT;
-const SEARCH_NEAR_PLACEHOLDER = PROTO_LOC_SEARCH_NEAR;
+const SEARCH_DEFAULT = LOC_SEARCH_DEFAULT;
+const SEARCH_NEAR_PLACEHOLDER = LOC_SEARCH_NEAR;
 const COUNT_DEFAULT = formatAvailLocationCount();
-const COUNT_NEAR = PROTO_LOC_COUNT_NEAR;
+const COUNT_NEAR = LOC_COUNT_NEAR;
 
 function AvailMapPanel({
   nearMe,
@@ -403,7 +403,7 @@ function StoreCard({
             />
             {chosen ? "Chosen Location" : "Choose Location"}
           </button>
-          <ProtoWishlistHeart
+          <WishlistHeart
             active={loggedIn && isSaved}
             label={
               loggedIn && isSaved
@@ -465,8 +465,8 @@ function MonthGrid({
                   key={`${cell.month}-${cell.day}-${ci}`}
                   type="button"
                   disabled={!available}
-                  title={isToday ? PROTO_TODAY_TOOLTIP : undefined}
-                  aria-label={isToday ? PROTO_TODAY_TOOLTIP : undefined}
+                  title={isToday ? TODAY_TOOLTIP : undefined}
+                  aria-label={isToday ? TODAY_TOOLTIP : undefined}
                   className={[
                     "proto-avail-cal-cell",
                     !inMonth || !cell.available ? "proto-avail-cal-cell--disabled" : "",
@@ -537,7 +537,7 @@ export default function AvailabilityTool({
   onOpenLogin,
   onActiveStepChange,
 }: Props) {
-  const { mounted, scrimClassName, onScrimAnimationEnd } = useProtoOverlayDismiss(open);
+  const { mounted, scrimClassName, onScrimAnimationEnd } = useOverlayDismiss(open);
   const [step, setStep] = useState<AvailStep>("start");
   const [query, setQuery] = useState("");
   const [nearMe, setNearMe] = useState(false);
@@ -830,7 +830,7 @@ export default function AvailabilityTool({
             aria-label="Close Availability Tool"
             onClick={onClose}
           >
-            <ProtoCloseIcon />
+            <CloseIcon />
           </button>
         </div>
 
@@ -907,7 +907,7 @@ export default function AvailabilityTool({
                       aria-label="Clear search"
                       onClick={goStart}
                     >
-                      <ProtoCloseIcon />
+                      <CloseIcon />
                     </button>
                   ) : null}
                   <button
@@ -1070,7 +1070,7 @@ export default function AvailabilityTool({
             <div className="proto-avail-panel proto-avail-panel--center proto-avail-panel--grow">
               <AccentIcon variant="search" />
               <p className="proto-avail-heading">No available slots in</p>
-              <ProtoTertiaryCta
+              <TertiaryCta
                 compact
                 className="proto-avail-chosen-pharmacy-cta"
                 icon={<img src={accentMap} alt="" width={16} height={16} />}
@@ -1078,7 +1078,7 @@ export default function AvailabilityTool({
                 onClick={goListWithChosenStore}
               >
                 {store.name}
-              </ProtoTertiaryCta>
+              </TertiaryCta>
               <button
                 type="button"
                 className="proto-avail-btn-primary"
@@ -1144,7 +1144,7 @@ export default function AvailabilityTool({
                 <AccentIcon variant="check" />
                 <p className="proto-avail-heading">There are available slots!</p>
                 {store ? (
-                  <ProtoTertiaryCta
+                  <TertiaryCta
                     compact
                     className="proto-avail-chosen-pharmacy-cta"
                     icon={
@@ -1154,7 +1154,7 @@ export default function AvailabilityTool({
                     onClick={goListWithChosenStore}
                   >
                     {store.name}
-                  </ProtoTertiaryCta>
+                  </TertiaryCta>
                 ) : null}
                 <p className="proto-avail-copy">
                   You can book appointments up to 28 days in advance

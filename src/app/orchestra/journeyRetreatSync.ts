@@ -1,15 +1,15 @@
-import { dispatchProtoRetreatSync } from "@/app/proto/protoRetreatBridge";
+import { dispatchRetreatSync } from "@/app/scenario/retreatBridge";
 import {
   beatDirectorScriptLabel,
   isDwellLandingBeat,
 } from "@/app/orchestra/journeyBeatDirector";
 import type { JourneyBeat, JourneyRuntime } from "@/app/orchestra/types";
-import { notePlaybackRetreatSync } from "@/app/shell/protoPlaybackInteractionContext";
-import { playbackScrollMonitor } from "@/app/shell/protoPlaybackScrollMonitor";
+import { notePlaybackRetreatSync } from "@/app/shell/playbackInteractionContext";
+import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 import { syncAvailBeatRetreat } from "@/projects/boots-pharmacy/playback/availRetreatSync";
 import { retreatScriptOptions } from "@/projects/playbackScriptOptions";
 import type {
-  ProtoProjectPlayback,
+  ProjectPlayback,
   RetreatSyncOptions,
   RetreatSelectionGoal,
   RetreatViewportGoal,
@@ -41,7 +41,7 @@ export function beatHasRetreatableState(beat: JourneyBeat): boolean {
  * optional `syncDwellRetreat` / `checkRetreatViewportGoal`.
  */
 export async function syncBeatRetreatState(
-  playback: ProtoProjectPlayback,
+  playback: ProjectPlayback,
   beat: JourneyBeat,
   runtime: JourneyRuntime,
   options?: RetreatSyncOptions
@@ -62,7 +62,7 @@ export async function syncBeatRetreatState(
 
   if (channel === "home" && beat.homeScript) {
     await playback.runHomeScript(beat.homeScript, syncOptions);
-    dispatchProtoRetreatSync({
+    dispatchRetreatSync({
       beatId: beat.id,
       channel,
       scriptId: beat.homeScript,
@@ -74,7 +74,7 @@ export async function syncBeatRetreatState(
     syncAvailBeatRetreat(beat, runtime);
     await playback.runAvailScript(beat.availScript, syncOptions);
     syncAvailBeatRetreat(beat, runtime);
-    dispatchProtoRetreatSync({
+    dispatchRetreatSync({
       beatId: beat.id,
       channel,
       scriptId: beat.availScript,
@@ -84,7 +84,7 @@ export async function syncBeatRetreatState(
 
   if (channel === "book" && beat.bookScript) {
     await playback.runBookScript(beat.bookScript, syncOptions);
-    dispatchProtoRetreatSync({
+    dispatchRetreatSync({
       beatId: beat.id,
       channel,
       scriptId: beat.bookScript,
@@ -94,7 +94,7 @@ export async function syncBeatRetreatState(
 
   if (channel === "tab" && beat.tabScript) {
     await playback.runTabScript(beat.tabScript, runtime, syncOptions);
-    dispatchProtoRetreatSync({
+    dispatchRetreatSync({
       beatId: beat.id,
       channel,
       scriptId: beat.tabScript,
@@ -104,7 +104,7 @@ export async function syncBeatRetreatState(
 
   if (isDwellLandingBeat(beat) && playback.syncDwellRetreat) {
     await playback.syncDwellRetreat(beat, options);
-    dispatchProtoRetreatSync({
+    dispatchRetreatSync({
       beatId: beat.id,
       channel: "dwell",
       scriptId: beatDirectorScriptLabel(beat),
@@ -113,14 +113,14 @@ export async function syncBeatRetreatState(
 }
 
 export function evaluateBeatRetreatViewportGoal(
-  playback: ProtoProjectPlayback,
+  playback: ProjectPlayback,
   beat: JourneyBeat
 ): RetreatViewportGoal | null {
   return playback.checkRetreatViewportGoal?.(beat) ?? null;
 }
 
 export function evaluateBeatRetreatSelectionGoal(
-  playback: ProtoProjectPlayback,
+  playback: ProjectPlayback,
   beat: JourneyBeat
 ): RetreatSelectionGoal | null {
   return playback.checkRetreatSelectionGoal?.(beat) ?? null;

@@ -1,7 +1,7 @@
-import type { ProtoScenarioScreenConfig } from "@/app/proto/protoScenarioEngine";
+import type { ScenarioScreenConfig } from "@/app/scenario/scenarioEngine";
 
 /** Boots Pharmacy — frame-step scenario configs (engine lives in shell). */
-export const BOOTS_PHARMACY_SCENARIO_SCREENS: ProtoScenarioScreenConfig[] = [
+export const BOOTS_PHARMACY_SCENARIO_SCREENS: ScenarioScreenConfig[] = [
   {
     id: "site-pilot-chat",
     label: "Chat experience",

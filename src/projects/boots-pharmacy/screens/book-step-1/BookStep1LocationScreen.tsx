@@ -119,7 +119,7 @@ export function BookStep1LocationScreen({
       data-proto-react-screen={BOOK_STEP1_REACT_SCREEN_ID}
     >
       {/*
-        Content grid (same as ProtoFooter / header logo column):
+        Content grid (same as Footer / header logo column):
         full-bleed band → max 1440 shell + 64px side pad → max 1312 inner.
       */}
       <div className="book-step-1__crumbs" data-name="module.breadcrumbs">

@@ -1,4 +1,4 @@
-export type ProtoOrchestraModeId = "agentic-cjm" | "traditional-cjm";
+export type OrchestraModeId = "agentic-cjm" | "traditional-cjm";
 
 export type JourneyBeatKind = "screen-frames" | "tab-landing" | "overlay";
 
@@ -34,7 +34,7 @@ export type JourneyBeat = {
   id: string;
   label: string;
   kind: JourneyBeatKind;
-  /** Prototype tab number 1–9 (maps via protoTabToIndex). */
+  /** Prototype tab number 1–9 (maps via studioTabToIndex). */
   protoTab?: number;
   scenarioId?: string;
   /** Auto-advance delay when play is active on tab-landing beats. */
@@ -50,16 +50,16 @@ export type JourneyBeat = {
   tabScript?: TabScriptId;
 };
 
-export type ProtoJourneyDefinition = {
-  id: ProtoOrchestraModeId;
+export type JourneyDefinition = {
+  id: OrchestraModeId;
   label: string;
   beats: JourneyBeat[];
 };
 
-export type ProtoBrandPack = {
+export type BrandPack = {
   id: string;
   label: string;
-  journeys: ProtoJourneyDefinition[];
+  journeys: JourneyDefinition[];
 };
 
 export type JourneyRuntime = {
@@ -71,6 +71,6 @@ export type JourneyRuntime = {
 };
 
 export type OrchestraModeOption = {
-  id: ProtoOrchestraModeId;
+  id: OrchestraModeId;
   label: string;
 };

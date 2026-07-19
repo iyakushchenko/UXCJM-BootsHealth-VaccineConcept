@@ -17,7 +17,7 @@ src/projects/
     personas/
       <persona-id>/
         index.ts            # persona definition + hooks
-        journeys.ts         # ProtoJourneyDefinition beats
+        journeys.ts         # JourneyDefinition beats
 ```
 
 **Brand delta:** concepts bring their own primaries/logos. Capture them in `styleguide/` so projects do not all share one generic UXDS look. See [../product/PROJECT_STYLEGUIDE.md](../product/PROJECT_STYLEGUIDE.md).
@@ -35,7 +35,7 @@ src/projects/
 import { formatProjectId } from "@/projects/formatProjectId";
 import { EXAMPLE_PERSONA } from "./personas/example-user";
 
-export const PUMA_PROJECT: ProtoProjectDefinition = {
+export const PUMA_PROJECT: ProjectDefinition = {
   id: formatProjectId("puma"),
   brand: "puma",
   label: "Puma",
@@ -48,11 +48,11 @@ export const PUMA_PROJECT: ProtoProjectDefinition = {
 
 ## 2. Define personas and journeys
 
-Each persona owns one or more `ProtoJourneyDefinition` entries (CJM modes).
+Each persona owns one or more `JourneyDefinition` entries (CJM modes).
 
 ```ts
 // personas/example-user/journeys.ts
-export const AGENTIC_JOURNEY: ProtoJourneyDefinition = {
+export const AGENTIC_JOURNEY: JourneyDefinition = {
   id: "agentic-cjm",
   label: "Agentic CJM",
   beats: [
@@ -62,7 +62,7 @@ export const AGENTIC_JOURNEY: ProtoJourneyDefinition = {
 };
 
 // personas/example-user/index.ts
-export const EXAMPLE_PERSONA: ProtoPersonaDefinition = {
+export const EXAMPLE_PERSONA: PersonaDefinition = {
   id: "example-user",
   label: "Example User",
   journeys: [AGENTIC_JOURNEY],
@@ -83,7 +83,7 @@ Beat kinds:
 | `screen-frames` | Step through revealed frames (`scenarioId`) |
 | `overlay` | Availability tool or other overlay script |
 
-Script fields (`homeScript`, `availScript`, `bookScript`, `tabScript`) dispatch via the active project's `playback` module registered on `ProtoProjectDefinition` — today these are Boots-shaped unions; generalise when adding non-Boots projects.
+Script fields (`homeScript`, `availScript`, `bookScript`, `tabScript`) dispatch via the active project's `playback` module registered on `ProjectDefinition` — today these are Boots-shaped unions; generalise when adding non-Boots projects.
 
 ---
 
@@ -93,13 +93,13 @@ Script fields (`homeScript`, `availScript`, `bookScript`, `tabScript`) dispatch 
 // src/projects/registry.ts
 import { PUMA_PROJECT } from "@/projects/puma";
 
-export const PROTO_PROJECTS = [
+export const STUDIO_PROJECTS = [
   BOOTS_PHARMACY_PROJECT,
   PUMA_PROJECT,
 ];
 ```
 
-The project dropdown populates automatically from `PROTO_PROJECTS`.
+The project dropdown populates automatically from `STUDIO_PROJECTS`.
 
 ---
 
@@ -118,13 +118,13 @@ Boots Pharmacy registers its wire in `index.ts`:
 ```ts
 import { BootsPharmacyProjectView } from "./wire";
 
-export const BOOTS_PHARMACY_PROJECT: ProtoProjectDefinition = {
+export const BOOTS_PHARMACY_PROJECT: ProjectDefinition = {
   // ...
   wireComponent: BootsPharmacyProjectView,
 };
 ```
 
-The shell (`App.tsx`) calls `getProjectWire(projectId)` and passes a `ProtoProjectShellBridge`. Projects without a wire (e.g. Puma today) render `ProtoProjectPlaceholder`.
+The shell (`App.tsx`) calls `getProjectWire(projectId)` and passes a `ProjectShellBridge`. Projects without a wire (e.g. Puma today) render `ProjectPlaceholder`.
 
 ```
 src/projects/<project-id>/
@@ -160,4 +160,4 @@ src/projects/boots-pharmacy/
       journeys.ts       # agentic + traditional beats
 ```
 
-Shared chrome primitives (`ProtoCloseIcon`, `ProtoIconHit`, …) remain in `src/app/chrome/` and are imported by project modules.
+Shared chrome primitives (`CloseIcon`, `IconHit`, …) remain in `src/app/chrome/` and are imported by project modules.

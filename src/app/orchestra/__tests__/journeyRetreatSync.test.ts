@@ -5,7 +5,7 @@ import {
   syncBeatRetreatState,
 } from "@/app/orchestra/journeyRetreatSync";
 import type { JourneyBeat, JourneyRuntime } from "@/app/orchestra/types";
-import type { ProtoProjectPlayback } from "@/projects/types";
+import type { ProjectPlayback } from "@/projects/types";
 
 const runtime = {} as JourneyRuntime;
 
@@ -28,7 +28,7 @@ describe("journeyRetreatSync", () => {
     const runBookScript = vi.fn().mockResolvedValue({ ok: true });
     const playback = {
       runBookScript,
-    } as unknown as ProtoProjectPlayback;
+    } as unknown as ProjectPlayback;
 
     const target = beat({
       id: "book-step2-date",
@@ -48,7 +48,7 @@ describe("journeyRetreatSync", () => {
 
   it("routes dwell beats through syncDwellRetreat", async () => {
     const syncDwellRetreat = vi.fn().mockResolvedValue(undefined);
-    const playback = { syncDwellRetreat } as unknown as ProtoProjectPlayback;
+    const playback = { syncDwellRetreat } as unknown as ProjectPlayback;
     const target = beat({ id: "book-step2", protoTab: 6 });
 
     expect(beatRetreatScriptChannel(target)).toBeNull();
@@ -71,7 +71,7 @@ describe("journeyRetreatSync", () => {
     });
     const playback = {
       runTabScript,
-    } as unknown as ProtoProjectPlayback;
+    } as unknown as ProjectPlayback;
     const runtime = {
       goToTab,
       closeAllPopups,

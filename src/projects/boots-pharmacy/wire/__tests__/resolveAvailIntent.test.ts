@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveAvailIntent } from "@/projects/boots-pharmacy/wire/resolveAvailIntent";
 
-const isProtoHeaderLoggedIn = vi.fn(() => false);
+const isHeaderLoggedIn = vi.fn(() => false);
 
-vi.mock("@/projects/boots-pharmacy/chrome/protoHeaderMount", () => ({
-  isProtoHeaderLoggedIn: () => isProtoHeaderLoggedIn(),
+vi.mock("@/projects/boots-pharmacy/chrome/headerMount", () => ({
+  isHeaderLoggedIn: () => isHeaderLoggedIn(),
 }));
 
 const AVAIL_START = { step: "start" as const };
@@ -32,7 +32,7 @@ const AVAIL_DATE_WEEK = {
 
 describe("resolveAvailIntent", () => {
   beforeEach(() => {
-    isProtoHeaderLoggedIn.mockReturnValue(false);
+    isHeaderLoggedIn.mockReturnValue(false);
   });
 
   it("passes pickLocation intents through unchanged", () => {
@@ -64,7 +64,7 @@ describe("resolveAvailIntent", () => {
   });
 
   it("treats logged-in header as having location", () => {
-    isProtoHeaderLoggedIn.mockReturnValue(true);
+    isHeaderLoggedIn.mockReturnValue(true);
     expect(resolveAvailIntent(AVAIL_DATE_CHAT, null)).toEqual(AVAIL_DATE_CHAT);
   });
 });

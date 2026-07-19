@@ -22,7 +22,7 @@ import { abortSitePilotHomePlayback } from "./sitePilotHome";
 import { runSitePilotHomeScript } from "./sitePilotHome";
 import { abortTraditionalPlayback } from "./traditional";
 import { runTraditionalScript } from "./traditional";
-import type { ProtoProjectPlayback, RetreatViewportGoal } from "@/projects/types";
+import type { ProjectPlayback, RetreatViewportGoal } from "@/projects/types";
 import { checkRetreatSelectionGoal } from "./retreatSelectionGoal";
 
 function runBeatAction(actionId: JourneyBeatActionId, runtime: JourneyRuntime): void {
@@ -104,7 +104,7 @@ function checkRetreatViewportGoal(beat: JourneyBeat): RetreatViewportGoal | null
 }
 
 /** Boots Pharmacy — cursor/type-in scripts for journey beats. */
-export const BOOTS_PHARMACY_PLAYBACK: ProtoProjectPlayback = {
+export const BOOTS_PHARMACY_PLAYBACK: ProjectPlayback = {
   abortAll,
   runBeatAction,
   runHomeScript: (scriptId, options) => runSitePilotHomeScript(scriptId as HomeScriptId, options),

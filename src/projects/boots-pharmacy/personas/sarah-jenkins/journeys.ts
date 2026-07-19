@@ -1,4 +1,4 @@
-import type { JourneyBeat, ProtoJourneyDefinition } from "@/app/orchestra/types";
+import type { JourneyBeat, JourneyDefinition } from "@/app/orchestra/types";
 
 export const TRADITIONAL_LOGIN_BEAT_ID = "traditional-login";
 
@@ -11,7 +11,7 @@ export function shouldSkipTraditionalLoginBeat(
 }
 
 /** After confirmation — open appointments list, then first card details. */
-const POST_CONFIRMATION_BEATS: ProtoJourneyDefinition["beats"] = [
+const POST_CONFIRMATION_BEATS: JourneyDefinition["beats"] = [
   {
     id: "confirmation",
     label: "Book — confirmed",
@@ -36,7 +36,7 @@ const POST_CONFIRMATION_BEATS: ProtoJourneyDefinition["beats"] = [
 ];
 
 /** Traditional browse → book funnel — one beat per interaction for frame stepping. */
-const TRADITIONAL_BOOKING_BEATS: ProtoJourneyDefinition["beats"] = [
+const TRADITIONAL_BOOKING_BEATS: JourneyDefinition["beats"] = [
   {
     id: TRADITIONAL_LOGIN_BEAT_ID,
     label: "Log in or register",
@@ -83,7 +83,7 @@ const TRADITIONAL_BOOKING_BEATS: ProtoJourneyDefinition["beats"] = [
 ];
 
 /** After Sarah books from chat-driven Availability Tool (location chosen in overlay). */
-const AGENTIC_POST_AVAIL_BEATS: ProtoJourneyDefinition["beats"] = [
+const AGENTIC_POST_AVAIL_BEATS: JourneyDefinition["beats"] = [
   {
     id: "book-step2",
     label: "Book - Step 2",
@@ -116,7 +116,7 @@ const AGENTIC_POST_AVAIL_BEATS: ProtoJourneyDefinition["beats"] = [
   ...POST_CONFIRMATION_BEATS,
 ];
 
-export const AGENTIC_CJM_JOURNEY: ProtoJourneyDefinition = {
+export const AGENTIC_CJM_JOURNEY: JourneyDefinition = {
   id: "agentic-cjm",
   label: "Agentic CJM",
   beats: [
@@ -163,7 +163,7 @@ export const AGENTIC_CJM_JOURNEY: ProtoJourneyDefinition = {
   ],
 };
 
-export const TRADITIONAL_CJM_JOURNEY: ProtoJourneyDefinition = {
+export const TRADITIONAL_CJM_JOURNEY: JourneyDefinition = {
   id: "traditional-cjm",
   label: "Traditional CJM",
   beats: [

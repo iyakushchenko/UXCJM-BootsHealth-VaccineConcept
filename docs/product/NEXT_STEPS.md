@@ -16,21 +16,23 @@
 ## NEXT
 
 2. [ ] **Grow UXDS by page (ongoing)** — extract only when a second screen needs it; no speculative catalog ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)). Tertiary CTA layer only when next shared use forces it (summary Change already in UXDS).
-3. [ ] **Residual fidelity (low priority)** — Book Steps 1–3 Make-only hexes with no bridge token yet (`#c3c3c3`, `#7a7d87`/`#7c7c7c`, `#f2f2f2`/`#f1f1f1`, `#c4dde3`, `#ffe351`, Change hover `#000`). Do **not** invent aliases. Dead LEGACY cleanup only when next touching Make child-7/4/3 CSS paths.
+3. [ ] **Phase 2: `.proto-*` CSS / `data-proto-*` rename** — file/module identity already `studio*` / domain ([NAMING.md](./NAMING.md)). Class + attribute migration only with full codemod + visual smoke; no half-renames. Keep `window.__proto*` aliases.
+4. [ ] **Residual fidelity (low priority)** — Book Steps 1–3 Make-only hexes with no bridge token yet (`#c3c3c3`, `#7a7d87`/`#7c7c7c`, `#f2f2f2`/`#f1f1f1`, `#c4dde3`, `#ffe351`, Change hover `#000`). Do **not** invent aliases. Dead LEGACY cleanup only when next touching Make child-7/4/3 CSS paths.
 
 ---
 
 ## LATER
 
-4. [ ] **Release / tag CI** — only when versioning habit is stable and Actions budget allows.
-5. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs` contracts (Summarizer-style), not more Playwright on every push.
-6. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
-7. [ ] **Second project rabbit** — only after Boots book + URL + REC proven on Pages ([PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md) §4).
+5. [ ] **Release / tag CI** — only when versioning habit is stable and Actions budget allows.
+6. [ ] **Broader CSS check ratchets** — more `scripts/check-*.mjs` contracts (Summarizer-style), not more Playwright on every push.
+7. [ ] **On-demand lean smoke** — keep `workflow_dispatch` / local `npm run smoke`; do **not** return auto smoke to default CI without a Director rewrite of this board.
+8. [ ] **Second project rabbit** — only after Boots book + URL + REC proven on Pages ([PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md) §4).
 
 ---
 
 ## Done recently (context)
 
+- [x] **Retire `proto*` filenames** — engine/project modules → `studio*` / domain names; `__studio*` window APIs + `__proto*` aliases; CSS classes phase 2 ([NAMING.md](./NAMING.md)).
 - [x] **Naming + hard guardrails** — [NAMING.md](./NAMING.md); Boots screen folders `book-step-N` = `screenId`; director checklist + `naming.mdc` / `ci-sitrep.mdc`; lessons append rule.
 - [x] **Recording replay from `screen` events** — `applyStudioScreen` shared with deep-link/popstate; ↺ / `__protoReplayRecording` restores `screenId` / `studioUrl` in order ([../shell/RECORDING.md](../shell/RECORDING.md)).
 - [x] **Studio URL scheme + agent overlay policy** — `?project=&screen=` deep links; strip `proof`; overlay `touch()` + auto-arm mutating `__proto*`; recording `kind: "screen"`; [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md); [../shell/URL.md](../shell/URL.md).

@@ -1,8 +1,8 @@
-import type { ProtoProjectPlayback } from "@/projects/types";
+import type { ProjectPlayback } from "@/projects/types";
 import { scriptFail, scriptOk } from "@/projects/playbackScriptResult";
 
 /** No-op playback — Puma journeys not implemented yet. */
-export const PUMA_PLAYBACK: ProtoProjectPlayback = {
+export const PUMA_PLAYBACK: ProjectPlayback = {
   abortAll: () => {},
   runBeatAction: () => {},
   runHomeScript: async () => scriptOk(),

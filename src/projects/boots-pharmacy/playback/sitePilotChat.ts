@@ -5,23 +5,23 @@ import {
   notifyStudioDemoClick,
   removeDemoCursor as removeSharedDemoCursor,
   settleDemoCursorAfterClick,
-} from "@/app/proto/protoDemoCursor";
+} from "@/app/scenario/demoCursor";
 import {
   pinScenarioScrollToBottomDuring,
   scrollPrototypeScrollToBottom,
-} from "@/app/proto/protoScenarioEngine";
+} from "@/app/scenario/scenarioEngine";
 import {
   beginSitePilotChatPlaybackThinking,
   endSitePilotChatThinking,
   fadeOutSitePilotChatThinking,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatThinking";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
 import {
   findSitePilotChatComposerCard,
   isSitePilotChatAgentReplyFrame,
   SITE_PILOT_CHAT_FINALE_CTA,
   SITE_PILOT_CHAT_PLAYBACK_THINK_MS,
-} from "@/projects/boots-pharmacy/dom/protoSitePilotChatScenario";
-import type { BeforeRevealContext } from "@/app/nav/useProtoScenarioPlayback";
+} from "@/projects/boots-pharmacy/dom/sitePilotChatScenario";
+import type { BeforeRevealContext } from "@/app/nav/useScenarioPlayback";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 
 const AGENTIC_QUERY_LINE_PX = 24;

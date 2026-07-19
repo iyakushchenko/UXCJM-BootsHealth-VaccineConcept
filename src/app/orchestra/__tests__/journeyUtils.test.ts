@@ -9,7 +9,7 @@ import {
   resolveJourneyStartBeat,
   stepBeatIndex,
 } from "@/app/orchestra/journeyUtils";
-import type { JourneyBeat, ProtoJourneyDefinition } from "@/app/orchestra/types";
+import type { JourneyBeat, JourneyDefinition } from "@/app/orchestra/types";
 import { buildStudioTouchpointPlaylist } from "@/app/nav/resolveStudioTouchpoint";
 import { BOOTS_PHARMACY_POPUP_TOUCHPOINTS } from "@/projects/boots-pharmacy/touchpoints";
 import {
@@ -52,7 +52,7 @@ describe("firstPlayableBeatIndex / lastPlayableBeatIndex", () => {
 });
 
 describe("getJourneyForMode", () => {
-  const journeys: ProtoJourneyDefinition[] = [
+  const journeys: JourneyDefinition[] = [
     { id: "agentic-cjm", label: "Agentic", beats: [] },
     { id: "traditional-cjm", label: "Traditional", beats: [] },
   ];
@@ -77,7 +77,7 @@ describe("resolveBeatIndexForScreenTab", () => {
             { id: "book-date", label: "Date", kind: "tab-landing", protoTab: 6 },
           ],
         },
-        protoTabToIndex(6),
+        studioTabToIndex(6),
         () => false
       )
     ).toBe(2);
@@ -87,14 +87,14 @@ describe("resolveBeatIndexForScreenTab", () => {
     expect(
       resolveBeatIndexForScreenTab(
         AGENTIC_CJM_JOURNEY,
-        protoTabToIndex(5),
+        studioTabToIndex(5),
         () => false
       )
     ).toBe(0);
   });
 });
 
-function protoTabToIndex(tab: number): number {
+function studioTabToIndex(tab: number): number {
   return Math.max(0, tab - 1);
 }
 

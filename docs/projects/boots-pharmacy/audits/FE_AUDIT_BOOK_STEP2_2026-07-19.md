@@ -109,7 +109,7 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 | Bug | Fix | Proof |
 |-----|-----|-------|
 | **Time slots last row right-shifted** | `.book-step-2__time-row` → CSS grid `repeat(7, 65px)` + remove narrow pad spacers; month rows keep flex `space-between` | Contract: afternoon last row is 5 slots (`15:45`…`16:45`); live: col-0 left aligned across rows |
-| **Book Step 1 tab → Site Pilot Home (tab 1)** under **agentic-cjm** browse | `shouldNavigateBeatTabOnEnter`: do **not** `goToTab` on beat-enter when `scenarioBrowseMode` (CJM off). Agentic has no protoTab 5 beat → fallback `agentic-home` must not snap viewport. React Step 2 progress Step 1 → `PROTO_INDEX_BOOK_STEP1` | Unit `beatTabNavigation.test.ts`; live: agentic-cjm + CJM off → Studio tab Book Step 1 stays on React `book-step-1` |
+| **Book Step 1 tab → Site Pilot Home (tab 1)** under **agentic-cjm** browse | `shouldNavigateBeatTabOnEnter`: do **not** `goToTab` on beat-enter when `scenarioBrowseMode` (CJM off). Agentic has no protoTab 5 beat → fallback `agentic-home` must not snap viewport. React Step 2 progress Step 1 → `INDEX_BOOK_STEP1` | Unit `beatTabNavigation.test.ts`; live: agentic-cjm + CJM off → Studio tab Book Step 1 stays on React `book-step-1` |
 
 ---
 

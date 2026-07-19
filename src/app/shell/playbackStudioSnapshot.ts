@@ -2,11 +2,11 @@ import type { JourneyBeat } from "@/app/orchestra/types";
 import {
   PlaybackDiagnosticError,
   type PlaybackDiagnosticError as PlaybackDiagnosticErrorType,
-} from "@/app/shell/protoPlaybackDiagnostic";
+} from "@/app/shell/playbackDiagnostic";
 import {
   formatPlaybackInteraction,
   getLastPlaybackInteraction,
-} from "@/app/shell/protoPlaybackInteractionContext";
+} from "@/app/shell/playbackInteractionContext";
 
 export type PlaybackStudioSnapshot = {
   projectId?: string;

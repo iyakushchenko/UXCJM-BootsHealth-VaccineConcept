@@ -89,7 +89,7 @@ Live localhost audit of React Book Step 1 confirms the claimed fidelity ship: bo
 
 | # | Result | Evidence |
 |---|--------|----------|
-| H1 | **PASS** | Proto sticky header + ProtoFooter remain; Make child-7 chrome hidden as designed. |
+| H1 | **PASS** | Proto sticky header + Footer remain; Make child-7 chrome hidden as designed. |
 | H2 | **PASS** | No console errors on audited path after reload → Book Step 1. |
 | H3 | **PASS** | Visual gates measured live — not inferred from unit/build alone. |
 
@@ -107,7 +107,7 @@ Live localhost audit of React Book Step 1 confirms the claimed fidelity ship: bo
 
 - Breadcrumb delimiter is text `/` (not Make rotated bar).  
 - Learn more uses UXDS Disclosure (closed by default) vs always-visible Make paragraph.  
-- Proto sticky header / ProtoFooter vs Make absolute chrome.
+- Proto sticky header / Footer vs Make absolute chrome.
 
 ---
 

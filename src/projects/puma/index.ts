@@ -1,9 +1,9 @@
-import type { ProtoProjectDefinition } from "@/projects/types";
+import type { ProjectDefinition } from "@/projects/types";
 import { formatProjectId } from "@/projects/formatProjectId";
 import { EXAMPLE_SHOPPER_PERSONA } from "@/projects/puma/personas/example-shopper";
 import { PUMA_PLAYBACK } from "@/projects/puma/playback";
 
-export const PUMA_PROJECT: ProtoProjectDefinition = {
+export const PUMA_PROJECT: ProjectDefinition = {
   id: formatProjectId("puma"),
   brand: "puma",
   label: "Puma",

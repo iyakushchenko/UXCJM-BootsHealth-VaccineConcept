@@ -22,7 +22,7 @@
 }
 
 /*
- * Boots content grid (header logo / ProtoFooter):
+ * Boots content grid (header logo / Footer):
  *   shell: max-width 1440 + horizontal padding 64
  *   inner: max-width 1312, width 100%, centered
  * Do NOT put side padding on the 1312 inner — that shifts crumbs past the logo.

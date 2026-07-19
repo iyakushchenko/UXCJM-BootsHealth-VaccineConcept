@@ -5,12 +5,12 @@ import {
   releaseDemoCursorAfterScript,
   removeDemoCursor,
   simulateDemoPointerClick,
-} from "@/app/proto/protoDemoCursor";
+} from "@/app/scenario/demoCursor";
 import {
   animateScrollElementIntoView,
   animateScrollTo,
   computeScrollTopForElement,
-} from "@/app/proto/protoPlaybackScroll";
+} from "@/app/scenario/playbackScroll";
 import type { AvailabilityScriptId } from "@/app/orchestra/types";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import {

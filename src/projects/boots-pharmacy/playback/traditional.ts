@@ -1,7 +1,7 @@
 import {
-  isProtoHeaderLoggedIn,
+  isHeaderLoggedIn,
   resetPlpTileBookmarkForPlayback,
-} from "@/projects/boots-pharmacy/chrome/protoHeaderMount";
+} from "@/projects/boots-pharmacy/chrome/headerMount";
 import type { JourneyRuntime, TabScriptId } from "@/app/orchestra/types";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import { runSelectLocationStore } from "./availability";
@@ -15,9 +15,9 @@ import {
   resetDemoCursorTravelOrigin,
   simulateDemoPointerClick,
   simulateDemoPointerHover,
-} from "@/app/proto/protoDemoCursor";
-import { getPrototypeScrollRoot } from "@/app/proto/protoPlaybackScroll";
-import { PROTO_SCREENS } from "@/projects/boots-pharmacy/screens/protoScreens";
+} from "@/app/scenario/demoCursor";
+import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
+import { PROJECT_SCREENS } from "@/projects/boots-pharmacy/screens/screens";
 import {
   scriptAborted,
   scriptFail,
@@ -185,7 +185,7 @@ async function showcaseSarahAvatarDot(
   options?: { skip?: boolean }
 ): Promise<boolean> {
   // Traditional CJM hits PLP before login — Sarah's avatar dot is post-login only.
-  if (!isProtoHeaderLoggedIn()) {
+  if (!isHeaderLoggedIn()) {
     return true;
   }
 
@@ -290,7 +290,7 @@ async function openLoginFromPdpQuickSignIn(
   runtime: JourneyRuntime,
   options?: { skip?: boolean }
 ): Promise<HTMLElement | null> {
-  const pdpTabIndex = PROTO_SCREENS.findIndex((screen) => screen.childIndex === 8);
+  const pdpTabIndex = PROJECT_SCREENS.findIndex((screen) => screen.childIndex === 8);
   if (pdpTabIndex >= 0) {
     runtime.goToTab(pdpTabIndex);
     await delay(120);
@@ -376,7 +376,7 @@ async function runPdpBookNow(
 ): Promise<boolean> {
   let screen = await waitForActiveScreen(8);
   if (!screen) {
-    const pdpTabIndex = PROTO_SCREENS.findIndex((s) => s.childIndex === 8);
+    const pdpTabIndex = PROJECT_SCREENS.findIndex((s) => s.childIndex === 8);
     if (pdpTabIndex >= 0) {
       runtime.goToTab(pdpTabIndex);
       await delay(120);
@@ -408,7 +408,7 @@ async function runLoginSignIn(
   runtime: JourneyRuntime,
   options?: { skip?: boolean }
 ): Promise<boolean> {
-  if (isProtoHeaderLoggedIn()) {
+  if (isHeaderLoggedIn()) {
     return true;
   }
 
@@ -612,7 +612,7 @@ async function runHistoryViewDetails(
 }
 
 function protoTabIndexForChild(childIndex: number): number {
-  const index = PROTO_SCREENS.findIndex((screen) => screen.childIndex === childIndex);
+  const index = PROJECT_SCREENS.findIndex((screen) => screen.childIndex === childIndex);
   return index >= 0 ? index : 0;
 }
 

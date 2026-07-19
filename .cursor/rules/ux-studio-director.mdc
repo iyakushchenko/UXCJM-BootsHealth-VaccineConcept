@@ -29,7 +29,7 @@ Spot or forecast: layout/L&F drift; style zoo; bad handoffs; missing hover/focus
 9. **URL navigable state** — `?project=&screen=` for deep links / recording; folder name = `screenId`.
 10. **Nazi QA** — FE audit **PROVEN** under `docs/projects/<id>/audits/` before claiming UI done / PO green-light. Tests alone **cannot skip**.
 11. **Distrust subagent “done”** until proven (JSX/CSS gate or localhost).
-12. **Naming** — new files follow `NAMING.md` / `naming.mdc` (no mass legacy rename).
+12. **Naming** — new files follow `NAMING.md` / `naming.mdc`; **no new `proto*` filenames**; prefer `__studio*` window APIs (`__proto*` aliases OK); no half-rename of `.proto-*` CSS.
 13. **Progressive learning** — append `docs/product/LESSONS_LEARNED.md` when a new failure class appears.
 14. **Actions budget** — lean CI (unit + build); no auto marathon smoke; Playwright on-demand only.
 15. **Pages base path** — deploy uses `/ux-studio/`; local often `/`; do not hardcode absolute roots.

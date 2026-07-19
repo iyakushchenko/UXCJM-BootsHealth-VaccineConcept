@@ -1,6 +1,6 @@
 import { useEffect, useState, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
-import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
+import { CloseIcon } from "@/app/chrome/CloseIcon";
+import { useOverlayDismiss } from "@/app/chrome/useOverlayDismiss";
 
 export type RecipientMode = "myself" | "someone-else";
 
@@ -45,7 +45,7 @@ export default function RecipientPickerPopup({
   onClose,
   onSelect,
 }: Props) {
-  const { mounted, scrimClassName, onScrimAnimationEnd } = useProtoOverlayDismiss(open);
+  const { mounted, scrimClassName, onScrimAnimationEnd } = useOverlayDismiss(open);
   const [draft, setDraft] = useState<RecipientMode>(selected);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function RecipientPickerPopup({
             aria-label="Close recipient picker"
             onClick={onClose}
           >
-            <ProtoCloseIcon />
+            <CloseIcon />
           </button>
         </div>
 

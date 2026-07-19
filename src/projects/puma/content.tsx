@@ -1,15 +1,15 @@
 export {
-  PROTO_HUB_LABEL,
-  PROTO_INDEX_APPOINTMENT_DETAILS,
-  PROTO_INDEX_APPOINTMENT_HISTORY,
-  PROTO_INDEX_PLP,
-  PROTO_SCREENS,
-  protoNavIndex,
-  protoTabToIndex,
-  type ProtoScreen,
-} from "@/projects/puma/screens/protoScreens";
+  HUB_LABEL,
+  INDEX_APPOINTMENT_DETAILS,
+  INDEX_APPOINTMENT_HISTORY,
+  INDEX_PLP,
+  PROJECT_SCREENS,
+  studioNavIndex,
+  studioTabToIndex,
+  type ProjectScreen,
+} from "@/projects/puma/screens/screens";
 
-export { PROTO_SCENARIO_SCREENS } from "@/projects/puma/screens/protoScreens";
+export { SCENARIO_SCREENS } from "@/projects/puma/screens/screens";
 
 export function ProjectFrame() {
   return (
@@ -24,7 +24,7 @@ export function ProjectFrame() {
   );
 }
 
-export function ProtoHubViewport(_props: { onGoToTab?: (index: number) => void }) {
+export function HubViewport(_props: { onGoToTab?: (index: number) => void }) {
   return (
     <div className="p-8 text-center text-neutral-600">
       <p className="text-lg font-semibold">Puma</p>

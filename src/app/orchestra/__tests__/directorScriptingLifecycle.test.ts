@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * Mirrors useProtoJourneyPlayback director beat chaining: scripting must stay
+ * Mirrors useJourneyPlayback director beat chaining: scripting must stay
  * active until chained async work (e.g. select-book-time scroll) finishes.
  */
 async function runDirectorBeatWithChain(options: {

@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, type MouseEvent } from "react";
-import { ProtoCloseIcon } from "@/app/chrome/ProtoCloseIcon";
-import { useProtoOverlayDismiss } from "@/app/chrome/useProtoOverlayDismiss";
+import { CloseIcon } from "@/app/chrome/CloseIcon";
+import { useOverlayDismiss } from "@/app/chrome/useOverlayDismiss";
 import {
   clonePdpRtbStack,
   syncQuickViewBoosterState,
   wireQuickViewRtb,
-} from "@/projects/boots-pharmacy/dom/protoPdpRtb";
+} from "@/projects/boots-pharmacy/dom/pdpRtb";
 
 type Props = {
   open: boolean;
@@ -28,7 +28,7 @@ export default function QuickViewPopup({
   onToggleBooster,
   onOpenLogin,
 }: Props) {
-  const { mounted, scrimClassName, onScrimAnimationEnd } = useProtoOverlayDismiss(open);
+  const { mounted, scrimClassName, onScrimAnimationEnd } = useOverlayDismiss(open);
   const mountRef = useRef<HTMLDivElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const onBookNowRef = useRef(onBookNow);
@@ -124,7 +124,7 @@ export default function QuickViewPopup({
             aria-label="Close quick view"
             onClick={onClose}
           >
-            <ProtoCloseIcon />
+            <CloseIcon />
           </button>
         </div>
         <div

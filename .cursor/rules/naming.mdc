@@ -18,4 +18,6 @@ Full pack: [docs/product/NAMING.md](docs/product/NAMING.md).
 | Scripts | `kebab-case.mjs` |
 | Tests | `*.test.ts` in `__tests__/` (colocated OK for tiny UXDS pure units) |
 
-**Forward-only:** do not mass-rename historical docs. Legacy names OK until touched. High-ROI renames only when they stop agents stumbling (e.g. folder ≠ URL id).
+**Hard forbid:** no new `proto*` / `Proto*` filenames — this is UX Studio (`studio*`, domain folders). Prefer `window.__studio*`; keep `__proto*` as legacy aliases. Do not half-rename `.proto-*` CSS / `data-proto-*` (phase 2).
+
+**Forward-only:** do not mass-rename historical docs. High-ROI renames only when they stop agents stumbling (e.g. folder ≠ URL id).

@@ -6,13 +6,13 @@ import {
   removeDemoCursor,
   resetDemoCursorTravelOrigin,
   simulateDemoPointerClick,
-} from "@/app/proto/protoDemoCursor";
+} from "@/app/scenario/demoCursor";
 import {
   animateDemoTargetIntoView,
   cancelPlaybackScroll,
   getPrototypeScrollRoot,
   snapDemoTargetIntoView,
-} from "@/app/proto/protoPlaybackScroll";
+} from "@/app/scenario/playbackScroll";
 import type { BookScriptId } from "@/app/orchestra/types";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import {
@@ -22,20 +22,20 @@ import {
   scriptFailureStep,
   type PlaybackScriptResult,
 } from "@/projects/playbackScriptResult";
-import type { DirectorOutcomeReport } from "@/app/shell/protoPlaybackDirectorAnomalies";
-import { playbackDirectorMonitor } from "@/app/shell/protoPlaybackDirectorMonitor";
+import type { DirectorOutcomeReport } from "@/app/shell/playbackDirectorAnomalies";
+import { playbackDirectorMonitor } from "@/app/shell/playbackDirectorMonitor";
 import {
   describeCursorTarget,
   notePlaybackCursorEvent,
   resolveBookStep2CursorPhase,
   setPlaybackCursorDiagnosticContext,
-} from "@/app/shell/protoPlaybackCursorDiagnostic";
+} from "@/app/shell/playbackCursorDiagnostic";
 import {
   BOOK_STEP2_RETREAT_DEFAULT_DATE,
   bookStep2Screen,
   syncBookStep2RetreatDefaultDom,
   syncBookStep2RetreatSlotDom,
-} from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
+} from "@/projects/boots-pharmacy/dom/bookStep2Calendar";
 
 /** Wire default from `DEFAULT_CHOSEN_BOOKING_SLOT` — pre-director Book Step 2 state. */
 export const BOOK_DEFAULT_DATE = BOOK_STEP2_RETREAT_DEFAULT_DATE;

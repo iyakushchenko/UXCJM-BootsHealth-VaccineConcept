@@ -49,7 +49,7 @@ Proceed to the **next** page migration — but stop lying that Book Step 1 means
 - **Dead LEGACY CSS for child 7 still ships** in `globals-screens.css` (~13 `nth-child(7)` rules: progress, help footer, booster, cursor hide). React does not need them; they are zombie weight.
 - **Tertiary / NearMe chrome still lives in LEGACY** (`globals-chrome.css` `.proto-tertiary-cta` / `.proto-near-me-cta`) — shared language, wrong layer for a “clean” BASE story.
 - **Availability Tool** is React overlay but still styled largely via LEGACY `.proto-avail-*` in `globals-screens.css`.
-- **Proto sticky header + ProtoFooter** are intentional Studio mounts (design delta “open”) — not Make absolute chrome, also not a pure UXDS page shell.
+- **Proto sticky header + Footer** are intentional Studio mounts (design delta “open”) — not Make absolute chrome, also not a pure UXDS page shell.
 - **Page CSS hex zoo:** `book-step-1-location.css` still hardcodes many Make-parity hexes (`#3a3a3a`, `#c3c3c3`, `#f5f5f5`, `#012169`, …) alongside some `var(--uxds-…)`. Tokens/theme are incomplete on this surface.
 - **Pilot doc drift:** `BOOTS_REACT_SCREEN_PILOT.md` still says near-me is “FilterChip remapped”; code/audits say shared `NearMeCta` (post-`2ea93a0`). Docs can lie even when audits pass.
 - **All other Boots screens** remain Make wire. Step 1 is one island.
@@ -96,7 +96,7 @@ Proceed to the **next** page migration — but stop lying that Book Step 1 means
 
 ## Recommended next page (architect pick)
 
-**Book — Step 2 — Date and Time** (`PROTO_SCREENS` tab → `childIndex: 4`)
+**Book — Step 2 — Date and Time** (`PROJECT_SCREENS` tab → `childIndex: 4`)
 
 | Why this | Why not others first |
 |----------|----------------------|

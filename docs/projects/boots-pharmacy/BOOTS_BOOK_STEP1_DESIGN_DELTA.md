@@ -18,7 +18,7 @@
 
 ## Page template / max-width / crumb alignment
 
-Boots content grid (header logo + `ProtoFooter`):
+Boots content grid (header logo + `Footer`):
 
 | Layer | Make / Studio guideline | React (after fix) |
 |-------|-------------------------|-------------------|
@@ -35,7 +35,7 @@ Boots content grid (header logo + `ProtoFooter`):
 
 | Element | Make (value/source) | React (current after fix) | Status | Fix plan |
 |---------|---------------------|---------------------------|--------|----------|
-| **Page template / content column** | Header: `px-[64px]` → `max-w-[1312px]` container; ProtoFooter: shell 1440+64 → inner 1312 | `.book-step-1__shell` / `__shell-inner` | **match** (was **gap** — pad inside 1312) | Shared logo column |
+| **Page template / content column** | Header: `px-[64px]` → `max-w-[1312px]` container; Footer: shell 1440+64 → inner 1312 | `.book-step-1__shell` / `__shell-inner` | **match** (was **gap** — pad inside 1312) | Shared logo column |
 | **Page body background — solid** | `Body5`: absolute `bg-white` inset-0 under content | `.book-step-1__body-fill-solid` `#ffffff` | **match** | Kept |
 | **Page body background — decorative fill** | `Body5`: `imgBody` (`6d60145a….png`) absolute, `object-bottom`, `opacity: 0.31`, full size over white | Same asset + `.book-step-1__body-fill-img` `opacity: 0.31`, `object-position: bottom` | **match** (was **gap** — solid white only) | Restored fill layer under `.book-step-1__main` |
 | **Crumbs band fill** | `module.breadcrumbs` `bg-white`, no border | `.book-step-1__crumbs` `#ffffff`, no border | **match** (was UXDS neutral + `#d6d6d6` bottom border) | Removed border; solid white |
@@ -45,7 +45,7 @@ Boots content grid (header logo + `ProtoFooter`):
 | **Crumbs delimiter** | Rotated 1.257×14.871 `#c3c3c3` bar | Text `/` in `#c3c3c3` | **intentional** | Text sep is readable; bar glyph not required for PO fill complaint |
 | **Crumbs current** | Wire rewrites last label → `Book Appointment`, `#7a7d87` | `Book Appointment`, `#7a7d87` | **match** | — |
 | **Page header (navy mega menu)** | Make `boots-pharmacy.module.header` `#012169` | Proto sticky header mount (Make header hidden) | **intentional** | Shared Studio chrome; not part of React body rebuild |
-| **Page footer** | Make `#2e2e2e` module.footer | `ProtoFooter` mount after Make footer retired | **intentional** | Shared Studio chrome |
+| **Page footer** | Make `#2e2e2e` module.footer | `Footer` mount after Make footer retired | **intentional** | Shared Studio chrome |
 | **Main column padding / gap** | Body `p-[64px]`, `gap-[56px]` | Shell 64 sides + main `64px 0` vertical; `gap: 56px` | **match** | No double side pad |
 | **H1 “Book Appointment”** | Open Sans Bold 39/48 `#3a3a3a` center | Same | **match** | — |
 | **Progress width** | Live CSS: **863px** (`globals-screens` !important; Figma export was 560) | `width: 863px` | **match** (was React 560; only globals patched partially) | Explicit 863 in screen CSS |

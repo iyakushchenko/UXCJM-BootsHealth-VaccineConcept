@@ -2163,7 +2163,7 @@
   line-height: 12px;
   color: #459827;
 }
-/* Availability Tool — same map engine as Locations popup (protoMap.ts) */
+/* Availability Tool — same map engine as Locations popup (locationsMap.ts) */
 .proto-avail-map-host.proto-lb-map-view {
   display: flex !important;
   flex-direction: column !important;

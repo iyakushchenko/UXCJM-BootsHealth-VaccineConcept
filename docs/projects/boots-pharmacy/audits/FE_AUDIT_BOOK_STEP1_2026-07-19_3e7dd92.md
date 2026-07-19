@@ -89,7 +89,7 @@ Live localhost re-audit of React Book Step 1 at HEAD `3e7dd92` confirms prior fi
 
 | # | Result | Evidence |
 |---|--------|----------|
-| H1 | **PASS** | Proto sticky header + ProtoFooter remain; Make child-7 chrome retired as designed. |
+| H1 | **PASS** | Proto sticky header + Footer remain; Make child-7 chrome retired as designed. |
 | H2 | **PASS** | No console errors/warnings on audited path after reload → Book Step 1. |
 | H3 | **PASS** | Visual gates measured live — not inferred from unit/build alone. |
 
@@ -117,7 +117,7 @@ Live localhost re-audit of React Book Step 1 at HEAD `3e7dd92` confirms prior fi
 
 - Breadcrumb delimiter is text `/` (not Make rotated bar).  
 - Learn more uses UXDS Disclosure (closed by default) vs always-visible Make paragraph.  
-- Proto sticky header / ProtoFooter vs Make absolute chrome.  
+- Proto sticky header / Footer vs Make absolute chrome.  
 - Help tel on `.uxds-link` navy (regular text-link family) vs Make teal phone — intentional FE_STANDARDS §2.
 
 ---

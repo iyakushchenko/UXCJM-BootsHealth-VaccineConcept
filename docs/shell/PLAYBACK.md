@@ -11,7 +11,7 @@ See also: [SHELL.md](./SHELL.md) (architecture), [PROJECTS.md](./PROJECTS.md) (r
 ```
 journeys.ts          Beat timeline (declarative)
        ↓
-useProtoJourneyPlayback   Shell engine — play, step, dwell, skip, beat-enter
+useJourneyPlayback   Shell engine — play, step, dwell, skip, beat-enter
        ↓
 playback/index.ts    Dispatches script IDs → runners
        ↓
@@ -22,8 +22,8 @@ playback/*.ts        Imperative DOM/cursor actions (project-specific)
 |-------|------|------|
 | **Beat definitions** | `projects/<id>/personas/<persona>/journeys.ts` | Timeline, labels, `protoTab`, script IDs |
 | **Script ID types** | `app/orchestra/types.ts` | `HomeScriptId`, `TabScriptId`, `BookScriptId`, … |
-| **Engine** | `app/orchestra/useProtoJourneyPlayback.ts` | Transport, beat advance, scenario handoff |
-| **Scenario frames** | `app/nav/useProtoScenarioPlayback.ts` | Chat frame stepping (`screen-frames` beats) |
+| **Engine** | `app/orchestra/useJourneyPlayback.ts` | Transport, beat advance, scenario handoff |
+| **Scenario frames** | `app/nav/useScenarioPlayback.ts` | Chat frame stepping (`screen-frames` beats) |
 | **Dispatch** | `projects/<id>/playback/index.ts` | `runHomeScript`, `runTabScript`, `abortAll`, … |
 | **Runners** | `projects/<id>/playback/*.ts` | DOM queries, demo cursor, timeouts |
 | **Wire DOM** | `projects/<id>/wire/*` | Popups, scroll, sticky chrome — scripts depend on this |
@@ -40,7 +40,7 @@ The shell **never** imports project script runners directly. It calls `project.p
 | `screen-frames` | Step through revealed frames on one screen | `protoTab`, `scenarioId` |
 | `overlay` | Availability tool or other overlay script | `availScript`, `onEnter` |
 
-**`protoTab`** is the **display tab number** (1–9), **not** `childIndex`. Map via `protoTabToIndex()` in the project's `screens/protoScreens.ts`.
+**`protoTab`** is the **display tab number** (1–9), **not** `childIndex`. Map via `studioTabToIndex()` in the project's `screens/screens.ts`.
 
 ---
 
@@ -56,7 +56,7 @@ The shell **never** imports project script runners directly. It calls `project.p
 3. Edit DOM selectors / timing inside the runner only.
 4. Run **`npm run test`** then the **manual smoke checklist** below.
 
-Do **not** change `useProtoJourneyPlayback.ts` unless the transport behaviour itself needs to change.
+Do **not** change `useJourneyPlayback.ts` unless the transport behaviour itself needs to change.
 
 ---
 
@@ -110,10 +110,10 @@ Tests live next to the code they protect:
 |-----------|--------|
 | `app/orchestra/__tests__/journeyUtils.test.ts` | Beat stepping, skip logic, first/last playable |
 | `app/orchestra/__tests__/resolveActiveScreenScenario.test.ts` | Chat scenario activation |
-| `projects/boots-pharmacy/screens/__tests__/protoScreens.test.ts` | Tab ↔ index mapping |
+| `projects/boots-pharmacy/screens/__tests__/screens.test.ts` | Tab ↔ index mapping |
 | `projects/boots-pharmacy/personas/.../__tests__/journeys.test.ts` | Beat IDs, script IDs, `protoTab` range |
-| `app/shell/__tests__/protoPlaybackCursorAnomalies.test.ts` | Stale/orphaned cursor heuristics |
-| `app/shell/__tests__/protoPlaybackCursorMonitor.test.ts` | Cursor guard timing after manual transport |
+| `app/shell/__tests__/playbackCursorAnomalies.test.ts` | Stale/orphaned cursor heuristics |
+| `app/shell/__tests__/playbackCursorMonitor.test.ts` | Cursor guard timing after manual transport |
 
 **What tests do not cover:** live DOM scripts, cursor animation timing, Figma export drift. Those require the manual checklist.
 
@@ -163,7 +163,7 @@ src/projects/boots-pharmacy/
     book.ts                  # bookScript
     traditional.ts           # tabScript
   screens/
-    protoScreens.ts          # PROTO_SCREENS, protoTabToIndex
+    screens.ts          # PROJECT_SCREENS, studioTabToIndex
     scenarios.ts             # site-pilot-chat config
   wire/
     BootsPharmacyProjectView.tsx   # DOM effects scripts rely on
@@ -192,10 +192,10 @@ CJM **step back** must restore DOM, scroll, and wire/React state to the target b
 
 | Piece | Path | Role |
 |-------|------|------|
-| **Retreat trigger** | `useProtoJourneyPlayback` | Sets `retreatSyncRef` on step-back; beat-enter calls `syncBeatRetreatState` |
+| **Retreat trigger** | `useJourneyPlayback` | Sets `retreatSyncRef` on step-back; beat-enter calls `syncBeatRetreatState` |
 | **Universal router** | `app/orchestra/journeyRetreatSync.ts` | Routes by beat metadata (`homeScript`, `availScript`, `bookScript`, `tabScript`) — never by project id or beat id |
 | **Script options** | `projects/playbackScriptOptions.ts` | `{ skip, syncState, instant }` on all `run*Script` runners |
-| **Wire bridge** | `app/proto/protoRetreatBridge.ts` | `proto-retreat-sync` event — wire resets React state playback cannot reach |
+| **Wire bridge** | `app/scenario/retreatBridge.ts` | `proto-retreat-sync` event — wire resets React state playback cannot reach |
 | **Viewport guard** | `transport-retreat-scroll-mismatch` | ~520ms after step-back; optional `checkRetreatViewportGoal` per beat |
 
 ```
@@ -206,7 +206,7 @@ step back → retreatSyncRef
               ├─ bookScript  → runBookScript({ syncState: true })
               ├─ tabScript   → runTabScript({ syncState: true })
               └─ dwell beat  → playback.syncDwellRetreat(beat)
-         → dispatchProtoRetreatSync({ channel, scriptId, intent? })
+         → dispatchRetreatSync({ channel, scriptId, intent? })
          → wire listens → reset local React state
 ```
 
@@ -222,10 +222,10 @@ step back → retreatSyncRef
 
 1. Implement `syncState` branches in each `playback/*.ts` runner (no-op `scriptOk()` until the screen needs retreat).
 2. Add `syncDwellRetreat` for dwell beats that own scroll/DOM baseline.
-3. Wire listens to `onProtoRetreatSync` filtered by `intent` (not beat ids) when playback cannot update React state alone.
+3. Wire listens to `onRetreatSync` filtered by `intent` (not beat ids) when playback cannot update React state alone.
 4. Add `checkRetreatViewportGoal` cases when the beat has a verifiable DOM goal.
 
-Boots Book Step 2 is the reference implementation: `book.ts` (`syncBookBeatState`), `dom/protoBookStep2Calendar.ts` (DOM + `book-step2-default-date` intent), wire `chosenBookingSlot` listener.
+Boots Book Step 2 is the reference implementation: `book.ts` (`syncBookBeatState`), `dom/bookStep2Calendar.ts` (DOM + `book-step2-default-date` intent), wire `chosenBookingSlot` listener.
 
 ---
 
@@ -240,13 +240,13 @@ When a journey script fails, times out, or the studio stays on-air without advan
 Pausing playback or aborting a script does **not** surface a diagnostic — orchestration suppresses failures when transport is already stopped or a script abort flag is set.
 | **Script timeout** | Script promise exceeds 45s (`withPlaybackScriptTimeout`) | Same |
 | **Scenario stall** | Chat prelude/finale exceeds 60s | `abortPlayback()` + diagnostic |
-| **Stall watchdog** | On-air with no beat/frame/touchpoint change for 22s (`useProtoPlaybackGuard`) | `handlePlaybackDiagnostic` → stops journey + scenario |
+| **Stall watchdog** | On-air with no beat/frame/touchpoint change for 22s (`usePlaybackGuard`) | `handlePlaybackDiagnostic` → stops journey + scenario |
 
 Key files:
 
-- `src/app/shell/protoPlaybackDiagnostic.ts` — error types, formatters, timeout helper
-- `src/app/shell/useProtoPlaybackGuard.ts` — stall fingerprint watchdog
-- `src/app/shell/ProtoPlaybackDiagnosticOverlay.tsx` — UI card
+- `src/app/shell/playbackDiagnostic.ts` — error types, formatters, timeout helper
+- `src/app/shell/usePlaybackGuard.ts` — stall fingerprint watchdog
+- `src/app/shell/PlaybackDiagnosticOverlay.tsx` — UI card
 
 If the control room still shows pause/green diode while a popup is stuck, the watchdog should fire within ~22s and surface beat + avail step in technical details.
 
@@ -260,7 +260,7 @@ If the control room still shows pause/green diode while a popup is stuck, the wa
 
 Scripts return `PlaybackScriptResult` (`{ ok: false, step }`) from project playback runners; registry in `playbackScriptRegistry.ts`.
 
-**Scroll / camera guard** (`useProtoPlaybackScrollGuard`) stays active while journey mode is on (not only on-air) and reports `scroll-anomaly` diagnostics (stops playback) when it sees:
+**Scroll / camera guard** (`usePlaybackScrollGuard`) stays active while journey mode is on (not only on-air) and reports `scroll-anomaly` diagnostics (stops playback) when it sees:
 
 - `scroll-reversal` — direction flips 3+ times in 700ms (pin vs eased scroll fighting)
 - `scroll-jump` — large instant jump while not in eased animation
@@ -277,7 +277,7 @@ Tab/screen changes (e.g. PLP → PDP on Book now) get a **700ms navigation grace
 
 **CJM step-back retreat sync** (`syncBeatRetreatState`, e.g. `select-book-time` instant snap to the time grid) gets a **900ms retreat grace** — instant `snapDemoTargetIntoView` scrolls are expected and not reported as `scroll-jump`.
 
-**Viewport alignment guard** (`useProtoPlaybackViewportGuard`) catches touchpoint advances where the status bar moves but the prototype scroll root does not follow on the **same screen**:
+**Viewport alignment guard** (`usePlaybackViewportGuard`) catches touchpoint advances where the status bar moves but the prototype scroll root does not follow on the **same screen**:
 
 - `viewport-stall` — touchpoint/beat advanced but `scrollTop` moved less than ~48px and the beat focal element is not in view (~520ms after step/script end)
 - `transport-retreat-scroll-mismatch` — step back changed the beat but the prototype scroll anchor or project DOM goal did not restore (~520ms after step-back). Book date/time retreats expect June **24** selected (wire default), not the director playback date **21**; reserve retreat expects date **21** + time **15:30**
@@ -285,7 +285,7 @@ Tab/screen changes (e.g. PLP → PDP on Book now) get a **700ms navigation grace
 - **Popup touchpoints** (`popup:*` keys from `resolveStudioTouchpoint`) are excluded — modals/overlays do not use prototype scroll follow
 - Screen-frame scenario beats are excluded (scenario engine owns scroll)
 
-**Demo cursor guard** (`useProtoPlaybackCursorGuard`) runs while the prototype is open (not hub) and reports `cursor-anomaly` diagnostics when demo cursors leak in the DOM:
+**Demo cursor guard** (`usePlaybackCursorGuard`) runs while the prototype is open (not hub) and reports `cursor-anomaly` diagnostics when demo cursors leak in the DOM:
 
 - **Journey mode (CJM):** one visible robo-cursor is **expected** between director steps (parked idle pose). `cursor-stale` and `cursor-orphaned` do **not** fire for `cursorCount=1` while journey mode is on.
 - `cursor-stale` — outside journey mode (or multiple cursors): cursor still visible ~220ms after step/jump/play or script abort when transport is idle
@@ -293,19 +293,19 @@ Tab/screen changes (e.g. PLP → PDP on Book now) get a **700ms navigation grace
 
 The guard does **not** fix cursor cleanup — it surfaces leaks for copy-report / supervisor review. In CJM, only **duplicate** cursors (`cursorCount > 1`) indicate a real problem.
 
-**Director guard** (`useProtoPlaybackDirectorGuard`) reports `cursor-anomaly` using universal patterns (not hardcoded beat ids):
+**Director guard** (`usePlaybackDirectorGuard`) reports `cursor-anomaly` using universal patterns (not hardcoded beat ids):
 
 - `selection-without-director` — beat-enter sync applied a director-only outcome, skip click on a director step, or outcome applied without demo cursor (`DirectorOutcomeReport` from project scripts)
 - `director-step-skipped` — step forward from a **dwell landing beat** (`isDwellLandingBeat`) did not start the next beat's director script within ~1.2s
 - `director-step-no-effect` — manual step forward ran a director script but DOM goal was not met (`domGoalMet` on `DirectorOutcomeReport`, e.g. time not selected after `select-book-time`); or step-forward with `advanceAfter` landed on the next beat without running its director script (date → time empty landing)
 
-When a playback diagnostic is showing, the studio transport diode glows **red** (`playbackErrorActive` on `ProtoNavScenarioControls`). When CJM reaches the last playlist frame (e.g. `11/11` for logged-in Traditional CJM with login beat skipped, `12/12` when login is in the playlist), the diode glows **blue** (`journeyAtEnd`) until the user steps back or leaves journey mode.
+When a playback diagnostic is showing, the studio transport diode glows **red** (`playbackErrorActive` on `StudioNavScenarioControls`). When CJM reaches the last playlist frame (e.g. `11/11` for logged-in Traditional CJM with login beat skipped, `12/12` when login is in the playlist), the diode glows **blue** (`journeyAtEnd`) until the user steps back or leaves journey mode.
 
 Studio step counter (`scenarioFrames` in diagnostics) uses the **live touchpoint playlist length** as the denominator and the max of beat-anchored + **current screen tab** playlist index as the numerator — so the counter can show appointment history (`10/11`) while the beat index is still on confirmation until the next transport step. With **CJM off**, the deck shows `-- / N` only (no numerator); `N` is always the current journey playlist length (e.g. `11` for logged-in Traditional, `25` for Agentic) and updates when you switch CJM mode.
 
 **Transport no-op guard** — if manual step forward completes (~1.2s) without changing beat index, reports `transport-no-op` / `transport-step-no-op` (e.g. director script failed silently during manual CJM stepping). Manual script failures also surface via `script-failed` diagnostics (not only during auto-play).
 
-**Transport contract guard** (`useProtoPlaybackTransportGuard`) catches studio deck invariants the DOM-focused monitors do not:
+**Transport contract guard** (`usePlaybackTransportGuard`) catches studio deck invariants the DOM-focused monitors do not:
 
 | Check | When it fires |
 |-------|----------------|
@@ -313,13 +313,13 @@ Studio step counter (`scenarioFrames` in diagnostics) uses the **live touchpoint
 | `touchpoint-ahead-of-beat` | Runtime touchpoint is **two or more** playlist frames ahead of the active beat (adjacent next frame is OK — e.g. PDP → login popup before beat advances; chat `screen-frames` substeps like `beat:agentic-chat:frame:2` are also OK while the beat stays on `agentic-chat`) |
 | `director-script-off-air` | `isScripting` is true while `isOnAir` is false — control panel should show on-air during director scripts |
 
-Key files: `protoPlaybackTransportAnomalies.ts`, `useProtoPlaybackTransportGuard.ts`.
+Key files: `playbackTransportAnomalies.ts`, `usePlaybackTransportGuard.ts`.
 
 **Viewport guard** derives `expectsViewportFollow` from journey beat metadata (`beatExpectsViewportFollow` in `journeyBeatDirector.ts`): same `protoTab`, chained director scripts on one screen. No per-beat id registry.
 
 ### Retreat selection monitor
 
-After CJM **step back**, the viewport monitor waits ~520ms then evaluates project selection baselines via `checkRetreatSelectionGoal` on `ProtoProjectPlayback` (Boots: `retreatSelectionGoal.ts`). Fires `state-mismatch` diagnostics (copy report includes `expected` / `actual` / trigger context).
+After CJM **step back**, the viewport monitor waits ~520ms then evaluates project selection baselines via `checkRetreatSelectionGoal` on `ProjectPlayback` (Boots: `retreatSelectionGoal.ts`). Fires `state-mismatch` diagnostics (copy report includes `expected` / `actual` / trigger context).
 
 | Beat | Baseline verified |
 |------|-------------------|
@@ -330,7 +330,7 @@ After CJM **step back**, the viewport monitor waits ~520ms then evaluates projec
 | `book-step2-date` / `select-book-time` | Same as dwell default |
 | `book-step2-reserve` | Playback **June 21** + **15:30** |
 
-Anomaly kinds (shell `protoPlaybackRetreatAnomalies.ts`):
+Anomaly kinds (shell `playbackRetreatAnomalies.ts`):
 
 | Kind | When it fires |
 |------|----------------|
@@ -343,7 +343,7 @@ Still covered separately: `transport-retreat-mismatch` (wrong tab/overlay), `tra
 
 ### Control panel console log
 
-Every studio control-panel interaction logs to the browser console with prefix **`[ProtoControlPanel]`** — filter DevTools on that string.
+Every studio control-panel interaction logs to the browser console with prefix **`[StudioControlPanel]`** — filter DevTools on that string.
 
 Each entry includes `seq`, action id, detail (e.g. `canStepBack`, blocked reason), and a **snapshot** (beat, touchpoint, steps, overlay flags, transport caps).
 
@@ -358,7 +358,7 @@ Blocked clicks (disabled buttons) log as **`BLOCKED`** via `console.warn`.
 
 Dump recent history in the console: `dumpProtoControlPanelLog()` or inspect `window.__protoControlPanelLog`.
 
-Implementation: `protoControlPanelLog.ts`, `ProtoNavScenarioControls.tsx`, `ProtoNavPanel.tsx`, `ProtoNavStudioSelect.tsx`.
+Implementation: `controlPanelLog.ts`, `StudioNavScenarioControls.tsx`, `StudioNavPanel.tsx`, `StudioNavStudioSelect.tsx`.
 
-Key files: `journeyBeatDirector.ts`, `protoPlaybackDirectorAnomalies.ts`, `protoPlaybackDirectorMonitor.ts`, `useProtoPlaybackDirectorGuard.ts`.
+Key files: `journeyBeatDirector.ts`, `playbackDirectorAnomalies.ts`, `playbackDirectorMonitor.ts`, `usePlaybackDirectorGuard.ts`.
 

@@ -30,9 +30,8 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ### Navigation / journeys
 
-- **Progress / Studio “Step 1” ≠ Make “tab1”.** Book Step 1 is `PROTO_INDEX_BOOK_STEP1` (screen index **4**, child **7**, protoTab **5**). Agentic CJM has no beat on that tab; beat-index fallback to `agentic-home` must **not** `goToTab` while browsing (`shouldNavigateBeatTabOnEnter` / `scenarioBrowseMode`).
-- **Named screen indices** — use `PROTO_INDEX_BOOK_STEP*` / `PROTO_INDEX_PLP` from `protoScreens.ts`; avoid magic `setCurrent(4)` comments that confuse childIndex vs screen index.
-
+- **Progress / Studio “Step 1” ≠ Make “tab1”.** Book Step 1 is `INDEX_BOOK_STEP1` (screen index **4**, child **7**, protoTab **5**). Agentic CJM has no beat on that tab; beat-index fallback to `agentic-home` must **not** `goToTab` while browsing (`shouldNavigateBeatTabOnEnter` / `scenarioBrowseMode`).
+- **Named screen indices** — use `INDEX_BOOK_STEP*` / `INDEX_PLP` from `screens.ts`; avoid magic `setCurrent(4)` comments that confuse childIndex vs screen index.
 
 ### Docs layout
 
@@ -40,7 +39,8 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ### Naming
 
-- **Screen folder = `screenId`** — use `screens/book-step-1/` for `?screen=book-step-1`, never `book-step1`. Journey **beat** ids may stay compact (`book-step2`) until a dedicated migration; URL aliases normalize them ([../shell/URL.md](../shell/URL.md)). New files follow [NAMING.md](./NAMING.md); no mass legacy rename.
+- **Screen folder = `screenId`** — use `screens/book-step-1/` for `?screen=book-step-1`, never `book-step1`. Journey **beat** ids may stay compact (`book-step2`) until a dedicated migration; URL aliases normalize them ([../shell/URL.md](../shell/URL.md)). New files follow [NAMING.md](./NAMING.md).
+- **No `proto*` filenames** — product identity is UX Studio (`studio*`, domain modules). Prefer `window.__studio*`; keep `__proto*` as stable aliases. Do **not** half-rename `.proto-*` CSS / `data-proto-*` (phase 2 only, with visual smoke).
 
 ### CI / Pages / MCP
 

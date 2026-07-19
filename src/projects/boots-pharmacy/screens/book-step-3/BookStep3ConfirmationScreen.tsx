@@ -7,7 +7,7 @@ import { recipientModeLabel } from "@/projects/boots-pharmacy/popups/RecipientPi
 import {
   BOOSTER_DOSE_SUMMARY_LABEL,
   computeOrderPricing,
-} from "@/projects/boots-pharmacy/data/protoOrderPricing";
+} from "@/projects/boots-pharmacy/data/orderPricing";
 import { formatBookStep2Heading } from "@/projects/boots-pharmacy/screens/book-step-2/bookStep2CalendarData";
 import {
   AppointmentSummaryPill,

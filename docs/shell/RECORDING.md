@@ -40,7 +40,7 @@ window.__protoAgentTestingOverlay?.isActive() // false during settle
 | Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
 | Dismiss button / `stop({ force: true })` | Immediate clear (no settle); no reload unless `reload: true` |
 
-Manual console experiments should omit reload (default `false`). Auto-shown for `__protoRun*` MCP sessions and any mutating `__proto*` helper. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/protoAgentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
+Manual console experiments should omit reload (default `false`). Auto-shown for `__protoRun*` MCP sessions and any mutating `__proto*` helper. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/agentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
 
 **Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 
@@ -67,25 +67,25 @@ Full doctrine: [../product/INTERACTION_FIDELITY.md](../product/INTERACTION_FIDEL
 ```
 User / MCP transport + demo cursor
        ↓
-protoPlaybackInteractionContext   (existing flight recorder)
+playbackInteractionContext   (existing flight recorder)
        ↓
-protoRecordingCapture             (bridge + touchpoint hook in App.tsx)
+recordingCapture             (bridge + touchpoint hook in App.tsx)
        ↓
-protoRecordingSession             (in-memory session + JSON export)
+recordingSession             (in-memory session + JSON export)
        ↓
-protoRecordingReplay              (v1 transport replay; v2 demo-click / wire-intent)
+recordingReplay              (v1 transport replay; v2 demo-click / wire-intent)
        ↓
 compileRecordingToBeatTimeline    (future journeys.ts compiler input)
 ```
 
 | Module | Path | Owns |
 |--------|------|------|
-| **Types** | `app/recording/protoRecordingTypes.ts` | Event union, session shape, replay options |
-| **Session** | `app/recording/protoRecordingSession.ts` | start/stop/pause, append, serialize, last session |
-| **Capture** | `app/recording/protoRecordingCapture.ts` | Snapshot provider, interaction bridge, touchpoint |
-| **Replay** | `app/recording/protoRecordingReplay.ts` | `replayRecordingSession`, `compileRecordingToBeatTimeline` |
-| **MCP** | `app/recording/protoRecordingMcpHelpers.ts` | `window.__protoStartRecording` etc. |
-| **UI** | `app/nav/ProtoNavRecordingControls.tsx` | Studio shell REC deck (same session APIs) |
+| **Types** | `app/recording/recordingTypes.ts` | Event union, session shape, replay options |
+| **Session** | `app/recording/recordingSession.ts` | start/stop/pause, append, serialize, last session |
+| **Capture** | `app/recording/recordingCapture.ts` | Snapshot provider, interaction bridge, touchpoint |
+| **Replay** | `app/recording/recordingReplay.ts` | `replayRecordingSession`, `compileRecordingToBeatTimeline` |
+| **MCP** | `app/recording/recordingMcpHelpers.ts` | `window.__studioStartRecording` (legacy `__protoStartRecording` alias) etc. |
+| **UI** | `app/nav/StudioNavRecordingControls.tsx` | Studio shell REC deck (same session APIs) |
 
 ---
 
@@ -95,7 +95,7 @@ Cassette deck mode toggles (labels match STEPS type; pipe bars match zoom delimi
 
 | Control | Chrome | Behavior |
 |---------|--------|----------|
-| **REC** | Always-on `REC` mode label + muted/red switch; `STEPS: N` event count only in Rec mode | Playback XOR recording panel; count live from `protoRecordingSession` |
+| **REC** | Always-on `REC` mode label + muted/red switch; `STEPS: N` event count only in Rec mode | Playback XOR recording panel; count live from `recordingSession` |
 | **CJM** | `\| CJM [switch] \|` pipes + amber when on | Journey mode (browse vs cassette transport) |
 
 **Playback | Rec** (mutually exclusive panels):
@@ -103,7 +103,7 @@ Cassette deck mode toggles (labels match STEPS type; pipe bars match zoom delimi
 - **Left (muted, same as CJM-off) / REC off** — playback mode: `REC [switch] | CJM [switch] | STEPS: N` (journey) — shared `.proto-studio-mode-switch` off chrome; no recording counter. Recording event counter and REC transport are unmounted.
 - **Right (red) / REC on** — rec mode: `REC [switch] STEPS: N` (recording events) + REC deck. Journey STEPS / cassette transport are unmounted.
 - **REC ⊗ CJM:** when CJM is ON, REC switch is `disabled` (cannot enter Rec). When REC is ON, CJM is off/disabled. AIR/play still locks both. Gate: `src/app/nav/studioModeXor.ts`.
-- **Transition:** `framer-motion` `AnimatePresence` (`mode="wait"`) in `ProtoNavScenarioControls` — `.proto-nav-scenario__panel-swap` crossfades Playback ↔ Rec (0.34s, shared `protoStudioMotion` timings). XOR preserved: only one interactive panel. Touchpoint label width also uses `framer-motion` (same duration).
+- **Transition:** `framer-motion` `AnimatePresence` (`mode="wait"`) in `StudioNavScenarioControls` — `.proto-nav-scenario__panel-swap` crossfades Playback ↔ Rec (0.34s, shared `studioMotion` timings). XOR preserved: only one interactive panel. Touchpoint label width also uses `framer-motion` (same duration).
 
 Leaving Rec while a capture is live **pauses** the session (does not stop/destroy it).
 
@@ -116,7 +116,7 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ↑ | Import a saved `.recording.json` |
 | ↺ | Replay last stopped or imported session (v1 transport) |
 
-UI and MCP share `protoRecordingSession` + `replayRecordingSession` — no second session store.
+UI and MCP share `recordingSession` + `replayRecordingSession` — no second session store.
 
 ---
 
@@ -126,7 +126,7 @@ UI and MCP share `protoRecordingSession` + `replayRecordingSession` — no secon
 |------|---------------|-----------|
 | `transport` | Step/Play/Jump via `notePlaybackTransport` | Yes |
 | `touchpoint` | Touchpoint key change in `App.tsx` | Boundary marker only |
-| `screen` | Address-bar / tab screen change (`useProtoStudioUrlSync`) | Yes — `applyStudioScreen` via `screenId` / `studioUrl` |
+| `screen` | Address-bar / tab screen change (`useStudioUrlSync`) | Yes — `applyStudioScreen` via `screenId` / `studioUrl` |
 | `demo-click` | Robo-cursor via `notePlaybackDemoClick` | No (selector chain stored) |
 | `director-script` | Journey director via `notePlaybackDirectorScript` | No |
 | `beat-enter` | Beat onEnter via `notePlaybackBeatEnter` | No |
@@ -141,8 +141,8 @@ Each event may include a `snapshot` (`PlaybackStudioSnapshot` + journey/orchestr
 
 Capture already appends `kind: "screen"` when the address bar / tab changes. On **↺ Replay** (UI or `__protoReplayRecording`):
 
-1. Each `screen` event calls `applyScreen` → shared `applyStudioScreen` (`src/app/shell/protoStudioUrl.ts`).
-2. That helper is the **same path** as refresh deep-link + `popstate` (`useProtoStudioUrlSync`).
+1. Each `screen` event calls `applyScreen` → shared `applyStudioScreen` (`src/app/shell/studioUrl.ts`).
+2. That helper is the **same path** as refresh deep-link + `popstate` (`useStudioUrlSync`).
 3. Prefer `studioUrl` when present; else `screenId` (+ `projectId`). Unknown ids error; missing `applyScreen` → unsupported.
 
 Boots book steps (`book-step-1` … `book-step-3`) and mapped screens (`home`, `chat`, …, `hub`) restore in event order before/alongside transport.
