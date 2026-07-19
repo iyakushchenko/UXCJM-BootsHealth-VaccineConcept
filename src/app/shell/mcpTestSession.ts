@@ -76,7 +76,7 @@ export async function withMcpTestSession<T>(
     return out;
   } finally {
     try {
-      // Journey/CJM: resetToHub true. Opt out of reload with reload: false.
+      // Smoke harness teardown may pass resetToHub (not product Play/end/reset).
       stopAgentTestingOverlay({
         reload: sessionOptions?.reload !== false,
         resetToHub: sessionOptions?.resetToHub === true,

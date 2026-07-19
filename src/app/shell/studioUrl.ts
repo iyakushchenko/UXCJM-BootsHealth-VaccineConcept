@@ -50,7 +50,7 @@ export const HUB_SCREEN_ID = "hub";
 export const DEFAULT_STUDIO_PROJECT_ID = "boots-pharmacy";
 
 /**
- * Hub screen id used when `resetToHub: true` (CJM / journey tests only).
+ * Hub screen id used when `resetToHub: true` (labeled smoke harness teardown only).
  * Default post-agent path stays on the current screen — see
  * {@link resetStudioAfterAgentTest}.
  */
@@ -247,7 +247,7 @@ export function stripEphemeralStudioQuery(
 }
 
 /**
- * Build hub landing URL state (CJM / journey / explicit resetToHub).
+ * Build hub landing URL state (smoke harness `resetToHub` only — not product Play/end/reset).
  * Preserves project when present; always hub; never modal / persona / experience / cjm.
  */
 export function buildStudioPostAgentHomeState(
@@ -296,7 +296,7 @@ export function isStudioPostAgentResetSyncLocked(
 /**
  * After agent / MCP tests: strip ephemeral + `&modal=`, optionally land hub.
  * Default: stay on current project + screen (+ persona/experience/cjm); never keep modal.
- * Pass `{ resetToHub: true }` for CJM/journey clean slate.
+ * Pass `{ resetToHub: true }` only for labeled smoke harness teardown (never product UX).
  * Writes the address bar, then dispatches {@link STUDIO_POST_AGENT_RESET_EVENT}
  * so App can dismiss sticky lightboxes / popups and apply nav (no-reload path).
  * Call again immediately before `location.reload()` so a settle-window race

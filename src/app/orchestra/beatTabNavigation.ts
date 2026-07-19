@@ -11,3 +11,20 @@ export function shouldNavigateBeatTabOnEnter(
 ): boolean {
   return !suppressInitialBeatTabNav && !scenarioBrowseMode;
 }
+
+/**
+ * Product journey tab nav — **always** invoke `goToTab`.
+ *
+ * Skipping when `currentTabIndex === target` leaves `hubOpen=true` (hub overlay
+ * sits on the same underlying tab). Jump-to-start / Play-end / Stop-at-end then
+ * look like "return to hub". `goToTab` must close hub even on a no-op tab index.
+ */
+export function navigateToBeatTab(
+  runtime: {
+    goToTab: (screenIndex: number, options?: { instant?: boolean }) => void;
+  },
+  tabIndex: number,
+  options?: { instant?: boolean }
+): void {
+  runtime.goToTab(tabIndex, options);
+}

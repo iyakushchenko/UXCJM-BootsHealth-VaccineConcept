@@ -33,7 +33,10 @@ import {
   shouldSuppressTransportNoOpForBeat,
 } from "@/app/orchestra/manualDirectorStep";
 import { syncBeatRetreatState } from "@/app/orchestra/journeyRetreatSync";
-import { shouldNavigateBeatTabOnEnter } from "@/app/orchestra/beatTabNavigation";
+import {
+  navigateToBeatTab,
+  shouldNavigateBeatTabOnEnter,
+} from "@/app/orchestra/beatTabNavigation";
 import {
   canRetreatJourneyTouchpoint,
   lastPlayableBeatIndex as findLastPlayableBeatIndex,
@@ -103,6 +106,8 @@ type Options = {
   scenarioBrowseMode?: boolean;
   /** Called after CJM step-back lands on a screen-frames beat (before scenario re-init). */
   onScreenFramesRetreatEnd?: () => void;
+  /** Zero-based tab index → address-bar `screenId` (journey-reset diag destination). */
+  screenIdForTabIndex?: (tabIndex: number) => string | undefined;
 };
 
 function isScreenFramesBeat(beat: JourneyBeat | undefined): boolean {
@@ -143,10 +148,22 @@ export function useJourneyPlayback({
   onDiagnostic,
   scenarioBrowseMode = false,
   onScreenFramesRetreatEnd,
+  screenIdForTabIndex,
 }: Options) {
   const beats = journey?.beats ?? [];
   const onDiagnosticRef = useRef(onDiagnostic);
   onDiagnosticRef.current = onDiagnostic;
+  const screenIdForTabIndexRef = useRef(screenIdForTabIndex);
+  screenIdForTabIndexRef.current = screenIdForTabIndex;
+
+  const resolveStartScreenId = useCallback(
+    (beat: JourneyBeat | undefined): string | undefined => {
+      if (beat?.protoTab == null) return undefined;
+      const tabIndex = studioTabToIndex(beat.protoTab);
+      return screenIdForTabIndexRef.current?.(tabIndex);
+    },
+    [studioTabToIndex]
+  );
 
   const advanceFrom = useCallback(
     (index: number) => stepBeatIndex(index, beats, shouldSkipBeat, 1),
@@ -306,17 +323,20 @@ export function useJourneyPlayback({
     // Product: return to CJM journey start (first beat) — not hub, not stuck on last.
     jumpToStartRef.current();
     const firstBeat = beats.find((beat) => !shouldSkipBeat(beat));
+    const startScreenId = resolveStartScreenId(firstBeat);
     playbackDiagPlayEnd({
       fromBeatId: fromBeat?.id,
       toBeatId: firstBeat?.id,
+      startScreenId,
       detail: "play-end → journey-start",
     });
     playbackDiagJourneyReset({
       fromBeatId: fromBeat?.id,
       startBeatId: firstBeat?.id,
+      startScreenId,
       detail: "play-end journey-reset → selected journey start (never hub)",
     });
-  }, [beats, shouldSkipBeat, stopJourneyPlay]);
+  }, [beats, resolveStartScreenId, shouldSkipBeat, stopJourneyPlay]);
 
   const reportScriptFailure = useCallback(
     (
@@ -399,10 +419,8 @@ export function useJourneyPlayback({
       suppressBeatEnterSyncRef.current = true;
       try {
         if (nextBeat.protoTab != null) {
-          const tabIndex = studioTabToIndex(nextBeat.protoTab);
-          if (currentTabIndexRef.current !== tabIndex) {
-            runtime.goToTab(tabIndex);
-          }
+          // Always goToTab — matching index must still close hub.
+          navigateToBeatTab(runtime, studioTabToIndex(nextBeat.protoTab));
         }
         playbackDirectorMonitor.noteDirectorScriptStarted(nextBeat.id);
         notePlaybackDirectorScript({
@@ -901,10 +919,8 @@ export function useJourneyPlayback({
   const navigateBeatTab = useCallback(
     (beat: JourneyBeat | undefined, options?: { instant?: boolean }) => {
       if (beat?.protoTab == null) return;
-      const tabIndex = studioTabToIndex(beat.protoTab);
-      if (currentTabIndexRef.current !== tabIndex) {
-        runtime.goToTab(tabIndex, options);
-      }
+      // Always goToTab — skipping when index matches leaves hubOpen (PO hub leak).
+      navigateToBeatTab(runtime, studioTabToIndex(beat.protoTab), options);
     },
     [studioTabToIndex, runtime]
   );
@@ -1595,7 +1611,12 @@ export function useJourneyPlayback({
       return;
     }
 
-    if (beatIndexRef.current >= findLastPlayableBeatIndex(beats, shouldSkipBeat)) return;
+    const lastPlayable = findLastPlayableBeatIndex(beats, shouldSkipBeat);
+    if (beatIndexRef.current >= lastPlayable) {
+      // Stop-at-end cassette → rewind to first playable beat (never hub).
+      jumpToStartRef.current();
+      return;
+    }
 
     suppressInitialBeatTabNavRef.current = false;
     const beat = beats[beatIndexRef.current];
@@ -1662,18 +1683,22 @@ export function useJourneyPlayback({
         setBeatIndex(startIndex);
         beatIndexRef.current = startIndex;
       }
+      // Always navigate — closes hub even when already on start tab.
       navigateBeatTab(firstBeat, { instant: true });
     }
+    const startScreenId = resolveStartScreenId(firstBeat);
     playbackDiagJourneyReset({
       fromBeatId: fromBeat?.id,
       startBeatId: firstBeat?.id,
-      detail: "jump-to-start → selected journey start (never hub)",
+      startScreenId,
+      detail: `jump-to-start → beat ${firstBeat?.id ?? "?"} screen ${startScreenId ?? "?"} (never hub)`,
     });
     playbackDiagBeat({
       phase: "enter",
       beatId: firstBeat?.id,
       beatKind: firstBeat?.kind,
-      detail: `journey start beat ${firstBeat?.id ?? "?"}`,
+      screenAfter: startScreenId,
+      detail: `journey start beat ${firstBeat?.id ?? "?"} screen ${startScreenId ?? "?"}`,
     });
   }, [
     beats,
@@ -1681,6 +1706,7 @@ export function useJourneyPlayback({
     navigateBeatTab,
     onScreenFramesBeat,
     resetJourney,
+    resolveStartScreenId,
     runtime,
     screenPlayback,
     setBeatIndex,

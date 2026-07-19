@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { shouldNavigateBeatTabOnEnter } from "@/app/orchestra/beatTabNavigation";
+import { describe, expect, it, vi } from "vitest";
+import {
+  navigateToBeatTab,
+  shouldNavigateBeatTabOnEnter,
+} from "@/app/orchestra/beatTabNavigation";
 import { AGENTIC_CJM_JOURNEY } from "@/projects/boots-pharmacy/personas/sarah-jenkins/journeys";
 import {
   INDEX_BOOK_STEP1,
@@ -17,6 +20,16 @@ describe("shouldNavigateBeatTabOnEnter", () => {
   it("allows tab nav in CJM after initial suppress clears", () => {
     expect(shouldNavigateBeatTabOnEnter(false, false)).toBe(true);
     expect(shouldNavigateBeatTabOnEnter(false, true)).toBe(false);
+  });
+});
+
+describe("navigateToBeatTab", () => {
+  it("always calls goToTab even when index already matches (hub leak)", () => {
+    const goToTab = vi.fn();
+    // Same tab as start beat — old code skipped goToTab and left hubOpen=true.
+    navigateToBeatTab({ goToTab }, 0, { instant: true });
+    expect(goToTab).toHaveBeenCalledTimes(1);
+    expect(goToTab).toHaveBeenCalledWith(0, { instant: true });
   });
 });
 

@@ -133,7 +133,7 @@ On `type:'alarm'`: pause Play (toggle transport) → **fail** result with `reaso
 
 **Note:** `__protoTriggerTransport` requires an active MCP session (`__protoRun*` / recording). UI Step buttons always work; for console step use a smoke runner or click the nav button. Helper arm coalesces identical transport rows on the overlay (no monotonous spam).
 
-Harness `resetToHub` after smokes is **labeled harness-only** — product Play/end/reset must stay on journey start.
+Harness `resetToHub` after smokes is **labeled harness-only** — product Play/end/reset/Jump-to-start/Stop-at-end/CJM-on must stay on journey start (`startBeatId` + `startScreenId`, never `screen=hub`). Matching-tab `goToTab` skip is a FAIL class (hub overlay can sit on the same tab).
 
 ---
 
