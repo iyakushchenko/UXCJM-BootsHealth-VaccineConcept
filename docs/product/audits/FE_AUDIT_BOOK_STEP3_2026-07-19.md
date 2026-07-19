@@ -3,7 +3,7 @@
 **Surface / slice:** Book Step 3 Confirmation (React pilot) + Studio chrome blast-radius on path  
 **Date:** 2026-07-19  
 **Auditor:** Tech Director / Nazi QA (distrust implementer handoff; live localhost + gate read)  
-**Implementer handoff:** Book Step 3 React mount + agent testing overlay (SHA stamped in NEXT_STEPS / notes after push)  
+**Implementer handoff:** `e35bf41` (Book Step 3 React + overlay + lessons on `main`)  
 **Checklist:** [../FE_UI_UX_AUDIT.md](../FE_UI_UX_AUDIT.md) · [../VISUAL_FIDELITY.md](../VISUAL_FIDELITY.md) · [../FE_STANDARDS.md](../FE_STANDARDS.md) · [../DS_STRICTNESS.md](../DS_STRICTNESS.md)  
 **Design delta:** [../BOOTS_BOOK_STEP3_DESIGN_DELTA.md](../BOOTS_BOOK_STEP3_DESIGN_DELTA.md)
 
