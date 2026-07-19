@@ -3,7 +3,7 @@
 **Surface / slice:** PLP Vaccinations — Make preloader scenario restore + checkbox hover + team directions harden  
 **Date:** 2026-07-19  
 **Auditor:** Uma (UI/UX) + Quinn (QA) — strict (“Nazi QA”)  
-**Implementer handoff / audited tip:** (stamp after commit)  
+**Implementer handoff / audited tip:** `614ebc7`  
 **Version:** `0.0.7`  
 **Checklist:** [../../../product/FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [UMA_FIDELITY_NOTES.md](../../../product/UMA_FIDELITY_NOTES.md) · [VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [FE_STANDARDS.md](../../../product/FE_STANDARDS.md) · [DS_STRICTNESS.md](../../../product/DS_STRICTNESS.md)  
 **Register:** [../features/PLP_MAKE_PARITY_REGISTER.md](../features/PLP_MAKE_PARITY_REGISTER.md)
