@@ -18,7 +18,7 @@
 | **PAGE FINAL PASS** | **NEEDS-REPROVE** |
 | **mcpFinalPass** | **NEEDS-REPROVE** (`hardGreen: false`) |
 | **Quinn interaction matrix** | **STALE** — prior 22/22 @ `d6e4951` superseded; re-prove required (new `pdp-faq-help-body` + CTA class assert) |
-| **Uma fidelity** | **NEEDS-REPROVE** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) |
+| **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `bf59041` / v0.0.28) |
 | **PARITY_PROVEN `pdp`** | **proven** (structure; MCP note demoted) |
 | **Accordion gate** | **PASS** — UXDS `<Accordion>` in `PdpScreen.tsx`; `check:page-final-pass` Accordion contract green |
 | **Home unblocked?** | **No** — wait Final Pass HARD-GREEN restore + PO `+` |

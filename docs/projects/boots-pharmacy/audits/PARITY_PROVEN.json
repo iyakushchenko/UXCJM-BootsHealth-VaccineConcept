@@ -57,9 +57,9 @@
       "status": "proven",
       "auditPath": "docs/projects/boots-pharmacy/audits/UMA_FIDELITY_PDP_2026-07-19.md",
       "mcpMatrixAt": {
-        "sha": "828ab2b",
+        "sha": "bf59041",
         "date": "2026-07-19",
-        "note": "Demoted NEEDS-REPROVE after FAQ body/CTA/focus polish; prior Uma §0a @ c037d19 + Quinn 22/22 @ d6e4951 stale until re-prove"
+        "note": "Uma §0a re-PROVEN @ v0.0.28: FAQ Make bodies×3 + residual headers; download CTAs unified .pdp__pill; accordion focus-none. PAGE FINAL PASS still NEEDS-REPROVE until Quinn MCP + Arch."
       },
       "requireMcp": true
     }
