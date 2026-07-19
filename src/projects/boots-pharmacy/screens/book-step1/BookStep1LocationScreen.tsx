@@ -50,7 +50,7 @@ function EditGlyph() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
       <path
-        fill="var(--uxds-icon-icon-accent-strong, #afccca)"
+        fill="#afccca"
         fillRule="evenodd"
         d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-9.2 9.2H2.1v-3.4l9.6-9.8Zm.7 1.4L3.5 11.6v1h1l8.9-8.9-1-1Z"
         clipRule="evenodd"
@@ -69,7 +69,7 @@ function CheckboxCheckMark() {
     >
       <svg width="14" height="10" viewBox="0 0 13.4079 10.1151" fill="none">
         <path
-          fill="#3A3A3A"
+          fill="#305854"
           fillRule="evenodd"
           clipRule="evenodd"
           d="M0 5.49077L1.40162 4.06407L4.69457 7.29914L11.9937 0L13.4079 1.41421L4.70705 10.1151L0 5.49077Z"

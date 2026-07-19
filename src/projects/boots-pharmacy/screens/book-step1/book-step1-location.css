@@ -42,10 +42,21 @@
   border: none;
   background: none;
   padding: 0;
-  color: var(--uxds-text-link-link-dark);
+  color: var(--uxds-text-link-link-dark, #012169);
   text-decoration: underline;
   cursor: pointer;
   font: inherit;
+  transition: color 0.18s ease;
+}
+
+.book-step1__crumb-link:hover {
+  color: #01318f;
+  text-decoration: none;
+}
+
+.book-step1__crumb-link:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
 }
 
 .book-step1__crumb-sep {
@@ -190,6 +201,7 @@
   font-weight: 600;
 }
 
+/* Make tertiary CTA — no wash; label → black, icon → navy */
 .book-step1__pill-change {
   display: inline-flex;
   align-items: center;
@@ -200,15 +212,33 @@
   border: none;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--uxds-text-text-secondary);
+  color: #5c5c5c;
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
   cursor: pointer;
+  transition: color 0.18s ease;
 }
 
-.book-step1__pill-change:hover {
-  background: rgba(175, 204, 202, 0.25);
+.book-step1__pill-change svg path {
+  fill: #afccca;
+  transition: fill 0.18s ease;
+}
+
+.book-step1__pill-change:hover,
+.book-step1__pill-change:active {
+  background: transparent;
+  color: #000000;
+}
+
+.book-step1__pill-change:hover svg path,
+.book-step1__pill-change:active svg path {
+  fill: #012169;
+}
+
+.book-step1__pill-change:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
 }
 
 .book-step1__section-title {
@@ -229,7 +259,7 @@
   width: 100%;
 }
 
-/* Make Text Field: pill (360), #c3c3c3 border, icon right — live placeholder from wire */
+/* Make Text Field: pill (360), #c3c3c3 border, inset navy ring on hover/focus */
 .book-step1__search {
   display: flex;
   align-items: center;
@@ -246,13 +276,14 @@
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .book-step1__search:hover,
 .book-step1__search:focus-visible {
-  border-color: #c3c3c3;
-  outline: 2px solid #012169;
-  outline-offset: 2px;
+  border-color: #012169;
+  box-shadow: inset 0 0 0 2px #012169;
+  outline: none;
 }
 
 .book-step1__search-text {
@@ -278,7 +309,7 @@
   white-space: nowrap;
 }
 
-/* Near-me: Make text control (pill hit area, no chip chrome) */
+/* Near-me: Make tertiary CTA (no fill wash; label/icon color shift) */
 .book-step1__near-me {
   display: flex;
   align-items: center;
@@ -298,17 +329,36 @@
   font-weight: 600;
   line-height: 16px;
   letter-spacing: -0.36px;
+  transition: color 0.18s ease;
+}
+
+.book-step1__near-me .uxds-filter-chip img {
+  transition: filter 0.18s ease;
 }
 
 .book-step1__near-me .uxds-filter-chip.is-selected,
-.book-step1__near-me .uxds-filter-chip[data-state="on"] {
+.book-step1__near-me .uxds-filter-chip[data-state="on"],
+.book-step1__near-me .uxds-filter-chip.is-selected:hover,
+.book-step1__near-me .uxds-filter-chip[data-state="on"]:hover,
+.book-step1__near-me .uxds-filter-chip:active {
   border: none;
   background: transparent;
   color: #5c5c5c;
 }
 
 .book-step1__near-me .uxds-filter-chip:hover {
-  background: rgba(175, 204, 202, 0.2);
+  background: transparent;
+  color: #000000;
+}
+
+.book-step1__near-me .uxds-filter-chip:hover img {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(55%) saturate(3000%)
+    hue-rotate(205deg) brightness(0.85);
+}
+
+.book-step1__near-me .uxds-filter-chip:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
 }
 
 /* Chosen store tile — same treatment as Make .proto-chosen-tile */
@@ -368,9 +418,9 @@
 }
 
 /*
- * Make `component.input.checkbox` — 24px, radius 2px; unchecked white/#afafaf;
- * checked #c6e5e1 + #3A3A3A mark. !important beats Make globals-chrome checkbox chrome
- * so React-owned booster keeps concept L&F + clickable native input.
+ * Make `component.input.checkbox` — 24px, radius 2px;
+ * unchecked white/#c3c3c3; hover fill #c6e5e1; checked #afccca + #305854 mark.
+ * !important beats Make globals-chrome so React-owned booster keeps concept L&F.
  */
 .book-step1__checkbox-row {
   display: flex;
@@ -406,8 +456,9 @@
   justify-content: center !important;
   border-radius: 2px !important;
   background: #ffffff !important;
-  border: 1px solid #afafaf !important;
+  border: 1px solid #c3c3c3 !important;
   pointer-events: none !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
 }
 
 .book-step1__checkbox-row:hover .book-step1__checkbox-box {
@@ -417,8 +468,8 @@
 
 .book-step1__checkbox-row[data-checkbox-checked="true"] .book-step1__checkbox-box,
 .book-step1__checkbox-row[data-checkbox-checked="true"]:hover .book-step1__checkbox-box {
-  background: #c6e5e1 !important;
-  border: 2px solid #c6e5e1 !important;
+  background: #afccca !important;
+  border: 1px solid #afccca !important;
 }
 
 .book-step1__checkbox-mark {
@@ -432,7 +483,7 @@
 }
 
 .book-step1__checkbox-mark svg path {
-  fill: #3a3a3a !important;
+  fill: #305854 !important;
 }
 
 .book-step1__checkbox-input {
@@ -452,6 +503,11 @@
   line-height: 24px;
   font-weight: 600;
   color: #3a3a3a;
+  transition: font-weight 0.15s ease;
+}
+
+.book-step1__checkbox-row[data-checkbox-checked="true"] p {
+  font-weight: 700;
 }
 
 .book-step1__learn-more {
@@ -465,6 +521,17 @@
   font: inherit;
   font-size: var(--font-body-size-m);
   cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.book-step1__learn-more:hover {
+  color: #01318f;
+  text-decoration: none;
+}
+
+.book-step1__learn-more:focus-visible {
+  outline: 2px solid #012169;
+  outline-offset: 2px;
 }
 
 .book-step1__learn-body {
@@ -491,6 +558,14 @@
   line-height: 16px;
 }
 
+.book-step1__continue.uxds-btn-primary:hover:not(:disabled) {
+  background: #01318f;
+}
+
+.book-step1__continue.uxds-btn-primary:active:not(:disabled) {
+  background: #011a5c;
+}
+
 .book-step1__help {
   display: flex;
   flex-direction: column;
@@ -509,4 +584,10 @@
 .book-step1__help a {
   color: var(--project-brand-primary-darkest, #305854);
   text-decoration: underline;
+  transition: color 0.18s ease;
+}
+
+.book-step1__help a:hover {
+  color: #01318f;
+  text-decoration: none;
 }

@@ -99,6 +99,24 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 
 ---
 
+## 8. CSS architecture (PO answer — locked)
+
+**Direction: yes — React screens get scoped / co-located CSS (or small kit CSS under `src/uxds/`), not a growing Make-style monster stylesheet per screen.**
+
+| Layer | Where | Role |
+|-------|--------|------|
+| **UXDS tokens** | `src/uxds/tokens/` | Shared structure / semantic roles |
+| **Kit CSS** | `src/uxds/components/*.css` (+ interaction kit styles as needed) | Reusable control chrome + **hover/focus/active** defaults |
+| **Screen CSS** | Co-located next to the React screen (e.g. `screens/book-step1/book-step1-location.css`) | Layout + concept-specific overrides only |
+| **Project theme** | `src/projects/<id>/styleguide/theme.css` | Brand color / logo remaps — not a second DS |
+| **Legacy Make wire CSS** | `src/styles/globals-*.css` | Unmigrated screens + shared overlays until replaced |
+
+**How monster CSS goes away:** screen by screen. When a Make page is rebuilt in React, its rules move into kit + co-located screen CSS; the global Make sheet shrinks for that surface. We do **not** rewrite `globals-screens.css` overnight.
+
+**Interaction states travel with the kit/screen CSS** — `:hover` / `:focus-visible` / `:active` / transitions from Make must land in the React path (not left as flat dead controls). See [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) and Book Step 1 parity table in [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md).
+
+---
+
 ## Related
 
 - [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md) — business intake logic

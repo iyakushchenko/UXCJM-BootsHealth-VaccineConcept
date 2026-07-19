@@ -91,7 +91,9 @@ See [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md) and Boots [styleguide/READM
 3. Any new or UXDS-wrapped control uses that **same active language** — not a default badge/chip palette.  
 4. Secondary selectors are smaller / quieter than primary chrome.  
 5. No competing pill styles on the same strip.  
-6. Brand theme remaps colors only; chrome shape/hierarchy still matches concept.
+6. Brand theme remaps colors only; chrome shape/hierarchy still matches concept.  
+7. Migrate Make `:hover` / `:focus-visible` / `:active` (and transitions) into kit or co-located screen CSS — do not leave flat CTAs/inputs/chips.  
+8. Record Make → React status in a parity table for the pilot screen (see [BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)).
 
 ---
 

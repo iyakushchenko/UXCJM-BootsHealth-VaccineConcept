@@ -194,5 +194,7 @@ Avoid:
 | 2026-07-19 | **Concept visual L&F mandatory:** rebuilds must match source concept chrome (progress, search, checkboxes, etc.). UXDS = structure/reuse; brand may remap UXDS color tokens via project theme. No generic DS restyle. See PAGE_BUILD_CONTRACT.md §5 |
 | 2026-07-19 | **No visual zoo + control hierarchy:** same active/inactive language within a surface; secondary selectors mini / lower contrast vs primary chrome. See VISUAL_FIDELITY.md |
 | 2026-07-19 | **Rebuild behavior parity:** React rebuilds must migrate all prior Make/concept interactions (e.g. Book Step 1 booster checkbox, Continue gating, search/near-me, crumbs). No static shells. See VISUAL_FIDELITY.md §1.1 + INTERACTION_FIDELITY.md §2.4 |
+| 2026-07-19 | **Hover/focus fidelity:** Make `:hover` / focus / active (CTAs, fields, chips, checkboxes) must migrate into UXDS kit CSS + co-located screen CSS — no flat dead controls. Book Step 1 parity table in BOOTS_REACT_SCREEN_PILOT.md |
+| 2026-07-19 | **CSS architecture:** React screens use scoped/co-located CSS + small `src/uxds/` kit CSS; project theme remaps brand; Make monster `globals-*.css` retires screen-by-screen. See PAGE_BUILD_CONTRACT.md §8 |
 
 New durable decisions get a row here in the same session they are made.

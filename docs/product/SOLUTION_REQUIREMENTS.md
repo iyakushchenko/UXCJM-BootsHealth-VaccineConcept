@@ -86,17 +86,21 @@ Not required for v1 page done: production a11y audit, every viewport, real backe
 | What | Why |
 |------|-----|
 | `src/uxds/` CSS tokens (from UXDS names) | Shared structure/roles in code |
-| Reusable React modules (`src/uxds/components/`) | Visual map to `component.*` / `module.*` |
+| Reusable React modules (`src/uxds/components/`) + **kit CSS** | Visual map to `component.*` / `module.*`, including hover/focus/active |
 | Shared interaction kits (`src/uxds/interactions/`) | Typical website behaviors — anti-sprawl ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)) |
+| Co-located screen CSS under `src/projects/<id>/screens/…` | Layout + concept chrome for that React page only |
 | `src/projects/<id>/styleguide/theme.css` | Brand delta only |
 
 | What we do **not** build day one | |
 |--------------------------------|--|
 | A full duplicate of every UXDS component in Figma | Grow only what pages need |
+| A growing Make-style **monster stylesheet per screen** | Prefer kit + co-located CSS ([PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) §8) |
 | Summarizer-scale CSS governance megasuite | Later if useful |
 | A separate “Studio design system” with different names | Always map to UXDS |
 
 **How it grows:** First real page creates the token bridge + the few modules that page needs. Next page reuses and adds only gaps. You never maintain a giant unused component library.
+
+**Legacy Make CSS:** `globals-*.css` stays for unmigrated screens/overlays. Monster wire CSS is retired **screen by screen** as React pilots land — not overnight.
 
 ### 2.8 Engine vs page sequencing
 
