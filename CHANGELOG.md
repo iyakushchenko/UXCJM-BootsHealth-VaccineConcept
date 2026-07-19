@@ -4,6 +4,7 @@
 
 - **docs:** Seed local versioning + post-change checklist from Summarizer
 - **project:** Ship Book Step 2 React Date/Time pilot (Frame child 4); hide Make chrome; Nazi QA PROVEN; no LEGACY growth
+- **docs:** Stamp Book Step 2 FE audit handoff SHA af50556
 
 ## v0.0.1 - 190726
 

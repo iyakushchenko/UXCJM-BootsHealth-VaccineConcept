@@ -3,7 +3,7 @@
 **Surface / slice:** Book Step 2 Date and Time (React pilot) + Studio chrome blast-radius on path  
 **Date:** 2026-07-19  
 **Auditor:** Tech Director / Nazi QA (distrust implementer handoff; live localhost + gate read)  
-**Implementer handoff:** pre-commit working tree (Book Step 2 React mount) — SHA filled after push  
+**Implementer handoff:** `af50556` (Book Step 2 React mount on `main`)  
 **Checklist:** [../FE_UI_UX_AUDIT.md](../FE_UI_UX_AUDIT.md) · [../VISUAL_FIDELITY.md](../VISUAL_FIDELITY.md) · [../FE_STANDARDS.md](../FE_STANDARDS.md) · [../DS_STRICTNESS.md](../DS_STRICTNESS.md)  
 **Design delta:** [../BOOTS_BOOK_STEP2_DESIGN_DELTA.md](../BOOTS_BOOK_STEP2_DESIGN_DELTA.md)
 
