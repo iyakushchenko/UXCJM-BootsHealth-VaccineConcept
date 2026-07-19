@@ -48,14 +48,14 @@ Secondary pills (**All locations** / **Slots available**): inactive = quiet outl
 
 ## 2. Regular text links (CRITICAL)
 
-Typical underline / blue body links (**Learn more**, **Show on map**, **See working hours**, help tel, forgot-password style) **must** share one pattern. Do not invent per-screen link colors.
+Typical blue body links (**Learn more**, **Show on map**, **See working hours**, help tel, forgot-password, footer FAQs/Delivery) **must** share one pattern. Do not invent per-screen link colors.
 
 | Token | Value |
 |-------|--------|
 | **Class** | `.uxds-link` (`src/uxds/components/text-link.css`) |
-| **Baseline** | Boots Make / Book Step 1 booster **Learn more** |
-| **Rest** | `#012169`, `text-decoration: underline`, weight inherit |
-| **Hover** | `#01318f`, underline **off** |
+| **Baseline** | Footer / Make `.proto-link` + Book Step 1 booster **Learn more** |
+| **Rest** | `#012169`, `text-decoration: none`, weight inherit |
+| **Hover** | `#01318f`, underline **on** |
 | **Focus-visible** | `outline: 2px solid #012169`, `outline-offset: 2px` |
 
 Legacy aliases (same rules): `.proto-avail-link`, `.proto-recipient-picker__link`.
@@ -64,7 +64,7 @@ Legacy aliases (same rules): `.proto-avail-link`, `.proto-recipient-picker__link
 |--------|--------------------------------|
 | Tertiary icon+text CTAs | Change location, near-me — §1 |
 | Breadcrumb Home | Teal `#305854` crumb chrome (Make) |
-| Make `.proto-link` globals | Still strip underline under `.proto-viewport` — **Make target:** adopt `.uxds-link` when a surface is migrated; do not weaken React parity to match the strip |
+| Make `.proto-link` globals | Same rest/hover underline under `.proto-viewport` — keep colors aligned; React surfaces use `.uxds-link` |
 
 ---
 

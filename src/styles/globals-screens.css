@@ -374,9 +374,8 @@
 }
 
 /* ── Global text links (Make wire under .proto-viewport) ────────────────────
- * Legacy strip: no underline; navy #012169; hover #01318f; no focus ring.
- * React / overlays use `.uxds-link` (underline at rest) — see FE_STANDARDS §2.
- * Make target: when migrating a surface, prefer `.uxds-link` over this strip.
+ * Rest: no underline; navy #012169. Hover: underline + #01318f.
+ * Aligns with `.uxds-link` — see FE_STANDARDS §2.
  * Covers <a>, Figma underline spans/ps, and anything tagged .proto-link.
  */
 .proto-viewport a,
@@ -401,8 +400,8 @@
 .proto-viewport span[class*="underline"]:hover,
 .proto-viewport p[class*="decoration-"]:hover,
 .proto-viewport span[class*="decoration-"]:hover {
-  text-decoration: none !important;
-  text-decoration-line: none !important;
+  text-decoration: underline !important;
+  text-decoration-line: underline !important;
   color: #01318f !important;
 }
 /* Don’t restyle CTA button labels that happen to inherit decoration classes */
