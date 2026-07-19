@@ -25,8 +25,10 @@ Run against Make (or Make frame export) **side-by-side** with React localhost.
 - [ ] Make loading scenario documented (mechanism + copy + where it sits in the layout)
 - [ ] Filter/search/pagination change shows that same scenario — not a invented substitute
 - [ ] Empty state matches Make when zero results
-- [ ] Updating / results-count pulse (or equivalent) matches Make when present
-- [ ] **FAIL class:** blank listing + lone “Updating results…” (or similar) **without** Make’s spinner/overlay/skeleton = ship fail — even if copy matches
+- [ ] **Exactly one** “Updating…” (or equivalent) treatment — spinner overlay label **or** count line, **not both** (duplicate = FAIL)
+- [ ] No layout jump from host collapse — lock band height while tiles hide if Make feels stable
+- [ ] **FAIL class:** blank listing + lone “Updating results…” **without** spinner/overlay/skeleton = ship fail
+- [ ] **FAIL class:** invented duplicate loader copy / orange pulsed count-line not matching Make = ship fail
 
 **Screenshot notes required:** loading frame (spinner visible in-band), then results return / stagger.
 
@@ -52,9 +54,11 @@ Run against Make (or Make frame export) **side-by-side** with React localhost.
 
 ### 4. Icon buttons — hover + pressed feedback
 
-- [ ] Hearts / bookmarks / wishlist: immediate filled/color on **hover and click** (optimistic UI)
+- [ ] Hearts / bookmarks / wishlist: **exact Make empty vs filled** — do **not** invent fuchsia on **empty** hover if Make uses tertiary navy
+- [ ] Filled/active + click-optimistic only where Make does; empty hover follows Make tertiary/icon rules
 - [ ] Share / eye / other icon-only hits: circular wash or tertiary rules per FE standards
-- [ ] No laggy / no-feedback hearts
+- [ ] No laggy click feedback; **FAIL** if invented hover chrome not in Make CSS
+- [ ] **Forbidden:** invent hover/loading chrome not in Make ([LESSONS_LEARNED.md](./LESSONS_LEARNED.md))
 
 ### 5. Checkbox / radio hover (Make parity — mandatory sign-off)
 

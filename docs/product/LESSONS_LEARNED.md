@@ -10,15 +10,25 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### Invented hover / loading chrome not in Make = ship fail (PO rage #3)
+
+- **Symptom:** React PLP showed **duplicate** “Updating results…” (count line + spinner label) + listing **jump**; empty bookmark heart went **fuchsia on hover** (Make tertiary empty hover is navy link; fuchsia only when filled/active).
+- **Root cause:** Agents “improved” Make — invented fuchsia-on-empty hover and doubled loader copy / pulsed count — then stamped **PROVEN** without MCP real-user matrix.
+- **Forbidden:** Invent hover colors, loader copy placement, or attention chrome not present in Make CSS/behavior. Prefer under-matching over inventing.
+- **Gate:**
+  1. Uma side-by-side Make vs React for **empty vs filled** icon states and **exactly one** loader treatment (spinner ± one label; never duplicate count-line copy).
+  2. Quinn + Ben: **MCP localhost real-user matrix mandatory for every screen ship** — overlay start → log each step → stop/clean slate. Arch **rejects** audit **PROVEN** without that evidence log.
+  3. Prior “PROVEN” is **BAD until re-proven** when PO disputes pixels.
+
 ### Wrong preloader / loading scenario = fidelity fail (PO called out twice)
 
 - **Symptom:** React PLP filter-change showed a blank listing band with only “Updating results…” (results-count text) — PO rage again; not the Make scenario.
-- **Make truth (PLP child 9 / `plpListing.ts` / `globals-screens`):** ~450ms load → **hide tiles** (`display: none` / `hideAllPlpTiles`) → **centered spinner overlay** (44px arc `#012169` on track `#c4dde3` + copy “Updating results…”) on `min-height: 220px` tiles host with `rgba(255,255,255,0.82)` wash → pulsed count text → stagger reveal. **Not** opacity-0 tiles (that centers the overlay below the fold) and **not** text-only.
+- **Make truth (PLP child 9):** ~450ms load → **hide tiles** → **centered spinner overlay** (44px arc + **one** “Updating results…” under spinner) on height-locked host → stagger reveal. **Not** opacity-0 tiles, **not** text-only, **not** duplicate count-line “Updating results…”.
 - **Root cause:** Loading/empty/updating treated as copy polish, not a first-class Make scenario; register marked “preloader Fixed” without mechanism prove; Uma did not sign off loading states.
 - **Gate:**
   1. Uma + Bea capture Make loading mechanism **before** Finn codes ([UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0).
   2. Bea register P0 rows for loading/empty/updating with layout notes + screenshot notes.
-  3. Quinn proves filter-change: spinner/overlay **in-band**, then results return — blank+text alone = FAIL.
+  3. Quinn proves filter-change: spinner/overlay **in-band**, then results return — blank+text alone = FAIL; duplicate “Updating results…” = FAIL.
   4. **team check:** Uma must explicitly report `loading states — PASS|FAIL` and `checkbox/radio hover — PASS|FAIL`.
 
 ### Checkbox / radio hover miss on migrated PLP

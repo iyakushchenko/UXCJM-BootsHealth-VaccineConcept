@@ -27,6 +27,7 @@ A screen is **DONE** only when **all** are true:
 2. [x] **PLP Make parity restore** — register [PLP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md); P0 gaps fixed (bg fill, hero shadow, listing wrapper, preloader, filter chips); audit PROVEN; patch `0.0.5`.
 2b. [x] **PLP fidelity rage fix** — Advantage bar, heart optimistic hover/click, Book now commerce hover, tile border removed, Reset Filters icon+text; Uma checklist + team-check harden; patch bump.
 2c. [x] **PLP preloader + checkbox hover (PO rage #2)** — real Make spinner overlay (hide tiles, in-band); mint checkbox hover; Uma loading/checkbox sign-off gates; patch bump.
+2d. [x] **PLP invent/dupe rage #3** — one loader label (no count duplicate), height lock, Make empty-heart navy hover (no fuchsia invent); MCP matrix mandatory; prior PROVEN revoked; `0.0.8`.
 3. [ ] **PDP React migration** — same DONE definition; retire Make child 8. Order lock continues: **PDP → Home → Chat → History/Details**, then delete Book 1–3 Make children. **Await PO +.**
 4. [ ] **Versioning habit** — append notes on every user-visible ship; Pax decides patch; Ben executes ([VERSIONING.md](./VERSIONING.md)).
 

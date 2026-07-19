@@ -44,10 +44,11 @@
 | Host | `.proto-plp-tiles-host` `position: relative`, loading `min-height: 220px` |
 | Overlay | Absolute `inset: 0`, `rgba(255,255,255,0.82)`, radius 8px, flex center |
 | Spinner | 44×44 SVG: track stroke `#c4dde3`, arc `#012169`, rotate + dash animations |
-| Copy | Overlay text **“Updating results…”** (13/24, `#3a3a3a`) **and** results-count same copy + pulse |
+| Copy | **ONE** overlay text **“Updating results…”** under spinner (13/24, `#3a3a3a`). Count line keeps prior results — **no** duplicate / pulsed count-line copy |
+| Host height | Lock to prior band height while tiles hidden (min 220px) — no collapse jump |
 | Exit | Loader hide → tiles visible → stagger `proto-plp-tile-in` (50ms × index, max 8) |
 
-**FAIL class:** blank listing + lone count “Updating results…” without in-band spinner overlay (e.g. opacity-0 tiles pushing overlay below fold).
+**FAIL class:** blank listing + lone count “Updating results…” without in-band spinner; **or** duplicate “Updating results…” in count + overlay; **or** layout jump from host collapse.
 
 ---
 
@@ -66,7 +67,7 @@
 | I8 | Tile title / Book now → PDP | **Present** | |
 | I8b | **Book now hover** — same as UXDS `ButtonPrimary` commerce / primary CTA tokens (navy → hover lift), not mint secondary one-off | **Was Wrong (LEGACY tile catch-all) → Fixed** | LEGACY excludes `.uxds-btn-primary`; commerce hover tokens win |
 | I9 | Quick View → RTB | **Present** | |
-| I10 | **Wishlist / Bookmarks heart** — immediate filled/color on **hover and click** (optimistic) | **Was Wrong (laggy / weak feedback) → Fixed** | Hover + pointerdown optimistic fuchsia `#e91e8c` |
+| I10 | **Wishlist / Bookmarks heart** — Make tertiary: empty rest `#afccca`, empty hover **navy link**, filled `#c8247e`, favourited hover deepen; click-optimistic fill only | **Was Wrong (invented fuchsia-on-empty hover) → Fixed** | CSS empty≠fuchsia; `is-active` only when favourited |
 | I11 | Bundles mode | **Present** | |
 | I12–I13 | Listing load + stagger — real Make overlay (see L4), not text-only | **Was Wrong → Fixed** | `data-studio-plp-listing-phase` / loader |
 | I14 | Scroll | **Present** | |
@@ -88,13 +89,13 @@
 
 | Priority | Item | Outcome |
 |----------|------|---------|
-| P0 | L4 Real Make preloader (spinner overlay + hide tiles + count pulse) | **Fixed** (was wrong/missed) |
+| P0 | L4 Real Make preloader (spinner + **one** label; no count duplicate; no jump) | **Re-fixed** (PO rage #3) |
 | P0 | I1b Checkbox/radio mint hover | **Fixed** |
 | P0 | L5 Advantage Card bar | **Fixed** (prior) |
 | P0 | L10 tile border invent | **Fixed** (prior) |
 | P0 | I5 Reset filters icon+text | **Fixed** (prior) |
 | P0 | I8b Book now CTA hover tokens | **Fixed** (prior) |
-| P0 | I10 heart hover+click optimistic | **Fixed** (prior) |
+| P0 | I10 heart empty hover navy / filled fuchsia (no invent) | **Re-fixed** (PO rage #3) |
 | P2 | L6 AI promo strip | Residual |
 | P2 | I6 View all | Residual |
 | P2 | L14 catalog count | Residual |
@@ -105,13 +106,14 @@
 
 | Item | Localhost | Interaction |
 |------|-----------|-------------|
-| L4 Filter change → spinner overlay **in listing band** + “Updating results…” → tiles stagger back | Required | Toggle disease/age; prove `data-studio-plp-listing-phase=loading` + loader visible above fold |
+| L4 Filter change → spinner **in-band**, **one** “Updating results…” (overlay only), **no jump**, then results | Required | MCP: count text stays; loader text once; host height stable |
 | I1b Unchecked checkbox/radio mint hover | Required | Hover sidebar filter row |
 | L5 Advantage bar visible + copy | Required | Visual |
 | L10 no tile border | Required | Visual |
 | I5 Reset Filters trash+label | Required | Hover icon→navy |
 | I8b Book now hover = commerce navy lift | Required | Hover/active |
-| I10 heart fuchsia on hover + click | Required | Hover + click |
+| I10 empty heart hover **navy** (not fuchsia); click/filled fuchsia | Required | MCP computed styles |
 | I8 / I9 / I11 / W1 | Required | Book→PDP, QV, Bundles, no Make leak |
+| Version chip = package.json | Required | MCP |
 
 **Fail ship if:** any P0 above unchecked, Uma fidelity checklist fail (incl. loading + checkbox hover lines), or Quinn interaction matrix fail.

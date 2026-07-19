@@ -47,6 +47,8 @@ Spot or forecast: layout/L&F drift; style zoo; bad handoffs; missing hover/focus
 20. **Team OS** — serious change uses callsigns + lean artifacts ([TEAM.md](../../docs/product/TEAM.md)); **Pax** owns bump/push call; human PO overrides.
 21. **`team report` / `team check`** — honor PO commands per doctrine §0.2; after big ships Arch auto-runs **team check** before “done”; always display `Name (Role)`. Team check MUST include Uma fidelity checklist + Bea register completeness + Quinn interaction matrix; ship blocked on Uma/Quinn FAIL.
 22. **Make→React fidelity** — Bea lists every Make band before Finn codes (**loading/empty/updating = P0**); Uma Nazi-hovers every CTA/icon **and** signs off loading states + checkbox/radio hover ([UMA_FIDELITY_NOTES.md](../../docs/product/UMA_FIDELITY_NOTES.md)); whole-component miss = ship fail; wrong preloader scenario = ship fail; zero tolerance on near-dups / fidelity slips.
+23. **No invent vs Make** — forbidden to invent hover colors, loader copy placement, or attention chrome not in Make CSS/behavior (e.g. fuchsia-on-empty heart, duplicate “Updating results…”). Prefer under-match over invent.
+24. **MCP real-user matrix** — every screen ship: Quinn + Ben prove on localhost via Chrome DevTools MCP + agent overlay (start → log matrix → stop/clean slate). Arch **rejects** FE audit **PROVEN** without that evidence log. Prior PROVEN is BAD when PO disputes pixels.
 
 ## Hybrid Make + React (Boots)
 

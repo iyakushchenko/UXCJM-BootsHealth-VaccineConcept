@@ -231,11 +231,9 @@ function ServiceTile({
   onBookNow: () => void;
   onQuickView: () => void;
 }) {
-  // Optimistic heart: hover preview + click flip with no laggy feedback.
-  const [heartHover, setHeartHover] = useState(false);
+  // Click-optimistic only. Empty hover = Make tertiary navy (CSS), NOT fuchsia.
   const [optimisticOn, setOptimisticOn] = useState<boolean | null>(null);
   const heartActive = optimisticOn ?? wishlisted;
-  const heartPreview = heartActive || heartHover;
 
   useEffect(() => {
     setOptimisticOn(null);
@@ -277,13 +275,11 @@ function ServiceTile({
               data-name="component.input.button"
               data-studio-wishlist-id={plpTileWishlistId(tileIndex)}
               aria-pressed={heartActive}
-              onMouseEnter={() => setHeartHover(true)}
-              onMouseLeave={() => setHeartHover(false)}
               onPointerDown={() => setOptimisticOn(!heartActive)}
               onClick={onToggleWishlist}
             >
               <span
-                className={`plp__tertiary-icon${heartPreview ? " is-active" : ""}`}
+                className={`plp__tertiary-icon${heartActive ? " is-active" : ""}`}
                 data-name="icon=add to wishlist"
                 data-fav-active={String(heartActive)}
               >
@@ -348,8 +344,12 @@ export function PlpScreen({
     filterPlpCatalog(DEFAULT_PLP_FILTERS)
   );
   const [listingPhase, setListingPhase] = useState<ListingPhase>("idle");
+  const [loadHostMinHeight, setLoadHostMinHeight] = useState<number | null>(
+    null
+  );
   const syncPassRef = useRef(0);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tilesHostRef = useRef<HTMLDivElement | null>(null);
 
   const dirty = isPlpFiltersDirty(filters);
   const activeChips = collectPlpActiveFilterChips(filters);
@@ -367,6 +367,7 @@ export function PlpScreen({
       syncPassRef.current = 1;
       setDisplayItems(next);
       setListingPhase("idle");
+      setLoadHostMinHeight(null);
       return;
     }
 
@@ -375,11 +376,21 @@ export function PlpScreen({
       loadTimerRef.current = null;
     }
 
+    // Lock host height before tiles hide — prevents listing band collapse jump.
+    const host = tilesHostRef.current;
+    if (host) {
+      const h = Math.round(host.getBoundingClientRect().height);
+      setLoadHostMinHeight(Math.max(220, h));
+    } else {
+      setLoadHostMinHeight(220);
+    }
+
     setListingPhase("loading");
     loadTimerRef.current = setTimeout(() => {
       loadTimerRef.current = null;
       setDisplayItems(next);
       setListingPhase("reveal");
+      setLoadHostMinHeight(null);
     }, PLP_LISTING_LOAD_MS);
 
     return () => {
@@ -399,12 +410,12 @@ export function PlpScreen({
     filters.countryQuery
   );
 
+  // Count keeps prior results during load (displayItems not swapped yet).
+  // ONE “Updating results…” lives under the spinner — never duplicate in count.
   const resultsCountClass =
-    listingPhase === "loading"
-      ? "plp__results-count plp__results-count--loading"
-      : listingPhase === "reveal"
-        ? "plp__results-count plp__results-count--in"
-        : "plp__results-count";
+    listingPhase === "reveal"
+      ? "plp__results-count plp__results-count--in"
+      : "plp__results-count";
 
   const tilesHostClass = [
     "plp__tiles-host",
@@ -413,6 +424,11 @@ export function PlpScreen({
   ]
     .filter(Boolean)
     .join(" ");
+
+  const tilesHostStyle: CSSProperties | undefined =
+    listingPhase === "loading" && loadHostMinHeight != null
+      ? { minHeight: loadHostMinHeight }
+      : undefined;
 
   return (
     <div
@@ -672,9 +688,7 @@ export function PlpScreen({
                       data-studio-plp-results={String(displayItems.length)}
                       aria-live="polite"
                     >
-                      {listingPhase === "loading" ? (
-                        "Updating results…"
-                      ) : activeChips.length ? (
+                      {activeChips.length ? (
                         <>
                           {displayItems.length} {noun} found for{" "}
                           {activeChips.map((chip, index) => (
@@ -723,15 +737,16 @@ export function PlpScreen({
                 </div>
 
                 <div
+                  ref={tilesHostRef}
                   className={tilesHostClass}
                   data-name="module.plp.tiles"
                   data-studio-plp-listing-phase={listingPhase}
+                  style={tilesHostStyle}
                 >
                   {/*
-                    Make preloader (child 9 / plpListing / globals-screens):
-                    ~450ms filter-change → hide tiles (display:none) + centered
-                    spinner overlay (arc + “Updating results…”) on min-height host
-                    + pulsed count text. Not a blank page with count text alone.
+                    Make preloader (child 9): hide tiles + in-band spinner overlay.
+                    ONE “Updating results…” under spinner — never also in count line.
+                    Host min-height locked to prior band height (no collapse jump).
                   */}
                   {listingPhase === "loading" ? (
                     <div

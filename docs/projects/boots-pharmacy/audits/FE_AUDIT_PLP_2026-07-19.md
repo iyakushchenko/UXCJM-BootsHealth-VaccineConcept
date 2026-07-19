@@ -12,10 +12,12 @@
 
 ## Verdict
 
+> **SUPERSEDED / DISTRUSTED (PO rage #3):** duplicate “Updating results…” + invented fuchsia-on-empty heart were still shipping. See [FE_AUDIT_PLP_2026-07-19_RAGE3.md](./FE_AUDIT_PLP_2026-07-19_RAGE3.md) for MCP re-prove.
+
 | Field | Value |
 |-------|-------|
-| **Overall** | **PROVEN** |
-| **PO green-light allowed?** | Yes (residuals unchanged: AI strip, View all, catalog depth) |
+| **Overall** | **REVOKED** (was stamped PROVEN without catching invent/dupe) |
+| **PO green-light allowed?** | No — use RAGE3 audit |
 | **Uma fidelity checklist** | **PASS** |
 | **Uma loading states** | **PASS** |
 | **Uma checkbox/radio hover** | **PASS** |

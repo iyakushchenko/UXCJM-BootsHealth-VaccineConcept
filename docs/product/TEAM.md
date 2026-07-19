@@ -61,14 +61,17 @@ Never bare callsign alone in team output — always `Name (Role)` as above. One 
 |----------|-------------|
 | **Uma (UI/UX)** | Fidelity checklist PASS/FAIL + failed items ([UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md)). **Also mandatory on every migrated screen:** `loading states — PASS\|FAIL` and `checkbox/radio hover — PASS\|FAIL` |
 | **Bea (BA)** | Register complete? Any Missing P0? (every Make band listed before Finn coded). **Loading / empty / updating states must be P0 rows** when Make has them — mechanism + layout, not copy-only |
-| **Quinn (QA)** | Interaction matrix (hover/click on every control) PASS/FAIL — **cannot PASS** if register has unchecked P0s. **Must prove** Make-like loading on filter/search change + checkbox/radio hover visible |
+| **Quinn (QA)** | Interaction matrix PASS/FAIL — **cannot PASS** without unchecked-P0-free register **and** a **MCP localhost real-user evidence log** for the screen matrix (overlay start → each step → stop/clean slate). Cite MCP steps in team check. |
+| **Ben (BE)** | Owns MCP session hygiene with Quinn (vite up, overlay start/stop, clean slate); `gh` sitrep after push |
 | **Finn (FE)** | Gaps fixed or blocked |
 
 **Hard rules:**
 
 - After big ships, Arch auto-runs **team check** before “done” — green tests alone do not skip it.  
 - Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**.  
-- Blank listing + lone “Updating results…” (or equivalent) **without** Make’s spinner/overlay/skeleton = automatic Uma + Quinn **FAIL**.
+- Blank listing + lone “Updating results…” (or equivalent) **without** Make’s spinner/overlay/skeleton = automatic Uma + Quinn **FAIL**.  
+- **Forbidden to invent** hover/loading chrome not in Make.  
+- **MCP real-user matrix mandatory for every screen ship** (Quinn + Ben). Arch **rejects** audit **PROVEN** without MCP evidence log.
 
 ---
 

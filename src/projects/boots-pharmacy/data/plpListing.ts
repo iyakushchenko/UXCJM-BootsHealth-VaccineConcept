@@ -1055,6 +1055,8 @@ function endPlpListingLoading(host: HTMLElement): void {
 }
 
 function setPlpResultsCountLoading(root: ParentNode): void {
+  // Keep prior count copy during load — ONE “Updating results…” lives on the
+  // spinner overlay only (duplicate count-line copy was invent / PO reject).
   const controls = root.querySelector<HTMLElement>(
     '[data-name="component.filter.controls"]'
   );
@@ -1063,8 +1065,7 @@ function setPlpResultsCountLoading(root: ParentNode): void {
     controls?.querySelector<HTMLElement>(".proto-plp-filter-controls__row p") ??
     controls?.querySelector("p");
   if (el) {
-    el.textContent = "Updating results…";
-    el.classList.add("proto-plp-results-count--loading");
+    el.classList.remove("proto-plp-results-count--loading");
   }
 }
 

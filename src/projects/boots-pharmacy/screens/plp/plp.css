@@ -488,9 +488,7 @@
   color: #3a3a3a;
 }
 
-.plp__results-count--loading {
-  animation: plp-results-loading-pulse 0.9s ease-in-out infinite;
-}
+/* No count-line “Updating results…” / pulse — that duplicated overlay copy (PO). */
 
 .plp__results-count--in {
   animation: plp-results-count-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -642,22 +640,11 @@
   }
 }
 
-@keyframes plp-results-loading-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .plp__tiles-host--reveal .plp__tile--in,
   .plp__results-count--in,
   .plp__listing-loader__spinner--run svg,
-  .plp__listing-loader__spinner--run .plp__listing-loader__arc,
-  .plp__results-count--loading {
+  .plp__listing-loader__spinner--run .plp__listing-loader__arc {
     animation: none !important;
   }
 }
@@ -767,15 +754,24 @@
   transition: color 0.12s ease;
 }
 
-/* Heart / bookmark — immediate filled fuchsia on hover + active (optimistic) */
-.plp__tertiary-icon.is-active,
+/*
+ * Make PLP “Add to Bookmarks” (tertiary text+icon):
+ * empty rest #afccca → hover navy link (NOT fuchsia — that was invented).
+ * filled/active #c8247e (applyPlpTileHeartVisual); favourited hover deepen.
+ */
 .plp__tertiary:hover
-  .plp__tertiary-icon[data-name="icon=add to wishlist"] {
-  color: #e91e8c;
-}
-
+  .plp__tertiary-icon[data-name="icon=add to wishlist"]:not(.is-active),
 .plp__tertiary:hover .plp__tertiary-icon[data-name="icon=view"] {
   color: var(--uxds-text-link-link);
+}
+
+.plp__tertiary-icon[data-name="icon=add to wishlist"].is-active {
+  color: #c8247e;
+}
+
+.plp__tertiary:hover
+  .plp__tertiary-icon[data-name="icon=add to wishlist"].is-active {
+  color: #c2186e;
 }
 
 .plp__tertiary:focus-visible {
