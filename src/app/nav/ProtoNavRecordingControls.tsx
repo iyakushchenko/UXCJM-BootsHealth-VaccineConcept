@@ -77,15 +77,18 @@ function useRecordingUiSnapshot(): RecordingUiSnapshot {
   );
 }
 
-/** Live / last-session event count — same type chrome as playback STEPS. */
-export function formatRecordingStepCounter(eventCount: number): string {
-  return `STEPS: ${eventCount}`;
+/** Live / last-session recorded-event count — Rec mode only (never labeled STEPS). */
+export function formatRecordingEventCounter(eventCount: number): string {
+  return `REC: ${eventCount}`;
 }
 
-/** Session event counter for the Playback|Rec mode-control slot (replaces grey REC label). */
-export function ProtoNavRecordingStepCounter() {
+/**
+ * Session event counter for the Playback|Rec mode-control slot.
+ * Parent must mount only when Rec mode is on — never beside journey STEPS.
+ */
+export function ProtoNavRecordingEventCounter() {
   const ui = useRecordingUiSnapshot();
-  const label = formatRecordingStepCounter(ui.eventCount);
+  const label = formatRecordingEventCounter(ui.eventCount);
   const stateClass = ui.isRecording
     ? " proto-nav-scenario__counter--recording-live"
     : ui.isPaused
@@ -95,7 +98,7 @@ export function ProtoNavRecordingStepCounter() {
     <span
       className={`proto-nav-scenario__counter proto-nav-scenario__counter--recording${stateClass}`}
       aria-live="polite"
-      aria-label={`Recorded steps: ${ui.eventCount}`}
+      aria-label={`Recorded events: ${ui.eventCount}`}
       title={
         ui.isRecording
           ? `Recording · ${ui.eventCount} events`
@@ -103,7 +106,7 @@ export function ProtoNavRecordingStepCounter() {
             ? `Paused · ${ui.eventCount} events`
             : ui.canReplay || ui.canExport
               ? `Last session · ${ui.eventCount} events`
-              : "No recorded steps yet"
+              : "No recorded events yet"
       }
     >
       {label}
@@ -204,7 +207,7 @@ export function ProtoNavRecordingModeSlot({
   return (
     <div className="proto-nav-scenario__deck">
       <span className="proto-nav-scenario__mode-control">
-        <ProtoNavRecordingStepCounter />
+        {recMode ? <ProtoNavRecordingEventCounter /> : null}
         <ProtoStudioPlaybackRecSwitch
           checked={recMode}
           onChange={(enabled) => {
