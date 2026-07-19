@@ -1,5 +1,6 @@
 import { motion, MOTION_EASE_IN_OUT } from "@/uxds/motion";
 import type { ChatThinkingBridgeMode } from "./chatThinkingBridge";
+import { CHAT_PULL_UP } from "./chatMotion";
 
 export type ChatThinkingBubbleProps = {
   mode: Exclude<ChatThinkingBridgeMode, "none">;
@@ -7,6 +8,7 @@ export type ChatThinkingBubbleProps = {
 };
 
 export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps) {
+  // Make: playback toggled --hint → align-items flex-start (LEFT agent rail).
   const hint = mode === "hint" || mode === "playback";
 
   return (
@@ -14,12 +16,13 @@ export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps
       key={`thinking-${generation}-${mode}`}
       className={`chat__thinking${hint ? " chat__thinking--hint" : ""}`}
       data-studio-chat-thinking="true"
+      data-studio-chat-thinking-side="agent"
       role="status"
       aria-live="polite"
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.36, ease: MOTION_EASE_IN_OUT }}
+      initial={CHAT_PULL_UP.initial}
+      animate={CHAT_PULL_UP.animate}
+      exit={CHAT_PULL_UP.exit}
+      transition={CHAT_PULL_UP.transition}
     >
       <div className="chat__thinking-inner">
         <span className="chat__thinking-dots" aria-hidden="true">

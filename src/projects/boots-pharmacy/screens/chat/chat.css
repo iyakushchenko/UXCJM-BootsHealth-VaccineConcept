@@ -406,24 +406,40 @@
   height: 100%;
 }
 
+/*
+ * Make truth (globals-chrome.css pre-React):
+ * default thinking = align-items flex-end; --hint|playback = flex-start (LEFT).
+ * Playback always toggled --hint → agent-left rail before each reply.
+ */
 .chat__thinking {
   display: flex;
+  flex-direction: column;
   width: 100%;
-  justify-content: flex-end;
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.chat__thinking--hint,
+.chat__thinking[data-studio-chat-thinking-side="agent"] {
+  align-items: flex-start;
 }
 
 .chat__thinking-inner {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 16px;
+  min-width: 72px;
+  min-height: 40px;
+  padding: 12px 18px;
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(1, 33, 105, 0.08);
+  background: rgba(215, 233, 248, 0.57);
+  box-sizing: border-box;
 }
 
-.chat__thinking--hint .chat__thinking-inner {
-  background: rgba(245, 255, 254, 0.85);
+.chat__frame--reply {
+  align-items: stretch;
 }
 
 .chat__thinking-dots {

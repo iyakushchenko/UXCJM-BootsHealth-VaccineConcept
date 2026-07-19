@@ -5,7 +5,6 @@
  */
 
 import {
-  nudgeDemoCursorForTypeIn,
   parkDemoCursorForTypeIn,
   readDemoCursorDomState,
 } from "@/app/scenario/demoCursor";
@@ -21,13 +20,26 @@ export function resetTypeInCursorGuard(): void {
 /** Park near field at type-in start; log visibility. */
 export function beginTypeInCursorGuard(target: HTMLElement): void {
   resetTypeInCursorGuard();
-  parkDemoCursorForTypeIn(target);
+  // Force one park pose for this type-in; ticks must not slide it.
+  parkDemoCursorForTypeIn(target, { force: true });
   reportTypeInCursorVisibility("start", target);
 }
 
-/** Keep park near caret; re-park + latch if DOM missing/opacity0. */
+/**
+ * PO: stay PARKED during type-in — no caret-slide / travel while text lands.
+ * Re-assert park only if missing/exiting; never move along the field.
+ */
 export function tickTypeInCursorGuard(target: HTMLElement, chars: number): void {
-  nudgeDemoCursorForTypeIn(target, chars);
+  const existing = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+  if (
+    !existing ||
+    existing.classList.contains("proto-chat-demo-cursor--exit")
+  ) {
+    parkDemoCursorForTypeIn(target);
+  } else if (!existing.classList.contains("proto-chat-demo-cursor--parked")) {
+    // Restore parked class without reseeding (parkDemoCursorForTypeIn holds pose).
+    parkDemoCursorForTypeIn(target);
+  }
   if (chars === 0 || chars % 16 === 0) {
     reportTypeInCursorVisibility("progress", target, chars);
   }

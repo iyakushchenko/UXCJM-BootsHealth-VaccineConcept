@@ -177,12 +177,25 @@ export function readDemoCursorDomState(): {
  * CJM type-in: keep robo-cursor visible near the composer field (caret-ish).
  * Call at type-in start — typed-text must never run with a missing cursor.
  */
-export function parkDemoCursorForTypeIn(target: HTMLElement): void {
+export function parkDemoCursorForTypeIn(
+  target: HTMLElement,
+  options?: { force?: boolean }
+): void {
   if (!journeyModePinned) return;
   cancelDemoCursorJourneyEndFade();
   journeyEndCursorFaded = false;
   cancelDemoCursorTravel();
   const cursor = ensureDemoCursorElement();
+  // PO: once parked for type-in, hold that pose — no re-seed as the
+  // textarea grows / caret advances (no slide during typed text).
+  if (
+    !options?.force &&
+    cursor.classList.contains("proto-chat-demo-cursor--parked") &&
+    parkedRestAnchor
+  ) {
+    applyDemoCursorParkedState(cursor);
+    return;
+  }
   const rect = target.getBoundingClientRect();
   const x = Math.round(
     Math.min(Math.max(rect.left + 36, rect.left + 8), rect.right - 20)
@@ -199,24 +212,15 @@ export function parkDemoCursorForTypeIn(target: HTMLElement): void {
   });
 }
 
-/** Nudge park pose along the field as characters land (caret tracking). */
+/**
+ * @deprecated PO: type-in cursor stays PARKED — no caret-slide.
+ * Kept as park-only re-assert for any legacy callers.
+ */
 export function nudgeDemoCursorForTypeIn(
   target: HTMLElement,
-  chars: number
+  _chars: number
 ): void {
-  if (!journeyModePinned) return;
-  const existing = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
-  if (!existing || existing.classList.contains("proto-chat-demo-cursor--exit")) {
-    parkDemoCursorForTypeIn(target);
-    return;
-  }
-  const rect = target.getBoundingClientRect();
-  const caretX = rect.left + 28 + Math.min(chars * 7.1, Math.max(0, rect.width - 48));
-  const x = Math.round(Math.min(caretX, rect.right - 18));
-  const y = Math.round(Math.min(rect.top + 16, rect.bottom - 8));
-  seedDemoCursorPosition(existing, { x, y });
-  applyDemoCursorParkedState(existing);
-  parkedRestAnchor = { left: x, top: y };
+  parkDemoCursorForTypeIn(target);
 }
 
 export function cancelDemoCursorJourneyEndFade(): void {

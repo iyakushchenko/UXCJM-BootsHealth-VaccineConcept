@@ -48,14 +48,31 @@ const CTA_PRESS_MS = 380;
 
 /**
  * Which agent CTA Sarah clicks before each scripted user reply.
- * Keys = 0-based `frameIndex` of the user query being revealed
- * (see useScenarioPlayback beforeReveal). Off-by-one vs 1-based Make indexing
- * broke React chat progressive CTA clicks after migration.
+ * Keys = `frameIndex` from useScenarioPlayback beforeReveal = **1-based**
+ * next visibleCount (NOT 0-based array index). Make truth (pre-React Chat,
+ * tip a2c86ba / 5fdde78^): 5 → q2 after r1 CTA; 7 → q3 after r2 CTA.
  */
-const CTA_BEFORE_USER_FRAME: Record<number, RegExp> = {
-  4: /check availability slot for me/i,
-  6: /find available slots for today/i,
+/** Exported for ratchet tests — Make 1-based frameIndex keys. */
+export const SITE_PILOT_CHAT_CTA_BEFORE_USER_FRAME: Record<number, RegExp> = {
+  5: /check availability slot for me/i,
+  7: /find available slots for today/i,
 };
+const CTA_BEFORE_USER_FRAME = SITE_PILOT_CHAT_CTA_BEFORE_USER_FRAME;
+
+/*
+ * Make / pre-React agentic chat sequence (source of truth):
+ * frames 0..7 = q0,r0,q1,r1,q2,r2,q3,r3 (+ finale virtual)
+ *  land → q0
+ *  step → THINKING (left) → r0
+ *  step → type-in q1 (no CTA) → q1
+ *  step → THINKING → r1
+ *  step → click r1 CTA "Check availability…" → q2
+ *  step → THINKING → r2
+ *  step → click r2 CTA "Find available slots for today" → q3
+ *  step → THINKING → r3
+ *  finale → click "Choose Different Date" → avail
+ * Think hold = SITE_PILOT_CHAT_PLAYBACK_THINK_MS (~1400).
+ */
 
 let preludeAborted = false;
 

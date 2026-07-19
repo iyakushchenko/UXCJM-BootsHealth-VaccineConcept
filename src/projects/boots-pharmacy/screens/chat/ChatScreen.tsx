@@ -9,8 +9,9 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AnimatePresence } from "@/uxds/motion";
+import { AnimatePresence, motion, MOTION_EASE_IN_OUT } from "@/uxds/motion";
 import { ButtonPrimary } from "@/uxds/components";
+import { CHAT_PULL_UP } from "./chatMotion";
 import {
   endSitePilotChatThinking,
   isSitePilotChatSendThinking,
@@ -173,6 +174,13 @@ function QueryFrame({
 }) {
   const ref = useStaticFrameClasses(QUERY_FRAME_CLASSES);
   useChatFrameRevealPaint(ref, revealed);
+  const bubble = (
+    <>
+      <div data-name="Subtotal">
+        <p>{frame.text}</p>
+      </div>
+    </>
+  );
   return (
     <div
       ref={ref}
@@ -182,14 +190,25 @@ function QueryFrame({
       hidden={!revealed}
       aria-hidden={!revealed}
     >
-      <div
-        className="chat__bubble chat__bubble--user"
-        data-name="component.co.order.summary"
-      >
-        <div data-name="Subtotal">
-          <p>{frame.text}</p>
+      {/* Outer frame stays plain div (engine reveal); Motion only on bubble. */}
+      {revealed ? (
+        <motion.div
+          className="chat__bubble chat__bubble--user"
+          data-name="component.co.order.summary"
+          initial={CHAT_PULL_UP.initial}
+          animate={CHAT_PULL_UP.animate}
+          transition={CHAT_PULL_UP.transition}
+        >
+          {bubble}
+        </motion.div>
+      ) : (
+        <div
+          className="chat__bubble chat__bubble--user"
+          data-name="component.co.order.summary"
+        >
+          {bubble}
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -217,6 +236,28 @@ function ReplyFrame({
     if (label) onProductLink?.(label);
   };
 
+  const bubbleBody = (
+    <>
+      {frame.thoughtLabel ? (
+        <p className="chat__thought">{frame.thoughtLabel}</p>
+      ) : null}
+      <div data-name="Subtotal" onClick={onBodyClick}>
+        {frame.body}
+      </div>
+      {frame.ctas.length > 0 ? (
+        <div className="chat__cta-row">
+          {frame.ctas.map((cta) => (
+            <AgentCta
+              key={cta.label}
+              label={cta.label}
+              onClick={() => onAgentCta?.(cta.label)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+
   return (
     <div
       ref={ref}
@@ -226,28 +267,25 @@ function ReplyFrame({
       hidden={!revealed}
       aria-hidden={!revealed}
     >
-      <div
-        className="chat__bubble chat__bubble--agent"
-        data-name="component.co.order.summary"
-      >
-        {frame.thoughtLabel ? (
-          <p className="chat__thought">{frame.thoughtLabel}</p>
-        ) : null}
-        <div data-name="Subtotal" onClick={onBodyClick}>
-          {frame.body}
+      {/* Pull-up replaces thinking: rise from below after think exit. */}
+      {revealed ? (
+        <motion.div
+          className="chat__bubble chat__bubble--agent"
+          data-name="component.co.order.summary"
+          initial={CHAT_PULL_UP.initial}
+          animate={CHAT_PULL_UP.animate}
+          transition={{ duration: 0.42, ease: MOTION_EASE_IN_OUT }}
+        >
+          {bubbleBody}
+        </motion.div>
+      ) : (
+        <div
+          className="chat__bubble chat__bubble--agent"
+          data-name="component.co.order.summary"
+        >
+          {bubbleBody}
         </div>
-        {frame.ctas.length > 0 ? (
-          <div className="chat__cta-row">
-            {frame.ctas.map((cta) => (
-              <AgentCta
-                key={cta.label}
-                label={cta.label}
-                onClick={() => onAgentCta?.(cta.label)}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
+      )}
       {frame.helpful ? <HelpfulStrip /> : null}
     </div>
   );

@@ -15,6 +15,7 @@ import {
   beginTypeInCursorGuard,
   reportTypeInCursorVisibility,
   resetTypeInCursorGuard,
+  tickTypeInCursorGuard,
 } from "@/app/shell/typeInCursorGuard";
 
 describe("typeInCursorGuard", () => {
@@ -52,6 +53,11 @@ describe("typeInCursorGuard", () => {
     expect(el).not.toBeNull();
     expect(el!.classList.contains("proto-chat-demo-cursor--parked")).toBe(true);
     expect(el!.style.opacity === "" || Number(el!.style.opacity) > 0).toBe(true);
+    const left0 = el!.style.left;
+    tickTypeInCursorGuard(ta, 40);
+    tickTypeInCursorGuard(ta, 80);
+    expect(el!.style.left).toBe(left0);
+    expect(el!.classList.contains("proto-chat-demo-cursor--parked")).toBe(true);
     ta.remove();
   });
 
