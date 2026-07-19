@@ -45,10 +45,11 @@
       "status": "proven",
       "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19_RAGE3.md",
       "mcpMatrixAt": {
-        "sha": "pending-0.0.10",
+        "sha": "f366c06",
         "date": "2026-07-19",
-        "note": "overlay eyes refuse-click + bookmark label copy; tip SHA stamped post-commit"
+        "note": "overlay eyes refuse-click + bookmark label copy (v0.0.10)"
       },
+
       "requireMcp": true
     }
   ]
