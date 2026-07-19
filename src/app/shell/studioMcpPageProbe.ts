@@ -223,7 +223,69 @@ function plpProbeSteps(): ProbeStep[] {
       selector:
         '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]',
       action: "click",
-      settleMs: 900,
+      // Catch mid-load (~450ms) — stale jab count must already be gone.
+      settleMs: 80,
+      assert: () => {
+        const host = document.querySelector<HTMLElement>(
+          '[data-studio-react-screen="plp"] [data-studio-plp-listing-phase]'
+        );
+        const phase = host?.getAttribute("data-studio-plp-listing-phase");
+        if (phase !== "loading") {
+          return `expected listing phase=loading during reset refresh (got ${phase ?? "missing"})`;
+        }
+        const count = document.querySelector<HTMLElement>(
+          '[data-studio-react-screen="plp"] [data-studio-plp-results]'
+        );
+        if (!count) return "results count element missing";
+        if (count.getAttribute("data-studio-plp-results-loading") !== "true") {
+          return "count must stamp data-studio-plp-results-loading during refresh";
+        }
+        if ((count.getAttribute("data-studio-plp-results") ?? "") !== "") {
+          return "count data-studio-plp-results must be empty while loading";
+        }
+        const text = (count.textContent ?? "").replace(/\s+/g, " ").trim();
+        if (text.length > 0) {
+          return `stale count visible during load: "${text}"`;
+        }
+        if (/\d+\s+jabs?\s+available/i.test(text)) {
+          return "jab-count text must not render while loading";
+        }
+        const loader = document.querySelector(
+          '[data-studio-react-screen="plp"] [data-studio-plp-listing-loader="true"]'
+        );
+        if (!loader) return "listing loader missing during reset refresh";
+        return true;
+      },
+    },
+    {
+      id: "plp-reset-count-ready",
+      selector:
+        '[data-studio-react-screen="plp"] [data-studio-plp-results]',
+      action: "assert",
+      waitMs: 4000,
+      assert: () => {
+        const host = document.querySelector<HTMLElement>(
+          '[data-studio-react-screen="plp"] [data-studio-plp-listing-phase]'
+        );
+        const phase = host?.getAttribute("data-studio-plp-listing-phase");
+        if (phase === "loading") return "still loading after reset";
+        const count = document.querySelector<HTMLElement>(
+          '[data-studio-react-screen="plp"] [data-studio-plp-results]'
+        );
+        if (!count) return "results count missing after load";
+        if (count.getAttribute("data-studio-plp-results-loading") === "true") {
+          return "results-loading marker still set after load";
+        }
+        const n = count.getAttribute("data-studio-plp-results");
+        if (n == null || !/^\d+$/.test(n) || Number(n) < 1) {
+          return `expected real numeric count after load (got ${n ?? "missing"})`;
+        }
+        const text = (count.textContent ?? "").replace(/\s+/g, " ").trim();
+        if (!new RegExp(`^${n}\\s+jabs?\\s+available$`, "i").test(text)) {
+          return `expected real count text after load (got "${text}")`;
+        }
+        return true;
+      },
     },
     {
       id: "plp-quick-view-ready",

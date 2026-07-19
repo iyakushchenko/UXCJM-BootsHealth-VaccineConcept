@@ -1055,8 +1055,8 @@ function endPlpListingLoading(host: HTMLElement): void {
 }
 
 function setPlpResultsCountLoading(root: ParentNode): void {
-  // Keep prior count copy during load — ONE “Updating results…” lives on the
-  // spinner overlay only (duplicate count-line copy was invent / PO reject).
+  // Hide count during load — no stale jab totals (PO). ONE “Updating results…”
+  // lives on the spinner overlay only.
   const controls = root.querySelector<HTMLElement>(
     '[data-name="component.filter.controls"]'
   );
@@ -1065,7 +1065,11 @@ function setPlpResultsCountLoading(root: ParentNode): void {
     controls?.querySelector<HTMLElement>(".proto-plp-filter-controls__row p") ??
     controls?.querySelector("p");
   if (el) {
-    el.classList.remove("proto-plp-results-count--loading");
+    el.classList.add("proto-plp-results-count--loading");
+    el.setAttribute("data-studio-plp-results-loading", "true");
+    el.setAttribute("data-studio-plp-results", "");
+    el.setAttribute("aria-busy", "true");
+    el.textContent = "";
   }
 }
 
@@ -1846,6 +1850,9 @@ function updateResultsCount(
   renderPlpResultsSummary(summaryEl, visible, noun, filtersActive, chips);
 
   summaryEl.classList.remove("proto-plp-results-count--loading");
+  summaryEl.removeAttribute("data-studio-plp-results-loading");
+  summaryEl.removeAttribute("aria-busy");
+  summaryEl.setAttribute("data-studio-plp-results", String(visible));
 
   if (animate) {
     summaryEl.classList.remove("proto-plp-results-count--in");

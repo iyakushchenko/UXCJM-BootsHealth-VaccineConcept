@@ -37,6 +37,7 @@
 | 6 | **book-now-primary** | Book now not UXDS primary | PLP **Book now** must render via `<ButtonPrimary>` (`.uxds-btn-primary`) | PLP commerce CTA |
 | 7 | **loader-dup** | Duplicate “Updating results…” | Exactly **one** `"Updating results"` in PLP source; spinner has `data-studio-plp-listing-loader`; not in count block | LESSONS loader dup |
 | 8 | **make-retired** | Make chrome still visible under React | Mount files must set `data-studio-make-retired` / `dataset.studioMakeRetired` | PLP/Book mounts |
+| 9 | **count-hide-load** | Stale/fake jab count during refresh | Loading branch renders `null` count + `data-studio-plp-results-loading`; `.plp__results-count--loading` hide rule; no `"available"` in loading arm | PO: “3 jabs available” during Reset |
 
 ---
 
@@ -51,6 +52,7 @@
 | `data-studio-plp-option-count="<n>"` | Filter option counter (Make sidebar) |
 | `data-studio-plp-advantage="true"` | Advantage / promo system-message band |
 | `data-studio-plp-listing-loader="true"` | In-band listing spinner overlay |
+| `data-studio-plp-results-loading="true"` | Results count hidden during listing refresh (no jab totals) |
 | `data-studio-make-retired="<screenId>"` | Make Frame child hidden after React mount |
 | `data-studio-modal="<id>"` | Blocking overlay (felony registry) |
 
@@ -60,7 +62,7 @@
 
 | Prove | Owner |
 |-------|--------|
-| `__studioRunMcpPageProbe({ screenId: "plp" })` includes **plp-search-icons**, **plp-filter-view-all**, **plp-filter-option-counters** | Quinn (QA) |
+| `__studioRunMcpPageProbe({ screenId: "plp" })` includes **plp-search-icons**, **plp-filter-view-all**, **plp-filter-option-counters**, **plp-reset-filters** (count hidden mid-load), **plp-reset-count-ready** | Quinn (QA) |
 | Uma fidelity checklist points here for automated contracts | Uma (UI/UX) |
 | `PARITY_PROVEN.json` + MCP matrix | Ben + Quinn |
 

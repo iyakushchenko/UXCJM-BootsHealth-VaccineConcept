@@ -123,8 +123,42 @@ describe("runMcpPageProbe", () => {
           : null,
     };
     let modalOpen = false;
+    let listingPhase = "idle";
+    const listingHost = {
+      tagName: "DIV",
+      getAttribute: (name: string) =>
+        name === "data-studio-plp-listing-phase" ? listingPhase : null,
+    };
+    const resultsCount: {
+      tagName: string;
+      textContent: string;
+      getAttribute: (name: string) => string | null;
+    } = {
+      tagName: "P",
+      get textContent() {
+        return listingPhase === "loading" ? "" : "12 jabs available";
+      },
+      getAttribute(name: string) {
+        if (name === "data-studio-plp-results-loading") {
+          return listingPhase === "loading" ? "true" : null;
+        }
+        if (name === "data-studio-plp-results") {
+          return listingPhase === "loading" ? "" : "12";
+        }
+        return null;
+      },
+    };
+    const listingLoader = { tagName: "DIV" };
 
     simulateDemoPointerClick.mockImplementation(async (el: { tagName?: string }) => {
+      if (el === reset) {
+        listingPhase = "loading";
+        // Mid-load window for reset assert; then reveal for count-ready.
+        setTimeout(() => {
+          listingPhase = "reveal";
+        }, 120);
+        return true;
+      }
       if (el === quick) {
         modalOpen = true;
         isBlockingModalOpen.mockReturnValue(true);
@@ -159,6 +193,9 @@ describe("runMcpPageProbe", () => {
         if (sel.includes('button[data-name="component.plp.filter.checkbox.item"]'))
           return checkbox;
         if (sel.includes("button[data-studio-plp-reset-filters")) return reset;
+        if (sel.includes("data-studio-plp-listing-phase")) return listingHost;
+        if (sel.includes("data-studio-plp-listing-loader")) return listingLoader;
+        if (sel.includes("data-studio-plp-results")) return resultsCount;
         if (sel.includes("button[data-studio-quick-view")) return quick;
         if (sel.includes('button[data-studio-action="plp-book-now"]'))
           return book;
@@ -193,6 +230,12 @@ describe("runMcpPageProbe", () => {
     );
     expect(
       result.checks.find((c) => c.id === "plp-filter-option-counters")?.pass
+    ).toBe(true);
+    expect(result.checks.find((c) => c.id === "plp-reset-filters")?.pass).toBe(
+      true
+    );
+    expect(
+      result.checks.find((c) => c.id === "plp-reset-count-ready")?.pass
     ).toBe(true);
     expect(result.checks.find((c) => c.id === "plp-quick-view-ready")?.pass).toBe(
       true
@@ -252,11 +295,41 @@ describe("runMcpPageProbe", () => {
       getAttribute: () => "1",
       querySelector: () => ({ textContent: "1" }),
     };
+    let listingPhase = "idle";
+    const listingHost = {
+      tagName: "DIV",
+      getAttribute: (name: string) =>
+        name === "data-studio-plp-listing-phase" ? listingPhase : null,
+    };
+    const resultsCount = {
+      tagName: "P",
+      get textContent() {
+        return listingPhase === "loading" ? "" : "12 jabs available";
+      },
+      getAttribute(name: string) {
+        if (name === "data-studio-plp-results-loading") {
+          return listingPhase === "loading" ? "true" : null;
+        }
+        if (name === "data-studio-plp-results") {
+          return listingPhase === "loading" ? "" : "12";
+        }
+        return null;
+      },
+    };
+    const listingLoader = { tagName: "DIV" };
 
     isBlockingModalOpen.mockReturnValue(true);
     isElementBlockedByModal.mockReturnValue(true);
-    // Felony path: under-click still "succeeds"
-    simulateDemoPointerClick.mockResolvedValue(true);
+    // Felony path: under-click still "succeeds" (except we still advance reset phase)
+    simulateDemoPointerClick.mockImplementation(async (el: { tagName?: string }) => {
+      if (el === reset) {
+        listingPhase = "loading";
+        setTimeout(() => {
+          listingPhase = "reveal";
+        }, 120);
+      }
+      return true;
+    });
 
     vi.stubGlobal("window", {
       location: {
@@ -275,6 +348,9 @@ describe("runMcpPageProbe", () => {
         if (sel.includes('button[data-name="component.plp.filter.checkbox.item"]'))
           return checkbox;
         if (sel.includes("button[data-studio-plp-reset-filters")) return reset;
+        if (sel.includes("data-studio-plp-listing-phase")) return listingHost;
+        if (sel.includes("data-studio-plp-listing-loader")) return listingLoader;
+        if (sel.includes("data-studio-plp-results")) return resultsCount;
         if (sel.includes("button[data-studio-quick-view")) return quick;
         if (sel.includes('button[data-studio-action="plp-book-now"]'))
           return book;

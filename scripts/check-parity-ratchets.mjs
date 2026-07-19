@@ -362,6 +362,38 @@ const REACT_MOUNT_FILES = [
   }
 }
 
+// ── 9) Loading — hide results count (no stale jab totals during refresh) ─────
+{
+  const src = requireFile(PLP_TSX);
+  if (src) {
+    const code = stripComments(src);
+    if (!/data-studio-plp-results-loading/.test(src)) {
+      fail(
+        `RATCHET count-hide-load: ${PLP_TSX} must stamp data-studio-plp-results-loading while listingPhase===loading`
+      );
+    }
+    if (!/listingPhase\s*===\s*["']loading["']\s*\?\s*null/.test(code)) {
+      fail(
+        `RATCHET count-hide-load: ${PLP_TSX} loading branch must render null count children (no jab-count text while loading)`
+      );
+    }
+    // Fail if "available" appears in the loading arm before the null short-circuit.
+    if (
+      /listingPhase\s*===\s*["']loading["']\s*\?[\s\S]{0,120}available/.test(code)
+    ) {
+      fail(
+        `RATCHET count-hide-load: ${PLP_TSX} must not render jab-count "available" text in the loading branch`
+      );
+    }
+    const css = requireFile(PLP_CSS);
+    if (css && !/\.plp__results-count--loading/.test(css)) {
+      fail(
+        `RATCHET count-hide-load: ${PLP_CSS} missing .plp__results-count--loading hide rule`
+      );
+    }
+  }
+}
+
 // ── Docs companion present ──────────────────────────────────────────────────
 {
   if (!fs.existsSync(path.join(ROOT, "docs/product/PARITY_RATCHETS.md"))) {
@@ -375,4 +407,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log("parity-ratchets OK (11 contracts)");
+console.log("parity-ratchets OK (12 contracts)");

@@ -462,12 +462,14 @@ export function PlpScreen({
     !countryExpanded &&
     countryFiltered.length > PLP_FILTER_LIST_MAX;
 
-  // Count keeps prior results during load (displayItems not swapped yet).
-  // ONE “Updating results…” lives under the spinner — never duplicate in count.
+  // During load: hide count entirely (no stale/fake jab totals). Real count
+  // only after displayItems swap. ONE “Updating results…” under spinner only.
   const resultsCountClass =
-    listingPhase === "reveal"
-      ? "plp__results-count plp__results-count--in"
-      : "plp__results-count";
+    listingPhase === "loading"
+      ? "plp__results-count plp__results-count--loading"
+      : listingPhase === "reveal"
+        ? "plp__results-count plp__results-count--in"
+        : "plp__results-count";
 
   const tilesHostClass = [
     "plp__tiles-host",
@@ -775,10 +777,18 @@ export function PlpScreen({
                   <div className="plp__results-summary-row">
                     <p
                       className={resultsCountClass}
-                      data-studio-plp-results={String(displayItems.length)}
+                      data-studio-plp-results={
+                        listingPhase === "loading"
+                          ? ""
+                          : String(displayItems.length)
+                      }
+                      data-studio-plp-results-loading={
+                        listingPhase === "loading" ? "true" : undefined
+                      }
                       aria-live="polite"
+                      aria-busy={listingPhase === "loading" || undefined}
                     >
-                      {activeChips.length ? (
+                      {listingPhase === "loading" ? null : activeChips.length ? (
                         <>
                           {displayItems.length} {noun} found for{" "}
                           {activeChips.map((chip, index) => (

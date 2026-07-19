@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.13 - 190726
+- **project:** PLP: hide results count during Reset/filter refresh (no stale jab totals)
+
 ## v0.0.12 - 190726
 - PLP filter/search Make parity + sitrep countdown
 

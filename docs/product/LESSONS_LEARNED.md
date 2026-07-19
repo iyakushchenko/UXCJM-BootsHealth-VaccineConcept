@@ -46,6 +46,16 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   3. `check:felonies` fails npm test if guard missing or known overlays unregistered.
 - **Quinn prove:** open Quick View → probe cannot click PLP tile underneath → overlay sitrep PASS.
 
+### Stale jab count during Reset / filter refresh = ship fail (PO rage #5)
+
+- **Symptom:** During PLP “Updating results…” loader (Reset filters / filter change), top-left still showed stale totals like **“3 jabs available”** — made-up leftover from prior `displayItems`.
+- **Root cause:** Count kept prior results “for stability” while tiles hid; PO rejects any numeric jab count that isn’t the post-load truth.
+- **Gate:**
+  1. While `listingPhase === "loading"`: count children = `null`, `data-studio-plp-results=""`, `data-studio-plp-results-loading="true"`, CSS hide (`.plp__results-count--loading`).
+  2. After load: real `${n} jabs available` only.
+  3. `check:parity-ratchets` **count-hide-load** + MCP probe `plp-reset-filters` (mid-load empty) → `plp-reset-count-ready`.
+- **Quinn prove:** Reset → no count text while loader up → real count after.
+
 ### Invented hover / loading chrome not in Make = ship fail (PO rage #3)
 
 - **Symptom:** React PLP showed **duplicate** “Updating results…” (count line + spinner label) + listing **jump**; empty bookmark heart went **fuchsia on hover** (Make tertiary empty hover is navy link; fuchsia only when filled/active).

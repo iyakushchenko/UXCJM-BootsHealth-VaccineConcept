@@ -462,7 +462,11 @@
   color: #3a3a3a;
 }
 
-/* No count-line “Updating results…” / pulse — that duplicated overlay copy (PO). */
+/* Loading: empty count slot (no stale jab totals). No pulse / Updating copy. */
+.plp__results-count--loading {
+  visibility: hidden;
+  min-height: 24px;
+}
 
 .plp__results-count--in {
   animation: plp-results-count-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;

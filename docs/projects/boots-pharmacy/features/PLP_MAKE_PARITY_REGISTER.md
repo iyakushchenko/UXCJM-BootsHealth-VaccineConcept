@@ -26,7 +26,7 @@
 | L6 | **AI Assistant promo strip** below listing | **Missing** | Marketing residual (not CJM) |
 | L7 | **Filters column** 304px accordion | **Present** | UXDS Accordion |
 | L8 | **Filter search** (disease / country) — magnifier **RIGHT**, one clear, UXDS `SearchField` | **Was Wrong (icon left + type=search double X + bespoke) → Fixed** | UXDS `SearchField` `iconPosition="end"` |
-| L9 | **Results summary** count + chips + Reset Filters; during load count = “Updating results…” + pulse | **Fixed** | Chips + icon+text Reset + `--loading` pulse |
+| L9 | **Results summary** count + chips + Reset Filters; during load **hide count** (no stale jab totals); spinner holds the only “Updating results…” | **Was Wrong (stale “N jabs available” during refresh) → Fixed** | `data-studio-plp-results-loading` + empty count; chips + icon+text Reset |
 | L10 | **Service tiles** — title, subtitle, desc, price, Book now, Bookmarks, Quick View; **no tile border** (Make borderless) | **Was Partial (border invent) → Fixed** | Removed `.plp__tile` `1px` border; pad 16px retained |
 | L11 | **Empty state (P0)** — zero-match copy in listing host | **Present** | `.plp__empty` |
 | L12 | **1440 / 64 / 1312** content grid | **Present** | `.plp__shell` |
@@ -44,7 +44,7 @@
 | Host | `.proto-plp-tiles-host` `position: relative`, loading `min-height: 220px` |
 | Overlay | Absolute `inset: 0`, `rgba(255,255,255,0.82)`, radius 8px, flex center |
 | Spinner | 44×44 SVG: track stroke `#c4dde3`, arc `#012169`, rotate + dash animations |
-| Copy | **ONE** overlay text **“Updating results…”** under spinner (13/24, `#3a3a3a`). Count line keeps prior results — **no** duplicate / pulsed count-line copy |
+| Copy | **ONE** overlay text **“Updating results…”** under spinner (13/24, `#3a3a3a`). Count line **hidden / empty** during load — **no** stale jab totals, **no** duplicate / pulsed count-line copy |
 | Host height | Lock to prior band height while tiles hidden (min 220px) — no collapse jump |
 | Exit | Loader hide → tiles visible → stagger `proto-plp-tile-in` (50ms × index, max 8) |
 
@@ -103,6 +103,7 @@
 | P0 | I6 View all + 10-cap + filled reset | **Fixed** (PO rage #4) |
 | P0 | I6b Filter option counters | **Fixed** (PO rage #4) |
 | P0 | I6c No invented filter separator | **Fixed** (PO rage #4) |
+| P0 | L9 Count hidden during refresh (no stale jab totals) | **Fixed** (PO rage #5) |
 | P2 | L6 AI promo strip | Residual |
 | P2 | L14 catalog count | Residual |
 
@@ -112,7 +113,7 @@
 
 | Item | Localhost | Interaction |
 |------|-----------|-------------|
-| L4 Filter change → spinner **in-band**, **one** “Updating results…” (overlay only), **no jump**, then results | Required | MCP: count text stays; loader text once; host height stable |
+| L4 Filter / Reset → spinner **in-band**, **one** “Updating results…” (overlay only), **count hidden**, **no jump**, then **real** count | Required | MCP: `plp-reset-filters` empty count mid-load; `plp-reset-count-ready`; loader once |
 | I1b Unchecked checkbox/radio mint hover | Required | Hover sidebar filter row |
 | L5 Advantage bar visible + copy | Required | Visual |
 | L10 no tile border | Required | Visual |

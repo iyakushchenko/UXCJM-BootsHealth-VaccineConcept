@@ -157,8 +157,11 @@
   color: inherit !important;
 }
 
+/* Hide count during load — no stale jab totals (PO). */
 .studio-viewport > div > div:nth-child(9) .proto-plp-results-count--loading {
-  animation: proto-plp-results-loading-pulse 0.9s ease-in-out infinite;
+  visibility: hidden;
+  min-height: 24px;
+  animation: none;
 }
 
 .studio-viewport > div > div:nth-child(9) .proto-plp-results-count--in {

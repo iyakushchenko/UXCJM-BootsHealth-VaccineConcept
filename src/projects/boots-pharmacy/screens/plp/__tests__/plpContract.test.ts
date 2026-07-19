@@ -120,3 +120,24 @@ describe("plpCatalog filters", () => {
     expect(thai).toBeGreaterThan(0);
   });
 });
+
+describe("plp loading count source contract", () => {
+  it("hides jab-count text while listingPhase is loading", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../PlpScreen.tsx"),
+      "utf8"
+    );
+    const code = src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    expect(code).toMatch(/data-studio-plp-results-loading/);
+    expect(code).toMatch(/listingPhase\s*===\s*["']loading["']\s*\?\s*null/);
+    expect(code).not.toMatch(
+      /listingPhase\s*===\s*["']loading["']\s*\?[\s\S]{0,120}available/
+    );
+    // Idle/reveal path still has real count copy.
+    expect(code).toMatch(/\$\{displayItems\.length\} \$\{noun\} available/);
+  });
+});
