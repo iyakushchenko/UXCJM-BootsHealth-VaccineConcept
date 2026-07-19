@@ -1245,36 +1245,57 @@ export function useJourneyPlayback({
     if (screenPlayback.totalFrames === 0) return;
 
     const readyKey = `${beatIndex}:${currentBeat.id}`;
+    const handoffPending =
+      !scenarioBrowseMode &&
+      pendingManualScreenHandoffRef.current === currentBeat.id;
+
     if (scenarioBrowseMode) {
       screenBeatReadyRef.current = readyKey;
     } else if (screenBeatReadyRef.current !== readyKey) {
       screenBeatReadyRef.current = readyKey;
-      const scheduleJumpToStart = () => {
-        if (
-          currentBeat.protoTab != null &&
-          currentTabIndexRef.current !== studioTabToIndex(currentBeat.protoTab)
-        ) {
-          requestAnimationFrame(scheduleJumpToStart);
-          return;
-        }
-        screenPlayback.jumpToStart();
-      };
-      scheduleJumpToStart();
+      // Handoff path owns jump→step (must not race jumpToStart mid-thinking).
+      if (!handoffPending) {
+        const scheduleJumpToStart = () => {
+          if (
+            currentBeat.protoTab != null &&
+            currentTabIndexRef.current !== studioTabToIndex(currentBeat.protoTab)
+          ) {
+            requestAnimationFrame(scheduleJumpToStart);
+            return;
+          }
+          screenPlayback.jumpToStart();
+        };
+        scheduleJumpToStart();
+      }
     }
 
     let outerHandoffRaf = 0;
     let innerHandoffRaf = 0;
-    if (
-      !scenarioBrowseMode &&
-      pendingManualScreenHandoffRef.current === currentBeat.id
-    ) {
+    if (handoffPending) {
       pendingManualScreenHandoffRef.current = null;
+      // Home→chat: land on q0, then step to r0 WITH thinking prelude.
+      // Never jumpToStart while beforeReveal is running (aborts thinking).
+      screenPlayback.jumpToStart();
+      const tryHandoffStep = (attempt: number) => {
+        if (beatIndexRef.current !== beatIndex) return;
+        const reactReady =
+          typeof document !== "undefined" &&
+          Boolean(
+            document.querySelector(
+              '[data-studio-react-screen="chat"] [data-studio-chat-frame="q0"]'
+            )
+          );
+        if (!reactReady && attempt < 40) {
+          window.setTimeout(() => tryHandoffStep(attempt + 1), 50);
+          return;
+        }
+        if (screenPlayback.canStepForward) {
+          screenPlayback.stepForward();
+        }
+      };
       outerHandoffRaf = requestAnimationFrame(() => {
         innerHandoffRaf = requestAnimationFrame(() => {
-          if (beatIndexRef.current !== beatIndex) return;
-          if (screenPlayback.canStepForward) {
-            screenPlayback.stepForward();
-          }
+          tryHandoffStep(0);
         });
       });
     }

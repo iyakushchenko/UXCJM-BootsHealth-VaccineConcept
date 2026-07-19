@@ -234,33 +234,37 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       pushSample(startTop);
     },
     onAnimationFrame({ scrollTop, frameMs }) {
-      if (!active || !animation) return;
+      // Local ref — onAnomaly (diagnostic/halt) may null `animation` mid-frame.
+      const anim = animation;
+      if (!active || !anim) return;
       if (frameMs > 0) {
         if (frameMs >= 50) {
-          animation.stutterFrames += 1;
-          const stutter = detectScrollStutter(animation.stutterFrames);
+          anim.stutterFrames += 1;
+          const stutter = detectScrollStutter(anim.stutterFrames);
           if (stutter) report(stutter);
         } else {
-          animation.stutterFrames = 0;
+          anim.stutterFrames = 0;
         }
       }
 
       const now = performance.now();
       // Suppress during director scripts AND screen/retreat grace (confirmation→history
       // click scroll must not FAIL when the host swaps mid-ease).
-      if (!inScriptWatch && !inPassiveScrollGrace()) {
+      if (!inScriptWatch && !inPassiveScrollGrace() && animation === anim) {
         const deviation = detectScrollPathDeviation({
-          startTop: animation.startTop,
-          targetTop: animation.targetTop,
-          duration: animation.duration,
-          startTime: animation.startTime,
+          startTop: anim.startTop,
+          targetTop: anim.targetTop,
+          duration: anim.duration,
+          startTime: anim.startTime,
           actualTop: scrollTop,
           now,
         });
         if (deviation) report(deviation);
       }
 
-      animation.lastFrameTime = now;
+      // Halt/diagnostic may have cleared animation via report() side effects.
+      if (animation !== anim) return;
+      anim.lastFrameTime = now;
       lastScrollTop = scrollTop;
       accumulateBurstTravel(scrollTop);
       pushSample(scrollTop);

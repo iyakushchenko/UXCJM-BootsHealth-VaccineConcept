@@ -439,6 +439,13 @@ export function collectSitePilotChatScenarioFrames(
   const summary = getChatSummary(screen);
   if (!summary) return [];
 
+  // React Chat: stable markers on direct summary children (q0/r0…).
+  // Never fall through to Make dump-all siblings while host is live.
+  const reactFrames = Array.from(
+    summary.querySelectorAll<HTMLElement>(":scope > [data-studio-chat-frame]")
+  );
+  if (reactFrames.length > 0) return reactFrames;
+
   return Array.from(summary.children).filter(
     (node): node is HTMLElement =>
       node instanceof HTMLElement &&

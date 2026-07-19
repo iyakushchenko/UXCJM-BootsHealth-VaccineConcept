@@ -322,10 +322,12 @@ let activeScrollPinStop: (() => void) | null = null;
 let scenarioScrollGeneration = 0;
 
 /** Drop pending scroll settle timers/pins after a manual transport interrupt. */
-export function   bumpScenarioScrollGeneration(): void {
+export function bumpScenarioScrollGeneration(): void {
   scenarioScrollGeneration += 1;
   activeScrollPinStop?.();
-  cancelPlaybackScroll("abort");
+  // Intentional transport/step interrupt — next scroll owns camera.
+  // Must NOT flag scroll-interrupted (was blocking agentic chat SF).
+  cancelPlaybackScroll("replace");
 }
 
 function resolveScrollEl(scrollEl?: HTMLElement | null): HTMLElement | null {

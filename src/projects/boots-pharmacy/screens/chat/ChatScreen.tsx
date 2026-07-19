@@ -12,7 +12,6 @@ import {
 import { AnimatePresence } from "@/uxds/motion";
 import { ButtonPrimary } from "@/uxds/components";
 import {
-  beginSitePilotChatThinking,
   endSitePilotChatThinking,
   isSitePilotChatSendThinking,
 } from "@/projects/boots-pharmacy/dom/sitePilotChatThinking";
@@ -29,7 +28,10 @@ import {
   subscribeChatThinkingBridge,
 } from "./chatThinkingBridge";
 import {
+  dumpChatThreadDomOrder,
   getChatScenarioRevealState,
+  isChatReplyHeldForPlaybackThinking,
+  logChatReveal,
   resolveChatFrameRevealed,
   resolveChatRevealedFrameCount,
   subscribeChatScenarioReveal,
@@ -380,6 +382,59 @@ export function ChatScreen({
     if (thinking.mode !== "send") setSendThinking(false);
   }, [thinking.mode]);
 
+  // Console truth: one chat-reveal line per user|thinking|agent paint + DOM order.
+  const loggedRevealIdsRef = useRef<Set<string>>(new Set());
+  const loggedThinkGenRef = useRef(-1);
+  useEffect(() => {
+    if (!scenarioReveal.active) {
+      loggedRevealIdsRef.current.clear();
+      loggedThinkGenRef.current = -1;
+      return;
+    }
+
+    if (
+      thinking.mode === "playback" &&
+      thinking.anchorFrameId &&
+      loggedThinkGenRef.current !== thinking.generation
+    ) {
+      loggedThinkGenRef.current = thinking.generation;
+      const idx = CHAT_THREAD_FRAMES.findIndex(
+        (f) => f.id === thinking.anchorFrameId
+      );
+      logChatReveal({
+        kind: "thinking",
+        index: idx >= 0 ? idx : revealedFrameCount,
+        visibleCount: revealedFrameCount,
+        frameId: thinking.anchorFrameId,
+      });
+    }
+
+    CHAT_THREAD_FRAMES.forEach((frame, frameIndex) => {
+      const revealed = resolveChatFrameRevealed(
+        frameIndex,
+        revealedFrameCount,
+        frame.id,
+        thinking
+      );
+      if (!revealed || loggedRevealIdsRef.current.has(frame.id)) return;
+      loggedRevealIdsRef.current.add(frame.id);
+      logChatReveal({
+        kind: frame.kind === "query" ? "user" : "agent",
+        index: frameIndex,
+        visibleCount: revealedFrameCount,
+        frameId: frame.id,
+      });
+    });
+
+    dumpChatThreadDomOrder(revealedFrameCount);
+  }, [
+    scenarioReveal.active,
+    revealedFrameCount,
+    thinking.mode,
+    thinking.generation,
+    thinking.anchorFrameId,
+  ]);
+
   const chips = useMemo(
     () =>
       CHAT_CHIP_LABELS.map((label) => ({
@@ -404,17 +459,17 @@ export function ChatScreen({
   }, [thinking.mode]);
 
   const handleSend = () => {
+    // Stop glyph only clears residual send-thinking (legacy / abort).
     if (sendThinking || isSitePilotChatSendThinking()) {
       endSitePilotChatThinking();
       setSendThinking(false);
       return;
     }
 
-    const screen = document.querySelector(
-      ".studio-viewport > div > div:nth-child(10)"
-    );
-    if (screen) beginSitePilotChatThinking(screen);
-    setSendThinking(true);
+    // PO / Make player: thinking bubble ONLY before agent reply — never on
+    // Sarah send. Playback owns thinking via beforeReveal on reply frames.
+    // Composer click during CJM type-in must not latch send-thinking.
+    setSendThinking(false);
     onSend?.(query);
   };
 
@@ -437,9 +492,11 @@ export function ChatScreen({
       thinking
     );
 
+    // Playback thinking IMMEDIATELY before the held agent reply (r0 first).
+    // Null-anchor fallback holds/shows before r0 (home→chat handoff race).
     if (
-      thinking.mode === "playback" &&
-      thinking.anchorFrameId === frame.id
+      frame.kind === "reply" &&
+      isChatReplyHeldForPlaybackThinking(frame.id, thinking)
     ) {
       threadNodes.push(
         <ChatThinkingBubble
@@ -466,7 +523,10 @@ export function ChatScreen({
       );
     }
 
+    // Hint = idle "awaiting agent" after first user bubble only (not on send).
+    // Suppressed while scenario progressive reveal is driving (CJM owns steps).
     if (
+      !scenarioReveal.active &&
       thinking.mode === "hint" &&
       (thinking.anchorFrameId === frame.id ||
         (!thinking.anchorFrameId && frame.id === "q0"))
@@ -481,7 +541,9 @@ export function ChatScreen({
     }
   });
 
-  if (thinking.mode === "send") {
+  // Never paint send-thinking during progressive CJM — user send ≠ thinking.
+  // (Legacy wire may still latch send mode; ignore while scenario is active.)
+  if (thinking.mode === "send" && !scenarioReveal.active) {
     threadNodes.push(
       <ChatThinkingBubble
         key={`think-${thinking.generation}`}
@@ -531,7 +593,10 @@ export function ChatScreen({
             suggestedLabelId={CHAT_SUGGESTED_LABEL_ID}
             chips={chips}
             onChip={handleChip}
-            sendThinking={sendThinking || thinking.mode === "send"}
+            sendThinking={
+              !scenarioReveal.active &&
+              (sendThinking || thinking.mode === "send")
+            }
           />
         </div>
         <p className="chat__disclaimer">

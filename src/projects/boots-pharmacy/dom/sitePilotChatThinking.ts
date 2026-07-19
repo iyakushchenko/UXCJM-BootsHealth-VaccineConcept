@@ -142,14 +142,18 @@ function showThinkingBubble(
   summary: HTMLElement,
   mode: Exclude<SitePilotChatThinkingMode, "none">,
   scroll: boolean,
-  anchorFrame?: HTMLElement
+  anchorFrame?: HTMLElement,
+  anchorFrameIdOverride?: string | null
 ): void {
   thinkingMode = mode;
 
   if (isChatReactMounted()) {
+    // Explicit id wins — Make/handoff frames often lack data-studio-chat-frame.
+    // First agent reply MUST anchor to r0 or React paints reply with no thinking.
     publishChatThinkingBridge({
       mode,
-      anchorFrameId: resolveAnchorFrameId(anchorFrame),
+      anchorFrameId:
+        anchorFrameIdOverride ?? resolveAnchorFrameId(anchorFrame) ?? "r0",
     });
     if (scroll) scrollChatToBottom();
     return;
@@ -207,13 +211,24 @@ export function beginSitePilotChatThinking(screenOrSummary: ParentNode): void {
 export function beginSitePilotChatPlaybackThinking(
   screenOrSummary: ParentNode,
   anchorFrame?: HTMLElement,
-  options?: { scroll?: boolean }
+  options?: { scroll?: boolean; anchorFrameId?: string | null }
 ): void {
   const summary = resolveSummary(screenOrSummary);
   if (!summary) return;
-  if (thinkingMode === "send") return;
+  // Playback thinking always wins — never leave a send-thinking latch
+  // blocking the agent-turn bubble (user send must not own thinking).
+  if (thinkingMode === "send" || thinkingMode === "hint") {
+    thinkingMode = "none";
+    clearChatThinkingBridge();
+  }
 
-  showThinkingBubble(summary, "playback", options?.scroll ?? true, anchorFrame);
+  showThinkingBubble(
+    summary,
+    "playback",
+    options?.scroll ?? true,
+    anchorFrame,
+    options?.anchorFrameId
+  );
 }
 
 export function endSitePilotChatThinking(): void {

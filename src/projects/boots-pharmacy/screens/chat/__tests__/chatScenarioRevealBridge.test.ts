@@ -8,6 +8,8 @@ import {
   resolveChatRevealedFrameCount,
 } from "../chatScenarioRevealBridge";
 
+// logChatReveal / dumpChatThreadDomOrder are console helpers — covered live on :5173.
+
 describe("chatScenarioRevealBridge", () => {
   beforeEach(() => {
     clearChatScenarioReveal();
@@ -43,5 +45,12 @@ describe("chatScenarioRevealBridge", () => {
         anchorFrameId: null,
       })
     ).toBe(true);
+  });
+
+  it("null-anchor playback thinking still holds first agent reply r0", () => {
+    const thinking = { mode: "playback", anchorFrameId: null };
+    expect(isChatReplyHeldForPlaybackThinking("r0", thinking)).toBe(true);
+    expect(isChatReplyHeldForPlaybackThinking("r1", thinking)).toBe(false);
+    expect(resolveChatFrameRevealed(1, 2, "r0", thinking)).toBe(false);
   });
 });

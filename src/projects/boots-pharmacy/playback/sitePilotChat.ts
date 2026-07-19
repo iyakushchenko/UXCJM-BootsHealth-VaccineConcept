@@ -21,6 +21,7 @@ import {
   beginTypeInCursorGuard,
   tickTypeInCursorGuard,
 } from "@/app/shell/typeInCursorGuard";
+import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 import {
   beginSitePilotChatPlaybackThinking,
   endSitePilotChatThinking,
@@ -34,6 +35,8 @@ import {
 } from "@/projects/boots-pharmacy/dom/sitePilotChatScenario";
 import type { BeforeRevealContext } from "@/app/nav/useScenarioPlayback";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
+import { logChatReveal } from "@/projects/boots-pharmacy/screens/chat/chatScenarioRevealBridge";
+import { CHAT_THREAD_FRAMES } from "@/projects/boots-pharmacy/screens/chat/chatThreadContent";
 
 const AGENTIC_QUERY_LINE_PX = 24;
 const AGENTIC_QUERY_MAX_LINES = 5;
@@ -246,7 +249,11 @@ export async function simulateSarahTypingInComposer(text: string): Promise<void>
     syncComposerHeight(ta);
     tickTypeInCursorGuard(ta, i + 1);
     playbackDiagTypeInProgress(i + 1);
-    if (i % 8 === 0) scrollChatToBottom();
+    if (i % 8 === 0) {
+      scrollChatToBottom();
+      // Composer growth + pin scrolls look like path deviation mid type-in.
+      playbackScrollMonitor.noteRetreatSync();
+    }
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);
   }
 
@@ -268,17 +275,49 @@ export async function runSitePilotChatBeforeReveal(
 ): Promise<void> {
   preludeAborted = false;
   const { frame, frameIndex, frames, currentCount } = ctx;
+  // useScenarioPlayback passes frameIndex = next visibleCount (1-based).
+  const zeroIndex = Math.max(0, frames.indexOf(frame));
+  // Prefer DOM marker; fall back to scripted React playlist ids (q0/r0…).
+  const scriptedId = CHAT_THREAD_FRAMES[zeroIndex]?.id ?? null;
+  const frameId =
+    frame.getAttribute("data-studio-chat-frame") ??
+    scriptedId ??
+    (isSitePilotChatAgentReplyFrame(frame)
+      ? `r${Math.max(0, Math.floor((zeroIndex - 1) / 2))}`
+      : isSitePilotChatUserQueryFrame(frame)
+        ? `q${Math.max(0, Math.floor(zeroIndex / 2))}`
+        : "?");
+  if (!frame.getAttribute("data-studio-chat-frame") && scriptedId) {
+    frame.setAttribute("data-studio-chat-frame", scriptedId);
+  }
+
+  // Chat type-in / thinking / pin scrolls compete with camera ease — grace only,
+  // not director-script stack watch (that false-failed user-send steps).
+  playbackScrollMonitor.noteRetreatSync();
 
   if (isSitePilotChatAgentReplyFrame(frame)) {
     removeDemoCursor();
     const screen = getChatScreen();
     const scrollEl = getChatScrollEl();
-    const frameId = frame.getAttribute("data-studio-chat-frame") ?? "?";
+    // First agent reply (r0) MUST show thinking — never skip for frame 0/handoff.
+    const anchorId = frameId.startsWith("r") || frameId.startsWith("q")
+      ? frameId
+      : scriptedId ?? "r0";
+    logChatReveal({
+      kind: "thinking",
+      index: zeroIndex,
+      visibleCount: currentCount,
+      frameId: anchorId,
+    });
     playbackDiagLog(
       "info",
-      `thinking-start before reply ${frameId} (frameIndex=${frameIndex})`
+      `thinking-start before reply ${anchorId} (frameIndex=${frameIndex} zero=${zeroIndex})`
     );
-    if (screen) beginSitePilotChatPlaybackThinking(screen, frame);
+    if (screen) {
+      beginSitePilotChatPlaybackThinking(screen, frame, {
+        anchorFrameId: anchorId,
+      });
+    }
     if (scrollEl) {
       scrollChatToBottom(true);
       pinScenarioScrollToBottomDuring(
@@ -290,20 +329,34 @@ export async function runSitePilotChatBeforeReveal(
     if (!preludeAborted) {
       await fadeOutSitePilotChatThinking();
       scrollChatToBottom();
+      logChatReveal({
+        kind: "agent",
+        index: zeroIndex,
+        visibleCount: currentCount + 1,
+        frameId: anchorId,
+      });
       playbackDiagLog(
         "info",
-        `thinking-end → reveal reply ${frameId} (frameIndex=${frameIndex})`
+        `thinking-end → reveal reply ${anchorId} (frameIndex=${frameIndex} zero=${zeroIndex})`
       );
     } else {
       playbackDiagLog(
         "info",
-        `thinking-abort before reply ${frameId} (frameIndex=${frameIndex})`
+        `thinking-abort before reply ${anchorId} (frameIndex=${frameIndex})`
       );
     }
     return;
   }
 
   if (!isSitePilotChatUserQueryFrame(frame) || frameIndex <= 1) {
+    if (isSitePilotChatUserQueryFrame(frame)) {
+      logChatReveal({
+        kind: "user",
+        index: zeroIndex,
+        visibleCount: currentCount + 1,
+        frameId,
+      });
+    }
     playbackDiagSkip({
       reason: "chat-query-prelude-skip",
       detail: `frameIndex=${frameIndex} — no type/CTA prelude`,
@@ -344,6 +397,20 @@ export async function runSitePilotChatBeforeReveal(
     await simulateSarahTypingInComposer(text);
   }
   removeDemoCursor();
+  // PO: Sarah send never shows thinking — clear any send-thinking the
+  // composer click may have latched (React/wire). Agent thinking starts
+  // only on the next beforeReveal for a reply frame.
+  endSitePilotChatThinking();
+  logChatReveal({
+    kind: "user",
+    index: zeroIndex,
+    visibleCount: currentCount + 1,
+    frameId,
+  });
+  playbackDiagLog(
+    "info",
+    `user-send complete frameIndex=${frameIndex} zero=${zeroIndex} — no thinking until agent reply`
+  );
 }
 
 /** Final scenario beat — Sarah picks a date CTA and leaves chat for Availability Tool. */

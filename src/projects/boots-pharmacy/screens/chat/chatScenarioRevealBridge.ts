@@ -75,14 +75,16 @@ export function resolveChatRevealedFrameCount(
  * Make order: thinking bubble → then agent reply.
  * Hold reply paint while playback thinking is anchored to that frame,
  * even if engine visibleCount already advanced (race / skipPrelude regress).
+ * Null/missing anchor during playback = first agent turn (r0) — still hold.
  */
 export function isChatReplyHeldForPlaybackThinking(
   frameId: string,
   thinking: { mode: string; anchorFrameId: string | null }
 ): boolean {
-  return (
-    thinking.mode === "playback" && thinking.anchorFrameId === frameId
-  );
+  if (thinking.mode !== "playback") return false;
+  if (thinking.anchorFrameId) return thinking.anchorFrameId === frameId;
+  // Handoff race: playback thinking latched before React frame ids resolved.
+  return frameId === "r0";
 }
 
 /** Whether a thread frame should paint as revealed. */
@@ -95,4 +97,71 @@ export function resolveChatFrameRevealed(
   if (frameIndex >= revealedFrameCount) return false;
   if (isChatReplyHeldForPlaybackThinking(frameId, thinking)) return false;
   return true;
+}
+
+export type ChatRevealKind = "user" | "thinking" | "agent";
+
+/**
+ * One clear console line per paint transition — enough to spot wrong order
+ * without guessing: user → (no think) → thinking → agent.
+ */
+export function logChatReveal(payload: {
+  kind: ChatRevealKind;
+  index: number;
+  visibleCount: number;
+  frameId?: string | null;
+}): void {
+  const body = {
+    kind: payload.kind,
+    index: payload.index,
+    visibleCount: payload.visibleCount,
+    frameId: payload.frameId ?? null,
+  };
+  console.info("[PLAYBACK_DIAG] chat-reveal", body);
+}
+
+/** Layout-order dump of summary children (q / r / thinking). */
+export function dumpChatThreadDomOrder(visibleCount: number): Array<{
+  kind: string;
+  id: string | null;
+  revealed: string | null;
+  hidden: boolean;
+}> {
+  const summary = document.querySelector(
+    '[data-studio-react-screen="chat"] [data-name="component.appointment.summary"], main.chat [data-name="component.appointment.summary"]'
+  );
+  if (!summary) {
+    console.info("[PLAYBACK_DIAG] chat-dom-order", {
+      visibleCount,
+      order: [],
+      note: "summary-missing",
+    });
+    return [];
+  }
+  const order = Array.from(summary.children)
+    .filter((n): n is HTMLElement => n instanceof HTMLElement)
+    .filter(
+      (el) =>
+        el.hasAttribute("data-studio-chat-frame") ||
+        el.hasAttribute("data-studio-chat-thinking")
+    )
+    .map((el) => {
+      if (el.hasAttribute("data-studio-chat-thinking")) {
+        return {
+          kind: "thinking",
+          id: el.getAttribute("data-studio-chat-thinking"),
+          revealed: "true",
+          hidden: el.hidden,
+        };
+      }
+      const name = el.getAttribute("data-name");
+      return {
+        kind: name === "query" ? "user" : name === "reply" ? "agent" : name ?? "?",
+        id: el.getAttribute("data-studio-chat-frame"),
+        revealed: el.getAttribute("data-studio-chat-revealed"),
+        hidden: el.hidden,
+      };
+    });
+  console.info("[PLAYBACK_DIAG] chat-dom-order", { visibleCount, order });
+  return order;
 }
