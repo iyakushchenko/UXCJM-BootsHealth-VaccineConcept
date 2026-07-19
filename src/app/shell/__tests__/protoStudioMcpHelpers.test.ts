@@ -1,4 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  beginMcpTestSession,
+  endMcpTestSession,
+} from "@/app/shell/protoMcpTestGuard";
 import { registerProtoStudioMcpHelpers, parseStudioStepCounter } from "@/app/shell/protoStudioMcpHelpers";
 
 describe("protoStudioMcpHelpers", () => {
@@ -164,11 +168,19 @@ describe("protoStudioMcpHelpers", () => {
 
     expect(win.__protoSetJourneyMode?.(true)).toBe(true);
     expect(journeyMode).toBe(true);
+    expect(win.__protoTriggerTransport?.("play")).toBe(false);
+    const sessionId = beginMcpTestSession("unit-test");
     expect(win.__protoTriggerTransport?.("play")).toBe(true);
+    endMcpTestSession(sessionId);
     expect(transports).toEqual(["play"]);
+    expect(typeof win.__protoAbortAll).toBe("function");
+    expect(typeof win.__protoRunMcpSanityCheck).toBe("function");
     expect(typeof win.__protoRunHomePlaySmoke).toBe("function");
     expect(typeof win.__protoRunRetreatSmoke).toBe("function");
     expect(typeof win.__protoRunAgenticStepForwardSmoke).toBe("function");
+    expect(typeof win.__protoRunTraditionalStepForwardSmoke).toBe("function");
+    expect(typeof win.__protoRunTraditionalPlaySmoke).toBe("function");
+    expect(typeof win.__protoRunTraditionalRetreatSmoke).toBe("function");
   });
 
   it("parses STEPS counter format", () => {

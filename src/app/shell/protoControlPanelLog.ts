@@ -21,8 +21,13 @@ export type ControlPanelAction =
   | "studio:orchestra-mode"
   | "studio:select-open"
   | "studio:select-close"
+  | "diagnostic:open"
   | "diagnostic:dismiss"
-  | "diagnostic:copy-report";
+  | "diagnostic:copy-report"
+  | "qa:phase"
+  | "qa:check"
+  | "qa:cursor"
+  | "qa:run";
 
 export type ControlPanelLogEntry = {
   seq: number;
@@ -100,6 +105,11 @@ export function logControlPanel(
       }`,
       payload
     );
+  } else if (
+    action === "diagnostic:open" ||
+    action === "diagnostic:dismiss"
+  ) {
+    console.warn(`${PROTO_CONTROL_PANEL_LOG_PREFIX} ${action}`, payload);
   } else {
     console.log(`${PROTO_CONTROL_PANEL_LOG_PREFIX} ${action}`, payload);
   }

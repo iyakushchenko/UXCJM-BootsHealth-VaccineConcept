@@ -1,5 +1,5 @@
 /**
- * Playwright smoke — agentic CJM home play + retreat baseline checks.
+ * Playwright smoke — agentic + traditional CJM playback baselines.
  * Usage: npm run smoke (dev server running, or set PROTO_SMOKE_URL)
  */
 
@@ -39,6 +39,14 @@ async function main() {
     return window.__protoRunAgenticStepForwardSmoke?.({ timeoutMs: 240_000 });
   });
 
+  const traditionalStepForward = await page.evaluate(async () => {
+    return window.__protoRunTraditionalStepForwardSmoke?.({ timeoutMs: 360_000 });
+  });
+
+  const traditionalRetreat = await page.evaluate(async () => {
+    return window.__protoRunTraditionalRetreatSmoke?.({ timeoutMs: 120_000 });
+  });
+
   const diagnosticOpen = await page.evaluate(
     () => document.querySelector(".proto-playback-diagnostic") != null
   );
@@ -50,11 +58,15 @@ async function main() {
     homePlay,
     retreat,
     stepForward,
+    traditionalStepForward,
+    traditionalRetreat,
     diagnosticOpen,
     pass:
       Boolean(homePlay?.pass) &&
       Boolean(retreat?.pass) &&
       Boolean(stepForward?.pass) &&
+      Boolean(traditionalStepForward?.pass) &&
+      Boolean(traditionalRetreat?.pass) &&
       !diagnosticOpen,
   };
 
@@ -78,6 +90,18 @@ async function main() {
         stepForward?.reason,
         `after ${stepForward?.steps?.length ?? 0} steps`
       );
+    }
+    if (!traditionalStepForward?.pass) {
+      console.error(
+        "traditionalStepForward failed:",
+        traditionalStepForward?.reason,
+        `after ${traditionalStepForward?.steps?.length ?? 0} steps`
+      );
+    }
+    if (!traditionalRetreat?.pass) {
+      const tradFailed =
+        traditionalRetreat?.checks?.filter((check) => !check.pass) ?? [];
+      console.error("traditionalRetreat failed:", tradFailed);
     }
     if (failed.length > 0) {
       console.error("retreat checks failed:", failed);

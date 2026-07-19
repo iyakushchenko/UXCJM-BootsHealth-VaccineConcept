@@ -58,9 +58,25 @@ describe("journeyRetreatSync", () => {
     expect(syncDwellRetreat).toHaveBeenCalledWith(target, undefined);
   });
 
-  it("routes tab scripts with runtime", async () => {
-    const runTabScript = vi.fn().mockResolvedValue({ ok: true });
-    const playback = { runTabScript } as unknown as ProtoProjectPlayback;
+  it("routes tab scripts with runtime and syncState restores tab", async () => {
+    const goToTab = vi.fn();
+    const closeAllPopups = vi.fn();
+    const closeAvailability = vi.fn();
+    const runTabScript = vi.fn().mockImplementation(async (_id, runtime, options) => {
+      if (options?.syncState) {
+        runtime.goToTab(0, { instant: true });
+        return { ok: true };
+      }
+      return { ok: true };
+    });
+    const playback = {
+      runTabScript,
+    } as unknown as ProtoProjectPlayback;
+    const runtime = {
+      goToTab,
+      closeAllPopups,
+      closeAvailability,
+    } as unknown as JourneyRuntime;
     const target = beat({
       id: "traditional-pdp",
       tabScript: "pdp-book-now",

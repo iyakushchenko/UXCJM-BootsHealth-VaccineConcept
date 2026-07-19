@@ -1,3 +1,5 @@
+import { flashControlRoomButton } from "@/app/nav/protoControlRoomTap";
+
 type Props = {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -25,7 +27,13 @@ export function ProtoStudioJourneySwitch({
       className={`proto-studio-journey-switch${
         checked ? " proto-studio-journey-switch--on" : ""
       }`}
-      onClick={() => onChange(!checked)}
+      onClick={(event) => {
+        flashControlRoomButton(
+          event.currentTarget,
+          "proto-studio-journey-switch--tap"
+        );
+        onChange(!checked);
+      }}
     >
       <span className="proto-studio-journey-switch__track" aria-hidden>
         <span className="proto-studio-journey-switch__thumb" />

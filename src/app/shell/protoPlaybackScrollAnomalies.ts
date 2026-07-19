@@ -81,6 +81,11 @@ export function easeInOutCubic(progress: number): number {
     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 }
 
+/** Matches `animateScrollTo` in protoPlaybackScroll.ts — monitor must use the same curve. */
+export function easeOutCubic(progress: number): number {
+  return 1 - Math.pow(1 - progress, 3);
+}
+
 export function detectScrollReversals(
   samples: ScrollSample[],
   now = samples.at(-1)?.t ?? 0
@@ -161,8 +166,7 @@ export function detectScrollPathDeviation(options: {
   if (duration <= 0) return null;
   const progress = Math.min(1, Math.max(0, (now - startTime) / duration));
   if (progress >= 1) return null;
-  const expected =
-    startTop + (targetTop - startTop) * easeInOutCubic(progress);
+  const expected = startTop + (targetTop - startTop) * easeOutCubic(progress);
   const deviation = Math.abs(actualTop - expected);
   if (deviation < SCROLL_PATH_DEVIATION_PX) return null;
   return {

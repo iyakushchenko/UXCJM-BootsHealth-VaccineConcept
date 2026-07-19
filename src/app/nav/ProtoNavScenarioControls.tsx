@@ -2,6 +2,10 @@ import type { ReactNode } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ProtoStudioJourneySwitch } from "@/app/nav/ProtoStudioJourneySwitch";
 import {
+  CONTROL_ROOM_TAP_MS,
+  flashControlRoomButton,
+} from "@/app/nav/protoControlRoomTap";
+import {
   logControlPanel,
   type ControlPanelAction,
 } from "@/app/shell/protoControlPanelLog";
@@ -35,6 +39,8 @@ export type ProtoNavScenarioControlsProps = {
   onPlay: () => void;
   onStepForward: () => void;
   onJumpToEnd: () => void;
+  qaBeatId?: string | null;
+  qaBeatLabel?: string | null;
 };
 
 function CassettePauseIcon() {
@@ -190,9 +196,11 @@ export function ProtoNavScenarioControls({
   onPlay,
   onStepForward,
   onJumpToEnd,
+  qaBeatId,
+  qaBeatLabel,
 }: ProtoNavScenarioControlsProps) {
-  const STEP_DIODE_MS = 300;
-  const CLICK_DIODE_MS = 300;
+  const STEP_DIODE_MS = CONTROL_ROOM_TAP_MS;
+  const CLICK_DIODE_MS = CONTROL_ROOM_TAP_MS;
   const [blinkToken, setBlinkToken] = useState(0);
   const [diodeEndPulse, setDiodeEndPulse] = useState(false);
   const [stepBlinkActive, setStepBlinkActive] = useState(false);
@@ -277,6 +285,10 @@ export function ProtoNavScenarioControls({
     }, STEP_DIODE_MS);
   };
 
+  const flashTransportTap = (button: HTMLButtonElement) => {
+    flashControlRoomButton(button, "proto-nav-scenario__btn--tap");
+  };
+
   const showEndDiode =
     (journeyAtEnd || diodeEndPulse) && !playbackErrorActive && !isOnAir;
   const transportAtEnd = journeyAtEnd && !isOnAir;
@@ -306,27 +318,28 @@ export function ProtoNavScenarioControls({
   const jumpToEndDisabled =
     !journeyMode || playbackActive || transportAtEnd || !canJumpToEnd;
 
-  const handleJumpToStart = () => {
+  const handleJumpToStart = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:jump-to-start", {
       canJumpToStart,
       journeyMode,
       playbackActive,
     });
+    flashTransportTap(event.currentTarget);
     triggerStepDiodeBlink();
     onJumpToStart();
   };
 
-  const handleStepBack = () => {
+  const handleStepBack = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:step-back", {
       canStepBack,
       journeyMode,
       playbackActive,
     });
-    triggerStepDiodeBlink();
+    flashTransportTap(event.currentTarget);
     onStepBack();
   };
 
-  const handlePlay = () => {
+  const handlePlay = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:play", {
       canPlay,
       journeyMode,
@@ -337,27 +350,30 @@ export function ProtoNavScenarioControls({
       isPlaying,
       isOnAir,
     });
+    flashTransportTap(event.currentTarget);
     onPlay();
   };
 
-  const handleStepForward = () => {
+  const handleStepForward = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:step-forward", {
       canStepForward,
       journeyMode,
       playbackActive,
       transportAtEnd,
     });
+    flashTransportTap(event.currentTarget);
     triggerStepDiodeBlink();
     onStepForward();
   };
 
-  const handleJumpToEnd = () => {
+  const handleJumpToEnd = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:jump-to-end", {
       canJumpToEnd,
       journeyMode,
       playbackActive,
       transportAtEnd,
     });
+    flashTransportTap(event.currentTarget);
     triggerStepDiodeBlink();
     onJumpToEnd();
   };

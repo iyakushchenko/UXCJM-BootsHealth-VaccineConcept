@@ -29,6 +29,7 @@ type Snapshot = {
   isPausingBeforeReveal: boolean;
   journeyMode?: boolean;
   journeyAtEnd?: boolean;
+  availabilityOpen?: boolean;
   childIndex?: number | null;
   protoTab?: number | null;
   journeyId?: string;
@@ -94,6 +95,7 @@ export function useProtoPlaybackScrollGuard({
 
   const prevChildIndexRef = useRef<number | null>(null);
   const prevProtoTabRef = useRef<number | null>(null);
+  const prevAvailabilityOpenRef = useRef(false);
 
   useLayoutEffect(() => {
     const pausing = snapshot.isPausingBeforeReveal;
@@ -144,11 +146,13 @@ export function useProtoPlaybackScrollGuard({
     if (!scrollGuardActive) {
       prevChildIndexRef.current = null;
       prevProtoTabRef.current = null;
+      prevAvailabilityOpenRef.current = false;
       return;
     }
 
     const childIndex = snapshot.childIndex ?? null;
     const protoTab = snapshot.protoTab ?? null;
+    const availabilityOpen = Boolean(snapshot.availabilityOpen);
     const childChanged =
       prevChildIndexRef.current != null &&
       childIndex != null &&
@@ -157,13 +161,22 @@ export function useProtoPlaybackScrollGuard({
       prevProtoTabRef.current != null &&
       protoTab != null &&
       protoTab !== prevProtoTabRef.current;
+    const availabilityChanged =
+      prevAvailabilityOpenRef.current !== availabilityOpen;
 
-    if (childChanged || protoTabChanged) {
+    if (childChanged || protoTabChanged || availabilityChanged) {
       monitor.noteScreenChange();
     }
     prevChildIndexRef.current = childIndex;
     prevProtoTabRef.current = protoTab;
-  }, [monitor, scrollGuardActive, snapshot.childIndex, snapshot.protoTab]);
+    prevAvailabilityOpenRef.current = availabilityOpen;
+  }, [
+    monitor,
+    scrollGuardActive,
+    snapshot.availabilityOpen,
+    snapshot.childIndex,
+    snapshot.protoTab,
+  ]);
 
   useEffect(() => {
     monitor.setActive(scrollGuardActive);

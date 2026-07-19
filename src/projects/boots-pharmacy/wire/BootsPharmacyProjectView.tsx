@@ -78,6 +78,7 @@ import {
   syncBookStep2RetreatDefaultDom,
 } from "@/projects/boots-pharmacy/dom/protoBookStep2Calendar";
 import { useProtoScrollFill } from "@/app/proto/useProtoScrollFill";
+import { scrollPrototypeScrollToTopAfterLayout } from "@/app/proto/protoScenarioEngine";
 import {
   boosterDoseSummaryLabel,
   PDP_CHECKBOX_LABEL,
@@ -1058,14 +1059,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     prototypeScrollPosRef.current = 0;
     const el = prototypeScrollElRef.current;
     if (!el) return;
-    const apply = () => {
-      el.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      el.scrollTop = 0;
-    };
-    apply();
-    requestAnimationFrame(apply);
-    window.setTimeout(apply, 0);
-    window.setTimeout(apply, 120);
+    scrollPrototypeScrollToTopAfterLayout(el);
   }, []);
 
   const resetWireInteractionState = useCallback(() => {

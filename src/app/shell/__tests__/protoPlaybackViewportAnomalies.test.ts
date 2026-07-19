@@ -52,6 +52,28 @@ describe("protoPlaybackViewportAnomalies", () => {
     expect(anomaly).toBeNull();
   });
 
+  it("ignores book-step2 funnel retreat transitions on the same screen", () => {
+    expect(
+      detectViewportStallAfterAdvance({
+        scrollTop: 0,
+        baselineScrollTop: 0,
+        childIndex: 4,
+        baselineChildIndex: 4,
+        beatId: "book-step2-time",
+        baselineBeatId: "book-step2-reserve",
+        beatLabel: "Book — time",
+        touchpointKey: "beat:book-step2-time",
+        baselineTouchpointKey: "beat:book-step2-reserve",
+        isScripting: false,
+        isPausingBeforeReveal: false,
+        screenFramesBeat: false,
+        anchorInView: false,
+        anchorProminent: false,
+        expectsViewportFollow: true,
+      })
+    ).toBeNull();
+  });
+
   it("passes when focal anchor center is prominently in view", () => {
     const anomaly = detectViewportStallAfterAdvance({
       scrollTop: 0,

@@ -37,6 +37,7 @@ import {
   scheduleDemoCursorJourneyEndFade,
   setDemoCursorJourneyMode,
 } from "@/app/proto/protoDemoCursor";
+import { cancelPlaybackScroll } from "@/app/proto/protoPlaybackScroll";
 import { useProtoJourneyPlayback } from "@/app/orchestra/useProtoJourneyPlayback";
 import {
   createShouldSkipBeat,
@@ -55,6 +56,14 @@ import {
   type PlaybackStudioSnapshot,
 } from "@/app/shell/playbackStudioSnapshot";
 import { notePlaybackTransport } from "@/app/shell/protoPlaybackInteractionContext";
+import {
+  disableCursorQaEyes,
+  resetPlaybackCursorDiagnosticContext,
+} from "@/app/shell/protoPlaybackCursorDiagnostic";
+import {
+  recordPlaybackDiagnosticDismiss,
+  recordPlaybackDiagnosticOpen,
+} from "@/app/shell/protoPlaybackDiagnosticFlash";
 import {
   logControlPanel,
   registerControlPanelSnapshotProvider,
@@ -152,14 +161,20 @@ export default function App() {
   const controlPanelTransportRef = useRef<Record<string, unknown>>({});
   const onWireApiChange = useCallback(() => setWireTick((t) => t + 1), []);
 
+  useEffect(() => {
+    disableCursorQaEyes();
+  }, []);
+
   const handlePlaybackDiagnostic = useCallback((error: PlaybackDiagnosticError) => {
     stopAllPlaybackRef.current();
-    setPlaybackDiagnostic((prev) =>
-      prev ??
-      attachPlaybackInteractionToDiagnostic(
+    setPlaybackDiagnostic((prev) => {
+      if (prev) return prev;
+      const enriched = attachPlaybackInteractionToDiagnostic(
         enrichPlaybackDiagnosticSnapshot(error, playbackSnapshotRef.current)
-      )
-    );
+      );
+      recordPlaybackDiagnosticOpen(enriched, "playback-guard");
+      return enriched;
+    });
   }, []);
 
   const hubScrollElRef = useRef<HTMLDivElement>(null);
@@ -448,6 +463,8 @@ export default function App() {
       parkAfterInteraction: studioJourneyMode && !transport.isPlaying,
     });
     if (!studioJourneyMode) {
+      resetPlaybackCursorDiagnosticContext();
+      disableCursorQaEyes();
       removeDemoCursor({ immediate: true });
       resetDemoCursorTravelOrigin();
     }
@@ -472,7 +489,9 @@ export default function App() {
       currentBeat
     );
     let visibleCount = touchpointProgress.visibleCount;
-    if (!hubOpen && activeJourney) {
+    // Forward director scripts may open the next tab before the beat index catches up.
+    // Do not apply that preview during retreat sync — it pins the counter at the end.
+    if (!hubOpen && activeJourney && navTransportLocked && !transport.retreatSyncing) {
       const screenBeatIndex = resolveBeatIndexForScreenTab(
         activeJourney,
         current,
@@ -496,6 +515,8 @@ export default function App() {
     current,
     hubOpen,
     journeyBeatIndex,
+    navTransportLocked,
+    transport.retreatSyncing,
     shouldSkipBeat,
     studioJourneyMode,
     studioPlaylist,
@@ -576,6 +597,9 @@ export default function App() {
       return;
     }
 
+    if (SCREENS[current]?.childIndex !== 10) {
+      wireApiRef.current?.resetPrototypeScroll();
+    }
     scenarioPlayback.jumpToStart();
     setJourneyBeatIndex(
       resolveBeatIndexForScreenTab(activeJourney, current, shouldSkipBeat)
@@ -978,6 +1002,7 @@ export default function App() {
       isPausingBeforeReveal: transport.isPausingBeforeReveal,
       journeyMode: studioJourneyMode,
       journeyAtEnd,
+      availabilityOpen: wire?.availabilityOpen ?? false,
       childIndex: hubOpen ? null : (SCREENS[current]?.childIndex ?? null),
       protoTab: currentBeat?.protoTab ?? null,
       journeyId: activeJourney?.id,
@@ -998,7 +1023,7 @@ export default function App() {
 
   useProtoPlaybackCursorGuard({
     snapshot: {
-      active: !hubOpen,
+      active: studioJourneyMode && !hubOpen,
       isOnAir: transport.isOnAir,
       isPausingBeforeReveal: transport.isPausingBeforeReveal,
       journeyMode: studioJourneyMode,
@@ -1040,6 +1065,11 @@ export default function App() {
       visibleProgress: `${studioProgress.visibleCount}/${studioProgress.totalFrames}`,
       playlist: studioPlaylist,
       transportStepToken: transport.transportStepToken,
+      availabilityOpen: wire?.availabilityOpen ?? false,
+      loginPopupOpen: wire?.loginPopupOpen ?? false,
+      vaccinePickerOpen: wire?.vaccinePickerOpen ?? false,
+      recipientPickerOpen: wire?.recipientPickerOpen ?? false,
+      quickViewOpen: wire?.quickViewOpen ?? false,
     },
     currentBeat,
     onDiagnostic: handlePlaybackDiagnostic,
@@ -1239,7 +1269,11 @@ export default function App() {
 
   useEffect(() => {
     return registerProtoStudioMcpHelpers({
-      dismissDiagnostic: () => setPlaybackDiagnostic(null),
+      dismissDiagnostic: () => {
+        recordPlaybackDiagnosticDismiss("mcp-helper");
+        setPlaybackDiagnostic(null);
+      },
+      abortAll: () => stopAllPlaybackRef.current(),
       isDiagnosticOpen: () =>
         document.querySelector(".proto-playback-diagnostic") != null,
       getState: () => ({
@@ -1403,10 +1437,9 @@ export default function App() {
       <ProtoPlaybackDiagnosticOverlay
         error={playbackDiagnostic}
         onDismiss={() => {
-          logControlPanel("diagnostic:dismiss", {
-            kind: playbackDiagnostic?.context.kind,
-            message: playbackDiagnostic?.message,
-          });
+          recordPlaybackDiagnosticDismiss("overlay");
+          cancelPlaybackScroll();
+          playbackScrollMonitor.reset();
           setPlaybackDiagnostic(null);
         }}
       />
@@ -1478,6 +1511,9 @@ export default function App() {
                 playbackCursorMonitor.noteManualTransport("jump-to-start");
                 playbackViewportMonitor.noteManualTransport("jump-to-start");
                 transport.jumpToStart();
+                if (SCREENS[current]?.childIndex !== 10) {
+                  wireApiRef.current?.resetPrototypeScroll();
+                }
               }}
               onStepBack={() => {
                 notePlaybackTransport("step-back");
@@ -1503,6 +1539,8 @@ export default function App() {
                 playbackViewportMonitor.noteManualTransport("jump-to-end");
                 transport.jumpToEnd();
               }}
+              qaBeatId={currentBeat?.id ?? null}
+              qaBeatLabel={currentBeat?.label ?? studioTouchpoint.label}
             />
           ) : (
             <div className="proto-nav-scenario">

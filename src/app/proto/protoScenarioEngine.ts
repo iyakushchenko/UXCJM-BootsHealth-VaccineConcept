@@ -481,6 +481,13 @@ export function scheduleScenarioScroll(
   timing: ScenarioScrollTiming = "immediate",
   prevCount = visibleCount
 ): void {
+  if (frames.length === 0) {
+    if (align === "start") {
+      scrollPrototypeScrollToTop(scrollEl, "instant");
+    }
+    return;
+  }
+
   const generation = scenarioScrollGeneration;
   const el = resolveScrollEl(scrollEl);
   const steppedForwardOne = visibleCount === prevCount + 1;

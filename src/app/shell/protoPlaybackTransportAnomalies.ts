@@ -3,7 +3,8 @@ import { isAllowedTouchpointAheadOfBeat } from "@/app/nav/resolveStudioTouchpoin
 export type TransportAnomalyKind =
   | "playlist-frame-skip"
   | "touchpoint-ahead-of-beat"
-  | "director-script-off-air";
+  | "director-script-off-air"
+  | "stray-popup-on-beat";
 
 export type TransportAnomaly = {
   kind: TransportAnomalyKind;
@@ -11,10 +12,25 @@ export type TransportAnomaly = {
   detail?: string;
 };
 
+/** Manual director chains that legitimately skip one playlist frame in a single step. */
+function isAllowedPlaylistFrameSkip(options: {
+  prevTouchpointKey?: string;
+  nextTouchpointKey: string;
+  delta: number;
+}): boolean {
+  if (options.delta !== 2) return false;
+  if (options.nextTouchpointKey !== "beat:appointment-details") return false;
+  return (
+    options.prevTouchpointKey === "beat:confirmation" ||
+    options.prevTouchpointKey === "beat:appointment-history"
+  );
+}
+
 /** One transport step must not jump over playlist frames (e.g. 3/12 → 5/12). */
 export function detectPlaylistFrameSkip(options: {
   prevTouchpointIndex: number;
   nextTouchpointIndex: number;
+  prevTouchpointKey?: string;
   beatId?: string;
   nextTouchpointKey: string;
 }): TransportAnomaly | null {
@@ -23,6 +39,15 @@ export function detectPlaylistFrameSkip(options: {
 
   const delta = nextTouchpointIndex - prevTouchpointIndex;
   if (delta <= 1) return null;
+  if (
+    isAllowedPlaylistFrameSkip({
+      prevTouchpointKey: options.prevTouchpointKey,
+      nextTouchpointKey: options.nextTouchpointKey,
+      delta,
+    })
+  ) {
+    return null;
+  }
 
   return {
     kind: "playlist-frame-skip",
@@ -66,6 +91,36 @@ export function detectTouchpointAheadOfBeat(options: {
     ]
       .filter(Boolean)
       .join(" "),
+  };
+}
+
+/** Beat landed but a modal overlay is still open (e.g. availability after choose-location). */
+export function detectStrayPopupOnBeat(options: {
+  beatId?: string;
+  isScripting?: boolean;
+  availabilityOpen?: boolean;
+  loginPopupOpen?: boolean;
+  vaccinePickerOpen?: boolean;
+  recipientPickerOpen?: boolean;
+  quickViewOpen?: boolean;
+}): TransportAnomaly | null {
+  if (options.isScripting) return null;
+  if (options.beatId !== "book-step2") return null;
+
+  const open = [
+    options.availabilityOpen ? "availability" : "",
+    options.loginPopupOpen ? "login" : "",
+    options.vaccinePickerOpen ? "vaccine picker" : "",
+    options.recipientPickerOpen ? "recipient picker" : "",
+    options.quickViewOpen ? "quick view" : "",
+  ].filter(Boolean);
+
+  if (open.length === 0) return null;
+
+  return {
+    kind: "stray-popup-on-beat",
+    message: `Popup still open on Book Step 2 (${open.join(", ")})`,
+    detail: `beat=${options.beatId}`,
   };
 }
 

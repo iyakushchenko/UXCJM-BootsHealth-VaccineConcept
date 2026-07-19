@@ -35,6 +35,34 @@ export type ViewportCheckContext = {
 export const VIEWPORT_MIN_SCROLL_DELTA_PX = 48;
 export const VIEWPORT_POST_ADVANCE_CHECK_MS = 520;
 
+function isBookStep2FunnelBeatId(beatId: string | undefined): boolean {
+  return beatId?.startsWith("book-step2") ?? false;
+}
+
+const BOOK_STEP2_FUNNEL_ORDER = [
+  "book-step2",
+  "book-step2-date",
+  "book-step2-time",
+  "book-step2-reserve",
+] as const;
+
+/** Same-screen CJM step-back within the book-step2 sub-beats (instant DOM/scroll sync). */
+function isBookStep2FunnelRetreatTransition(
+  baselineBeatId: string | undefined,
+  beatId: string | undefined
+): boolean {
+  if (!isBookStep2FunnelBeatId(baselineBeatId) || !isBookStep2FunnelBeatId(beatId)) {
+    return false;
+  }
+  const from = BOOK_STEP2_FUNNEL_ORDER.indexOf(
+    baselineBeatId as (typeof BOOK_STEP2_FUNNEL_ORDER)[number]
+  );
+  const to = BOOK_STEP2_FUNNEL_ORDER.indexOf(
+    beatId as (typeof BOOK_STEP2_FUNNEL_ORDER)[number]
+  );
+  return from > 0 && to >= 0 && to < from;
+}
+
 export function isElementInScrollRootViewport(
   el: HTMLElement,
   scrollRoot: HTMLElement,
@@ -108,6 +136,14 @@ export function detectViewportStallAfterAdvance(
 ): ViewportAnomaly | null {
   if (ctx.screenFramesBeat) return null;
   if (ctx.isScripting || ctx.isPausingBeforeReveal) return null;
+  // Book step 2 retreat sync snaps DOM on the same tab — not a forward camera follow.
+  if (
+    isBookStep2FunnelRetreatTransition(ctx.baselineBeatId, ctx.beatId) &&
+    ctx.childIndex != null &&
+    ctx.childIndex === ctx.baselineChildIndex
+  ) {
+    return null;
+  }
   if (ctx.childIndex == null || ctx.childIndex !== ctx.baselineChildIndex) {
     return null;
   }

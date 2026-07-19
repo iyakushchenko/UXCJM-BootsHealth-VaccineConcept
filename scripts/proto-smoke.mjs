@@ -8,6 +8,12 @@
  * 5. evaluate_script → await window.__protoRunRetreatSmoke?.()
  *    Checks: chat counter >= 10 (not 2/25), avail June 25 on step-back
  *
+ * Traditional CJM (switch orchestra mode first):
+ * 6. evaluate_script → window.__protoSetOrchestraMode?.('traditional-cjm')
+ * 7. evaluate_script → await window.__protoRunTraditionalPlaySmoke?.()
+ * 8. evaluate_script → await window.__protoRunTraditionalStepForwardSmoke?.()
+ * 9. evaluate_script → await window.__protoRunTraditionalRetreatSmoke?.()
+ *
  * Or: npm run smoke (Playwright headless, needs dev server)
  */
 
@@ -18,4 +24,10 @@ Proto smoke (MCP):
   await window.__protoRunHomePlaySmoke?.()
   await window.__protoRunRetreatSmoke?.()
   window.__protoStudioState?.()
+
+Traditional CJM (MCP):
+  window.__protoSetOrchestraMode?.('traditional-cjm')
+  await window.__protoRunTraditionalPlaySmoke?.()
+  await window.__protoRunTraditionalStepForwardSmoke?.()
+  await window.__protoRunTraditionalRetreatSmoke?.()
 `);

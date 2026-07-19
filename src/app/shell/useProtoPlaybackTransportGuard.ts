@@ -12,6 +12,7 @@ import {
 import {
   detectDirectorScriptOffAir,
   detectPlaylistFrameSkip,
+  detectStrayPopupOnBeat,
   detectTouchpointAheadOfBeat,
 } from "@/app/shell/protoPlaybackTransportAnomalies";
 
@@ -29,6 +30,11 @@ export type TransportGuardSnapshot = {
   playlist: readonly StudioTouchpointEntry[];
   /** Increments on each manual cassette transport action. */
   transportStepToken: number;
+  availabilityOpen?: boolean;
+  loginPopupOpen?: boolean;
+  vaccinePickerOpen?: boolean;
+  recipientPickerOpen?: boolean;
+  quickViewOpen?: boolean;
 };
 
 type Options = {
@@ -46,12 +52,14 @@ export function useProtoPlaybackTransportGuard({
   onDiagnosticRef.current = onDiagnostic;
 
   const prevTouchpointIndexRef = useRef<number | null>(null);
+  const prevTouchpointKeyRef = useRef<string | null>(null);
   const prevTransportStepTokenRef = useRef(snapshot.transportStepToken);
   const reportedRef = useRef(false);
 
   useEffect(() => {
     if (!snapshot.active || !snapshot.journeyMode) {
       prevTouchpointIndexRef.current = null;
+      prevTouchpointKeyRef.current = null;
       prevTransportStepTokenRef.current = snapshot.transportStepToken;
       reportedRef.current = false;
       return;
@@ -98,6 +106,7 @@ export function useProtoPlaybackTransportGuard({
       const frameSkip = detectPlaylistFrameSkip({
         prevTouchpointIndex: prevTouchpointIndexRef.current,
         nextTouchpointIndex: touchpointIndex,
+        prevTouchpointKey: prevTouchpointKeyRef.current ?? undefined,
         beatId: currentBeat?.id,
         nextTouchpointKey: touchpointKey,
       });
@@ -118,6 +127,7 @@ export function useProtoPlaybackTransportGuard({
       }
 
       prevTouchpointIndexRef.current = touchpointIndex;
+      prevTouchpointKeyRef.current = touchpointKey;
     }
 
     const offAir = detectDirectorScriptOffAir({
@@ -128,6 +138,19 @@ export function useProtoPlaybackTransportGuard({
     });
     if (offAir) {
       report(offAir.kind, offAir.message, offAir.detail);
+    }
+
+    const strayPopup = detectStrayPopupOnBeat({
+      beatId: currentBeat?.id,
+      isScripting: snapshot.isScripting,
+      availabilityOpen: snapshot.availabilityOpen,
+      loginPopupOpen: snapshot.loginPopupOpen,
+      vaccinePickerOpen: snapshot.vaccinePickerOpen,
+      recipientPickerOpen: snapshot.recipientPickerOpen,
+      quickViewOpen: snapshot.quickViewOpen,
+    });
+    if (strayPopup) {
+      report(strayPopup.kind, strayPopup.message, strayPopup.detail);
     }
   }, [currentBeat, snapshot]);
 }

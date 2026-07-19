@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   detectDirectorScriptOffAir,
   detectPlaylistFrameSkip,
+  detectStrayPopupOnBeat,
   detectTouchpointAheadOfBeat,
 } from "@/app/shell/protoPlaybackTransportAnomalies";
 
@@ -23,6 +24,17 @@ describe("detectPlaylistFrameSkip", () => {
         prevTouchpointIndex: 2,
         nextTouchpointIndex: 3,
         nextTouchpointKey: "beat:choose-location",
+      })
+    ).toBeNull();
+  });
+
+  it("allows confirmation chain landing on appointment details", () => {
+    expect(
+      detectPlaylistFrameSkip({
+        prevTouchpointIndex: 21,
+        nextTouchpointIndex: 23,
+        prevTouchpointKey: "beat:confirmation",
+        nextTouchpointKey: "beat:appointment-details",
       })
     ).toBeNull();
   });
@@ -99,6 +111,46 @@ describe("detectDirectorScriptOffAir", () => {
         isOnAir: true,
         beatId: "book-step2-time",
         scriptLabel: "select-book-time",
+      })
+    ).toBeNull();
+  });
+});
+
+describe("detectStrayPopupOnBeat", () => {
+  it("flags availability overlay still open on book-step2", () => {
+    const anomaly = detectStrayPopupOnBeat({
+      beatId: "book-step2",
+      availabilityOpen: true,
+    });
+    expect(anomaly?.kind).toBe("stray-popup-on-beat");
+    expect(anomaly?.message).toContain("availability");
+  });
+
+  it("passes when book-step2 has no popups open", () => {
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "book-step2",
+        availabilityOpen: false,
+        loginPopupOpen: false,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores other beats", () => {
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "choose-location",
+        availabilityOpen: true,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores book-step2 while director script is still running", () => {
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "book-step2",
+        isScripting: true,
+        availabilityOpen: true,
       })
     ).toBeNull();
   });

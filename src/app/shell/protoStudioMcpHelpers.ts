@@ -1,7 +1,33 @@
-/** Dev-only helpers for Chrome DevTools MCP / agent live testing. */
+/** Dev-only helpers for Chrome DevTools MCP / agent testing.
+ *
+ * NORMAL MCP TEST (one call, safe, no transport):
+ *   await window.__protoRunMcpSanityCheck?.()
+ *
+ * STOP everything:
+ *   window.__protoAbortAll?.()
+ *
+ * Console filter: `[ProtoControlPanel]` (diagnostics = console.warn)
+ * Eyes: `window.__protoMcpEyes()`
+ */
 
 import type { ProtoOrchestraModeId } from "@/app/orchestra/types";
+import { runTraditionalControlRoomRobotQa } from "@/app/shell/protoControlRoomQaRunner";
 import { logControlPanel } from "@/app/shell/protoControlPanelLog";
+import {
+  disableCursorQaEyes,
+  enableCursorQaEyes,
+  formatPlaybackCursorEventSummary,
+  getCursorDiagnosticState,
+} from "@/app/shell/protoPlaybackCursorDiagnostic";
+import { getRecentDiagnosticFlashes } from "@/app/shell/protoPlaybackDiagnosticFlash";
+import {
+  beginMcpTestSession,
+  endMcpTestSession,
+  getMcpTestSession,
+  isMcpTestAborted,
+  requestMcpTestAbort,
+  throwIfMcpTestAborted,
+} from "@/app/shell/protoMcpTestGuard";
 
 export type ProtoStudioMcpState = {
   diagnosticOpen: boolean;
@@ -13,6 +39,32 @@ export type ProtoStudioMcpState = {
   beatId: string | null;
   availStep: string | null;
   logLen: number;
+  isOnAir?: boolean;
+  isPlaying?: boolean;
+  canStepBack?: boolean;
+  canStepForward?: boolean;
+  canPlay?: boolean;
+  qaPhase?: string;
+  qaRunning?: boolean;
+  qaPass?: number;
+  qaFail?: number;
+  lastAction?: string;
+  lastActionSeq?: number;
+  lastCursor?: string;
+  lastCursorAction?: string;
+  lastCursorTarget?: string;
+  cursorVisible?: boolean;
+  cursorParked?: boolean;
+  cursorFaded?: boolean;
+  cursorEventCount?: number;
+  cursorUnexpectedOnDwell?: number;
+  recentCursorEvents?: Array<{
+    action: string;
+    beatId?: string;
+    scriptId?: string;
+    summary?: string;
+    unexpectedOnDwell?: boolean;
+  }>;
 };
 
 export type ProtoRetreatSmokeCheck = {
@@ -94,6 +146,43 @@ declare global {
       timeoutMs?: number;
       maxSteps?: number;
     }) => Promise<ProtoStepForwardSmokeResult>;
+    /** Manual step-forward through the full traditional CJM playlist (dev-only). */
+    __protoRunTraditionalStepForwardSmoke?: (options?: {
+      timeoutMs?: number;
+      maxSteps?: number;
+    }) => Promise<ProtoStepForwardSmokeResult>;
+    /** Traditional CJM Play → journey end smoke (async, dev-only). */
+    __protoRunTraditionalPlaySmoke?: (options?: {
+      timeoutMs?: number;
+    }) => Promise<ProtoHomePlaySmokeResult>;
+    /** Jump-to-end then step-back — traditional book / confirmation / browse baselines. */
+    __protoRunTraditionalRetreatSmoke?: (options?: {
+      timeoutMs?: number;
+    }) => Promise<ProtoRetreatSmokeResult>;
+    /** Full control-room robot QA — step fwd/back, play/pause, HUD telemetry (dev-only). */
+    __protoRunTraditionalControlRoomRobotQa?: () => Promise<import("@/app/shell/protoControlRoomQaRunner").ControlRoomQaResult>;
+    /** Cursor diagnostic ring buffer + DOM visibility snapshot (dev-only). */
+    __protoCursorDiagnostics?: () => import("@/app/shell/protoPlaybackCursorDiagnostic").CursorDiagnosticState;
+    /** Agent MCP eyes — state + cursor + qa log slices in one call. */
+    __protoMcpEyes?: () => {
+      state?: ProtoStudioMcpState;
+      cursor?: import("@/app/shell/protoPlaybackCursorDiagnostic").CursorDiagnosticState;
+      diagnosticFlashes?: import("@/app/shell/protoPlaybackDiagnosticFlash").DiagnosticFlashRecord[];
+      diagnostics?: import("@/app/shell/protoControlPanelLog").ControlPanelLogEntry[];
+      consoleFilter?: string;
+      qaChecks: import("@/app/shell/protoControlPanelLog").ControlPanelLogEntry[];
+      qaCursor: import("@/app/shell/protoControlPanelLog").ControlPanelLogEntry[];
+      qaPhases: import("@/app/shell/protoControlPanelLog").ControlPanelLogEntry[];
+    };
+    /** Emergency stop — halts playback, dismisses diagnostic, ends MCP session. */
+    __protoAbortAll?: () => ProtoStudioMcpState;
+    /** Safe default MCP test — DOM checks only, no transport. */
+    __protoRunMcpSanityCheck?: () => Promise<{
+      pass: boolean;
+      checks: ProtoSmokeRetreatCheck[];
+      state?: ProtoStudioMcpState;
+    }>;
+    __protoDiagnosticFlashes?: () => import("@/app/shell/protoPlaybackDiagnosticFlash").DiagnosticFlashRecord[];
   }
 }
 
@@ -182,6 +271,25 @@ function delay(ms: number): Promise<void> {
   });
 }
 
+async function withMcpTestSession<T>(
+  label: string,
+  run: () => Promise<T>
+): Promise<T> {
+  const prior = getMcpTestSession();
+  if (prior) {
+    requestMcpTestAbort("superseded");
+    endMcpTestSession(prior.id);
+  }
+  const id = beginMcpTestSession(label);
+  enableCursorQaEyes();
+  try {
+    return await run();
+  } finally {
+    disableCursorQaEyes();
+    endMcpTestSession(id);
+  }
+}
+
 function chatHandoffReached(state: ProtoStudioMcpState): boolean {
   if (state.label?.toLowerCase().includes("chat")) return true;
   return parseStudioStepCounter(state.counter).visible >= 3;
@@ -208,10 +316,177 @@ function stepSettleMsForState(state: ProtoStudioMcpState | undefined): number {
   if (!state) return 4000;
   if (state.beatId === "agentic-home") return 50_000;
   if (state.beatId === "agentic-chat") return 12_000;
+  if (state.beatId === "traditional-plp" || state.beatId === "traditional-pdp") {
+    return 10_000;
+  }
   if (state.label?.toLowerCase().includes("thinking")) return 12_000;
   if (state.beatId?.startsWith("book-step2")) return 22_000;
   if (state.beatId?.startsWith("avail-")) return 10_000;
   return 6000;
+}
+
+function traditionalJourneyEndReached(state: ProtoStudioMcpState): boolean {
+  const { visible, total } = parseStudioStepCounter(state.counter);
+  if (total > 0 && visible >= total) return true;
+  return state.beatId === "appointment-details";
+}
+
+function cursorFieldsForStudioState(): Pick<
+  ProtoStudioMcpState,
+  | "lastCursor"
+  | "lastCursorAction"
+  | "lastCursorTarget"
+  | "cursorVisible"
+  | "cursorParked"
+  | "cursorFaded"
+  | "cursorEventCount"
+  | "cursorUnexpectedOnDwell"
+  | "recentCursorEvents"
+> {
+  const qa = window.__protoQaHud;
+  const diag = getCursorDiagnosticState();
+  return {
+    lastCursor: qa?.lastCursor ?? diag.lastSummary,
+    lastCursorAction: diag.lastCursorAction ?? qa?.cursorAction,
+    lastCursorTarget: diag.lastCursorTarget ?? qa?.cursorTarget,
+    cursorVisible: diag.cursorVisible,
+    cursorParked: diag.cursorParked,
+    cursorFaded: diag.cursorFaded,
+    cursorEventCount: diag.cursorEventCount,
+    cursorUnexpectedOnDwell: diag.unexpectedOnDwellCount,
+    recentCursorEvents: diag.recentCursorEvents.map((event) => ({
+      action: event.action,
+      beatId: event.beatId,
+      scriptId: event.scriptId,
+      summary: formatPlaybackCursorEventSummary(event),
+      unexpectedOnDwell: event.unexpectedOnDwell,
+    })),
+  };
+}
+
+async function dismissDiagnosticsUntilClear(maxMs = 4000): Promise<boolean> {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const state = window.__protoStudioState?.();
+    if (!state?.diagnosticOpen) return true;
+    window.__protoDismissPlaybackDiagnostic?.();
+    await delay(120);
+  }
+  return !window.__protoStudioState?.()?.diagnosticOpen;
+}
+
+async function runStepForwardSmokeForMode(
+  orchestraMode: ProtoOrchestraModeId,
+  smokeOptions?: { timeoutMs?: number; maxSteps?: number }
+): Promise<ProtoStepForwardSmokeResult> {
+  const timeoutMs = smokeOptions?.timeoutMs ?? 600_000;
+  const maxSteps =
+    smokeOptions?.maxSteps ?? (orchestraMode === "traditional-cjm" ? 15 : 28);
+  const steps: ProtoStepForwardSmokeStep[] = [];
+  const deadline = Date.now() + timeoutMs;
+
+  const fail = (
+    reason: string,
+    state?: ProtoStudioMcpState
+  ): ProtoStepForwardSmokeResult => ({
+    pass: false,
+    reason,
+    steps,
+    finalState: state ?? window.__protoStudioState?.(),
+  });
+
+  window.__protoEnsureCleanStudio?.();
+  throwIfMcpTestAborted();
+  window.__protoSetOrchestraMode?.(orchestraMode);
+  await delay(120);
+  if (!window.__protoSetJourneyMode?.(true)) {
+    return fail("set-journey-mode-unavailable");
+  }
+  await delay(800);
+  if (!window.__protoTriggerTransport?.("jump-to-start")) {
+    return fail("jump-to-start-unavailable");
+  }
+  await delay(1200);
+  if (!(await dismissDiagnosticsUntilClear())) {
+    return fail("diagnostic-after-setup", window.__protoStudioState?.());
+  }
+
+  let startState = window.__protoStudioState?.();
+  if (!startState) {
+    return fail("no-initial-state");
+  }
+  const { total } = parseStudioStepCounter(startState.counter);
+  if (total <= 0) {
+    return fail("invalid-step-total", startState);
+  }
+
+  for (let index = 0; index < maxSteps; index++) {
+    throwIfMcpTestAborted();
+    if (Date.now() > deadline) {
+      return fail("timeout-before-step", window.__protoStudioState?.());
+    }
+
+    const before = window.__protoStudioState?.();
+    if (!before) {
+      return fail("missing-state-before-step");
+    }
+    if (before.diagnosticOpen) {
+      return fail(`diagnostic-before-step-${index + 1}`, before);
+    }
+
+    const { visible, total: stepTotal } = parseStudioStepCounter(before.counter);
+    if (stepTotal > 0 && visible >= stepTotal) {
+      return { pass: true, steps, finalState: before };
+    }
+
+    const beforeFingerprint = stateFingerprint(before);
+    if (!window.__protoTriggerTransport?.("step-forward")) {
+      return fail(`step-forward-unavailable-${index + 1}`, before);
+    }
+
+    const stepStart = Date.now();
+    const settleMs = Math.min(
+      stepSettleMsForState(before),
+      Math.max(1200, deadline - Date.now())
+    );
+    const outcome = await waitForTransportProgress(
+      beforeFingerprint,
+      settleMs
+    );
+    const after = outcome.state ?? window.__protoStudioState?.();
+
+    if (!after) {
+      return fail(`missing-state-after-step-${index + 1}`);
+    }
+    if (outcome.diagnostic || after.diagnosticOpen) {
+      return fail(`diagnostic-on-step-${index + 1}`, after);
+    }
+    if (!outcome.progressed) {
+      return fail(
+        `transport-no-progress step ${index + 1} (${before.label ?? before.beatId ?? "?"})`,
+        after
+      );
+    }
+
+    const settleBudget = Math.max(0, deadline - Date.now());
+    const settled = await waitForDirectorSettle(
+      after,
+      Math.min(stepSettleMsForState(after), settleBudget)
+    );
+    if (settled?.diagnosticOpen) {
+      return fail(`diagnostic-on-step-${index + 1}`, settled);
+    }
+    const settledAfter = settled ?? after;
+
+    steps.push({
+      index: index + 1,
+      before,
+      after: settledAfter,
+      ms: Date.now() - stepStart,
+    });
+  }
+
+  return fail("max-steps-reached", window.__protoStudioState?.());
 }
 
 async function waitForTransportProgress(
@@ -248,7 +523,9 @@ async function waitForDirectorSettle(
   const needsSettle =
     state.beatId?.startsWith("book-step2") ||
     state.beatId?.startsWith("avail-") ||
-    state.beatId === "agentic-home";
+    state.beatId === "agentic-home" ||
+    state.beatId === "traditional-plp" ||
+    state.beatId === "traditional-pdp";
   if (!needsSettle || maxMs <= 0) return window.__protoStudioState?.();
 
   const stableMs = state.beatId?.startsWith("book-step2") ? 4500 : 1800;
@@ -287,6 +564,7 @@ async function waitForDirectorSettle(
 export function registerProtoStudioMcpHelpers(options: {
   dismissDiagnostic: () => void;
   isDiagnosticOpen: () => boolean;
+  abortAll?: () => void;
   getState: () => Omit<
     ProtoStudioMcpState,
     "diagnosticOpen" | "logLen" | "orchestraMode"
@@ -300,24 +578,105 @@ export function registerProtoStudioMcpHelpers(options: {
 
   window.__protoDismissPlaybackDiagnostic = () => {
     if (!options.isDiagnosticOpen()) return false;
-    logControlPanel("diagnostic:dismiss", { source: "mcp-helper" });
     options.dismissDiagnostic();
     return true;
   };
 
   window.__protoStudioState = () => {
     const base = options.getState();
+    const log = window.__protoControlPanelLog ?? [];
+    const last = log[log.length - 1];
+    const qa = window.__protoQaHud;
+    const cursor = cursorFieldsForStudioState();
+    if (typeof document === "undefined") {
+      return {
+        ...base,
+        orchestraMode: options.getOrchestraModeId?.() ?? null,
+        diagnosticOpen: options.isDiagnosticOpen(),
+        logLen: log.length,
+        qaPhase: qa?.phase,
+        qaRunning: qa?.running,
+        qaPass: qa?.pass,
+        qaFail: qa?.fail,
+        lastAction: last?.action,
+        lastActionSeq: last?.seq,
+        ...cursor,
+      };
+    }
+    const playBtn = document.querySelector('[aria-label="Play journey"]');
+    const stepFwd = document.querySelector('[aria-label="Step forward"]');
+    const stepBack = document.querySelector('[aria-label="Step back"]');
     return {
       ...base,
       orchestraMode: options.getOrchestraModeId?.() ?? null,
       diagnosticOpen: options.isDiagnosticOpen(),
-      logLen: window.__protoControlPanelLog?.length ?? 0,
+      logLen: log.length,
+      isOnAir: document.querySelector(".proto-nav-scenario--on-air") != null,
+      isPlaying: playBtn?.getAttribute("aria-pressed") === "true",
+      canStepForward: stepFwd ? !stepFwd.hasAttribute("disabled") : undefined,
+      canStepBack: stepBack ? !stepBack.hasAttribute("disabled") : undefined,
+      canPlay: playBtn ? !playBtn.hasAttribute("disabled") : undefined,
+      qaPhase: qa?.phase,
+      qaRunning: qa?.running,
+      qaPass: qa?.pass,
+      qaFail: qa?.fail,
+      lastAction: last?.action,
+      lastActionSeq: last?.seq,
+      ...cursor,
     };
   };
+
+  window.__protoCursorDiagnostics = () => getCursorDiagnosticState();
+
+  window.__protoMcpEyes = () => {
+    const log = window.dumpProtoControlPanelLog?.() ?? [];
+    return {
+      state: window.__protoStudioState?.(),
+      cursor: window.__protoCursorDiagnostics?.(),
+      diagnosticFlashes: getRecentDiagnosticFlashes(),
+      diagnostics: log
+        .filter(
+          (entry) =>
+            entry.action === "diagnostic:open" ||
+            entry.action === "diagnostic:dismiss"
+        )
+        .slice(-24),
+      consoleFilter: "[ProtoControlPanel]",
+      qaChecks: log.filter((entry) => entry.action === "qa:check").slice(-24),
+      qaCursor: log.filter((entry) => entry.action === "qa:cursor").slice(-40),
+      qaPhases: log.filter((entry) => entry.action === "qa:phase").slice(-12),
+    };
+  };
+
+  window.__protoDiagnosticFlashes = () => getRecentDiagnosticFlashes();
 
   window.__protoEnsureCleanStudio = () => {
     window.__protoDismissPlaybackDiagnostic?.();
     return window.__protoStudioState!();
+  };
+
+  window.__protoAbortAll = () => {
+    const session = getMcpTestSession();
+    if (session) {
+      requestMcpTestAbort("abort-all");
+      endMcpTestSession(session.id);
+    }
+    options.abortAll?.();
+    options.dismissDiagnostic();
+    disableCursorQaEyes();
+    logControlPanel("qa:run", { source: "abort-all" });
+    return window.__protoStudioState!();
+  };
+
+  window.__protoRunMcpSanityCheck = async () => {
+    window.__protoAbortAll?.();
+    const baseline = runSmokeRetreatChecks();
+    logControlPanel("qa:run", { source: "sanity-check", pass: baseline.pass });
+    return {
+      pass: baseline.pass,
+      checks: baseline.checks,
+      state: window.__protoStudioState?.(),
+    };
   };
 
   window.__protoSetOrchestraMode = (modeId) => {
@@ -341,13 +700,34 @@ export function registerProtoStudioMcpHelpers(options: {
   };
 
   window.__protoTriggerTransport = (action) => {
+    if (!getMcpTestSession()) {
+      logControlPanel(`transport:${action}`, {
+        source: "mcp-helper",
+        blocked: true,
+        blockReason: "no-active-mcp-session — call a __protoRun* test first",
+      });
+      return false;
+    }
+    if (isMcpTestAborted()) {
+      logControlPanel(`transport:${action}`, {
+        source: "mcp-helper",
+        blocked: true,
+        blockReason: "mcp-test-aborted",
+      });
+      return false;
+    }
     if (!options.triggerTransport) return false;
     logControlPanel(`transport:${action}`, { source: "mcp-helper" });
     options.triggerTransport(action);
     return true;
   };
 
-  window.__protoRunRetreatSmoke = async (smokeOptions) => {
+  window.__protoRunRetreatSmoke = (smokeOptions) =>
+    withMcpTestSession("retreat-smoke", () => runRetreatSmokeBody(smokeOptions));
+
+  async function runRetreatSmokeBody(
+    smokeOptions?: { timeoutMs?: number }
+  ): Promise<ProtoRetreatSmokeResult> {
     const timeoutMs = smokeOptions?.timeoutMs ?? 90_000;
     const checks: ProtoRetreatSmokeCheck[] = [];
     const deadline = Date.now() + timeoutMs;
@@ -474,13 +854,16 @@ export function registerProtoStudioMcpHelpers(options: {
       state: window.__protoStudioState?.(),
     });
 
+    await dismissDiagnosticsUntilClear();
+
     return {
       pass: checks.every((check) => check.pass),
       checks,
     };
-  };
+  }
 
-  window.__protoRunHomePlaySmoke = async (smokeOptions) => {
+  window.__protoRunHomePlaySmoke = (smokeOptions) =>
+    withMcpTestSession("home-play-smoke", async () => {
     const timeoutMs = smokeOptions?.timeoutMs ?? 25000;
     window.__protoEnsureCleanStudio?.();
     window.__protoSetOrchestraMode?.("agentic-cjm");
@@ -514,113 +897,179 @@ export function registerProtoStudioMcpHelpers(options: {
       reason: "timeout",
       state: window.__protoStudioState?.(),
     };
-  };
-
-  window.__protoRunAgenticStepForwardSmoke = async (smokeOptions) => {
-    const timeoutMs = smokeOptions?.timeoutMs ?? 600_000;
-    const maxSteps = smokeOptions?.maxSteps ?? 28;
-    const steps: ProtoStepForwardSmokeStep[] = [];
-    const deadline = Date.now() + timeoutMs;
-
-    const fail = (
-      reason: string,
-      state?: ProtoStudioMcpState
-    ): ProtoStepForwardSmokeResult => ({
-      pass: false,
-      reason,
-      steps,
-      finalState: state ?? window.__protoStudioState?.(),
     });
 
+  window.__protoRunAgenticStepForwardSmoke = (smokeOptions) =>
+    withMcpTestSession("agentic-step-forward", () =>
+      runStepForwardSmokeForMode("agentic-cjm", smokeOptions)
+    );
+
+  window.__protoRunTraditionalStepForwardSmoke = (smokeOptions) =>
+    withMcpTestSession("traditional-step-forward", () =>
+      runStepForwardSmokeForMode("traditional-cjm", smokeOptions)
+    );
+
+  window.__protoRunTraditionalPlaySmoke = (smokeOptions) =>
+    withMcpTestSession("traditional-play-smoke", async () => {
+    const timeoutMs = smokeOptions?.timeoutMs ?? 120_000;
     window.__protoEnsureCleanStudio?.();
-    window.__protoSetOrchestraMode?.("agentic-cjm");
+    window.__protoSetOrchestraMode?.("traditional-cjm");
     await delay(120);
     if (!window.__protoSetJourneyMode?.(true)) {
-      return fail("set-journey-mode-unavailable");
+      return { pass: false, reason: "set-journey-mode-unavailable" };
+    }
+    await delay(480);
+    if (!window.__protoTriggerTransport?.("jump-to-start")) {
+      return { pass: false, reason: "jump-to-start-unavailable" };
     }
     await delay(800);
-    if (!window.__protoTriggerTransport?.("jump-to-start")) {
-      return fail("jump-to-start-unavailable");
-    }
-    await delay(1200);
-
-    let startState = window.__protoStudioState?.();
-    if (!startState) {
-      return fail("no-initial-state");
-    }
-    const { total } = parseStudioStepCounter(startState.counter);
-    if (total <= 0) {
-      return fail("invalid-step-total", startState);
+    if (!window.__protoTriggerTransport?.("play")) {
+      return { pass: false, reason: "trigger-play-unavailable" };
     }
 
-    for (let index = 0; index < maxSteps; index++) {
-      if (Date.now() > deadline) {
-        return fail("timeout-before-step", window.__protoStudioState?.());
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const state = window.__protoStudioState?.();
+      if (!state) {
+        await delay(200);
+        continue;
       }
+      if (state.diagnosticOpen) {
+        return { pass: false, reason: "playback-diagnostic", state };
+      }
+      if (traditionalJourneyEndReached(state)) {
+        return { pass: true, state };
+      }
+      await delay(200);
+    }
 
-      const before = window.__protoStudioState?.();
-      if (!before) {
-        return fail("missing-state-before-step");
-      }
-      if (before.diagnosticOpen) {
-        return fail(`diagnostic-before-step-${index + 1}`, before);
-      }
+    return {
+      pass: false,
+      reason: "timeout",
+      state: window.__protoStudioState?.(),
+    };
+    });
 
-      const { visible, total: stepTotal } = parseStudioStepCounter(before.counter);
-      if (stepTotal > 0 && visible >= stepTotal) {
-        return { pass: true, steps, finalState: before };
-      }
+  window.__protoRunTraditionalRetreatSmoke = (smokeOptions) =>
+    withMcpTestSession("traditional-retreat-smoke", async () => {
+    const timeoutMs = smokeOptions?.timeoutMs ?? 120_000;
+    const checks: ProtoRetreatSmokeCheck[] = [];
+    const deadline = Date.now() + timeoutMs;
 
-      const beforeFingerprint = stateFingerprint(before);
-      if (!window.__protoTriggerTransport?.("step-forward")) {
-        return fail(`step-forward-unavailable-${index + 1}`, before);
-      }
+    const fail = (id: string, detail: string, state?: ProtoStudioMcpState) => {
+      checks.push({ id, pass: false, detail, state });
+      return { pass: false, checks };
+    };
 
-      const stepStart = Date.now();
-      const settleMs = Math.min(
-        stepSettleMsForState(before),
-        Math.max(1200, deadline - Date.now())
-      );
-      const outcome = await waitForTransportProgress(
-        beforeFingerprint,
-        settleMs
-      );
-      const after = outcome.state ?? window.__protoStudioState?.();
-      const elapsed = Date.now() - stepStart;
+    window.__protoEnsureCleanStudio?.();
+    window.__protoSetOrchestraMode?.("traditional-cjm");
+    await delay(120);
+    if (!window.__protoSetJourneyMode?.(true)) {
+      return fail("journey-mode", "set-journey-mode-unavailable");
+    }
+    await delay(800);
+    if (!window.__protoTriggerTransport?.("jump-to-end")) {
+      return fail("jump-to-end", "trigger-jump-to-end-unavailable");
+    }
+    await delay(3200);
 
-      if (!after) {
-        return fail(`missing-state-after-step-${index + 1}`);
-      }
-      if (outcome.diagnostic || after.diagnosticOpen) {
-        return fail(`diagnostic-on-step-${index + 1}`, after);
-      }
-      if (!outcome.progressed) {
-        return fail(
-          `transport-no-progress step ${index + 1} (${before.label ?? before.beatId ?? "?"})`,
-          after
-        );
-      }
-
-      const settleBudget = Math.max(0, deadline - Date.now());
-      const settled = await waitForDirectorSettle(
-        after,
-        Math.min(stepSettleMsForState(after), settleBudget)
-      );
-      if (settled?.diagnosticOpen) {
-        return fail(`diagnostic-on-step-${index + 1}`, settled);
-      }
-      const settledAfter = settled ?? after;
-
-      steps.push({
-        index: index + 1,
-        before,
-        after: settledAfter,
-        ms: Date.now() - stepStart,
+    let endState = window.__protoStudioState?.();
+    if (!endState?.diagnosticOpen) {
+      const endOk =
+        endState != null &&
+        (endState.beatId === "appointment-details" ||
+          endState.beatId === "appointment-history" ||
+          parseStudioStepCounter(endState.counter).visible >=
+            parseStudioStepCounter(endState.counter).total);
+      checks.push({
+        id: "jump-to-end",
+        pass: endOk,
+        detail: endOk
+          ? undefined
+          : `expected appointment end, got ${endState?.beatId ?? "?"} ${endState?.counter ?? "?"}`,
+        state: endState,
       });
+    } else {
+      return fail("jump-to-end", "playback-diagnostic at end", endState);
     }
 
-    return fail("max-steps-reached", window.__protoStudioState?.());
-  };
+    const stepBackOnce = async (
+      expectedBeatIds: string[],
+      checkId: string
+    ): Promise<ProtoStudioMcpState | undefined> => {
+      const before = window.__protoStudioState?.();
+      if (before?.diagnosticOpen) {
+        checks.push({
+          id: checkId,
+          pass: false,
+          detail: "playback-diagnostic before retreat step",
+          state: before,
+        });
+        return before;
+      }
+      if (!window.__protoTriggerTransport?.("step-back")) {
+        checks.push({
+          id: checkId,
+          pass: false,
+          detail: "step-back-unavailable",
+          state: before,
+        });
+        return before;
+      }
+      await delay(2200);
+      const settled = await waitForDirectorSettle(
+        window.__protoStudioState?.() ?? before!,
+        5000
+      );
+      const state = settled ?? window.__protoStudioState?.();
+      if (state?.diagnosticOpen) {
+        checks.push({
+          id: checkId,
+          pass: false,
+          detail: "playback-diagnostic during retreat",
+          state,
+        });
+        return state;
+      }
+      const pass =
+        state?.beatId != null && expectedBeatIds.includes(state.beatId);
+      checks.push({
+        id: checkId,
+        pass,
+        detail: pass
+          ? undefined
+          : `expected [${expectedBeatIds.join(", ")}], got ${state?.beatId ?? "?"}`,
+        state,
+      });
+      return state;
+    };
+
+    await stepBackOnce(["appointment-history"], "details-to-history");
+    await stepBackOnce(["confirmation"], "history-to-confirmation");
+    await stepBackOnce(["book-step2-reserve"], "confirmation-to-reserve");
+    await stepBackOnce(["book-step2-time"], "reserve-to-time");
+    await stepBackOnce(["book-step2-date"], "time-to-date");
+    await stepBackOnce(["book-step2"], "date-to-book-step2");
+    await stepBackOnce(["choose-location"], "book-step2-to-choose-location");
+    await stepBackOnce(["traditional-pdp"], "choose-location-to-pdp");
+    await stepBackOnce(["traditional-plp"], "pdp-to-plp");
+
+    checks.push({
+      id: "no-diagnostic",
+      pass: !window.__protoStudioState?.().diagnosticOpen,
+      state: window.__protoStudioState?.(),
+    });
+
+    await dismissDiagnosticsUntilClear();
+
+    return {
+      pass: checks.every((check) => check.pass),
+      checks,
+    };
+    });
+
+  window.__protoRunTraditionalControlRoomRobotQa = () =>
+    withMcpTestSession("robot-qa", runTraditionalControlRoomRobotQa);
 
   return () => {
     delete window.__protoDismissPlaybackDiagnostic;
@@ -633,5 +1082,14 @@ export function registerProtoStudioMcpHelpers(options: {
     delete window.__protoRunHomePlaySmoke;
     delete window.__protoRunRetreatSmoke;
     delete window.__protoRunAgenticStepForwardSmoke;
+    delete window.__protoRunTraditionalStepForwardSmoke;
+    delete window.__protoRunTraditionalPlaySmoke;
+    delete window.__protoRunTraditionalRetreatSmoke;
+    delete window.__protoRunTraditionalControlRoomRobotQa;
+    delete window.__protoAbortAll;
+    delete window.__protoRunMcpSanityCheck;
+    delete window.__protoCursorDiagnostics;
+    delete window.__protoMcpEyes;
+    delete window.__protoDiagnosticFlashes;
   };
 }

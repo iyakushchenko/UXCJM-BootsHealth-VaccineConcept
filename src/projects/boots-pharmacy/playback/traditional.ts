@@ -16,6 +16,7 @@ import {
   simulateDemoPointerClick,
   simulateDemoPointerHover,
 } from "@/app/proto/protoDemoCursor";
+import { getPrototypeScrollRoot } from "@/app/proto/protoPlaybackScroll";
 import { PROTO_SCREENS } from "@/projects/boots-pharmacy/screens/protoScreens";
 import {
   scriptAborted,
@@ -225,7 +226,10 @@ async function addFirstPlpTileBookmark(
     return true;
   }
 
-  const clicked = await simulateDemoPointerClick(bookmarkBtn, { shouldAbort });
+  const clicked = await simulateDemoPointerClick(bookmarkBtn, {
+    shouldAbort,
+    scroll: false,
+  });
   if (!clicked || shouldAbort()) return false;
   await delay(SETTLE_MS);
   return true;
@@ -361,7 +365,7 @@ async function runPlpOpenPdp(options?: { skip?: boolean }): Promise<PlaybackScri
     return scriptOk();
   }
 
-  await simulateDemoPointerClick(bookBtn, { shouldAbort });
+  await simulateDemoPointerClick(bookBtn, { shouldAbort, scroll: false });
   await delay(SETTLE_MS);
   return shouldAbort() ? scriptAborted() : scriptOk();
 }
@@ -389,7 +393,10 @@ async function runPdpBookNow(
   if (options?.skip) {
     bookBtn.click();
   } else {
-    const clicked = await simulateDemoPointerClick(bookBtn, { shouldAbort });
+    const clicked = await simulateDemoPointerClick(bookBtn, {
+      shouldAbort,
+      scroll: false,
+    });
     if (!clicked || shouldAbort()) return false;
     await delay(SETTLE_MS);
   }
@@ -447,7 +454,7 @@ async function clickBookStep1Continue(
     return true;
   }
 
-  return simulateDemoPointerClick(continueBtn, { shouldAbort });
+  return simulateDemoPointerClick(continueBtn, { shouldAbort, scroll: false });
 }
 
 function findBookStep1SearchField(scope: ParentNode): HTMLElement | null {
@@ -471,7 +478,10 @@ async function openBookStep1LocationPicker(
     if (options?.skip) {
       searchField.click();
     } else {
-      const clicked = await simulateDemoPointerClick(searchField, { shouldAbort });
+      const clicked = await simulateDemoPointerClick(searchField, {
+        shouldAbort,
+        scroll: false,
+      });
       if (!clicked || shouldAbort()) return false;
     }
     return true;
@@ -513,6 +523,10 @@ async function runBookLocationPick(
   if (!(await clickBookStep1Continue(step1Screen, options))) return false;
 
   await delay(SETTLE_MS);
+
+  runtime.closeAvailability();
+  runtime.closeAllPopups();
+
   return !shouldAbort();
 }
 
@@ -568,7 +582,14 @@ async function runHistoryViewDetails(
   runtime: JourneyRuntime,
   options?: { skip?: boolean }
 ): Promise<boolean> {
-  const screen = await waitForActiveScreen(2);
+  let screen = await waitForActiveScreen(2);
+  if (!screen) {
+    runtime.goToTab(protoTabIndexForChild(2), {
+      instant: options?.skip !== false,
+    });
+    await delay(options?.skip ? 80 : SETTLE_MS);
+    screen = await waitForActiveScreen(2);
+  }
   if (!screen || shouldAbort()) return false;
 
   await delay(SETTLE_MS);
@@ -590,6 +611,87 @@ async function runHistoryViewDetails(
   return !shouldAbort();
 }
 
+function protoTabIndexForChild(childIndex: number): number {
+  const index = PROTO_SCREENS.findIndex((screen) => screen.childIndex === childIndex);
+  return index >= 0 ? index : 0;
+}
+
+async function snapScreenScrollTop(
+  screen: HTMLElement,
+  options?: { instant?: boolean }
+): Promise<void> {
+  const scrollEl = getPrototypeScrollRoot(screen);
+  if (!scrollEl) return;
+  scrollEl.scrollTo({
+    top: 0,
+    behavior: options?.instant === false ? "smooth" : "instant",
+  });
+}
+
+/** CJM step-back — restore tab + scroll baseline without director clicks. */
+async function syncTraditionalTabState(
+  scriptId: TabScriptId,
+  runtime: JourneyRuntime,
+  options?: PlaybackScriptOptions
+): Promise<PlaybackScriptResult> {
+  const instant = options?.instant !== false;
+
+  switch (scriptId) {
+    case "plp-open-pdp": {
+      runtime.goToTab(protoTabIndexForChild(9), { instant });
+      await delay(instant ? 80 : SETTLE_MS);
+      const screen = await waitForActiveScreen(9);
+      if (!screen || shouldAbort()) return scriptOk();
+      await snapScreenScrollTop(screen, { instant });
+      const tile = findFirstVisiblePlpTile(screen);
+      if (tile) resetPlpTileBookmarkForPlayback(tile, 0);
+      return scriptOk();
+    }
+    case "pdp-book-now": {
+      runtime.closeAllPopups();
+      runtime.closeAvailability();
+      runtime.goToTab(protoTabIndexForChild(8), { instant });
+      await delay(instant ? 80 : SETTLE_MS);
+      await waitForActiveScreen(8);
+      return scriptOk();
+    }
+    case "login-sign-in": {
+      runtime.closeAllPopups();
+      if (document.querySelector(".proto-login-card")) {
+        runtime.closeAllPopups();
+      }
+      return scriptOk();
+    }
+    case "book-location-pick": {
+      runtime.closeAllPopups();
+      runtime.closeAvailability();
+      runtime.goToTab(protoTabIndexForChild(7), { instant });
+      await delay(instant ? 80 : SETTLE_MS);
+      const screen = await waitForActiveScreen(7);
+      if (screen) await snapScreenScrollTop(screen, { instant });
+      return scriptOk();
+    }
+    case "confirmation-open-appointments": {
+      runtime.closeAllPopups();
+      runtime.closeAvailability();
+      runtime.goToTab(protoTabIndexForChild(3), { instant });
+      await delay(instant ? 80 : SETTLE_MS);
+      await waitForActiveScreen(3);
+      return scriptOk();
+    }
+    case "history-view-details": {
+      runtime.closeAllPopups();
+      runtime.closeAvailability();
+      runtime.goToTab(protoTabIndexForChild(2), { instant });
+      await delay(instant ? 80 : SETTLE_MS);
+      await waitForActiveScreen(2);
+      return scriptOk();
+    }
+    default:
+      return scriptOk();
+  }
+}
+
 export async function runTraditionalScript(
   scriptId: TabScriptId,
   runtime: JourneyRuntime,
@@ -597,7 +699,9 @@ export async function runTraditionalScript(
 ): Promise<PlaybackScriptResult> {
   activeRunGeneration = playbackGeneration;
   playbackAborted = false;
-  if (options?.syncState) return scriptOk();
+  if (options?.syncState) {
+    return syncTraditionalTabState(scriptId, runtime, options);
+  }
 
   let result: PlaybackScriptResult;
   switch (scriptId) {

@@ -19,10 +19,17 @@ import {
   fromBool,
   scriptAborted,
   scriptFail,
+  scriptFailureStep,
   type PlaybackScriptResult,
 } from "@/projects/playbackScriptResult";
 import type { DirectorOutcomeReport } from "@/app/shell/protoPlaybackDirectorAnomalies";
 import { playbackDirectorMonitor } from "@/app/shell/protoPlaybackDirectorMonitor";
+import {
+  describeCursorTarget,
+  notePlaybackCursorEvent,
+  resolveBookStep2CursorPhase,
+  setPlaybackCursorDiagnosticContext,
+} from "@/app/shell/protoPlaybackCursorDiagnostic";
 import {
   BOOK_STEP2_RETREAT_DEFAULT_DATE,
   bookStep2Screen,
@@ -204,6 +211,7 @@ function reportBookDirectorOutcomeIfNeeded(
 export function abortBookPlayback(): void {
   playbackGeneration += 1;
   playbackAborted = true;
+  notePlaybackCursorEvent("abort", { abortReason: "book-playback-abort" });
   cancelPlaybackScroll("abort");
   resetDemoCursorTravelOrigin();
   removeDemoCursor({ immediate: true });
@@ -236,6 +244,11 @@ async function clickBookCell(
     cell.click();
     bookRunTelemetry.selectionViaSkip = true;
     bookRunTelemetry.interactionPerformed = true;
+    notePlaybackCursorEvent("click", {
+      target: describeCursorTarget(cell),
+      instant: true,
+      detail: "skip-direct-click",
+    });
     return true;
   }
 
@@ -412,8 +425,18 @@ async function scrollBookStep2ToTimeSection(
   if (!anchor || shouldAbort()) return;
   if (options?.instant) {
     snapDemoTargetIntoView(anchor);
+    notePlaybackCursorEvent("scroll", {
+      target: describeCursorTarget(anchor),
+      instant: true,
+      detail: "time-section-snap",
+    });
     return;
   }
+  notePlaybackCursorEvent("scroll", {
+    target: describeCursorTarget(anchor),
+    animated: true,
+    detail: "time-section-scroll",
+  });
   await animateDemoTargetIntoView(anchor, { shouldAbort });
 }
 
@@ -428,14 +451,29 @@ async function scrollBookStep2ToDateSection(
   if (dateCell) {
     if (options?.instant) {
       snapDemoTargetIntoView(dateCell);
+      notePlaybackCursorEvent("scroll", {
+        target: describeCursorTarget(dateCell),
+        instant: true,
+        detail: "date-section-snap",
+      });
       return;
     }
+    notePlaybackCursorEvent("scroll", {
+      target: describeCursorTarget(dateCell),
+      animated: true,
+      detail: "date-section-scroll",
+    });
     await animateDemoTargetIntoView(dateCell, { shouldAbort });
     return;
   }
 
   const scrollEl = getPrototypeScrollRoot(screen);
   if (scrollEl) {
+    notePlaybackCursorEvent("scroll", {
+      instant: options?.instant,
+      animated: !options?.instant,
+      detail: "date-section-scroll-top",
+    });
     scrollEl.scrollTo({
       top: 0,
       behavior: options?.instant ? "instant" : "smooth",
@@ -452,8 +490,18 @@ async function scrollBookStep2ToReserve(
   if (!btn || shouldAbort()) return;
   if (options?.instant) {
     snapDemoTargetIntoView(btn);
+    notePlaybackCursorEvent("scroll", {
+      target: describeCursorTarget(btn),
+      instant: true,
+      detail: "reserve-snap",
+    });
     return;
   }
+  notePlaybackCursorEvent("scroll", {
+    target: describeCursorTarget(btn),
+    animated: true,
+    detail: "reserve-scroll",
+  });
   await animateDemoTargetIntoView(btn, { shouldAbort });
 }
 
@@ -499,14 +547,16 @@ async function runSelectBookTime(options?: {
 
   const scrollOpts = { instant: options?.instant };
   let timeCell = await findPreferredBookTimeCell(screen);
+  let didSectionScroll = false;
   if (!timeCell && !shouldAbort()) {
     await scrollBookStep2ToTimeSection(screen, scrollOpts);
+    didSectionScroll = true;
     timeCell = await findPreferredBookTimeCell(screen);
   }
   if (!timeCell || shouldAbort()) return false;
 
   if (timeCell.dataset.protoCalSelected === "true") {
-    if (!options?.skip && !options?.instant) {
+    if (!options?.skip && !options?.instant && !didSectionScroll) {
       await animateDemoTargetIntoView(timeCell, { shouldAbort });
       if (shouldAbort()) return false;
     }
@@ -517,8 +567,10 @@ async function runSelectBookTime(options?: {
   }
 
   if (!options?.skip && !options?.instant) {
-    await animateDemoTargetIntoView(timeCell, { shouldAbort });
-    if (shouldAbort()) return false;
+    if (!didSectionScroll) {
+      await animateDemoTargetIntoView(timeCell, { shouldAbort });
+      if (shouldAbort()) return false;
+    }
     await delay(360);
   } else if (options?.afterSelectScroll === "reserve" && !options?.instant) {
     await animateDemoTargetIntoView(timeCell, { shouldAbort });
@@ -577,6 +629,11 @@ function finishBookResult(ok: boolean, failStep: string): PlaybackScriptResult {
 export async function syncBookStep2LandingRetreat(
   options?: PlaybackScriptOptions
 ): Promise<void> {
+  notePlaybackCursorEvent("dwell-sync", {
+    beatId: "book-step2",
+    phase: "dwell",
+    detail: "landing-retreat — scroll only, no director click",
+  });
   const screen = await waitForBookStep2Screen();
   if (!screen || shouldAbort()) return;
   await restoreBookDefaultDate(screen);
@@ -587,6 +644,12 @@ export async function syncBookStep2LandingRetreat(
   });
 }
 
+const BOOK_SCRIPT_BEAT_ID: Record<BookScriptId, string> = {
+  "select-book-date": "book-step2-date",
+  "select-book-time": "book-step2-time",
+  "reserve-appointment": "book-step2-reserve",
+};
+
 export async function runBookScript(
   scriptId: BookScriptId,
   options?: PlaybackScriptOptions
@@ -594,6 +657,27 @@ export async function runBookScript(
   activeRunGeneration = playbackGeneration;
   playbackAborted = false;
   resetBookRunTelemetry(Boolean(options?.syncState));
+
+  const phase = resolveBookStep2CursorPhase({
+    beatId: BOOK_SCRIPT_BEAT_ID[scriptId],
+    syncState: options?.syncState,
+  });
+  setPlaybackCursorDiagnosticContext({
+    beatId: BOOK_SCRIPT_BEAT_ID[scriptId],
+    scriptId,
+    phase,
+    isScripting: !options?.syncState && !options?.skip,
+  });
+  notePlaybackCursorEvent("script-start", {
+    scriptId,
+    phase,
+    instant: options?.instant,
+    detail: options?.syncState
+      ? "sync-state"
+      : options?.skip
+        ? "skip"
+        : "director",
+  });
 
   let result: PlaybackScriptResult;
   if (options?.syncState) {
@@ -628,6 +712,11 @@ export async function runBookScript(
 
   if (!shouldAbort()) {
     reportBookDirectorOutcomeIfNeeded(scriptId, Boolean(options?.syncState));
+    notePlaybackCursorEvent("script-end", {
+      scriptId,
+      phase,
+      detail: result.ok ? "ok" : scriptFailureStep(result) ?? "failed",
+    });
     await releaseDemoCursorAfterScript();
     clearSimulatedClickRipples();
     if (!isDemoCursorJourneyModePinned()) {

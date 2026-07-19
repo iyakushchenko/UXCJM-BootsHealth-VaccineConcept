@@ -1,4 +1,9 @@
-import type { BookScriptId, JourneyBeat } from "@/app/orchestra/types";
+import type {
+  BookScriptId,
+  JourneyBeat,
+  JourneyRuntime,
+  TabScriptId,
+} from "@/app/orchestra/types";
 import { isPopupTouchpoint } from "@/app/nav/resolveStudioTouchpoint";
 
 /** Book director steps that move the prototype scroll root (not selection-only). */
@@ -7,11 +12,22 @@ const BOOK_SCRIPT_SCROLLS_VIEWPORT = new Set<BookScriptId>([
   "reserve-appointment",
 ]);
 
+/** Traditional tab scripts that ease the prototype scroll root via demo cursor travel. */
+const TAB_SCRIPT_SCROLLS_VIEWPORT = new Set<TabScriptId>([
+  "plp-open-pdp",
+  "pdp-book-now",
+  "book-location-pick",
+  "history-view-details",
+]);
+
 export function directorScriptScrollsViewport(
   scriptLabel: string | undefined
 ): boolean {
   if (!scriptLabel) return false;
-  return BOOK_SCRIPT_SCROLLS_VIEWPORT.has(scriptLabel as BookScriptId);
+  return (
+    BOOK_SCRIPT_SCROLLS_VIEWPORT.has(scriptLabel as BookScriptId) ||
+    TAB_SCRIPT_SCROLLS_VIEWPORT.has(scriptLabel as TabScriptId)
+  );
 }
 
 /** Beat runs a cursor-guided playback script (not a dwell / screen-frames beat). */
@@ -57,6 +73,20 @@ export function findJourneyBeat(
 ): JourneyBeat | undefined {
   if (!beatId) return undefined;
   return beats.find((beat) => beat.id === beatId);
+}
+
+function isBookStep2FunnelBeat(beat: JourneyBeat | undefined): boolean {
+  return beat?.id?.startsWith("book-step2") ?? false;
+}
+
+/** Close book-step1 overlays before the book-step2 dwell lands (wire state can lag one frame). */
+export function prepareBeatIndexAdvance(
+  runtime: Pick<JourneyRuntime, "closeAllPopups" | "closeAvailability">,
+  nextBeat: JourneyBeat | undefined
+): void {
+  if (nextBeat?.id !== "book-step2") return;
+  runtime.closeAllPopups();
+  runtime.closeAvailability();
 }
 
 /** Director script on this beat includes a same-screen camera scroll. */

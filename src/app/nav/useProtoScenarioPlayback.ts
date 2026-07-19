@@ -746,6 +746,13 @@ export function useProtoScenarioPlayback({
         )
       : minVisibleFrames;
 
+    if (frames.length === 0) {
+      if (visibleCountRef.current !== 0) {
+        setVisibleCount(0);
+      }
+      return;
+    }
+
     if (frames.length > 0 && visibleCountRef.current > targetCount) {
       const prev = visibleCountRef.current;
       queueScroll(targetCount, browseMode ? "end" : "start", false, prev);

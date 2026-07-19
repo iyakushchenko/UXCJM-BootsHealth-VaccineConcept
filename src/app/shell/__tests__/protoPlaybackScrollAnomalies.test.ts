@@ -66,10 +66,30 @@ describe("protoPlaybackScrollAnomalies", () => {
       targetTop: 400,
       duration: 800,
       startTime: 0,
-      actualTop: 220,
+      actualTop: 80,
       now: 200,
     });
     expect(anomaly?.kind).toBe("scroll-path-deviation");
+  });
+
+  it("does not false-positive plp-open-pdp eased scroll at early progress", () => {
+    const startTop = 0;
+    const targetTop = 290;
+    const duration = 720;
+    const now = 36;
+    const progress = now / duration;
+    const expected =
+      startTop + (targetTop - startTop) * (1 - Math.pow(1 - progress, 3));
+    expect(
+      detectScrollPathDeviation({
+        startTop,
+        targetTop,
+        duration,
+        startTime: 0,
+        actualTop: Math.round(expected),
+        now,
+      })
+    ).toBeNull();
   });
 
   it("detects stacked eased scrolls during one director script", () => {

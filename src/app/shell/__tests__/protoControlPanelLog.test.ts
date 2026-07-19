@@ -37,6 +37,13 @@ describe("protoControlPanelLog", () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
+  it("warns on diagnostic open and dismiss", () => {
+    logControlPanel("diagnostic:open", { message: "test", beatId: "book-step2" });
+    logControlPanel("diagnostic:dismiss", { durationMs: 120 });
+    expect(console.warn).toHaveBeenCalledTimes(2);
+    expect(console.log).not.toHaveBeenCalled();
+  });
+
   it("keeps ring buffer on window and supports dump", () => {
     vi.stubGlobal("window", { __protoControlPanelLog: undefined as unknown });
     logControlPanel("transport:play");

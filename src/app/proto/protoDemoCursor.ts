@@ -7,6 +7,10 @@ import {
   type PlaybackScrollOptions,
 } from "@/app/proto/protoPlaybackScroll";
 import { notePlaybackDemoClick } from "@/app/shell/protoPlaybackInteractionContext";
+import {
+  describeCursorTarget,
+  notePlaybackCursorEvent,
+} from "@/app/shell/protoPlaybackCursorDiagnostic";
 
 const CURSOR_ARROW_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--arrow" src="${defaultCursorUrl}" width="22" height="26" alt="" aria-hidden="true" draggable="false" />`;
 
@@ -81,6 +85,22 @@ export function isDemoCursorFadedAtJourneyEnd(): boolean {
   return journeyEndCursorFaded;
 }
 
+/** DOM snapshot for QA / MCP cursor eyes. */
+export function readDemoCursorDomState(): {
+  visible: boolean;
+  parked: boolean;
+  faded: boolean;
+} {
+  const cursor = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
+  const exiting =
+    cursor?.classList.contains("proto-chat-demo-cursor--exit") ?? false;
+  return {
+    visible: cursor != null && !exiting,
+    parked: isDemoCursorParked(),
+    faded: journeyEndCursorFaded || exiting,
+  };
+}
+
 export function cancelDemoCursorJourneyEndFade(): void {
   if (journeyEndFadeTimer != null) {
     clearTimeout(journeyEndFadeTimer);
@@ -108,6 +128,7 @@ async function fadeOutDemoCursorAtJourneyEnd(generation: number): Promise<void> 
   }
 
   cursor.classList.add("proto-chat-demo-cursor--exit");
+  notePlaybackCursorEvent("fade", { detail: "journey-end-idle" });
   await animateCursorFadeOnly(cursor);
   if (generation !== journeyEndFadeGeneration || !journeyModePinned) return;
 
@@ -175,6 +196,7 @@ function cancelDemoCursorParkInFlight(): void {
 }
 
 function prepareDemoCursorForTravel(cursor: HTMLElement): { x: number; y: number } {
+  const wasParked = cursor.classList.contains(PROTO_DEMO_CURSOR_PARKED_CLASS);
   cursorFadeGeneration += 1;
   parkedRestAnchor = null;
   cursor.classList.remove(
@@ -182,6 +204,9 @@ function prepareDemoCursorForTravel(cursor: HTMLElement): { x: number; y: number
     "proto-chat-demo-cursor--exit",
     "proto-chat-demo-cursor--tap"
   );
+  if (wasParked) {
+    notePlaybackCursorEvent("unpark", { detail: "director-travel" });
+  }
   cursor.style.opacity = "1";
   cursor.style.transition = "none";
   const pos = readCursorPosition();
@@ -240,7 +265,15 @@ function resolveDemoCursorSeedPosition(): { x: number; y: number } {
 export function parkDemoCursorAtRest(options?: {
   animate?: boolean;
 }): Promise<void> {
+  if (!journeyModePinned) {
+    return Promise.resolve();
+  }
   if (parkPromise) return parkPromise;
+
+  notePlaybackCursorEvent("park", {
+    animated: options?.animate ?? false,
+    detail: journeyModePinned ? "journey-park" : "legacy-fade-path",
+  });
 
   const generation = parkGeneration;
   const run = async () => {
@@ -329,8 +362,8 @@ export function setDemoCursorJourneyMode(
     parkedRestAnchor = null;
     void parkDemoCursorAtRest();
   } else if (!wasParkAfterInteraction && parkAfterInteraction) {
-    // Cassette stopped — fade in place; do not teleport to the park pose.
-    void fadeOutDemoCursorInPlace();
+    // Manual CJM idle — park visibly at rest; do not fade out (that removed the cursor).
+    void parkDemoCursorAtRest({ animate: true });
   }
 
   resizeParkListener = () => {
@@ -658,6 +691,7 @@ function clearDemoCursorImmediate(): void {
   cancelDemoCursorJourneyEndFade();
   cancelDemoCursorParkInFlight();
   cursorFadeGeneration += 1;
+  notePlaybackCursorEvent("remove", { detail: "immediate" });
   document
     .querySelectorAll<HTMLElement>(".proto-chat-demo-cursor")
     .forEach((el) => el.remove());
@@ -670,6 +704,7 @@ function clearDemoCursorImmediate(): void {
 
 /** Fade the robo-cursor out at its current position — no park teleport. */
 export async function fadeOutDemoCursorInPlace(): Promise<void> {
+  notePlaybackCursorEvent("fade", { detail: "in-place" });
   const generation = ++cursorFadeGeneration;
   cancelDemoCursorParkInFlight();
   clearDemoCtaStates();
@@ -716,6 +751,9 @@ export function removeDemoCursor(options?: RemoveDemoCursorOptions): void {
 
 /** End of a director script — await before advancing beats in manual CJM. */
 export async function releaseDemoCursorAfterScript(): Promise<void> {
+  notePlaybackCursorEvent("release", {
+    detail: parkAfterInteraction ? "park-after-script" : "retain-in-place",
+  });
   if (!journeyModePinned) {
     await fadeOutDemoCursorInPlace();
     return;
@@ -862,6 +900,10 @@ export async function moveDemoCursorTo(
   }
 ): Promise<HTMLElement | null> {
   const bail = async (): Promise<null> => {
+    notePlaybackCursorEvent("abort", {
+      target: describeCursorTarget(target),
+      abortReason: options?.shouldAbort?.() ? "shouldAbort" : "travel-incomplete",
+    });
     await releaseDemoCursorAfterScript();
     return null;
   };
@@ -883,6 +925,15 @@ export async function moveDemoCursorTo(
   const { durationMs: scrollDurationMs, scrollPromise } = syncPageScroll
     ? await beginDemoTargetPageScroll(target, scrollOpts)
     : { durationMs: 0, scrollPromise: Promise.resolve() };
+
+  if (scrollDurationMs > 0) {
+    notePlaybackCursorEvent("scroll-into-view", {
+      target: describeCursorTarget(target),
+      animated: true,
+      scroll: true,
+      detail: `sync-page-scroll ${scrollDurationMs}ms`,
+    });
+  }
 
   if (options?.shouldAbort?.()) return bail();
 
@@ -925,6 +976,12 @@ export async function moveDemoCursorTo(
   await scrollPromise;
   if (!traveled || options?.shouldAbort?.()) return bail();
 
+  notePlaybackCursorEvent("travel", {
+    target: describeCursorTarget(target),
+    animated: true,
+    detail: applyHover ? "with-hover" : "no-hover",
+  });
+
   if (applyHover) {
     setDemoInteractionHover(interactionRoot, true);
   }
@@ -959,6 +1016,10 @@ export async function simulateDemoPointerHover(
   }
 
   options?.onHoverStart?.(interactionRoot);
+  notePlaybackCursorEvent("hover-dwell", {
+    target: describeCursorTarget(interactionRoot),
+    detail: `${dwellMs}ms`,
+  });
   await delay(dwellMs);
   if (options?.shouldAbort?.()) {
     options?.onHoverEnd?.();
@@ -1012,11 +1073,19 @@ export async function simulateDemoPointerClick(
   await delay(CTA_HOVER_DWELL_MS);
   if (options?.shouldAbort?.()) {
     setDemoInteractionHover(interactionRoot, false);
+    notePlaybackCursorEvent("abort", {
+      target: describeCursorTarget(target),
+      abortReason: "click-aborted",
+    });
     await releaseDemoCursorAfterScript();
     return false;
   }
 
   tapDemoCursor(cursor);
+  notePlaybackCursorEvent("press", {
+    target: describeCursorTarget(interactionRoot),
+    animated: true,
+  });
 
   interactionRoot.classList.remove("proto-chat-cta--hover");
   interactionRoot.classList.add("proto-chat-cta--pressed");
@@ -1036,6 +1105,11 @@ export async function simulateDemoPointerClick(
   }
   notePlaybackDemoClick(interactionRoot);
   target.click();
+  notePlaybackCursorEvent("click", {
+    target: describeCursorTarget(interactionRoot),
+    animated: true,
+    detail: options?.scroll === false ? "scroll-disabled" : "scroll-enabled",
+  });
   settleDemoCursorAfterClick(cursor, interactionRoot);
   await delay(160);
   return true;
