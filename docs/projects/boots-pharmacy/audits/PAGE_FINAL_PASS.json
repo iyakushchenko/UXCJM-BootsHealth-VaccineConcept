@@ -135,7 +135,7 @@
           "date": "2026-07-19",
           "version": "0.0.37",
           "auditor": "Arch (Director) — Quinn MCP + Uma §0a",
-          "note": "HARD-GREEN restored. Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 (prove docs cdf5c5f; reload:false ~28686ms; teardown clean); Accordion Motion height spot PASS (6× data-studio-accordion-motion=height; mid-tween 0→~111→144); Uma §0a still PROVEN @ 76e2433. Evidence: FE_AUDIT_PDP_MCP + FE_AUDIT_PDP_PAGE_FINAL_PASS. Home waits PO +."
+          "note": "HARD-GREEN restored. Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 (prove docs cdf5c5f; Arch restore f93ade5; reload:false ~28686ms; teardown clean); Accordion Motion height spot PASS (6× data-studio-accordion-motion=height; mid-tween 0→~111→144); Uma §0a still PROVEN @ 76e2433. Evidence: FE_AUDIT_PDP_MCP + FE_AUDIT_PDP_PAGE_FINAL_PASS. Home waits PO +."
         },
         "url": "http://localhost:5173/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",

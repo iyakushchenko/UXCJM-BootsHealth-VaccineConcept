@@ -59,7 +59,7 @@
       "mcpMatrixAt": {
         "sha": "5c1d90f",
         "date": "2026-07-19",
-        "note": "Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 Accordion Motion height (prove cdf5c5f; reload:false ~29s, teardown clean); Motion mid-tween 0→~111→144 assertable; Uma §0a PROVEN @ 76e2433; Arch PAGE FINAL PASS HARD-GREEN restored @ 5c1d90f."
+        "note": "Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 Accordion Motion height (prove cdf5c5f; Arch restore f93ade5; reload:false ~29s, teardown clean); Motion mid-tween 0→~111→144 assertable; Uma §0a PROVEN @ 76e2433; Arch PAGE FINAL PASS HARD-GREEN restored @ 5c1d90f."
       },
       "requireMcp": true
     }
