@@ -308,7 +308,8 @@ async function withMcpTestSession<T>(
   try {
     return await run();
   } finally {
-    stopAgentTestingOverlay();
+    // reload:true — clean tab for PO after agent verify (deferred so result returns).
+    stopAgentTestingOverlay({ reload: true });
     disableCursorQaEyes();
     endMcpTestSession(id);
   }
@@ -763,7 +764,7 @@ export function registerProtoStudioMcpHelpers(options: {
         state: window.__protoStudioState?.(),
       };
     } finally {
-      stopAgentTestingOverlay();
+      stopAgentTestingOverlay({ reload: true });
     }
   };
 

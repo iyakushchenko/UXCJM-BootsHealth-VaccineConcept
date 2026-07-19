@@ -42,7 +42,8 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 - **CI smoke is on-demand** — default CI = unit + build; Playwright smoke = `workflow_dispatch` / local `npm run smoke` only ([CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md)).
 - **Pages verify after chrome ships** — deploy green ≠ visual proof; check deployed host for `data-proto-react-screen` + MCP sanity on the live URL when chrome/pages matter.
-- **Agent MCP testing overlay** — while `__protoRun*` / MCP sessions run, show `window.__protoAgentTestingOverlay` so the PO can hide DevTools and still see status without clicking the page ([../shell/RECORDING.md](../shell/RECORDING.md)).
+- **Agent MCP testing overlay** — BR corner status + invisible click capture (no lightbox). Always `stop()` in `finally`; MCP helpers use `stop({ reload: true })` for a clean PO tab; never restore stale persist on load ([../shell/RECORDING.md](../shell/RECORDING.md)).
+- **Overlay ≠ lightbox** — opaque full-screen “AGENT TESTING” modals rage the PO and hide the page under test; keep the concept visible.
 
 ---
 

@@ -8,15 +8,30 @@ See also: [PLAYBACK.md](./PLAYBACK.md) (engine), [SHELL.md](./SHELL.md) (shell a
 
 ## Agent testing overlay (MCP / `__protoRun*`)
 
-While agent-led MCP tests run, Studio shows a simple full-viewport banner: **AGENT TESTING IN PROGRESS**, plus a scrolling plain-text actions log. Pointer events to the page underneath are blocked so the PO can hide DevTools without polluting the run.
+While agent-led MCP tests run, Studio shows a **compact bottom-right status panel** (title + scrolling actions log). The page stays **fully visible** underneath — no lightbox / opaque modal.
+
+**Click guard:** an invisible full-viewport capture layer (`pointer-events: auto`, transparent) plus `#root { pointer-events: none }` blocks PO clicks into the concept UI. The BR panel itself stays interactive (log + **Dismiss**).
 
 ```js
 window.__protoAgentTestingOverlay?.start("optional title")
 window.__protoAgentTestingOverlay?.log("clicked Book Step 2")
-window.__protoAgentTestingOverlay?.stop() // nest-aware
+window.__protoAgentTestingOverlay?.stop() // nest-aware; no reload (manual / console)
 window.__protoAgentTestingOverlay?.stop({ force: true }) // clear immediately
+window.__protoAgentTestingOverlay?.stop({ reload: true }) // teardown + deferred location.reload()
 window.__protoAgentTestingOverlay?.isActive()
 ```
+
+### Lifecycle (must not stick)
+
+| Event | Behavior |
+|-------|----------|
+| `__protoRunMcpSanityCheck` / `__protoRun*` session `finally` | Always `stop({ reload: true })` — clean tab for PO after verify |
+| Safety timeout | Auto `stop({ force: true })` after **3 min** |
+| `beforeunload` | Clears active state + sessionStorage persist |
+| Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
+| Dismiss button / `stop({ force: true })` | Immediate clear; no reload unless `reload: true` |
+
+`reload: true` defers `location.reload()` (~120ms) so MCP `evaluate_script` can still return the run result. Manual console experiments should omit reload (default `false`).
 
 Auto-shown for `__protoRunMcpSanityCheck` and any `__protoRun*` smoke that uses the MCP test session. `__protoAbortAll` force-clears it. Shell-only (`src/app/shell/protoAgentTestingOverlay.ts` + PANEL CSS) — not Boots page CSS.
 

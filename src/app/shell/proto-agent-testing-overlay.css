@@ -1,73 +1,102 @@
-/* PANEL — agent MCP testing overlay (Studio shell only; not Boots page CSS) */
+/* PANEL — agent MCP testing status (Studio shell only; not Boots page CSS)
+ *
+ * Invisible full-viewport capture + compact bottom-right log panel.
+ * Page stays visible; clicks on the concept UI are blocked.
+ */
 
 .proto-agent-testing-overlay {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 2147483000;
-  pointer-events: auto;
-  background: rgba(12, 14, 18, 0.72);
+  pointer-events: none;
   font-family: "Open Sans", ui-sans-serif, system-ui, sans-serif;
   color: #f2f2f2;
 }
 
 .proto-agent-testing-overlay[data-active="true"] {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
+  display: block;
 }
 
-html[data-proto-agent-testing="true"] body {
-  /* Belt-and-suspenders: block page under overlay */
-  pointer-events: none !important;
-}
-
-html[data-proto-agent-testing="true"] .proto-agent-testing-overlay {
-  pointer-events: auto !important;
+/* Transparent click sink — blocks page interaction without a lightbox */
+.proto-agent-testing-overlay__capture {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  background: transparent;
 }
 
 .proto-agent-testing-overlay__panel {
-  width: min(560px, 100%);
-  max-height: min(70vh, 640px);
-  margin: auto;
-  padding: 20px 22px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(42vh, 360px);
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
-  background: #1a1d23;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  background: rgba(26, 29, 35, 0.94);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.proto-agent-testing-overlay__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .proto-agent-testing-overlay__title {
   margin: 0;
-  font-size: 15px;
+  flex: 1 1 auto;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.proto-agent-testing-overlay__dismiss {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  background: transparent;
+  color: #d0d4dc;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.proto-agent-testing-overlay__dismiss:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .proto-agent-testing-overlay__hint {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.35;
   color: #b8bcc4;
 }
 
 .proto-agent-testing-overlay__log {
   margin: 0;
-  padding: 10px 12px 10px 28px;
+  padding: 8px 10px 8px 26px;
   flex: 1 1 auto;
-  min-height: 120px;
-  max-height: 50vh;
+  min-height: 72px;
+  max-height: 28vh;
   overflow: auto;
   list-style: decimal;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.4;
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   color: #e8e8e8;
   background: #101218;
@@ -76,6 +105,11 @@ html[data-proto-agent-testing="true"] .proto-agent-testing-overlay {
 }
 
 .proto-agent-testing-overlay__log li {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   word-break: break-word;
+}
+
+/* Belt-and-suspenders: disable main app while testing */
+html[data-proto-agent-testing="true"] #root {
+  pointer-events: none !important;
 }
