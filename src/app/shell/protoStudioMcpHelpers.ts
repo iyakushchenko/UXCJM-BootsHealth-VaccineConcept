@@ -218,7 +218,7 @@ const ORCHESTRA_MODE_IDS: ProtoOrchestraModeId[] = [
 
 function journeyModeSwitch(): HTMLElement | null {
   return document.querySelector<HTMLElement>(
-    '[role="switch"][aria-label="Journey mode"]'
+    '[role="switch"][aria-label="CJM"]'
   );
 }
 
@@ -229,11 +229,11 @@ function runSmokeRetreatChecks(): ProtoSmokeRetreatResult {
   checks.push({
     id: "journey-switch-present",
     pass: journeySwitch != null,
-    detail: journeySwitch ? undefined : "Missing role=switch Journey mode control",
+    detail: journeySwitch ? undefined : "Missing role=switch CJM control",
   });
 
   const duplicateJourneyLabels = Array.from(
-    document.querySelectorAll<HTMLElement>('[aria-label="Journey mode"]')
+    document.querySelectorAll<HTMLElement>('[aria-label="CJM"]')
   ).filter((el) => el.getAttribute("role") !== "switch");
   checks.push({
     id: "orchestra-mode-label-unique",
@@ -241,7 +241,7 @@ function runSmokeRetreatChecks(): ProtoSmokeRetreatResult {
     detail:
       duplicateJourneyLabels.length === 0
         ? undefined
-        : `Found ${duplicateJourneyLabels.length} non-switch controls labeled Journey mode`,
+        : `Found ${duplicateJourneyLabels.length} non-switch controls labeled CJM`,
   });
 
   let stateReadable = false;

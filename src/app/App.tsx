@@ -1334,7 +1334,7 @@ export default function App() {
       getState: () => ({
         journeyMode:
           document
-            .querySelector('[role="switch"][aria-label="Journey mode"]')
+            .querySelector('[role="switch"][aria-label="CJM"]')
             ?.getAttribute("aria-checked") === "true",
         scrollLock:
           prototypeScrollElRef.current?.classList.contains(
