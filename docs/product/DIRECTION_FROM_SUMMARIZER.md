@@ -27,6 +27,8 @@ UX Studio should feel like that **as a product operating system**, while remaini
 | Token layers (primitive → semantic → contract) | Target for UXDS bridge ([PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)) |
 | Design system contract for UI patterns | Future `docs/uxds/` + engine chrome rules (lighter at first) |
 | Agent entry + rules (`.cursor/rules`, AGENTS) | Grow as we add recorder + UXDS rebuild; keep fewer rules than Summarizer until needed |
+| Local release notes + semver bump (`release.mjs`, `notes:*`) | Skeleton in [VERSIONING.md](./VERSIONING.md) — **no** tag→Release CI yet |
+| Post-change checklist (local gates before “done”) | Lean [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md) + `.cursor/rules/post-change-checklist.mdc` |
 | Feature docs vs architecture docs vs code as truth | Same authority model |
 | “Lanes” / isolation of domains | Engine (`src/app`) vs projects (`src/projects`) — already the right split |
 

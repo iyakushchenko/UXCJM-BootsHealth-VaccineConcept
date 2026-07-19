@@ -57,5 +57,7 @@ If the account hits Actions billing limits (Summarizer precedent): narrow trigge
 
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) — quality bar = lean CI  
 - [SOLUTION_REQUIREMENTS.md](./SOLUTION_REQUIREMENTS.md)  
+- [VERSIONING.md](./VERSIONING.md) — local changelog/semver only; **no** tag→Release CI yet  
+- [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md) — local gates before “done”  
 - [../../AGENTS.md](../../AGENTS.md) — Quick start / CI  
 - [../../scripts/proto-playwright-smoke.mjs](../../scripts/proto-playwright-smoke.mjs)  

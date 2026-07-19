@@ -6,6 +6,9 @@
 |--------|---------|---------|
 | `proto-playwright-smoke.mjs` | `npm run smoke` | Headless smoke: home play + retreat baselines (chat counter, avail June 25) |
 | `proto-smoke.mjs` | `node scripts/proto-smoke.mjs` | Prints MCP helper cheat sheet for DevTools |
+| `release-notes.mjs` | `npm run notes:*` | Append/list/preview/check `CHANGELOG.md` `## Current` |
+| `release.mjs` | `npm run release:patch` etc. | Local semver bump + CHANGELOG promote (no GitHub Release CI) |
+| `check-release-version-changelog-sync.mjs` | `npm run check:version` | `package.json` ↔ latest `## vX.Y.Z` |
 
 Set `PROTO_SMOKE_URL` if dev server is not on `http://localhost:5173`.
 

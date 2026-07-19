@@ -1,0 +1,9 @@
+## Current (in flight)
+
+> _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
+
+- **docs:** Seed local versioning + post-change checklist from Summarizer
+
+## v0.0.1 - 190726
+
+- Bootstrap UX Studio engine (Vite React shell, Boots Pharmacy rabbit, lean CI + Pages). Pre-versioning practice seeded from Summarizer.

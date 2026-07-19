@@ -38,9 +38,11 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 12. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
 13. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
 14. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
-15. [docs/product/CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md) — lean Actions; no marathon on every push  
-16. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)  
-17. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
+15. [docs/product/CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md) — lean Actions; no marathon on every push
+16. [docs/product/VERSIONING.md](docs/product/VERSIONING.md) — local semver + CHANGELOG; no Release CI yet
+17. [docs/product/POST_CHANGE_CHECKLIST.md](docs/product/POST_CHANGE_CHECKLIST.md) — local gates before “done”
+18. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)
+19. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam 
 
 ## Quick start
 
