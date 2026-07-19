@@ -1,7 +1,7 @@
 # Quinn (QA) — PDP MCP prove criteria
 
 **Status:** MCP matrix **PASS** @ tip `7c7c9e1` / v0.0.32 — evidence [FE_AUDIT_PDP_MCP_2026-07-19.md](./FE_AUDIT_PDP_MCP_2026-07-19.md).  
-**PAGE FINAL PASS:** **HARD-GREEN** (`hardGreen: true` @ tip `581018f`) — Uma §0a PROVEN @ `76e2433`; Quinn 23/23 PASS @ `7c7c9e1` / prove `841ab32`.  
+**PAGE FINAL PASS:** **HARD-GREEN** (`hardGreen: true` @ tip `48f2016`) — Uma §0a PROVEN @ `76e2433`; Quinn 23/23 PASS @ `7c7c9e1` / prove `841ab32`.  
 **Updated:** 2026-07-19 (Arch HARD-GREEN restore after Motion easeInOut travel re-prove)  
 **Screen:** `pdp` (Frame child 8)  
 **Register:** [../features/PDP_MAKE_PARITY_REGISTER.md](../features/PDP_MAKE_PARITY_REGISTER.md)  

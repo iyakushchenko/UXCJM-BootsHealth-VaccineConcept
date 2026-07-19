@@ -8,7 +8,7 @@
 **Uma §0a:** **PROVEN** @ tip `76e2433` / v0.0.30 (docs tip `331998b`) — still valid; travel easing tip does not reopen FAQ/Accordion §0a  
 **Prior prove (superseded):** `7bce2b3` · **v0.0.31** (prove `9f47e24`)  
 **Policy:** [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md) · [RECORDING.md](../../../shell/RECORDING.md) · recipe `studioMcpPageProbe.ts`  
-**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — **HARD-GREEN** @ `581018f`
+**Final Pass audit:** [FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md](./FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md) — **HARD-GREEN** @ `48f2016`
 
 ---
 
@@ -20,7 +20,7 @@
 | **Teardown** | **Clean** — `modal` null; `screen=pdp`; overlay `forceClear` |
 | **Hang / travel residual** | **None observed** on full matrix (~31s). Travel easing change (easeInOut, no bounce) did not regress probe. No unbounded robo. |
 | **Uma fidelity §0a** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) @ `76e2433` |
-| **PAGE FINAL PASS HARD-GREEN?** | **YES** (`hardGreen: true` @ tip `581018f`) |
+| **PAGE FINAL PASS HARD-GREEN?** | **YES** (`hardGreen: true` @ tip `48f2016`) |
 | **PO green-light / Home?** | **Blocked** — wait PO `+` (sequencing unblocked) |
 
 **Team check line:** `Quinn MCP — pdp — PASS` · `PAGE FINAL PASS — pdp — HARD-GREEN`
@@ -85,7 +85,7 @@
 |------|--------|
 | Quinn MCP interaction matrix | **PASS** (this re-prove · 23/23 · `7c7c9e1` / v0.0.32) |
 | Uma §0a | **PROVEN** (`76e2433` / docs `331998b`) |
-| `PAGE_FINAL_PASS.json` `mcpFinalPass` | **HARD-GREEN** @ `581018f` |
+| `PAGE_FINAL_PASS.json` `mcpFinalPass` | **HARD-GREEN** @ `48f2016` |
 | `hardGreen` | **true** |
 
 ---
@@ -97,5 +97,5 @@
 3. Confirm booster default checked + £150 **before** `__studioRunMcpPageProbe`.  
 4. Re-prove after any tip that lands after the last MCP stamp.  
 5. Probe always `{ reload: false }`; teardown with `forceClear` if overlay lingers.  
-6. Do not stamp `hardGreen: true` from Quinn — Arch stamps after PASS + Uma §0a (done @ `581018f`).  
+6. Do not stamp `hardGreen: true` from Quinn — Arch stamps after PASS + Uma §0a (done @ `48f2016`).  
 7. Never run unbounded robo prove that navigates away.

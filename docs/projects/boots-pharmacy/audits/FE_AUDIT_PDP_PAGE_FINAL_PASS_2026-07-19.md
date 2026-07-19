@@ -3,9 +3,9 @@
 **Surface:** PDP Vaccine Details (`screenId: pdp`)  
 **Date:** 2026-07-19  
 **Auditor:** Arch (Director) stamp · Quinn (QA) MCP matrix · Uma (UI/UX) §0a  
-**Ship tip:** `581018f` (≥ Quinn code `7c7c9e1` / prove `841ab32` / docs `ef5af38` · Uma PROVEN `76e2433` · shell scrollbar `c199bf1`/`581018f`) · **v0.0.33**  
+**Ship tip:** `48f2016` (≥ Quinn code `7c7c9e1` / prove `841ab32` / docs `ef5af38` · Uma PROVEN `76e2433` · shell `042dbaf` v0.0.34 + scrollbar `48f2016` v0.0.35) · **v0.0.35**  
 **Prior tip (Uma §0a):** `76e2433` · **v0.0.30** — FAQ 6/6 + Accordion grid motion + TertiaryCta soft + muted chevrons  
-**Prior HARD-GREEN (superseded):** `c6e8931` / v0.0.28 — demoted by PO polish + hang-guard / Motion travel re-prove; restored here  
+**Prior HARD-GREEN (superseded):** `c6e8931` / v0.0.28 — demoted by PO polish + hang-guard / Motion travel re-prove; restored @ `d672a92` / retained here  
 **Policy:** [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · manifest [PAGE_FINAL_PASS.json](./PAGE_FINAL_PASS.json) · criteria [QUINN_PDP_PROBE_CRITERIA_2026-07-19.md](./QUINN_PDP_PROBE_CRITERIA_2026-07-19.md)
 
 ---
@@ -16,7 +16,7 @@
 |-------|-------|
 | **PAGE FINAL PASS** | **HARD-GREEN** |
 | **mcpFinalPass** | **HARD-GREEN** |
-| **Quinn interaction matrix** | **PASS** — 23/23 `__studioRunMcpPageProbe` on tip `7c7c9e1` / v0.0.32 (prove `841ab32` · tip `ef5af38`) |
+| **Quinn interaction matrix** | **PASS** — 23/23 @ `7c7c9e1` / v0.0.32 (prove `841ab32`); Arch confirm 23/23 @ `48f2016` / v0.0.35 |
 | **Teardown** | **Clean** — modal cleared; stay `screen=pdp`; overlay forceClear |
 | **Uma fidelity** | **PROVEN** — [UMA_FIDELITY_PDP_2026-07-19.md](./UMA_FIDELITY_PDP_2026-07-19.md) (§0a @ `76e2433` / docs `331998b`) |
 | **PARITY_PROVEN `pdp`** | **proven** |
