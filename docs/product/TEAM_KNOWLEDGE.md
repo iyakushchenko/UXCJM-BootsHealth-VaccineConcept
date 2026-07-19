@@ -161,6 +161,10 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Ben (BE): `node_modules` cache (skip `npm ci` on hit) + Vitest forks/workers=2 + cancel-in-progress confirmed — applied: `ci.yml` · `deploy-pages.yml` · CI_ACTIONS_BUDGET §2.1/§5
 - Pax (PO sim): push-and-move-on is the default; await CI only HARD-GREEN / release / PO prove — applied: R12 process
 
+**Knowledge improved** (2026-07-19 · stream: probe-test CI delay compress · tip post-`0c2dc9b`):
+- Finn (FE): `compressProbeDelayMs` (VITEST-only) + fake timers in page-probe unit tests — production MCP settle/pre-arm unchanged — applied: `studioMcpPageProbe.ts` · `studioMcpPageProbe.test.ts`
+- Ben (BE): local `npm test` wall ~10s → ~4s (probe file ~8.4s → ~20ms); hard gates kept; R12 one push no-await — applied: CI_ACTIONS_BUDGET §2.1 · LESSONS
+
 **Knowledge improved** (2026-07-19 · stream: overflow-only scrollbar gutter · v0.0.39):
 - Finn (FE): never always-on `scrollbar-gutter: stable` — toggle `studio-scroll--overflow` via `syncStudioScrollOverflowGutter` / `useScrollFill`; keep gutter only while overflowing (+ locked) — applied: `studioScrollOverflow.ts` + `globals-chrome.css`
 - Pax (PO sim): user-visible shell fix → patch bump — applied: v0.0.39
@@ -176,7 +180,7 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | Delta | Hats | LESSONS / artifact |
 |-------|------|--------------------|
 | **Batch ship / push (R12)** — no push after every tiny fix; **no await CI/Pages** on routine ships; land local until coherent ship / PO ask / HARD-GREEN / end of wave | Arch, Pax, Ben | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R12 · TEAM § Batch ship · doctrine §2.13–14 · ci-sitrep |
-| **Faster CI** — `node_modules` cache (skip `npm ci` on hit); parallel `test`∥`build`; Vitest forks + maxWorkers=2; cancel-in-progress ON; warm target ≤20–25s (honest floor ~18–22s) | Ben, Arch | [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §2.1 · `ci.yml` · `deploy-pages.yml` |
+| **Faster CI** — `node_modules` cache; parallel `test`∥`build`; Vitest forks; **probe-test delay compress** (Vitest-only + fake timers; MCP settles untouched); warm target ≤20–25s | Ben, Finn, Arch | [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §2.1 · `studioMcpPageProbe.ts` · `ci.yml` |
 | **Site Pilot public id** — URL/`screenId`=`site-pilot` (`home` reserved); folder/BEM may lag; naming audit updated | Bea, Finn, Arch | [HOME_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/HOME_MAKE_PARITY_REGISTER.md) · [URL.md](../shell/URL.md) |
 | **Fixed localhost + reuse tab** — canonical `http://localhost:5173/`; Vite `strictPort`; one `npm run dev`; Chrome MCP `list_pages`→reuse (`new_page` only if empty); Auto-Rule R11 + felony | Arch, Finn, Ben, Quinn | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · `vite.config.ts` · LESSONS |
 | **Platform Motion standard** — `framer-motion` via `@/uxds/motion`; Accordion height = Motion (not CSS `0fr/1fr`); chevron CSS; shell pilots: diagnostic overlay + studio select presence | Arch, Finn, Uma, Ben, Pax | [MOTION.md](./MOTION.md) · `src/uxds/motion/` · Accordion.tsx |

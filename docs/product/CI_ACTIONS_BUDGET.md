@@ -51,13 +51,13 @@ Full smoke: **manual / local** — `PROTO_SMOKE_PROFILE=full npm run smoke` when
 | Runners | Free floor = `ubuntu-latest` (no paid larger runners assumed) |
 | Not done | Vitest shard (would **cost** extra job installs); gutting hard gates |
 
-| Metric | Before parallel (`fd3241c` era) | After `6b952e4` parallel | Target / honest floor (this ship) |
-|--------|--------------------------------|--------------------------|-----------------------------------|
-| CI wall (push, **warm** `node_modules`) | ~60–70s sequential | ~35–45s | **≤20–25s** expected; honest floor ~**18–22s** (setup ~6–8s + vitest ~9–11s) |
-| Cold / first lockfile | ~60–90s | ~35–45s | ~30–40s (`npm ci` still dominates) |
-| Smoke on push | already off | still off | still off |
+| Metric | Before parallel (`fd3241c` era) | After `6b952e4` parallel | After probe-delay compress | Target / honest floor |
+|--------|--------------------------------|--------------------------|----------------------------|----------------------|
+| CI wall (push, **warm** `node_modules`) | ~60–70s sequential | ~35–45s | **≤20–25s** expected | setup ~6–8s + vitest ~1–3s local |
+| Cold / first lockfile | ~60–90s | ~35–45s | ~30–40s | `npm ci` still dominates |
+| Smoke on push | already off | still off | still off | still off |
 
-**Honest floor:** GitHub job boot + checkout + setup-node ≈ 6–8s; Vitest suite ≈ 9–11s local/CI. Sub-15s warm wall needs probe-test delay cuts (not done here — hard gates stay).
+**Honest floor:** GitHub job boot + checkout + setup-node ≈ 6–8s. Vitest page-probe recipes no longer burn ~8s+ real `settleMs`/`waitMs` — Vitest-only `compressProbeDelayMs` + fake timers in `studioMcpPageProbe.test.ts` (production MCP settles unchanged). Hard gates stay.
 
 ---
 

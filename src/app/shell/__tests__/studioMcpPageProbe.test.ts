@@ -1,5 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { runMcpPageProbe } from "@/app/shell/studioMcpPageProbe";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  compressProbeDelayMs,
+  runMcpPageProbe,
+} from "@/app/shell/studioMcpPageProbe";
 
 const simulateDemoPointerClick = vi.fn(async () => true);
 const simulateDemoPointerHover = vi.fn(async () => true);
@@ -55,7 +58,22 @@ vi.mock("@/app/shell/studioModalGuard", async () => {
 });
 
 describe("runMcpPageProbe", () => {
+  beforeEach(() => {
+    // Fake timers crush remaining mid-load ticks (≤100ms) without touching
+    // production MCP settle recipes (compression is Vitest-env only).
+    vi.useFakeTimers({
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "setInterval",
+        "clearInterval",
+        "Date",
+      ],
+    });
+  });
+
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     simulateDemoPointerClick.mockReset();
@@ -69,6 +87,25 @@ describe("runMcpPageProbe", () => {
     isBlockingModalOpen.mockReturnValue(false);
     isElementBlockedByModal.mockReset();
     isElementBlockedByModal.mockReturnValue(false);
+  });
+
+  async function runProbe(
+    options?: Parameters<typeof runMcpPageProbe>[0]
+  ): Promise<Awaited<ReturnType<typeof runMcpPageProbe>>> {
+    const pending = runMcpPageProbe({
+      settleMs: 0,
+      preArmMs: 0,
+      ...options,
+    });
+    await vi.runAllTimersAsync();
+    return pending;
+  }
+
+  it("Vitest compresses long probe dwells; keeps mid-load ≤100ms window", () => {
+    expect(process.env.VITEST).toBeTruthy();
+    expect(compressProbeDelayMs(900, "settle")).toBe(1);
+    expect(compressProbeDelayMs(80, "settle")).toBe(80);
+    expect(compressProbeDelayMs(4000, "wait")).toBe(250);
   });
 
   it("site-pilot stub recipe fails until React host mounts", async () => {
@@ -88,10 +125,9 @@ describe("runMcpPageProbe", () => {
       styleSheets: [],
     });
 
-    const result = await runMcpPageProbe({
+    const result = await runProbe({
       screenId: "site-pilot",
       reload: false,
-      settleMs: 0,
     });
 
     expect(result.pass).toBe(false);
@@ -114,7 +150,7 @@ describe("runMcpPageProbe", () => {
       querySelector: () => null,
     });
 
-    const result = await runMcpPageProbe({
+    const result = await runProbe({
       screenId: "hub",
       reload: false,
     });
@@ -303,7 +339,7 @@ describe("runMcpPageProbe", () => {
       },
     });
 
-    const result = await runMcpPageProbe({
+    const result = await runProbe({
       screenId: "plp",
       reload: false,
     });
@@ -477,7 +513,7 @@ describe("runMcpPageProbe", () => {
       },
     });
 
-    const result = await runMcpPageProbe({
+    const result = await runProbe({
       screenId: "plp",
       reload: false,
     });
@@ -781,7 +817,7 @@ describe("runMcpPageProbe", () => {
     });
     vi.stubGlobal("getComputedStyle", () => ({ color: "rgb(175, 204, 202)" }));
 
-    const result = await runMcpPageProbe({
+    const result = await runProbe({
       screenId: "pdp",
       reload: false,
     });
@@ -893,7 +929,7 @@ describe("runMcpPageProbe", () => {
       querySelectorAll: () => [],
     });
 
-    await runMcpPageProbe({ screenId: "pdp", reload: false, settleMs: 0 });
+    await runProbe({ screenId: "pdp", reload: false });
 
     expect(locationState.search).not.toContain("modal=");
     expect(new URLSearchParams(locationState.search).get("modal")).toBeNull();

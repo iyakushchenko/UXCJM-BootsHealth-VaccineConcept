@@ -148,9 +148,34 @@ function stylesheetHasRule(selectorFrag: string): boolean {
   return false;
 }
 
+/**
+ * Vitest-only: crush visual probe dwells so CI isn't wall-clock-bound by
+ * recipe settleMs / waitMs. Production MCP (`__studioRunMcpPageProbe`) never
+ * sets `process.env.VITEST` — real settles / mid-load windows stay intact.
+ */
+function shouldCompressProbeDelays(): boolean {
+  return typeof process !== "undefined" && Boolean(process.env?.VITEST);
+}
+
+/** @internal exported for unit proof that production scale is identity */
+export function compressProbeDelayMs(
+  ms: number,
+  kind: "settle" | "wait" = "settle"
+): number {
+  if (!shouldCompressProbeDelays()) return ms;
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  // Keep short mid-load windows (e.g. PLP reset settleMs: 80) observable.
+  if (kind === "settle" && ms <= 100) return ms;
+  // Assert polls: enough budget for test mocks (setTimeout ~120) — not 4s.
+  if (kind === "wait") return Math.min(ms, 250);
+  return 1;
+}
+
 function delay(ms: number): Promise<void> {
+  const t = compressProbeDelayMs(ms, "settle");
+  if (t <= 0) return Promise.resolve();
   return new Promise((resolve) => {
-    setTimeout(resolve, ms);
+    setTimeout(resolve, t);
   });
 }
 
@@ -1034,13 +1059,17 @@ async function waitForAssert(
   assert: () => boolean | string,
   waitMs: number
 ): Promise<boolean | string> {
-  const deadline = Date.now() + waitMs;
+  const budget = compressProbeDelayMs(waitMs, "wait");
+  const deadline = Date.now() + budget;
   let last: boolean | string = false;
   while (Date.now() < deadline) {
     last = assert();
     if (last === true) return true;
+    // delay() also Vitest-compresses the 120ms poll tick (→ 1ms).
     await delay(120);
   }
+  // Final tick — covers budget=0 under Vitest compress.
+  if (last !== true) last = assert();
   return last;
 }
 
