@@ -165,11 +165,18 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 | MCP page probe: **scroll-into-view** before interact; **overlay must be visible on every probe** — FAIL if absent | Quinn, Finn, Ben | LESSONS 2026-07-19 (MCP probe visibility) |
 | Agent overlay: **pre-arm** before steps; sitrep **PASS/FAIL** green/red; **forceClear** hard-remove (no stale popup) | Uma, Finn, Quinn | RECORDING.md · LESSONS · `agentTestingOverlay` |
 | **Studio Auto-Rules framework** — dismiss/modal, auth SSoT, avail start, §0b rhythm, brand-active pills → CI; PO must not re-ask | Arch, Ben, Quinn, Finn, Uma | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) · `studioAutoRules.ts` · `check:theme-brand` · felonies §9–10 |
-| **Auto-Rule `robo-cursor-native-feedback`** — robo/agent cursor fires hover+press like native; default graphic after click; CSS `:hover`/`:active` bridged | Finn, Ben, Quinn | `demoCursor` · `demoCursorPseudoBridge` · STUDIO_AUTO_RULES R10 |
+| **Auto-Rule `robo-cursor-native-feedback`** — robo = **native hover+press everywhere** (all interactive targets, not chat-only); top-level selector split + insertRule bridge; press dwell ~64ms; default graphic after click | Finn, Ben, Quinn | `demoCursor` · `demoCursorPseudoBridge` · STUDIO_AUTO_RULES R10 |
 | **Chrome hang class** — uncapped hover-bridge CSS + travel rAF after forceClear + accordion thrash = P0 hang; cap bridge, cancel rAF, rate-limit synthetic hover, Accordion contain/toggle floor | Finn, Ben, Quinn | LESSONS · `demoCursor` · `demoCursorPseudoBridge` · accordion.css |
+| **Bridge CSSOM stall** — never comma-split inside `:is()`; invalid bridged selectors must not abort later page rules (PDP secondary hover) | Finn, Ben | LESSONS · `splitSelectorsTopLevel` · insertRule |
 | **Auto-Rule `agent-teardown-clean`** — overlay gone + `&modal=` stripped + dialog closed after probe/sitrep/forceClear | Finn, Ben, Quinn, Arch | `studioAgentTeardownContract` · felonies §9 · `__studioAssertAgentTeardownClean` |
 | Team knowledge database + mandatory use | Arch, all | This file · TEAM.md § Knowledge use |
 | Page final-pass gate before NEXT screen; landmarks + BEM stamp | Finn, Uma, Ben, Arch | PAGE_FINAL_PASS.md · check:page-final-pass |
+
+**Knowledge improved** (2026-07-19 · stream: robo-cursor native hover everywhere · v0.0.34):
+- Finn (FE): root cause = comma-split inside `:is()` stalled bridge CSSOM so `.pdp__secondary` hover never live; top-level split + insertRule + page-sheet priority + `data-studio-robo-hover` + ~64ms press dwell — applied: `demoCursorPseudoBridge` + `demoCursor`
+- Ben (BE): R10 ratchet “everywhere not chat-only”; Vitest `:is()` + PDP secondary; patch bump — applied: STUDIO_AUTO_RULES + tests + LESSONS
+- Quinn (QA): MCP prove Check availability bg/border + Book now + popup close — applied: `__studioProveRoboCursorFeedback` border check
+- Arch (Director): shell-only; does not demote PDP Final Pass product matrix — applied: TEAM_KNOWLEDGE
 
 **Knowledge improved** (2026-07-19 · stream: PDP PAGE FINAL PASS HARD-GREEN restored · tip 581018f · v0.0.33):
 - Arch (Director): restore HARD-GREEN only after Quinn 23/23 (Motion travel) + Uma §0a PROVEN; shell scrollbar v0.0.33 mid-flight does not demote; veto Home until PO `+` — applied: PAGE_FINAL_PASS.json mcpFinalPass HARD-GREEN @ 581018f + FE_AUDIT_PDP_PAGE_FINAL_PASS + NEXT_STEPS 3e

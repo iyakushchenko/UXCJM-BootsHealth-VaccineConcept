@@ -64,7 +64,7 @@ export const STUDIO_AUTO_RULES: readonly StudioAutoRule[] = [
   {
     id: "robo-cursor-native-feedback",
     title:
-      "Robo-cursor fires hover/press like native (events + CSS bridge; default graphic after click)",
+      "Robo-cursor = native hover+press everywhere (all interactive targets; not chat-only; default graphic after click)",
     ciGate: "vitest",
   },
 ] as const;

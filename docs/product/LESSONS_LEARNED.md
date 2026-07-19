@@ -130,6 +130,19 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   4. Accordion: no permanent `will-change`; `contain: layout style`; toggle min-interval.
 - **PO recovery:** refresh once → `__studioAgentTestingOverlay?.forceClear()` → `__studioWaitAgentTeardownClean()`.
 
+### Robo-cursor hover missing on secondary/DS CTAs (bridge CSSOM stall — P0)
+
+- **Symptom / class:** Robo hover class applied (`proto-chat-cta--hover` / `data-studio-robo-hover`) but **no visual hover** on PDP **Check availability**, outline/secondary buttons, etc. Chat CTAs looked fine (hand-mirrored rules in chrome CSS).
+- **Root cause:** `bridgeDemoPseudoSelector` split selector lists on **every** comma — including commas inside `:is(button, [role="option"], …)`. That emitted broken selectors like `[role="option"]).proto-chat-cta--pressed:focus`. Dumping them into one `style.textContent` **stalled CSSOM parse**, so later bridged page rules (`.pdp__secondary:hover` → `.pdp__secondary.proto-chat-cta--hover`) never became live rules.
+- **Gate (GLOBAL HARD FAIL — Finn + Ben + Quinn):**
+  1. Split selectors on **top-level commas only** (`splitSelectorsTopLevel`).
+  2. `insertRule` per bridged rule; skip invalid; never one mega text blob that can abort the sheet.
+  3. Skip pseudo-element `:hover`/`:active` (`::-webkit-scrollbar-thumb:hover`).
+  4. Prefer page/UXDS sheets under the 256 cap; fingerprint-refresh when sheets change.
+  5. Press = pointerdown → ~40–80ms dwell → pointerup → click; clear hover/press + default arrow after.
+  6. Auto-Rule R10: **robo = native hover+press everywhere** (not chat-only). Vitest covers `:is()` + `.pdp__secondary`; MCP prove Check availability bg/border.
+- **PO recovery:** refresh → re-run `__studioProveRoboCursorFeedback?.('[data-studio-action="pdp-check-availability"]')`.
+
 ### Overlay eyes — MCP/robo must not click through open dialogs (PO rage)
 
 - **Symptom:** MCP page probe / robo-cursor still clicked PLP tiles **under** open Quick View (and other lightboxes).

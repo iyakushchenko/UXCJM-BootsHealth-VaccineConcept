@@ -21,6 +21,7 @@ import {
 import {
   DEMO_HOVER_CLASS,
   DEMO_PRESSED_CLASS,
+  DEMO_ROBO_HOVER_ATTR,
   ensureDemoPseudoBridge,
 } from "@/app/scenario/demoCursorPseudoBridge";
 import {
@@ -36,7 +37,8 @@ const CURSOR_HAND_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-
 const DEMO_CURSOR_MARKUP = `${CURSOR_ARROW_SVG}${CURSOR_HAND_SVG}`;
 
 const CTA_TRAVEL_MS = 780;
-const CTA_PRESS_MS = 420;
+/** Native-feel press: down → brief dwell → up → click (not instant synthetic). */
+const CTA_PRESS_MS = 64;
 const CTA_HOVER_DWELL_MS = 220;
 const CURSOR_EXIT_MS = 1600;
 const CURSOR_EXIT_DRIFT_PX = 10;
@@ -692,9 +694,12 @@ export function clearDemoCtaStates(): void {
   lastSyntheticMoveAt = 0;
   lastSyntheticMoveKey = "";
   document
-    .querySelectorAll<HTMLElement>(`.${DEMO_HOVER_CLASS}, .${DEMO_PRESSED_CLASS}`)
+    .querySelectorAll<HTMLElement>(
+      `.${DEMO_HOVER_CLASS}, .${DEMO_PRESSED_CLASS}, [${DEMO_ROBO_HOVER_ATTR}]`
+    )
     .forEach((el) => {
       el.classList.remove(DEMO_HOVER_CLASS, DEMO_PRESSED_CLASS);
+      el.removeAttribute(DEMO_ROBO_HOVER_ATTR);
     });
   document
     .querySelectorAll<HTMLElement>(".proto-demo-avatar-hover")
@@ -720,6 +725,7 @@ function leaveDemoInteractionRoot(
   coords?: { x: number; y: number }
 ): void {
   root.classList.remove(DEMO_HOVER_CLASS, DEMO_PRESSED_CLASS);
+  root.removeAttribute(DEMO_ROBO_HOVER_ATTR);
   if (!root.isConnected) return;
   const c = coords ?? targetCenter(root);
   dispatchDemoPointerLeave(root, c.x, c.y);
@@ -759,6 +765,7 @@ function setDemoInteractionHover(
   activeHoverRoot = root;
   setDemoCursorPointerMode(true);
   root.classList.add(DEMO_HOVER_CLASS);
+  root.setAttribute(DEMO_ROBO_HOVER_ATTR, "true");
   // Already hovering: keep class; do NOT re-flood enter/move (hang guard).
   if (already) return;
   dispatchDemoPointerEnter(root, c.x, c.y);
@@ -1311,6 +1318,7 @@ export async function simulateDemoPointerClick(
 
   // Native parity: :hover stays while :active — keep hover class during press.
   interactionRoot.classList.add(DEMO_HOVER_CLASS, DEMO_PRESSED_CLASS);
+  interactionRoot.setAttribute(DEMO_ROBO_HOVER_ATTR, "true");
   if (dispatchEvents) {
     dispatchDemoPointerDown(interactionRoot, x, y);
     notifyStudioDemoClick();

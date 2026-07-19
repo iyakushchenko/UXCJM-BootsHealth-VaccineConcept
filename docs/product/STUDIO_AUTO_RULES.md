@@ -39,7 +39,7 @@
 | R7 | *(existing)* | Parity typical misses | `check:parity-ratchets` | — | PLP/PDP recipe steps |
 | R8 | *(existing)* | PROVEN honesty | `check:parity-proven` | — | Matrix evidence |
 | R9 | *(existing)* | PAGE FINAL PASS | `check:page-final-pass` | — | `mcpFinalPass` stamp |
-| R10 | **`robo-cursor-native-feedback`** | Agent/robo cursor must feel native: hover + press feedback, default graphic after click | `vitest` | `demoCursorInteraction` + `demoCursorPseudoBridge` | MCP: hover class/styles under robo; close `:active`/pressed visible |
+| R10 | **`robo-cursor-native-feedback`** | Robo-cursor = **native hover+press everywhere** (buttons/links/DS secondary/outline/popup close — not chat-only); press = down→dwell→up→click; default graphic after click | `vitest` | `demoCursorInteraction` + `demoCursorPseudoBridge` (top-level selector split + insertRule) | MCP: PDP Check availability bg/border change; Book now; popup close press |
 
 **Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table.
 

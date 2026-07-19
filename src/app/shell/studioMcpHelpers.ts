@@ -50,11 +50,6 @@ import {
 } from "@/app/shell/agentTestingOverlay";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
 import {
-  isDemoCursorPointerMode,
-  simulateDemoPointerClick,
-  simulateDemoPointerHover,
-} from "@/app/scenario/demoCursor";
-import {
   mcpDelay as delay,
   withMcpTestSession,
 } from "@/app/shell/mcpTestSession";
@@ -67,6 +62,7 @@ import {
   type McpPageProbeOptions,
   type McpPageProbeResult,
 } from "@/app/shell/studioMcpPageProbe";
+import { proveRoboCursorFeedback } from "@/app/shell/studioProveRoboCursorFeedback";
 import { stripEphemeralStudioQuery } from "@/app/shell/studioUrl";
 
 export type StudioMcpState = {
@@ -246,74 +242,6 @@ declare global {
     }>;
     __protoDiagnosticFlashes?: () => import("@/app/shell/playbackDiagnosticFlash").DiagnosticFlashRecord[];
   }
-}
-
-async function proveRoboCursorFeedback(selector?: string): Promise<{
-  pass: boolean;
-  hoverClass: boolean;
-  hoverStyleChanged: boolean;
-  pressSeen: boolean;
-  pointerClearedAfterClick: boolean;
-  detail: string;
-}> {
-  const el = document.querySelector<HTMLElement>(
-    selector ||
-      ".proto-avail-header .proto-popup-close, .studio-tertiary-cta, .pdp__pill, [data-name='component.input.button'], button"
-  );
-  if (!el) {
-    return {
-      pass: false,
-      hoverClass: false,
-      hoverStyleChanged: false,
-      pressSeen: false,
-      pointerClearedAfterClick: false,
-      detail: "no target",
-    };
-  }
-
-  const beforeBg = getComputedStyle(el).backgroundColor;
-  const beforeColor = getComputedStyle(el).color;
-  let hoverClass = false;
-  let hoverStyleChanged = false;
-
-  const hovered = await simulateDemoPointerHover(el, 480, {
-    scroll: true,
-    onHoverStart: (root) => {
-      hoverClass = root.classList.contains("proto-chat-cta--hover");
-      const bg = getComputedStyle(root).backgroundColor;
-      const color = getComputedStyle(root).color;
-      hoverStyleChanged = bg !== beforeBg || color !== beforeColor;
-    },
-  });
-
-  let pressSeen = false;
-  const onDown = () => {
-    pressSeen =
-      el.classList.contains("proto-chat-cta--pressed") &&
-      el.classList.contains("proto-chat-cta--hover");
-  };
-  el.addEventListener("pointerdown", onDown, { once: true });
-
-  const clicked = await simulateDemoPointerClick(el, { scroll: true });
-  const pointerClearedAfterClick = !isDemoCursorPointerMode();
-  const pass =
-    hovered &&
-    clicked &&
-    hoverClass &&
-    hoverStyleChanged &&
-    pressSeen &&
-    pointerClearedAfterClick;
-
-  return {
-    pass,
-    hoverClass,
-    hoverStyleChanged,
-    pressSeen,
-    pointerClearedAfterClick,
-    detail: pass
-      ? "robo-cursor native feedback OK"
-      : `hover=${hovered}/${hoverClass}/${hoverStyleChanged} click=${clicked} press=${pressSeen} pointerCleared=${pointerClearedAfterClick}`,
-  };
 }
 
 export function parseStudioStepCounter(counter: string | null): {

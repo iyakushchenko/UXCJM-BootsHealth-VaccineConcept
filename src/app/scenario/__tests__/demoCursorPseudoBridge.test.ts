@@ -6,7 +6,26 @@ import {
   ensureDemoPseudoBridge,
   removeDemoPseudoBridge,
   shouldBridgeStyleSheet,
+  splitSelectorsTopLevel,
 } from "@/app/scenario/demoCursorPseudoBridge";
+
+describe("splitSelectorsTopLevel", () => {
+  it("keeps commas inside :is()", () => {
+    expect(
+      splitSelectorsTopLevel(
+        '.host :is(button, [role="listbox"], [role="option"]):active:focus'
+      )
+    ).toEqual([
+      '.host :is(button, [role="listbox"], [role="option"]):active:focus',
+    ]);
+  });
+
+  it("splits only top-level commas", () => {
+    expect(
+      splitSelectorsTopLevel(".a:hover, .b:is(.x, .y):active, .c")
+    ).toEqual([".a:hover", ".b:is(.x, .y):active", ".c"]);
+  });
+});
 
 describe("bridgeDemoPseudoSelector", () => {
   it("mirrors :hover onto .proto-chat-cta--hover", () => {
@@ -27,8 +46,35 @@ describe("bridgeDemoPseudoSelector", () => {
     ).toBe(".pdp__icon-hit.proto-chat-cta--hover .pdp__heart-icon");
   });
 
+  it("bridges :is() lists without splitting inner commas", () => {
+    expect(
+      bridgeDemoPseudoSelector(
+        '.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):active:focus'
+      )
+    ).toBe(
+      '.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]).proto-chat-cta--pressed:focus'
+    );
+  });
+
+  it("bridges PDP secondary CTA hover", () => {
+    expect(bridgeDemoPseudoSelector(".pdp__secondary:hover")).toBe(
+      ".pdp__secondary.proto-chat-cta--hover"
+    );
+    expect(
+      bridgeDemoPseudoSelector(".pdp__secondary:hover .pdp__secondary-icon")
+    ).toBe(".pdp__secondary.proto-chat-cta--hover .pdp__secondary-icon");
+  });
+
   it("skips :not(:hover) negatives", () => {
     expect(bridgeDemoPseudoSelector(".foo:not(:hover)")).toBeNull();
+  });
+
+  it("skips pseudo-element :hover (class cannot attach)", () => {
+    expect(
+      bridgeDemoPseudoSelector(
+        ".studio-agent-testing-overlay__log::-webkit-scrollbar-thumb:hover"
+      )
+    ).toBeNull();
   });
 
   it("does not double-bridge already-mirrored selectors", () => {
@@ -55,11 +101,33 @@ describe("ensureDemoPseudoBridge", () => {
     ensureDemoPseudoBridge();
     const bridge = document.getElementById("studio-demo-pseudo-bridge");
     expect(bridge).toBeTruthy();
-    expect(bridge?.textContent).toContain(
-      ".probe-hover-target.proto-chat-cta--hover"
+    expect(bridge?.sheet).toBeTruthy();
+    const sels = Array.from(bridge!.sheet!.cssRules).map(
+      (r) => (r as CSSStyleRule).selectorText
     );
-    expect(bridge?.textContent).toContain(
-      ".probe-hover-target.proto-chat-cta--pressed"
+    expect(sels).toContain(".probe-hover-target.proto-chat-cta--hover");
+    expect(sels).toContain(".probe-hover-target.proto-chat-cta--pressed");
+  });
+
+  it("keeps later page rules when earlier :is() compounds are present", () => {
+    const sheet = document.createElement("style");
+    sheet.setAttribute("data-test-hover-sheet", "1");
+    sheet.textContent = [
+      '.host :is(button, [role="listbox"], [role="option"]):active:focus{outline:none}',
+      ".pdp__secondary:hover{background:#c6e5e1}",
+    ].join("");
+    document.head.appendChild(sheet);
+
+    ensureDemoPseudoBridge();
+    const bridge = document.getElementById("studio-demo-pseudo-bridge");
+    const sels = Array.from(bridge!.sheet!.cssRules).map(
+      (r) => (r as CSSStyleRule).selectorText
+    );
+    expect(sels.some((s) => s.includes(":is(button"))).toBe(true);
+    expect(sels).toContain(".pdp__secondary.proto-chat-cta--hover");
+    // CSSOM must not stall — claimed count matches live rules.
+    expect(Number(bridge?.getAttribute("data-studio-bridge-cssom"))).toBe(
+      bridge!.sheet!.cssRules.length
     );
   });
 
