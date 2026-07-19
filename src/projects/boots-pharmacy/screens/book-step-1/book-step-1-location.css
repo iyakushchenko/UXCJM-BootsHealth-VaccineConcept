@@ -9,7 +9,7 @@
   align-self: stretch;
 }
 
-.book-step1 {
+.book-step-1 {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,7 +27,7 @@
  *   inner: max-width 1312, width 100%, centered
  * Do NOT put side padding on the 1312 inner — that shifts crumbs past the logo.
  */
-.book-step1__shell {
+.book-step-1__shell {
   width: 100%;
   max-width: 1440px;
   margin-left: auto;
@@ -37,7 +37,7 @@
   box-sizing: border-box;
 }
 
-.book-step1__shell-inner {
+.book-step-1__shell-inner {
   width: 100%;
   max-width: 1312px;
   margin-left: auto;
@@ -46,7 +46,7 @@
 }
 
 /* Make module.breadcrumbs — white, no bottom border */
-.book-step1__crumbs {
+.book-step-1__crumbs {
   width: 100%;
   background: var(--uxds-surface-neutral);
   position: relative;
@@ -55,7 +55,7 @@
   padding-bottom: 16px;
 }
 
-.book-step1__crumbs-inner {
+.book-step-1__crumbs-inner {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -64,7 +64,7 @@
 }
 
 /* Make Home link — #305854 (live token --uxds-text-link-link-dark) */
-.book-step1__crumb-link {
+.book-step-1__crumb-link {
   border: none;
   background: none;
   padding: 0;
@@ -75,21 +75,21 @@
   transition: color 0.18s ease;
 }
 
-.book-step1__crumb-link:hover {
+.book-step-1__crumb-link:hover {
   color: var(--uxds-text-link-link);
   text-decoration: none;
 }
 
-.book-step1__crumb-link:focus-visible {
+.book-step-1__crumb-link:focus-visible {
   outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
-.book-step1__crumb-sep {
+.book-step-1__crumb-sep {
   color: #c3c3c3;
 }
 
-.book-step1__crumb-current {
+.book-step-1__crumb-current {
   color: #7a7d87;
 }
 
@@ -97,7 +97,7 @@
  * Make Body5 page fill:
  * absolute white base + decorative PNG @ opacity 0.31, object-position bottom.
  */
-.book-step1__body {
+.book-step-1__body {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -106,7 +106,7 @@
   flex: 1 1 auto;
 }
 
-.book-step1__body-fill {
+.book-step-1__body-fill {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -114,13 +114,13 @@
   overflow: hidden;
 }
 
-.book-step1__body-fill-solid {
+.book-step-1__body-fill-solid {
   position: absolute;
   inset: 0;
   background: var(--uxds-surface-neutral);
 }
 
-.book-step1__body-fill-img {
+.book-step-1__body-fill-img {
   position: absolute;
   inset: 0;
   display: block;
@@ -132,8 +132,8 @@
   opacity: 0.31;
 }
 
-/* Vertical pad only — horizontal inset comes from .book-step1__shell */
-.book-step1__main {
+/* Vertical pad only — horizontal inset comes from .book-step-1__shell */
+.book-step-1__main {
   position: relative;
   z-index: 1;
   display: flex;
@@ -145,7 +145,7 @@
   box-sizing: border-box;
 }
 
-.book-step1__title {
+.book-step-1__title {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -158,7 +158,7 @@
 /* Progress + summary pills → UXDS kits (book-appointment-progress / appointment-summary-pill) */
 
 /* Live Make card width override: 863px (not Figma export 758px) */
-.book-step1__card {
+.book-step-1__card {
   display: flex;
   flex-direction: column;
   gap: 72px;
@@ -171,7 +171,7 @@
   box-sizing: border-box;
 }
 
-.book-step1__section-title {
+.book-step-1__section-title {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -182,7 +182,7 @@
 }
 
 /* Make Frame209: wrap search + near-me side-by-side */
-.book-step1__location {
+.book-step-1__location {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -191,7 +191,7 @@
   width: 100%;
 }
 
-.book-step1__location-field {
+.book-step-1__location-field {
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
@@ -199,7 +199,7 @@
   min-width: 220px;
 }
 
-.book-step1__field-label {
+.book-step-1__field-label {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
@@ -209,7 +209,7 @@
 }
 
 /* Make Text Field: pill 360, #c3c3c3 border, inset navy ring on hover/focus */
-.book-step1__search {
+.book-step-1__search {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -228,20 +228,20 @@
   transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.book-step1__search:hover,
-.book-step1__search:focus-visible {
+.book-step-1__search:hover,
+.book-step-1__search:focus-visible {
   border-color: var(--uxds-input-button-surface-surface-commerce-solid);
   box-shadow: inset 0 0 0 2px var(--uxds-input-button-surface-surface-commerce-solid);
   outline: none;
 }
 
-.book-step1__search-text {
+.book-step-1__search-text {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
 }
 
-.book-step1__search-icon {
+.book-step-1__search-icon {
   flex-shrink: 0;
   display: flex;
   width: 24px;
@@ -250,7 +250,7 @@
   justify-content: center;
 }
 
-.book-step1__search p {
+.book-step-1__search p {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
@@ -262,7 +262,7 @@
 }
 
 /* Make Frame102: h-72, pt-24 — aligns NearMeCta beside labeled search field */
-.book-step1__near-me {
+.book-step-1__near-me {
   display: flex;
   align-items: center;
   height: 72px;
@@ -274,7 +274,7 @@
 /* Shared NearMeCta chrome lives in globals-chrome (.proto-tertiary-cta / .proto-near-me-cta) */
 
 /* Chosen store tile — same treatment as Make .proto-chosen-tile */
-.book-step1__chosen {
+.book-step-1__chosen {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -285,21 +285,21 @@
   box-sizing: border-box;
 }
 
-.book-step1__map {
+.book-step-1__map {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: var(--uxds-surface-subtle);
 }
 
-.book-step1__map img {
+.book-step-1__map img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.book-step1__store {
+.book-step-1__store {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -308,7 +308,7 @@
   padding: 16px;
 }
 
-.book-step1__store-name {
+.book-step-1__store-name {
   margin: 0 0 4px;
   font-size: 13px;
   line-height: 24px;
@@ -316,14 +316,14 @@
   color: var(--uxds-text-text-primary);
 }
 
-.book-step1__store-address {
+.book-step-1__store-address {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
   color: #7a7d87;
 }
 
-.book-step1__booster {
+.book-step-1__booster {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -334,7 +334,7 @@
  * Live Make child-7 booster (globals-screens):
  * unchecked white/#c3c3c3; hover #c6e5e1; checked #afccca + #305854 mark.
  */
-.book-step1__checkbox-row {
+.book-step-1__checkbox-row {
   display: flex;
   align-items: flex-start;
   gap: 16px;
@@ -342,7 +342,7 @@
   cursor: pointer;
 }
 
-.book-step1__checkbox-icon {
+.book-step-1__checkbox-icon {
   position: relative !important;
   flex-shrink: 0 !important;
   width: 24px !important;
@@ -352,7 +352,7 @@
   overflow: visible !important;
 }
 
-.book-step1__checkbox-box {
+.book-step-1__checkbox-box {
   position: absolute !important;
   left: 0 !important;
   top: 0 !important;
@@ -373,18 +373,18 @@
   transition: background 0.15s ease, border-color 0.15s ease !important;
 }
 
-.book-step1__checkbox-row:hover .book-step1__checkbox-box {
+.book-step-1__checkbox-row:hover .book-step-1__checkbox-box {
   background: var(--uxds-surface-accent-soft) !important;
   border-color: var(--uxds-surface-accent-soft) !important;
 }
 
-.book-step1__checkbox-row[data-checkbox-checked="true"] .book-step1__checkbox-box,
-.book-step1__checkbox-row[data-checkbox-checked="true"]:hover .book-step1__checkbox-box {
+.book-step-1__checkbox-row[data-checkbox-checked="true"] .book-step-1__checkbox-box,
+.book-step-1__checkbox-row[data-checkbox-checked="true"]:hover .book-step-1__checkbox-box {
   background: var(--uxds-badge-surface-variant-1) !important;
   border: 1px solid var(--uxds-badge-surface-variant-1) !important;
 }
 
-.book-step1__checkbox-mark {
+.book-step-1__checkbox-mark {
   position: relative !important;
   inset: auto !important;
   display: flex !important;
@@ -394,11 +394,11 @@
   pointer-events: none !important;
 }
 
-.book-step1__checkbox-mark svg path {
+.book-step-1__checkbox-mark svg path {
   fill: var(--uxds-badge-text-on-variant-1) !important;
 }
 
-.book-step1__checkbox-input {
+.book-step-1__checkbox-input {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -409,7 +409,7 @@
   cursor: pointer;
 }
 
-.book-step1__checkbox-row p {
+.book-step-1__checkbox-row p {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
@@ -418,33 +418,33 @@
   transition: font-weight 0.15s ease;
 }
 
-.book-step1__checkbox-row[data-checkbox-checked="true"] p {
+.book-step-1__checkbox-row[data-checkbox-checked="true"] p {
   font-weight: 700;
 }
 
 /* Link chrome: shared `.uxds-link` (text-link.css). Layout only here. */
-.book-step1__learn-more {
+.book-step-1__learn-more {
   align-self: flex-start;
   margin-left: 40px;
   font-size: 13px;
   line-height: 24px;
 }
 
-.book-step1__learn-body {
+.book-step-1__learn-body {
   margin-left: 40px;
   font-size: 13px;
   line-height: 24px;
   color: var(--uxds-text-text-primary);
 }
 
-.book-step1__cta-wrap {
+.book-step-1__cta-wrap {
   display: flex;
   justify-content: center;
   width: 100%;
   padding-top: 24px;
 }
 
-.book-step1__continue.uxds-btn-primary {
+.book-step-1__continue.uxds-btn-primary {
   min-width: 230px;
   min-height: 48px;
   height: 48px;
@@ -461,7 +461,7 @@
 
 
 
-.book-step1__help {
+.book-step-1__help {
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -472,7 +472,7 @@
   color: var(--uxds-text-text-primary);
 }
 
-.book-step1__help p {
+.book-step-1__help p {
   margin: 0;
 }
 

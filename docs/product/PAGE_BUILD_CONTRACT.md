@@ -111,7 +111,7 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 |-------|--------|------|
 | **UXDS tokens** | `src/uxds/tokens/` | Shared structure / semantic roles |
 | **Kit CSS** | `src/uxds/components/*.css` (+ interaction kit styles as needed) | Reusable control chrome + **hover/focus/active** defaults |
-| **Screen CSS** | Co-located next to the React screen (e.g. `screens/book-step1/book-step1-location.css`) | Layout + concept-specific overrides only |
+| **Screen CSS** | Co-located next to the React screen (e.g. `screens/book-step-1/book-step-1-location.css`) | Layout + concept-specific overrides only |
 | **Project theme** | `src/projects/<id>/styleguide/theme.css` | Brand color / logo remaps — not a second DS |
 | **Legacy Make wire CSS** | `src/styles/globals-*.css` | Unmigrated screens + shared overlays until replaced |
 

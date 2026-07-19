@@ -11,7 +11,7 @@
 - [../BOOTS_REACT_SCREEN_PILOT.md](../BOOTS_REACT_SCREEN_PILOT.md)  
 - [../CSS_BASE_THEME.md](../../../product/CSS_BASE_THEME.md)  
 - [../DS_STRICTNESS.md](../../../product/DS_STRICTNESS.md)  
-- Live code under `src/projects/boots-pharmacy/screens/book-step1/` + Make wire  
+- Live code under `src/projects/boots-pharmacy/screens/book-step-1/` + Make wire  
 - `gh run list` / local `npm run build`
 
 ---
@@ -32,7 +32,7 @@ Proceed to the **next** page migration — but stop lying that Book Step 1 means
 ## What is solid
 
 - **Live FE audits PROVEN twice** (localhost measured): grid 1440/64/1312, logo↔Home Δx=0, body fill @ 0.31, card/progress 863px, Continue → Availability, booster, Disclosure Learn more, STEPS once, NearMe unify page↔Availability.
-- **React screen package exists and is the SOT for this tab:** `BookStep1LocationScreen.tsx` + `book-step1-location.css` + `mountBookStep1Screen.tsx` + contract/tests.
+- **React screen package exists and is the SOT for this tab:** `BookStep1LocationScreen.tsx` + `book-step-1-location.css` + `mountBookStep1Screen.tsx` + contract/tests.
 - **Shared kits in use on the page:** `ButtonPrimary` + `--commerce`, `Disclosure`, `NearMeCta` / `.proto-tertiary-cta`, `.uxds-link` (Learn more + help tel).
 - **Deviations registered** (not anonymous forever): `.uxds-filter-chip--strong`, `.uxds-btn-primary--commerce` in `docs/uxds/DEVIATIONS.md`.
 - **CSS layer lock is real:** `src/styles/index.css` = BASE → THEME → PANEL → LEGACY; docs mandate **no new React page styles in `globals-*.css`**.
@@ -50,7 +50,7 @@ Proceed to the **next** page migration — but stop lying that Book Step 1 means
 - **Tertiary / NearMe chrome still lives in LEGACY** (`globals-chrome.css` `.proto-tertiary-cta` / `.proto-near-me-cta`) — shared language, wrong layer for a “clean” BASE story.
 - **Availability Tool** is React overlay but still styled largely via LEGACY `.proto-avail-*` in `globals-screens.css`.
 - **Proto sticky header + ProtoFooter** are intentional Studio mounts (design delta “open”) — not Make absolute chrome, also not a pure UXDS page shell.
-- **Page CSS hex zoo:** `book-step1-location.css` still hardcodes many Make-parity hexes (`#3a3a3a`, `#c3c3c3`, `#f5f5f5`, `#012169`, …) alongside some `var(--uxds-…)`. Tokens/theme are incomplete on this surface.
+- **Page CSS hex zoo:** `book-step-1-location.css` still hardcodes many Make-parity hexes (`#3a3a3a`, `#c3c3c3`, `#f5f5f5`, `#012169`, …) alongside some `var(--uxds-…)`. Tokens/theme are incomplete on this surface.
 - **Pilot doc drift:** `BOOTS_REACT_SCREEN_PILOT.md` still says near-me is “FilterChip remapped”; code/audits say shared `NearMeCta` (post-`2ea93a0`). Docs can lie even when audits pass.
 - **All other Boots screens** remain Make wire. Step 1 is one island.
 - **CI reality check (blunt):** last *completed* CI on main before the layer/CRLF harden was **RED** at `3e7dd92` — Tailwind `Invalid declaration: `` ` from **CRCRLF** in CSS (`text-link` / `index.css` path). Hardened later (`.gitattributes` `*.css eol=lf` + layer commits). At report time, HEAD `423d2ac` **test/build green**, **lean Playwright smoke still in_progress** (multiple concurrent smoke jobs stacked). Do **not** claim “main is green” until smoke concludes success.
@@ -124,7 +124,7 @@ We are **not** ready to start the next page if any of these are true:
 
 ## Guardrails for the next migration (non-negotiable)
 
-1. **Copy the Step 1 *pattern*, not the Step 1 *hex dump*** — colocated `screens/book-step2/*`, mount host, hide Make chrome, gate Make handlers.  
+1. **Copy the Step 1 *pattern*, not the Step 1 *hex dump*** — colocated `screens/book-step-2/*`, mount host, hide Make chrome, gate Make handlers.  
 2. **BASE / THEME / PANEL / page CSS only** for new work.  
 3. **Reuse kits + registered deviations**; register new ones before inventing.  
 4. **Delete or clearly retire** obsolete Make CSS for a screen when React owns it (at least stop adding; prefer delete when safe).  

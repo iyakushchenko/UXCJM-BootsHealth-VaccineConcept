@@ -66,7 +66,7 @@ PANEL is imported from `index.css` (not only from components) so it sits **befor
 
 | Path | Owns |
 |------|------|
-| `src/projects/<id>/screens/**/*.css` | Colocated layout/structure for React screens (e.g. `book-step1-location.css`) |
+| `src/projects/<id>/screens/**/*.css` | Colocated layout/structure for React screens (e.g. `book-step-1-location.css`) |
 
 Allowed for measured layout/structure. **Forbidden:** parallel palettes, near-duplicate control roles, dumping into LEGACY. Deviations → [`docs/uxds/DEVIATIONS.md`](../uxds/DEVIATIONS.md).
 
@@ -92,7 +92,7 @@ Allowed for measured layout/structure. **Forbidden:** parallel palettes, near-du
 | Kit CSS (button / chip / link) | Done | BASE | Stay; grow here |
 | Boots `styleguide/theme.css` | Done | THEME | Stay (remaps only) |
 | `protoNavPanel.css` (nav / REC / CJM) | Done | PANEL | Stay; all new chrome here |
-| Book Step 1 React screen CSS | Done | Page (`screens/book-step1/`) | Stay; next screens same pattern |
+| Book Step 1 React screen CSS | Done | Page (`screens/book-step-1/`) | Stay; next screens same pattern |
 | Hub Make CSS (`globals-hub.css`) | Legacy | LEGACY | Retire with hub React |
 | Wire / scroll / playback shield (`globals-chrome.css`) | Mixed | LEGACY (engine bits) | Extract → `src/app/shell/**` (PANEL) |
 | Make screen dump (`globals-screens.css`) | Legacy | LEGACY | Retire screen-by-screen |
@@ -107,7 +107,7 @@ Allowed for measured layout/structure. **Forbidden:** parallel palettes, near-du
 | BASE | `src/uxds/**/*.css` | ~9 KB |
 | THEME | `boots-pharmacy/styleguide/theme.css` | ~2 KB |
 | PANEL | `src/app/nav/protoNavPanel.css` | (nav chrome) |
-| Page (React) | `book-step1-location.css` | ~13 KB |
+| Page (React) | `book-step-1-location.css` | ~13 KB |
 
 **Readiness verdict:** **Architecture ready now** (BASE + THEME + PANEL locked and imported). **LEGACY retirement is phased** — do not big-bang rewrite the Make monster; retire screen-by-screen as surfaces move to React. New work must land in BASE / THEME / PANEL / page CSS only.
 

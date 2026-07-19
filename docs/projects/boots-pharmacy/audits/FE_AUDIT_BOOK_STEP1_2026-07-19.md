@@ -30,15 +30,15 @@ Live localhost audit of React Book Step 1 confirms the claimed fidelity ship: bo
 
 | # | Result | Evidence |
 |---|--------|----------|
-| A1 | **PASS** | React `.book-step1` mounted (`data-proto-react-screen=book-step-1`); Make body/header/footer retired. H1 39/48, card white 24px radius, progress active navy 700 / bar `#c6e5e1`, checked booster `#afccca` — matches delta / live Make. |
+| A1 | **PASS** | React `.book-step-1` mounted (`data-proto-react-screen=book-step-1`); Make body/header/footer retired. H1 39/48, card white 24px radius, progress active navy 700 / bar `#c6e5e1`, checked booster `#afccca` — matches delta / live Make. |
 | A2 | **PASS** | Delta covered: body fill img `6d60145a…` opacity 0.31 `object-position: 50% 100%`; crumbs white / no border / Home `#305854`; shell/inner split; NearMeCta tertiary. |
-| A3 | **PASS** | Remaps scoped to `.book-step1*` + shared `.proto-tertiary-cta` / `.proto-near-me-cta`; no accidental global wash observed on this path. |
+| A3 | **PASS** | Remaps scoped to `.book-step-1*` + shared `.proto-tertiary-cta` / `.proto-near-me-cta`; no accidental global wash observed on this path. |
 
 ### B. Layout / max-width / alignment
 
 | # | Result | Evidence |
 |---|--------|----------|
-| B1 | **PASS** | `.book-step1__shell` max-width **1440px**, padding-left/right **64px**; `.book-step1__shell-inner` max-width **1312px**, pad **0**. Progress/card width **863px**. Viewport 1440×1100. |
+| B1 | **PASS** | `.book-step-1__shell` max-width **1440px**, padding-left/right **64px**; `.book-step-1__shell-inner` max-width **1312px**, pad **0**. Progress/card width **863px**. Viewport 1440×1100. |
 | B2 | **PASS** | Boots logo left **64** = crumb Home left **64** (Δ = 0). Same shell/inner pattern as `.proto-footer__shell`. |
 | B3 | **PASS** | `documentElement.scrollWidth` not exceeding client width; sticky footer mount present after host. |
 | B4 | **PASS** | Desktop-first (`min-width: 1200px` host) intact at 1440; search + near-me side-by-side. |

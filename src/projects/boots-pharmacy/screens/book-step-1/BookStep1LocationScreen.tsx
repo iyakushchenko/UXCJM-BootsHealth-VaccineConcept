@@ -19,7 +19,7 @@ import {
   BOOK_STEP1_CHOSEN_SLOT_CLASS,
   BOOK_STEP1_REACT_SCREEN_ID,
 } from "./bookStep1Contract";
-import "./book-step1-location.css";
+import "./book-step-1-location.css";
 
 const BOOSTER_LABEL = "Include booking booster dose at a future date";
 const SEARCH_PLACEHOLDER = "Search for City, Postcode, Location...";
@@ -77,7 +77,7 @@ function SearchGlyph() {
 function CheckboxCheckMark() {
   return (
     <span
-      className="book-step1__checkbox-mark"
+      className="book-step-1__checkbox-mark"
       data-name="element. gse. checkbox. check mark"
       aria-hidden
     >
@@ -114,7 +114,7 @@ export function BookStep1LocationScreen({
   const progressSteps = buildBookProgressSteps(1);
   return (
     <div
-      className="book-step1"
+      className="book-step-1"
       data-name="body"
       data-proto-react-screen={BOOK_STEP1_REACT_SCREEN_ID}
     >
@@ -122,43 +122,43 @@ export function BookStep1LocationScreen({
         Content grid (same as ProtoFooter / header logo column):
         full-bleed band → max 1440 shell + 64px side pad → max 1312 inner.
       */}
-      <div className="book-step1__crumbs" data-name="module.breadcrumbs">
-        <div className="book-step1__shell">
+      <div className="book-step-1__crumbs" data-name="module.breadcrumbs">
+        <div className="book-step-1__shell">
           <nav
-            className="book-step1__shell-inner book-step1__crumbs-inner"
+            className="book-step-1__shell-inner book-step-1__crumbs-inner"
             data-name="component.breadcrumbs"
             aria-label="Breadcrumb"
           >
-            <button type="button" className="book-step1__crumb-link">
+            <button type="button" className="book-step-1__crumb-link">
               Home
             </button>
-            <span className="book-step1__crumb-sep" aria-hidden>
+            <span className="book-step-1__crumb-sep" aria-hidden>
               /
             </span>
-            <span className="book-step1__crumb-current">Book Appointment</span>
+            <span className="book-step-1__crumb-current">Book Appointment</span>
           </nav>
         </div>
       </div>
 
-      <div className="book-step1__body">
+      <div className="book-step-1__body">
         {/* Make Body5: white base + decorative fill image @ opacity 0.31 */}
-        <div className="book-step1__body-fill" aria-hidden>
-          <div className="book-step1__body-fill-solid" />
+        <div className="book-step-1__body-fill" aria-hidden>
+          <div className="book-step-1__body-fill-solid" />
           <img
-            className="book-step1__body-fill-img"
+            className="book-step-1__body-fill-img"
             src={imgBodyFill}
             alt=""
           />
         </div>
 
-        <div className="book-step1__shell">
-          <div className="book-step1__shell-inner book-step1__main">
-            <h1 className="book-step1__title">Book Appointment</h1>
+        <div className="book-step-1__shell">
+          <div className="book-step-1__shell-inner book-step-1__main">
+            <h1 className="book-step-1__title">Book Appointment</h1>
             <BookAppointmentProgress steps={progressSteps} />
 
             <section
-              className="book-step1__card"
-              aria-labelledby="book-step1-location"
+              className="book-step-1__card"
+              aria-labelledby="book-step-1-location"
             >
             <AppointmentSummaryStack>
               <AppointmentSummaryPill
@@ -173,47 +173,47 @@ export function BookStep1LocationScreen({
               />
             </AppointmentSummaryStack>
 
-            <h2 id="book-step1-location" className="book-step1__section-title">
+            <h2 id="book-step-1-location" className="book-step-1__section-title">
               Location
             </h2>
 
-            <div data-name="chosen location" className="book-step1__location">
+            <div data-name="chosen location" className="book-step-1__location">
               {!chosenLocation ? (
                 <>
-                  <div className="book-step1__location-field">
-                    <p className="book-step1__field-label" data-name="Label">
+                  <div className="book-step-1__location-field">
+                    <p className="book-step-1__field-label" data-name="Label">
                       Location
                     </p>
                     <button
                       type="button"
-                      className="book-step1__search"
+                      className="book-step-1__search"
                       data-name="component.input.field"
                       onClick={onOpenSearch}
                     >
                       <span
                         data-name="Text Field"
-                        className="book-step1__search-text"
+                        className="book-step-1__search-text"
                       >
                         <p>{SEARCH_PLACEHOLDER}</p>
                       </span>
                       <span
                         data-name="icon=search"
-                        className="book-step1__search-icon"
+                        className="book-step-1__search-icon"
                       >
                         <SearchGlyph />
                       </span>
                     </button>
                   </div>
 
-                  <div className="book-step1__near-me">
+                  <div className="book-step-1__near-me">
                     <NearMeCta onClick={onOpenNearMe} />
                   </div>
                 </>
               ) : (
                 <div
-                  className={`${BOOK_STEP1_CHOSEN_SLOT_CLASS} book-step1__chosen`}
+                  className={`${BOOK_STEP1_CHOSEN_SLOT_CLASS} book-step-1__chosen`}
                 >
-                  <div className="book-step1__map" data-name="image 61">
+                  <div className="book-step-1__map" data-name="image 61">
                     <img
                       className="proto-chosen-map-bg"
                       src={locationsMapChosen}
@@ -221,14 +221,14 @@ export function BookStep1LocationScreen({
                     />
                   </div>
                   <div
-                    className="book-step1__store"
+                    className="book-step-1__store"
                     data-name="boots-pharmacy.store"
                   >
                     <div>
-                      <p className="book-step1__store-name">
+                      <p className="book-step-1__store-name">
                         {chosenLocation.name}
                       </p>
-                      <p className="book-step1__store-address">
+                      <p className="book-step-1__store-address">
                         {chosenLocation.address}
                       </p>
                     </div>
@@ -247,24 +247,24 @@ export function BookStep1LocationScreen({
               )}
             </div>
 
-            <div className="book-step1__booster" data-name="units">
+            <div className="book-step-1__booster" data-name="units">
               <label
-                className="book-step1__checkbox-row"
+                className="book-step-1__checkbox-row"
                 data-name="component.input.checkbox"
                 data-proto-booster="true"
                 data-proto-react-owned="true"
                 data-checkbox-checked={String(includeBoosterDose)}
               >
                 <span
-                  className="book-step1__checkbox-icon"
+                  className="book-step-1__checkbox-icon"
                   data-name="icon / input / checkbox"
                 >
-                  <span className="book-step1__checkbox-box" data-name="box">
+                  <span className="book-step-1__checkbox-box" data-name="box">
                     {includeBoosterDose ? <CheckboxCheckMark /> : null}
                   </span>
                   <input
                     type="checkbox"
-                    className="book-step1__checkbox-input"
+                    className="book-step-1__checkbox-input"
                     checked={includeBoosterDose}
                     onChange={onToggleBooster}
                     aria-label={BOOSTER_LABEL}
@@ -276,20 +276,20 @@ export function BookStep1LocationScreen({
               </label>
               <Disclosure
                 defaultOpen={false}
-                className="book-step1__booster-more"
+                className="book-step-1__booster-more"
               >
                 {({ open, toggle }) => (
                   <>
                     <DisclosureTrigger
                       open={open}
                       onToggle={toggle}
-                      className="uxds-link book-step1__learn-more"
+                      className="uxds-link book-step-1__learn-more"
                     >
                       Learn more
                     </DisclosureTrigger>
                     <DisclosureContent
                       open={open}
-                      className="book-step1__learn-body"
+                      className="book-step-1__learn-body"
                     >
                       Automatically schedules or reminds you about your
                       follow-up shot so you don&apos;t miss your window.
@@ -299,9 +299,9 @@ export function BookStep1LocationScreen({
               </Disclosure>
             </div>
 
-            <div className="book-step1__cta-wrap">
+            <div className="book-step-1__cta-wrap">
               <ButtonPrimary
-                className="book-step1__continue uxds-btn-primary--commerce"
+                className="book-step-1__continue uxds-btn-primary--commerce"
                 onClick={onContinue}
               >
                 Continue
@@ -310,7 +310,7 @@ export function BookStep1LocationScreen({
           </section>
 
           <aside
-            className="book-step1__help"
+            className="book-step-1__help"
             data-name="component.errors.footer"
           >
             <p>

@@ -10,31 +10,36 @@
 
 Complete before calling the task **done** (including late in a long session):
 
-1. **`npm test`** — static contracts (e.g. `check:links`) + Vitest. Fix failures.
-2. **`npm run build`** — Vite production build must stay green (same signal Pages uses).
-3. **Behavior / docs** — if product behavior changed, update the matching `docs/product/*` or project README the same turn.
-4. **UI-facing handoff** — run strict FE audit per [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) until **PROVEN** (doctrine §7). Green tests alone are not enough.
-5. **Interactive / chrome / playback** — prefer local MCP / browser helpers (`window.__protoRunMcpSanityCheck`, lean `npm run smoke` against `npm run dev`). Full marathon (`PROTO_SMOKE_PROFILE=full`) only when investigating, not by default. Agent MCP runs should show `__protoAgentTestingOverlay` ([../shell/RECORDING.md](../shell/RECORDING.md)).
-6. **REC ⊗ CJM (chrome)** — if nav/recording chrome touched: prove REC is `disabled` when CJM on; REC on forces CJM off; AIR still locks both. Unit: `studioModeXor.test.ts`. Sanity: `rec-disabled-when-cjm-on`. Audit row G6.
-7. **Browser proof for hybrid / nav** — React host mounted; Make retired; short grids left-aligned; Book/Studio Step tabs hit `PROTO_INDEX_BOOK_STEP*` (not Home “tab1”). See [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
-8. **Changelog** — if the change is user-visible or a durable engine seam, append a note:  
-   `npm run notes:append -- --lane=<lane> --intent="…"`  
-   See [VERSIONING.md](./VERSIONING.md). Append durable lessons to [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) when a failure/win should stick.
-9. **Commit** when the tree is coherent and the user allows (or doctrine seam rules apply). Do not leave a green coherent tree uncommitted without a reason.
+1. **`npm test`** — static contracts (`check:links`) + Vitest. Fix failures.
+2. **`npm run build`** — Vite production build must stay green (same signal Pages uses; base `/ux-studio/` on deploy).
+3. **Behavior / docs** — if product behavior changed, update matching `docs/product/*` or `docs/projects/<id>/` the same turn. New files follow [NAMING.md](./NAMING.md).
+4. **UI-facing handoff** — strict FE audit per [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) until **PROVEN** under `docs/projects/<id>/audits/` (doctrine §7). Green tests alone are not enough.
+5. **Blast-radius + chrome XOR** — adjacent links/CTAs/counters/panel XOR; **REC ⊗ CJM ⊗ AIR** (`studioModeXor.test.ts`, sanity `rec-disabled-when-cjm-on`, audit G5–G6).
+6. **Interactive / chrome / playback** — local MCP (`__protoRunMcpSanityCheck`) or lean `npm run smoke` against `npm run dev`. Full marathon (`PROTO_SMOKE_PROFILE=full`) only when investigating. Agent runs: `__protoAgentTestingOverlay` touch + sitrep settle; strip ephemeral URL params ([../shell/RECORDING.md](../shell/RECORDING.md), [../shell/URL.md](../shell/URL.md)).
+7. **URL / hybrid / mounts** — navigable `?project=&screen=`; React host mounted; Make retired; createRoot unmount **deferred**; short grids left-aligned; Step tabs → `PROTO_INDEX_BOOK_STEP*`. See [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
+8. **CSS layers** — no new React styles in LEGACY (BASE → THEME → PANEL → LEGACY).
+9. **Changelog + lessons** — user-visible / durable seams: `npm run notes:append -- --lane=<lane> --intent="…"`. Append new failure classes to [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
+10. **Commit** when coherent and allowed. After **push**: BE sitrep `gh run list -R iyakushchenko/ux-studio -L 10` ([CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5).
 
 ---
 
 ## Do not
 
-- Add CI jobs to replace steps 1–6 (especially auto Playwright on every push).
+- Add CI jobs to replace local gates (especially auto Playwright on every push).
 - Run `PROTO_SMOKE_PROFILE=full` in GitHub Actions.
 - Skip FE audit because “tests passed.”
+- Trust subagent “done” without JSX/CSS or localhost proof.
+- Grow LEGACY for new React page CSS.
+- Work in abandoned `UXCJM-*` clones — canonical workspace is `E:\UX\ux-studio` only.
 
 ---
 
 ## Related
 
 - [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md)  
+- [NAMING.md](./NAMING.md)  
 - [VERSIONING.md](./VERSIONING.md)  
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §6–§7  
+- [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)  
 - [../../AGENTS.md](../../AGENTS.md)  
+

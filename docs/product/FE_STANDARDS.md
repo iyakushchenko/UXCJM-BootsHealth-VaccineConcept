@@ -114,7 +114,7 @@ Migrate Make `:hover`, `:focus-visible`, and `:active` (and short transitions) i
 
 | Do | Do not |
 |----|--------|
-| Co-locate screen CSS next to the React screen (e.g. `book-step1-location.css`) for **layout** | Grow monster global sheets for one screen’s chrome |
+| Co-locate screen CSS next to the React screen (e.g. `book-step-1-location.css`) for **layout** | Grow monster global sheets for one screen’s chrome |
 | Consume `var(--uxds-…)` for shared control colors | Hardcode brand hex in page/shared CSS (put remaps in `theme.css`) |
 | Register a named deviation when a new variant is required | Anonymous page hacks / parallel hover palettes |
 | Keep UXDS kit CSS lean and valid (no empty declarations) | Paste Figma export noise / blank rule bodies into shared kits |

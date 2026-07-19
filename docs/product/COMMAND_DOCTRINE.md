@@ -108,14 +108,20 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | CSS layers | **BASE → THEME → PANEL → LEGACY** — locked ownership; no CSS dump / whack-a-mole ([CSS_BASE_THEME.md](./CSS_BASE_THEME.md)) |
 | LEGACY growth | **Forbidden for new React page work** — quarantine Make globals only; React → BASE / THEME / PANEL / page CSS |
 | DS strictness on pages | UXDS + theme only; no near-duplicate styles; deviations registered ([DS_STRICTNESS.md](./DS_STRICTNESS.md), [../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.md)) |
+| File naming | New files follow [NAMING.md](./NAMING.md) — Pascal components, camel modules, kebab CSS/folders=`screenId`, SCREAMING product docs; no mass legacy rename |
+| Project docs | Per-concept under `docs/projects/<id>/`; engine doctrine in `docs/product/` |
+| Studio URL | Navigable state via `?project=&screen=` ([../shell/URL.md](../shell/URL.md)); strip ephemeral agent params |
 | Studio purpose (early) | Discovery, ideation, solution proofing, hypothesis validation |
 | Governance style | Summarizer-shaped docs/contracts; not a Figma-plugin clone |
 | Engine vs projects | `src/app/` engine; `src/projects/<id>/` concepts |
-| Quality bar | Lean CI (test + build + lean smoke); grow gates when UXDS lands — [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) |
+| Workspace | **`E:\UX\ux-studio` only** — abandoned `UXCJM-*` clones must not be edited |
+| Quality bar | Lean CI (test + build); Playwright smoke on-demand only — [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) |
+| Pages base | Deploy `/ux-studio/`; do not hardcode absolute roots that break Pages |
 | Component library | Grow by page migration; semantic HTML + `data-name`; no Make HTML as reusable unit — [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) |
 | Done / viewport / fidelity defaults | [SOLUTION_REQUIREMENTS.md](./SOLUTION_REQUIREMENTS.md) §2 |
 | Interaction fidelity + shared kits | Recording needs playable controls; prefer `src/uxds/interactions/` over per-screen scripts — [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) |
 | UI motion | **`framer-motion`** default — `AnimatePresence` / `motion.*`; no custom keyframe zoos unless DS deviation — [FE_STANDARDS.md](./FE_STANDARDS.md) §9 |
+| Progressive learning | Append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) when a new failure class appears |
 
 ---
 
@@ -126,9 +132,9 @@ The PO may override with a clear product veto (“wrong priority for the busines
 3. ✅ Recording UI on the existing recording foundation (Studio REC deck + MCP).  
 4. ✅ Interaction fidelity doctrine locked — shared React/UXDS behavior library; build interactivity before expecting record ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)).  
 5. ✅ Thin UXDS code foundation — token CSS bridge (`src/uxds/`), interaction kits (accordion / disclosure / filter chip), Boots `styleguide/theme.css`, Availability Tool enrichment (mode B).  
-6. ✅ Pilot — **Book Step 1 — Location** React + UXDS (child 7). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
-7. ✅ **Book Step 2 — Date/Time** React + UXDS (child 4) + hotfixes (time-slot left-align; agentic browse Step 1 ≠ Home).  
-8. **Next:** **Book Step 3 — Confirmation** React + UXDS (child 3); then grow UXDS by page; journey/X-Suite seams later. Living board: [NEXT_STEPS.md](./NEXT_STEPS.md). Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
+6. ✅ Pilot — **Book Steps 1–3** React + UXDS (children 7/4/3). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
+7. ✅ Studio URL + agent overlay + recording screen replay; naming + hard guardrails locked ([NAMING.md](./NAMING.md)).  
+8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) (versioning habit; grow UXDS by page). Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).
 
 If the PO issues a product override, update §5 and the decisions log the same turn.
 

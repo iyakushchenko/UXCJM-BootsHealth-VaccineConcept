@@ -24,7 +24,7 @@ import {
   type BookStep2TimeSlot,
 } from "./bookStep2CalendarData";
 import { BOOK_STEP2_REACT_SCREEN_ID } from "./bookStep2Contract";
-import "./book-step2-datetime.css";
+import "./book-step-2-datetime.css";
 
 export type BookStep2ChosenLocation = {
   name: string;
@@ -59,17 +59,17 @@ function MonthCalendar({
   const rows = chunkRows(cells, 7);
 
   return (
-    <div className="book-step2__month">
-      <p className="book-step2__month-title">{label}</p>
-      <div className="book-step2__month-cal" data-name="calendar">
-        <div className="book-step2__weekdays">
+    <div className="book-step-2__month">
+      <p className="book-step-2__month-title">{label}</p>
+      <div className="book-step-2__month-cal" data-name="calendar">
+        <div className="book-step-2__weekdays">
           {BOOK_STEP2_WEEKDAYS.map((d) => (
             <span key={d}>{d}</span>
           ))}
         </div>
-        <div className="book-step2__month-grid">
+        <div className="book-step-2__month-grid">
           {rows.map((row, ri) => (
-            <div key={ri} className="book-step2__month-row">
+            <div key={ri} className="book-step-2__month-row">
               {row.map((cell, ci) => {
                 const inMonth = cell.month === label;
                 const available = inMonth && cell.available;
@@ -84,7 +84,7 @@ function MonthCalendar({
                     key={`${cell.month}-${cell.day}-${ci}`}
                     type="button"
                     className={[
-                      "book-step2__cal-cell",
+                      "book-step-2__cal-cell",
                       !available ? "is-unavailable" : "",
                       isToday && !isSelected ? "is-today" : "",
                       isSelected ? "is-selected" : "",
@@ -139,11 +139,11 @@ function TimeSection({
   const rows = chunkRows(slots, 7);
 
   return (
-    <div className="book-step2__time-section" data-name="calendar">
-      <p className="book-step2__time-label">{label}</p>
-      <div className="book-step2__time-grid">
+    <div className="book-step-2__time-section" data-name="calendar">
+      <p className="book-step-2__time-label">{label}</p>
+      <div className="book-step-2__time-grid">
         {rows.map((row, ri) => (
-          <div key={ri} className="book-step2__time-row">
+          <div key={ri} className="book-step-2__time-row">
             {row.map(({ t, ok }) => {
               const isSelected = ok && selected === t;
               return (
@@ -151,8 +151,8 @@ function TimeSection({
                   key={t}
                   type="button"
                   className={[
-                    "book-step2__cal-cell",
-                    "book-step2__cal-cell--time",
+                    "book-step-2__cal-cell",
+                    "book-step-2__cal-cell--time",
                     !ok ? "is-unavailable" : "",
                     isSelected ? "is-selected" : "",
                   ]
@@ -210,47 +210,47 @@ export function BookStep2DateTimeScreen({
 
   return (
     <div
-      className="book-step2"
+      className="book-step-2"
       data-name="body"
       data-proto-react-screen={BOOK_STEP2_REACT_SCREEN_ID}
     >
-      <div className="book-step2__crumbs" data-name="module.breadcrumbs">
-        <div className="book-step2__shell">
+      <div className="book-step-2__crumbs" data-name="module.breadcrumbs">
+        <div className="book-step-2__shell">
           <nav
-            className="book-step2__shell-inner book-step2__crumbs-inner"
+            className="book-step-2__shell-inner book-step-2__crumbs-inner"
             data-name="component.breadcrumbs"
             aria-label="Breadcrumb"
           >
-            <button type="button" className="book-step2__crumb-link">
+            <button type="button" className="book-step-2__crumb-link">
               Home
             </button>
-            <span className="book-step2__crumb-sep" aria-hidden>
+            <span className="book-step-2__crumb-sep" aria-hidden>
               /
             </span>
-            <span className="book-step2__crumb-current">Book Appointment</span>
+            <span className="book-step-2__crumb-current">Book Appointment</span>
           </nav>
         </div>
       </div>
 
-      <div className="book-step2__body">
-        <div className="book-step2__body-fill" aria-hidden>
-          <div className="book-step2__body-fill-solid" />
+      <div className="book-step-2__body">
+        <div className="book-step-2__body-fill" aria-hidden>
+          <div className="book-step-2__body-fill-solid" />
           <img
-            className="book-step2__body-fill-img"
+            className="book-step-2__body-fill-img"
             src={imgBodyFill}
             alt=""
           />
         </div>
 
-        <div className="book-step2__shell">
-          <div className="book-step2__shell-inner book-step2__main">
-            <h1 className="book-step2__title">Book Appointment</h1>
+        <div className="book-step-2__shell">
+          <div className="book-step-2__shell-inner book-step-2__main">
+            <h1 className="book-step-2__title">Book Appointment</h1>
             <BookAppointmentProgress steps={progressSteps} />
 
             <section
-              className="book-step2__card"
+              className="book-step-2__card"
               data-name="component.appointment.summary"
-              aria-labelledby="book-step2-datetime"
+              aria-labelledby="book-step-2-datetime"
             >
               <AppointmentSummaryStack>
                 <AppointmentSummaryPill
@@ -271,21 +271,21 @@ export function BookStep2DateTimeScreen({
               </AppointmentSummaryStack>
 
               <h2
-                id="book-step2-datetime"
-                className="book-step2__section-title"
+                id="book-step-2-datetime"
+                className="book-step-2__section-title"
               >
                 Choose Date and Time
               </h2>
 
-              <div className="book-step2__datetime">
+              <div className="book-step-2__datetime">
                 <div
-                  className="book-step2__notice"
+                  className="book-step-2__notice"
                   data-name="component.gse.system.message"
                 >
                   <p>You can book appointments up to 28 days in advance</p>
                 </div>
 
-                <div className="book-step2__months">
+                <div className="book-step-2__months">
                   <MonthCalendar
                     label="June"
                     cells={BOOK_STEP2_JUNE_CELLS}
@@ -304,23 +304,23 @@ export function BookStep2DateTimeScreen({
                   />
                 </div>
 
-                <p className="book-step2__date-heading">{heading}</p>
+                <p className="book-step-2__date-heading">{heading}</p>
 
-                <div className="book-step2__times">
+                <div className="book-step-2__times">
                   <TimeSection
                     label="Morning"
                     slots={BOOK_STEP2_MORNING}
                     selected={slot.time}
                     onSelect={(time) => onSlotChange({ ...slot, time })}
                   />
-                  <hr className="book-step2__time-rule" />
+                  <hr className="book-step-2__time-rule" />
                   <TimeSection
                     label="Afternoon"
                     slots={BOOK_STEP2_AFTERNOON}
                     selected={slot.time}
                     onSelect={(time) => onSlotChange({ ...slot, time })}
                   />
-                  <hr className="book-step2__time-rule" />
+                  <hr className="book-step-2__time-rule" />
                   <TimeSection
                     label="Evening"
                     slots={BOOK_STEP2_EVENING}
@@ -330,9 +330,9 @@ export function BookStep2DateTimeScreen({
                 </div>
               </div>
 
-              <div className="book-step2__cta-wrap">
+              <div className="book-step-2__cta-wrap">
                 <ButtonPrimary
-                  className="book-step2__reserve uxds-btn-primary--commerce"
+                  className="book-step-2__reserve uxds-btn-primary--commerce"
                   onClick={onReserve}
                 >
                   Reserve Appointment

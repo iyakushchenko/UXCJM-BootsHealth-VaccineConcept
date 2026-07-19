@@ -20,7 +20,7 @@
 
 ## Summary
 
-Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4: Make body/header/crumbs/footer retired (`display:none` + `data-proto-make-retired`), React host `.book-step2` with progress/card **863px**, grid **1440/64/1312**, body fill opacity **0.31**, default slot June **24** / **16:30** (`#c6e5e1` selected), date/time click + Reserve → Step 3 Confirmation. MCP sanity **pass** including `rec-disabled-when-cjm-on`. No LEGACY growth for this page (styles in `book-step2-datetime.css` only). Intentional: Proto header/footer Studio chrome; wire heading weekday (Wednesday) over Figma Thursday typo.
+Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4: Make body/header/crumbs/footer retired (`display:none` + `data-proto-make-retired`), React host `.book-step-2` with progress/card **863px**, grid **1440/64/1312**, body fill opacity **0.31**, default slot June **24** / **16:30** (`#c6e5e1` selected), date/time click + Reserve → Step 3 Confirmation. MCP sanity **pass** including `rec-disabled-when-cjm-on`. No LEGACY growth for this page (styles in `book-step-2-datetime.css` only). Intentional: Proto header/footer Studio chrome; wire heading weekday (Wednesday) over Figma Thursday typo.
 
 ---
 
@@ -30,9 +30,9 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 
 | # | Result | Evidence |
 |---|--------|----------|
-| A1 | **PASS** | `.book-step2` mounted; H1 “Book Appointment”; notice `#c4dde3`; dual month calendars; time bands Morning/Afternoon/Evening; selected cell `rgb(198, 229, 225)`. |
+| A1 | **PASS** | `.book-step-2` mounted; H1 “Book Appointment”; notice `#c4dde3`; dual month calendars; time bands Morning/Afternoon/Evening; selected cell `rgb(198, 229, 225)`. |
 | A2 | **PASS** | Delta doc covers progress, pills, calendar, Reserve; intentional Proto chrome + weekday SOT. |
-| A3 | **PASS** | Page CSS scoped `.book-step2*`; commerce primary via UXDS deviation class; no new `globals-screens` rules for this screen. |
+| A3 | **PASS** | Page CSS scoped `.book-step-2*`; commerce primary via UXDS deviation class; no new `globals-screens` rules for this screen. |
 
 ### B. Layout / max-width / alignment
 
@@ -47,7 +47,7 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 
 | # | Result | Evidence |
 |---|--------|----------|
-| C1 | **PASS** | Three `.book-step2__pill-change` Change CTAs; `white-space: nowrap` all true. |
+| C1 | **PASS** | Three `.book-step-2__pill-change` Change CTAs; `white-space: nowrap` all true. |
 | C2 | **PASS** | Change tertiary compact icon+label single line. |
 | C3 | **PASS** | Reserve navy pill single-line commerce primary. |
 
@@ -88,7 +88,7 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 
 | # | Result | Evidence |
 |---|--------|----------|
-| H1 | **PASS** | New styles only in `screens/book-step2/book-step2-datetime.css` + UXDS ButtonPrimary. |
+| H1 | **PASS** | New styles only in `screens/book-step-2/book-step-2-datetime.css` + UXDS ButtonPrimary. |
 | H2 | **PASS** | Make handlers gated (`isBookStep2ReactMounted`); `applyBookStep2CalendarFromSlot` no-ops strip on React screen. |
 | H3 | **PASS** | Contract test: child index 4; 15:30/16:30 selectable. |
 
@@ -108,7 +108,7 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 
 | Bug | Fix | Proof |
 |-----|-----|-------|
-| **Time slots last row right-shifted** | `.book-step2__time-row` → CSS grid `repeat(7, 65px)` + remove narrow pad spacers; month rows keep flex `space-between` | Contract: afternoon last row is 5 slots (`15:45`…`16:45`); live: col-0 left aligned across rows |
+| **Time slots last row right-shifted** | `.book-step-2__time-row` → CSS grid `repeat(7, 65px)` + remove narrow pad spacers; month rows keep flex `space-between` | Contract: afternoon last row is 5 slots (`15:45`…`16:45`); live: col-0 left aligned across rows |
 | **Book Step 1 tab → Site Pilot Home (tab 1)** under **agentic-cjm** browse | `shouldNavigateBeatTabOnEnter`: do **not** `goToTab` on beat-enter when `scenarioBrowseMode` (CJM off). Agentic has no protoTab 5 beat → fallback `agentic-home` must not snap viewport. React Step 2 progress Step 1 → `PROTO_INDEX_BOOK_STEP1` | Unit `beatTabNavigation.test.ts`; live: agentic-cjm + CJM off → Studio tab Book Step 1 stays on React `book-step-1` |
 
 ---
@@ -128,4 +128,4 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 1. Boots → **Book - Step 2 - Date and Time**
 2. Confirm React (no Make absolute calendar); June 24 / 16:30 selected
 3. Change date/time; Reserve → Confirmation
-4. Optional: Traditional CJM through `book-step2*` beats
+4. Optional: Traditional CJM through `book-step-2*` beats

@@ -2,7 +2,7 @@
 
 **Status:** Pilot ship (2026-07-19)  
 **Source of truth:** Make Frame child **3** (`Body2` / `ComponentAppointmentSummary`) + wire Advantage / Open Appointments patches.  
-**React:** `src/projects/boots-pharmacy/screens/book-step3/`  
+**React:** `src/projects/boots-pharmacy/screens/book-step-3/`  
 **Rule:** Visual fidelity > inventing UXDS-looking backgrounds. See [VISUAL_FIDELITY.md](../../product/VISUAL_FIDELITY.md) §1.2.
 
 ---

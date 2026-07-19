@@ -21,11 +21,11 @@ const ROOT = path.join(__dirname, "..");
 const TEXT_LINK_CSS = path.join(ROOT, "src/uxds/components/text-link.css");
 const BOOK_STEP1_TSX = path.join(
   ROOT,
-  "src/projects/boots-pharmacy/screens/book-step1/BookStep1LocationScreen.tsx"
+  "src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx"
 );
 const BOOK_STEP1_CSS = path.join(
   ROOT,
-  "src/projects/boots-pharmacy/screens/book-step1/book-step1-location.css"
+  "src/projects/boots-pharmacy/screens/book-step-1/book-step-1-location.css"
 );
 const GLOBALS_SCREENS_CSS = path.join(ROOT, "src/styles/globals-screens.css");
 
@@ -120,10 +120,10 @@ if (!fs.existsSync(BOOK_STEP1_TSX)) {
 } else {
   const tsx = fs.readFileSync(BOOK_STEP1_TSX, "utf8");
   const learnMore =
-    /Learn more[\s\S]{0,200}|className=["'][^"']*uxds-link[^"']*book-step1__learn-more|book-step1__learn-more[^"']*uxds-link/;
+    /Learn more[\s\S]{0,200}|className=["'][^"']*uxds-link[^"']*book-step-1__learn-more|book-step-1__learn-more[^"']*uxds-link/;
   const hasClass =
-    /className=["'][^"']*\buxds-link\b[^"']*book-step1__learn-more/.test(tsx) ||
-    /className=["'][^"']*book-step1__learn-more[^"']*\buxds-link\b/.test(tsx);
+    /className=["'][^"']*\buxds-link\b[^"']*book-step-1__learn-more/.test(tsx) ||
+    /className=["'][^"']*book-step-1__learn-more[^"']*\buxds-link\b/.test(tsx);
   if (!hasClass) {
     fail(
       'Book Step 1 "Learn more" must use className including uxds-link (see BookStep1LocationScreen.tsx)'
@@ -140,10 +140,10 @@ if (!fs.existsSync(BOOK_STEP1_TSX)) {
 // ── 3. Page CSS must not re-underline Learn more at rest ───────────────────
 if (fs.existsSync(BOOK_STEP1_CSS)) {
   const pageCss = stripCssComments(fs.readFileSync(BOOK_STEP1_CSS, "utf8"));
-  const learnRule = ruleBody(pageCss, "\\.book-step1__learn-more(?![:\\w-])");
+  const learnRule = ruleBody(pageCss, "\\.book-step-1__learn-more(?![:\\w-])");
   if (learnRule && /text-decoration(?:-line)?\s*:\s*underline\b/.test(learnRule)) {
     fail(
-      "book-step1-location.css .book-step1__learn-more must not set underline (layout only; chrome in text-link.css)"
+      "book-step-1-location.css .book-step-1__learn-more must not set underline (layout only; chrome in text-link.css)"
     );
   } else {
     ok("Book Step 1 page CSS does not fork Learn more underline");

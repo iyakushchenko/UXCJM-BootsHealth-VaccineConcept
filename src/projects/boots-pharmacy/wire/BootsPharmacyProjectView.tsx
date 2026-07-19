@@ -106,17 +106,17 @@ import {
   isBookStep1ReactMounted,
   mountBookStep1Screen,
   unmountBookStep1Screen,
-} from "@/projects/boots-pharmacy/screens/book-step1/mountBookStep1Screen";
+} from "@/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen";
 import {
   isBookStep2ReactMounted,
   mountBookStep2Screen,
   unmountBookStep2Screen,
-} from "@/projects/boots-pharmacy/screens/book-step2/mountBookStep2Screen";
+} from "@/projects/boots-pharmacy/screens/book-step-2/mountBookStep2Screen";
 import {
   isBookStep3ReactMounted,
   mountBookStep3Screen,
   unmountBookStep3Screen,
-} from "@/projects/boots-pharmacy/screens/book-step3/mountBookStep3Screen";
+} from "@/projects/boots-pharmacy/screens/book-step-3/mountBookStep3Screen";
 
 
 /**
@@ -1041,7 +1041,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       window.setTimeout(() => {
         setCurrent(PROTO_INDEX_BOOK_STEP2);
         const datetimeBeatIndex =
-          activeJourney?.beats.findIndex((beat) => beat.id === "book-step2") ??
+          activeJourney?.beats.findIndex((beat) => beat.id === "book-step-2") ??
           -1;
         if (datetimeBeatIndex >= 0) {
           setJourneyBeatIndex((current) =>

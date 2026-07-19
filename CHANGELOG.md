@@ -16,6 +16,7 @@
 - **shell:** Studio URL deep links (`?project=&screen=`); strip ephemeral `proof`; overlay touch/auto-arm; recording `screen` events; PRODUCT_FORECAST
 - **engine:** Recording replay restores screen/URL via shared applyStudioScreen (deep-link path)
 - **shell:** Agent overlay DONE/SITREP settle (~5s) after stop; click guard released; reload after settle; BE post-push CI sitrep doctrine
+- **engine:** Naming conventions + hard guardrails; Boots screen folders match screenId
 
 ## v0.0.1 - 190726
 

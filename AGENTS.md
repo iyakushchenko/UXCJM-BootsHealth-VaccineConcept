@@ -25,26 +25,28 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 ## Required reading (before big work)
 
 1. [docs/product/COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) — composite role + proactive + who decides + §6–§7  
-2. [docs/product/SOLUTION_REQUIREMENTS.md](docs/product/SOLUTION_REQUIREMENTS.md) — readiness + locked defaults  
-3. [docs/README.md](docs/README.md) — catalog  
-4. [docs/product/PRODUCT_OWNER_BRIEF.md](docs/product/PRODUCT_OWNER_BRIEF.md) — PO A–Z + decisions log  
-5. [docs/product/CONCEPT_INTAKE.md](docs/product/CONCEPT_INTAKE.md) — messy concepts in; agent fills UXDS gap  
-6. [docs/product/PROJECT_STYLEGUIDE.md](docs/product/PROJECT_STYLEGUIDE.md) — brand delta → project theme.css (remaps only; theme optional)  
-7. [docs/product/CSS_BASE_THEME.md](docs/product/CSS_BASE_THEME.md) — **BASE → THEME → PANEL → LEGACY**; no CSS dump  
-8. [docs/product/DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered; **no new React styles in LEGACY**  
-9. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
-10. [docs/product/COMPONENT_LIBRARY.md](docs/product/COMPONENT_LIBRARY.md) — migrated pages = real kits; grow by migration  
-11. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
-12. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
-13. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
-14. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
-15. [docs/product/CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md) — lean Actions; no marathon on every push
-16. [docs/product/VERSIONING.md](docs/product/VERSIONING.md) — local semver + CHANGELOG; no Release CI yet
-17. [docs/product/POST_CHANGE_CHECKLIST.md](docs/product/POST_CHANGE_CHECKLIST.md) — local gates before “done”
-18. [docs/product/LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md) — progressive failure/win capture (read before UI close)
-19. [docs/product/NEXT_STEPS.md](docs/product/NEXT_STEPS.md) — living NOW/NEXT board
-20. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)
-21. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam 
+2. [docs/product/LESSONS_LEARNED.md](docs/product/LESSONS_LEARNED.md) — progressive failure/win capture (read before UI close)  
+3. [docs/product/NAMING.md](docs/product/NAMING.md) — file/folder naming for **new** files (forward-looking; no mass rename)  
+4. [docs/product/POST_CHANGE_CHECKLIST.md](docs/product/POST_CHANGE_CHECKLIST.md) — local gates before “done”  
+5. [docs/product/NEXT_STEPS.md](docs/product/NEXT_STEPS.md) — living NOW/NEXT board  
+6. [docs/product/SOLUTION_REQUIREMENTS.md](docs/product/SOLUTION_REQUIREMENTS.md) — readiness + locked defaults  
+7. [docs/README.md](docs/README.md) — catalog  
+8. [docs/product/PRODUCT_OWNER_BRIEF.md](docs/product/PRODUCT_OWNER_BRIEF.md) — PO A–Z + decisions log  
+9. [docs/product/CONCEPT_INTAKE.md](docs/product/CONCEPT_INTAKE.md) — messy concepts in; agent fills UXDS gap  
+10. [docs/product/PROJECT_STYLEGUIDE.md](docs/product/PROJECT_STYLEGUIDE.md) — brand delta → project theme.css (remaps only; theme optional)  
+11. [docs/product/CSS_BASE_THEME.md](docs/product/CSS_BASE_THEME.md) — **BASE → THEME → PANEL → LEGACY**; no CSS dump  
+12. [docs/product/DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered; **no new React styles in LEGACY**  
+13. [docs/product/PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) — React + UXDS  
+14. [docs/product/COMPONENT_LIBRARY.md](docs/product/COMPONENT_LIBRARY.md) — migrated pages = real kits; grow by migration  
+15. [docs/product/FE_STANDARDS.md](docs/product/FE_STANDARDS.md) — icon+text nowrap, tertiary icon language, 1440/64/1312 logo grid, scoped CSS  
+16. [docs/product/VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) — concept L&F, no visual zoo, behavior parity on rebuilds  
+17. [docs/product/INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) — recording needs interactive pages + shared kits  
+18. [docs/product/FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md) — post-UI audit checklist (PROVEN before PO)  
+19. [docs/product/CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md) — lean Actions; post-push `gh run list` sitrep  
+20. [docs/product/VERSIONING.md](docs/product/VERSIONING.md) — local semver + CHANGELOG; no Release CI yet  
+21. [docs/uxds/README.md](docs/uxds/README.md) — UXDS Larkin (variables + components) · [DEVIATIONS.md](docs/uxds/DEVIATIONS.md)  
+22. [docs/product/X_SUITE_INTEGRATION.md](docs/product/X_SUITE_INTEGRATION.md) — future Summarizer → Studio seam  
+23. [docs/shell/URL.md](docs/shell/URL.md) · [docs/shell/RECORDING.md](docs/shell/RECORDING.md) — `?project=&screen=` + overlay policy
 
 ## Quick start
 
@@ -98,6 +100,7 @@ Full transport smokes require `__protoRun*` helpers — use sparingly. Day-to-da
 
 ## Conventions
 
+- **Naming (new files):** [NAMING.md](docs/product/NAMING.md) — PascalCase components; camelCase modules/hooks; kebab CSS + screen folders **= `screenId`**; SCREAMING product docs; `*.test.ts` in `__tests__/`. Legacy names OK until touched.
 - Engine code in `src/app/` — project-agnostic
 - Boots-specific DOM/scripts in `src/projects/boots-pharmacy/` only until React+UXDS rebuild
 - Concept pages target: React + UXDS ([PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md))
@@ -110,3 +113,4 @@ Full transport smokes require `__protoRun*` helpers — use sparingly. Day-to-da
 - After UI handoffs: strict (“Nazi QA”) FE audit **PROVEN** under `docs/projects/<id>/audits/` before PO ([FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md), doctrine §7); **cannot skip** for “tests passed”
 - Minimize scope; match existing patterns; test playback changes
 - Durable PO decisions → update `docs/product/PRODUCT_OWNER_BRIEF.md` decisions log
+- Always-on rules: [`.cursor/rules/ux-studio-director.mdc`](.cursor/rules/ux-studio-director.mdc) · [`naming.mdc`](.cursor/rules/naming.mdc) · [`ci-sitrep.mdc`](.cursor/rules/ci-sitrep.mdc) · [`post-change-checklist.mdc`](.cursor/rules/post-change-checklist.mdc)

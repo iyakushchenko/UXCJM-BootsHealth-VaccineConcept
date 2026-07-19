@@ -1,0 +1,20 @@
+---
+description: Post-push CI sitrep — never assume green from local tests
+alwaysApply: true
+---
+
+# CI sitrep (BE hat)
+
+After any `git push` / merge that can trigger Actions:
+
+```bash
+gh run list -R iyakushchenko/ux-studio -L 10
+# on red / cancelled:
+gh run view <id> --log-failed
+```
+
+- Local `npm test` / `build` green ≠ Actions green until sitrep proves it.
+- `cancelled` often = concurrency supersede — check the **newer** run for the tip SHA.
+- Default CI = unit + build only. **No** auto Playwright marathon; smoke = `workflow_dispatch` / local.
+
+→ [docs/product/CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md) §5 · [docs/product/COMMAND_DOCTRINE.md](docs/product/COMMAND_DOCTRINE.md) BE hat

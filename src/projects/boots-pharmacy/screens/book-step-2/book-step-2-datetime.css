@@ -9,7 +9,7 @@
   align-self: stretch;
 }
 
-.book-step2 {
+.book-step-2 {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,7 +21,7 @@
   background: var(--uxds-surface-neutral);
 }
 
-.book-step2__shell {
+.book-step-2__shell {
   width: 100%;
   max-width: 1440px;
   margin-left: auto;
@@ -31,7 +31,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__shell-inner {
+.book-step-2__shell-inner {
   width: 100%;
   max-width: 1312px;
   margin-left: auto;
@@ -39,7 +39,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__crumbs {
+.book-step-2__crumbs {
   width: 100%;
   background: var(--uxds-surface-neutral);
   position: relative;
@@ -48,7 +48,7 @@
   padding-bottom: 16px;
 }
 
-.book-step2__crumbs-inner {
+.book-step-2__crumbs-inner {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -56,7 +56,7 @@
   line-height: 12px;
 }
 
-.book-step2__crumb-link {
+.book-step-2__crumb-link {
   border: none;
   background: none;
   padding: 0;
@@ -67,25 +67,25 @@
   transition: color 0.18s ease;
 }
 
-.book-step2__crumb-link:hover {
+.book-step-2__crumb-link:hover {
   color: var(--uxds-text-link-link);
   text-decoration: none;
 }
 
-.book-step2__crumb-link:focus-visible {
+.book-step-2__crumb-link:focus-visible {
   outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
-.book-step2__crumb-sep {
+.book-step-2__crumb-sep {
   color: #c3c3c3;
 }
 
-.book-step2__crumb-current {
+.book-step-2__crumb-current {
   color: #7a7d87;
 }
 
-.book-step2__body {
+.book-step-2__body {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -94,7 +94,7 @@
   flex: 1 1 auto;
 }
 
-.book-step2__body-fill {
+.book-step-2__body-fill {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -102,13 +102,13 @@
   overflow: hidden;
 }
 
-.book-step2__body-fill-solid {
+.book-step-2__body-fill-solid {
   position: absolute;
   inset: 0;
   background: var(--uxds-surface-neutral);
 }
 
-.book-step2__body-fill-img {
+.book-step-2__body-fill-img {
   position: absolute;
   inset: 0;
   display: block;
@@ -120,7 +120,7 @@
   opacity: 0.31;
 }
 
-.book-step2__main {
+.book-step-2__main {
   position: relative;
   z-index: 1;
   display: flex;
@@ -132,7 +132,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__title {
+.book-step-2__title {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -144,7 +144,7 @@
 
 /* Progress + summary pills → UXDS kits */
 
-.book-step2__card {
+.book-step-2__card {
   display: flex;
   flex-direction: column;
   gap: 72px;
@@ -157,7 +157,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__section-title {
+.book-step-2__section-title {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -167,7 +167,7 @@
   color: var(--uxds-text-text-primary);
 }
 
-.book-step2__datetime {
+.book-step-2__datetime {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -175,7 +175,7 @@
   width: 100%;
 }
 
-.book-step2__notice {
+.book-step-2__notice {
   width: 100%;
   border-radius: 16px;
   background: #c4dde3;
@@ -183,7 +183,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__notice p {
+.book-step-2__notice p {
   margin: 0;
   padding: 4px 8px;
   text-align: center;
@@ -193,14 +193,14 @@
   color: var(--uxds-text-text-primary);
 }
 
-.book-step2__months {
+.book-step-2__months {
   display: flex;
   gap: 8px;
   align-items: flex-start;
   width: min(732px, 100%);
 }
 
-.book-step2__month {
+.book-step-2__month {
   flex: 1 1 0;
   min-width: 0;
   border: 1px solid #f2f2f2;
@@ -213,7 +213,7 @@
   gap: 16px;
 }
 
-.book-step2__month-title {
+.book-step-2__month-title {
   margin: 0;
   font-size: 13px;
   line-height: 24px;
@@ -222,14 +222,14 @@
   white-space: nowrap;
 }
 
-.book-step2__month-cal {
+.book-step-2__month-cal {
   display: flex;
   flex-direction: column;
   gap: 16px;
   width: 100%;
 }
 
-.book-step2__weekdays {
+.book-step-2__weekdays {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,19 +243,19 @@
   text-align: center;
 }
 
-.book-step2__weekdays span {
+.book-step-2__weekdays span {
   width: 32px;
   flex-shrink: 0;
 }
 
-.book-step2__month-grid {
+.book-step-2__month-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
 }
 
-.book-step2__month-row {
+.book-step-2__month-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -264,7 +264,7 @@
 }
 
 /* Time slots: 7-col grid so short last rows stay left-aligned (not space-between). */
-.book-step2__time-row {
+.book-step-2__time-row {
   display: grid;
   grid-template-columns: repeat(7, 65px);
   justify-content: space-between;
@@ -273,7 +273,7 @@
   height: 32px;
 }
 
-.book-step2__cal-cell {
+.book-step-2__cal-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -292,7 +292,7 @@
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.book-step2__cal-cell p {
+.book-step-2__cal-cell p {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -303,54 +303,54 @@
   color: inherit;
 }
 
-.book-step2__cal-cell--time {
+.book-step-2__cal-cell--time {
   width: 65px;
   min-width: 65px;
 }
 
-.book-step2__cal-cell--pad {
+.book-step-2__cal-cell--pad {
   pointer-events: none;
   cursor: default;
 }
 
-.book-step2__cal-cell.is-unavailable {
+.book-step-2__cal-cell.is-unavailable {
   color: #c3c3c3;
   cursor: default;
   pointer-events: none;
 }
 
-.book-step2__cal-cell.is-today:not(.is-selected) {
+.book-step-2__cal-cell.is-today:not(.is-selected) {
   background: var(--uxds-surface-subtle);
   box-shadow: inset 0 0 0 1px var(--uxds-border-border-strong);
 }
 
-.book-step2__cal-cell:not(.is-unavailable):not(.is-selected):hover {
+.book-step-2__cal-cell:not(.is-unavailable):not(.is-selected):hover {
   background: var(--uxds-surface-neutral);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.13),
     inset 0 0 0 1px var(--uxds-border-border-strong);
 }
 
-.book-step2__cal-cell.is-selected {
+.book-step-2__cal-cell.is-selected {
   background: var(--uxds-surface-accent-soft);
   box-shadow: none;
   color: var(--uxds-text-text-primary);
 }
 
-.book-step2__cal-cell.is-selected p {
+.book-step-2__cal-cell.is-selected p {
   font-weight: 700;
 }
 
-.book-step2__cal-cell:focus:not(:focus-visible) {
+.book-step-2__cal-cell:focus:not(:focus-visible) {
   outline: none;
 }
 
-.book-step2__cal-cell:focus-visible {
+.book-step-2__cal-cell:focus-visible {
   outline: 2px solid var(--uxds-border-border-focus);
   outline-offset: 2px;
 }
 
-.book-step2__date-heading {
+.book-step-2__date-heading {
   margin: 0;
   width: 100%;
   text-align: center;
@@ -360,7 +360,7 @@
   color: var(--uxds-text-text-primary);
 }
 
-.book-step2__times {
+.book-step-2__times {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -372,7 +372,7 @@
   box-sizing: border-box;
 }
 
-.book-step2__time-section {
+.book-step-2__time-section {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -380,7 +380,7 @@
   width: 100%;
 }
 
-.book-step2__time-label {
+.book-step-2__time-label {
   margin: 0;
   font-family: Inter, sans-serif;
   font-weight: 300;
@@ -391,21 +391,21 @@
   white-space: nowrap;
 }
 
-.book-step2__time-grid {
+.book-step-2__time-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
 }
 
-.book-step2__time-rule {
+.book-step-2__time-rule {
   width: 100%;
   margin: 0;
   border: none;
   border-top: 1px solid #f1f1f1;
 }
 
-.book-step2__cta-wrap {
+.book-step-2__cta-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -414,6 +414,6 @@
   box-sizing: border-box;
 }
 
-.book-step2__reserve {
+.book-step-2__reserve {
   min-width: 230px;
 }

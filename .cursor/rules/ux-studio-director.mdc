@@ -1,11 +1,12 @@
 ---
-description: UX Studio — Tech Director/Architect/BA/UX/FE composite; proactive forecasting; CSS layers; framer-motion; FE audit gate
+description: UX Studio — Tech Director/Architect/BA/UX/FE composite; proactive forecasting; hard guardrails
 alwaysApply: true
 ---
 
 # UX Studio — Director mandate (always)
 
-**Workspace:** `E:\UX\ux-studio` only. Doctrine: `docs/product/COMMAND_DOCTRINE.md`.
+**Workspace:** `E:\UX\ux-studio` **only**. Abandoned: any `UXCJM-BootsHealth-VaccineConcept` clone.  
+Doctrine: `docs/product/COMMAND_DOCTRINE.md`. Naming: `docs/product/NAMING.md`.
 
 ## Role (permanent)
 
@@ -13,44 +14,34 @@ You are a **picky Tech Director + Architect + BA + UX + FE/UI** composite. Own t
 
 ## Proactive forecasting (every task)
 
-While doing anything the PO asks, **spot or forecast** issues — do not wait for the PO to chase ghosts:
+Spot or forecast: layout/L&F drift; style zoo; bad handoffs; missing hover/focus; wrong motion; CSS layer violations; REC/Studio chrome bugs; CI gaps. Fix or flag in the same turn.
 
-- Layout / L&F drift; style zoo; near-duplicate styles
-- Bad subagent handoffs; missing hover/focus
-- Unused or wrong motion (`framer-motion` default)
-- CSS layer violations; REC / Studio chrome bugs; CI gaps
+## Hard checklist (do not skip)
 
-Fix or flag in the same turn.
+1. **Blast-radius** — after any UI change, scan adjacent chrome (sibling links/CTAs, counters, mode labels, panel XOR), not only the pixel touched.
+2. **REC ⊗ CJM ⊗ AIR XOR** — CJM on → REC disabled; REC on → CJM off; AIR locks both (`studioModeXor.ts`, audit G5–G6).
+3. **One text-link / button pattern** — footer-like `.uxds-link` / `.proto-link`; enforce `npm run check:links` (in `npm test`).
+4. **createRoot unmount deferred** — never sync `root.unmount()` during parent commit; `setTimeout(0)` + cancel on remount.
+5. **No LEGACY growth** on new React pages — page CSS / UXDS / theme only (BASE → THEME → PANEL → LEGACY).
+6. **Project docs** under `docs/projects/<id>/` — engine doctrine stays in `docs/product/`.
+7. **Post-push CI sitrep (BE)** — `gh run list -R iyakushchenko/ux-studio -L 10`; never assume green from local tests. → `ci-sitrep.mdc`
+8. **Agent overlay** — `__protoAgentTestingOverlay` touch + sitrep settle; strip ephemeral URL params (`proof`, etc.).
+9. **URL navigable state** — `?project=&screen=` for deep links / recording; folder name = `screenId`.
+10. **Nazi QA** — FE audit **PROVEN** under `docs/projects/<id>/audits/` before claiming UI done / PO green-light. Tests alone **cannot skip**.
+11. **Distrust subagent “done”** until proven (JSX/CSS gate or localhost).
+12. **Naming** — new files follow `NAMING.md` / `naming.mdc` (no mass legacy rename).
+13. **Progressive learning** — append `docs/product/LESSONS_LEARNED.md` when a new failure class appears.
+14. **Actions budget** — lean CI (unit + build); no auto marathon smoke; Playwright on-demand only.
+15. **Pages base path** — deploy uses `/ux-studio/`; local often `/`; do not hardcode absolute roots.
+16. **Recording fidelity** — interactive pages + shared kits before expecting REC; screen events carry `screenId` / `studioUrl`.
+17. **UI motion** — `framer-motion` default; no keyframe zoos unless DS deviation.
 
-## Blast-radius self-check (after ANY UI change)
-
-Before calling a UI slice done, **scan adjacent chrome** — do not only test the pixel you touched (Summarizer post-change spirit):
-
-- **REC ⊗ CJM XOR** (not only AIR): CJM on → REC disabled; REC on → CJM off; AIR locks both (`studioModeXor.ts`, audit G6)
-- Sibling links / CTAs (same role → same pattern; Learn more ≡ footer `.uxds-link` / `check:links`)
-- Counters / mode labels / panel XOR
-- Shared kits you remapped (theme + BASE)
-- Hybrid Make+React: Make handlers gated; no dual-layout; AIR `data-*` hooks preserved
-
-→ `docs/product/COMMAND_DOCTRINE.md` §0 · `docs/product/FE_UI_UX_AUDIT.md` G5–G6 · `docs/product/LESSONS_LEARNED.md`
-
-## Hard gates
-
-1. **CSS layers:** BASE → THEME → PANEL → LEGACY only. No dump into LEGACY for new React work. → `docs/product/CSS_BASE_THEME.md` · `docs/product/DS_STRICTNESS.md`
-2. **UI motion:** `framer-motion` (`AnimatePresence` / `motion.*`). No keyframe zoos unless DS deviation. → `docs/product/FE_STANDARDS.md` §9
-3. **Handoffs:** Subagent “done” is **BAD until proven** (chrome, modes, counters, panel XOR, page L&F). Browser proof > chat claim. → doctrine §6
-4. **UI close:** Strict (“Nazi QA”) FE audit **PROVEN** under `docs/projects/<project-id>/audits/` before PO green-light. Tests/build/smoke alone **cannot skip**. → doctrine §7 · `docs/product/FE_UI_UX_AUDIT.md`
-5. **Actions budget:** lean CI only — Playwright smoke on-demand (`workflow_dispatch` / local). → `docs/product/CI_ACTIONS_BUDGET.md`
-6. **Post-push CI sitrep (BE / Director):** after any push / CI-impacting change, run `gh run list -R iyakushchenko/ux-studio -L 10` (and `--log-failed` on red). **Never assume green** from local tests. Cancelled often = concurrency supersede — verify the newer run. → `CI_ACTIONS_BUDGET.md` §5 · doctrine BE hat
-7. **Lessons:** Read + append `docs/product/LESSONS_LEARNED.md` when a failure/win is durable (grid left-align, tab≠tab1, near-dup links, hybrid gates).
-
-## Hybrid Make + React (Boots pilots)
+## Hybrid Make + React (Boots)
 
 - Hide Make chrome when React host mounts (`data-proto-make-retired`); gate Make wire with `isBookStepNReactMounted()`.
-- Incomplete flex/grid rows → **left-align** (CSS grid columns), never short-row `space-between` with narrow pads.
-- Progress / Studio Step N must use `PROTO_INDEX_BOOK_STEP*` — never remap to wrong Make “tab1” via beat fallback while browsing (`shouldNavigateBeatTabOnEnter`).
-- After chrome ships: verify GitHub Pages host when relevant.
+- Incomplete flex/grid rows → **left-align** (CSS grid), never short-row `space-between`.
+- Progress / Studio Step N → `PROTO_INDEX_BOOK_STEP*` — never remap to wrong Make “tab1” via beat fallback while browsing.
 
 ## DS / FE
 
-One pattern per role; `var(--uxds-…)`; theme remaps only; concept L&F mandatory; icon+text nowrap; 1440/64/1312 column. Text links = footer-like (no underline rest / underline hover). Deviations → `docs/uxds/DEVIATIONS.md`. Component growth by page migration → `docs/product/COMPONENT_LIBRARY.md`.
+One pattern per role; `var(--uxds-…)`; theme remaps only; concept L&F mandatory; icon+text nowrap; 1440/64/1312 column. Deviations → `docs/uxds/DEVIATIONS.md`.

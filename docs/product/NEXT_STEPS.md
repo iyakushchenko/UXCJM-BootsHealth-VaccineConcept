@@ -31,6 +31,7 @@
 
 ## Done recently (context)
 
+- [x] **Naming + hard guardrails** — [NAMING.md](./NAMING.md); Boots screen folders `book-step-N` = `screenId`; director checklist + `naming.mdc` / `ci-sitrep.mdc`; lessons append rule.
 - [x] **Recording replay from `screen` events** — `applyStudioScreen` shared with deep-link/popstate; ↺ / `__protoReplayRecording` restores `screenId` / `studioUrl` in order ([../shell/RECORDING.md](../shell/RECORDING.md)).
 - [x] **Studio URL scheme + agent overlay policy** — `?project=&screen=` deep links; strip `proof`; overlay `touch()` + auto-arm mutating `__proto*`; recording `kind: "screen"`; [PRODUCT_FORECAST.md](./PRODUCT_FORECAST.md); [../shell/URL.md](../shell/URL.md).
 - [x] **Fidelity debt (high-ROI)** — kits + Steps 1–3 safe hex→UXDS/theme tokens; localhost color parity; light audit [FE_AUDIT_BOOK_HEX_TOKENS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_BOOK_HEX_TOKENS_2026-07-19.md) **PROVEN** tip `0f112dd`. Residual Make-only hex → NEXT #4.
@@ -58,12 +59,15 @@
 
 | Lock | Rule |
 |------|------|
-| **REC ⊗ CJM** | REC off when journey mode on; XOR; AIR locks both |
+| **REC ⊗ CJM ⊗ AIR** | REC off when journey mode on; XOR; AIR locks both |
 | **No LEGACY growth** | New React page styles → screen CSS / UXDS / theme only |
 | **Nazi QA** | UI ship needs audit **PROVEN** before PO green-light |
 | **CI budget** | No stacking full Playwright smoke via Actions without Director OK |
+| **Post-push sitrep** | `gh run list` after push — local green ≠ remote green |
+| **Naming** | New files follow [NAMING.md](./NAMING.md); folder = `screenId` |
 | **Lessons** | Read/append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) |
 | **Clean URL** | No sticky `?proof=*` / ephemeral agent junk in the address bar |
+| **Workspace** | `E:\UX\ux-studio` only — never abandoned `UXCJM-*` clones |
 
 ---
 

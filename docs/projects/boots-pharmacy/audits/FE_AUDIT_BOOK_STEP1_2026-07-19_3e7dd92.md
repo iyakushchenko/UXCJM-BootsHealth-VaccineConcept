@@ -30,15 +30,15 @@ Live localhost re-audit of React Book Step 1 at HEAD `3e7dd92` confirms prior fi
 
 | # | Result | Evidence |
 |---|--------|----------|
-| A1 | **PASS** | `.book-step1` mounted (`data-proto-react-screen=book-step-1`). H1 39/48 `#3a3a3a`; card white 24px; progress active label `#012169` / 700; bar `#c6e5e1`; fill PNG `6d60145a…` opacity **0.31** `object-position: 50% 100%`. |
+| A1 | **PASS** | `.book-step-1` mounted (`data-proto-react-screen=book-step-1`). H1 39/48 `#3a3a3a`; card white 24px; progress active label `#012169` / 700; bar `#c6e5e1`; fill PNG `6d60145a…` opacity **0.31** `object-position: 50% 100%`. |
 | A2 | **PASS** | Delta covered for changed regions incl. NearMe unify, primary filter pills, `.uxds-link` Learn more / Show on map / help tel. |
-| A3 | **PASS** | Remaps scoped to `.book-step1*` + shared tertiary / link / filter kits; no accidental global wash on this path. |
+| A3 | **PASS** | Remaps scoped to `.book-step-1*` + shared tertiary / link / filter kits; no accidental global wash on this path. |
 
 ### B. Layout / max-width / alignment
 
 | # | Result | Evidence |
 |---|--------|----------|
-| B1 | **PASS** | `.book-step1__shell` max-width **1440px**, pad L/R **64px**; inner **1312px** pad 0. Progress/card **863px**. |
+| B1 | **PASS** | `.book-step-1__shell` max-width **1440px**, pad L/R **64px**; inner **1312px** pad 0. Progress/card **863px**. |
 | B2 | **PASS** | Boots logo SVG left **290** = crumb Home left **290** (Δ = **0**) at measured viewport; matches shell math `(vw−1440)/2+64`. |
 | B3 | **PASS** | No horizontal overflow (`scrollWidth === clientWidth`). Sticky footer mount present. |
 | B4 | **PASS** | Desktop-first intact; search + near-me side-by-side (gap **16**). |
@@ -47,7 +47,7 @@ Live localhost re-audit of React Book Step 1 at HEAD `3e7dd92` confirms prior fi
 
 | # | Result | Evidence |
 |---|--------|----------|
-| C1 | **PASS** | `.proto-near-me-cta` `white-space: nowrap`; Change `.book-step1__pill-change` `nowrap`; icon/label tops aligned. |
+| C1 | **PASS** | `.proto-near-me-cta` `white-space: nowrap`; Change `.book-step-1__pill-change` `nowrap`; icon/label tops aligned. |
 | C2 | **PASS** | Near-me compact tertiary h **32**, single horizontal line. |
 | C3 | **PASS** | Continue single-line navy pill; Change CTAs do not wrap at desktop width. |
 

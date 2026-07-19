@@ -8,7 +8,7 @@ import {
   BOOSTER_DOSE_SUMMARY_LABEL,
   computeOrderPricing,
 } from "@/projects/boots-pharmacy/data/protoOrderPricing";
-import { formatBookStep2Heading } from "@/projects/boots-pharmacy/screens/book-step2/bookStep2CalendarData";
+import { formatBookStep2Heading } from "@/projects/boots-pharmacy/screens/book-step-2/bookStep2CalendarData";
 import {
   AppointmentSummaryPill,
   AppointmentSummaryStack,
@@ -26,7 +26,7 @@ import {
   BOOK_STEP3_POINTS_TO_SPEND,
   BOOK_STEP3_REACT_SCREEN_ID,
 } from "./bookStep3Contract";
-import "./book-step3-confirmation.css";
+import "./book-step-3-confirmation.css";
 
 export type BookStep3ChosenLocation = {
   name: string;
@@ -54,7 +54,7 @@ function formatAmount(n: number): string {
 function OkAccent() {
   return (
     <div
-      className="book-step3__ok"
+      className="book-step-3__ok"
       data-name="icon / accent / ok"
       aria-hidden
     >
@@ -74,9 +74,9 @@ function OkAccent() {
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="book-step3__meta-row" data-name="Week Schedule">
-      <p className="book-step3__meta-label">{label}</p>
-      <p className="book-step3__meta-value">{value}</p>
+    <div className="book-step-3__meta-row" data-name="Week Schedule">
+      <p className="book-step-3__meta-label">{label}</p>
+      <p className="book-step-3__meta-value">{value}</p>
     </div>
   );
 }
@@ -85,7 +85,7 @@ function Price({ amount, large }: { amount: number; large?: boolean }) {
   return (
     <div
       className={
-        large ? "book-step3__price book-step3__price--total" : "book-step3__price"
+        large ? "book-step-3__price book-step-3__price--total" : "book-step-3__price"
       }
       data-name="component.product.price"
     >
@@ -119,58 +119,58 @@ export function BookStep3ConfirmationScreen({
 
   return (
     <div
-      className="book-step3"
+      className="book-step-3"
       data-name="body"
       data-proto-react-screen={BOOK_STEP3_REACT_SCREEN_ID}
     >
-      <div className="book-step3__crumbs" data-name="module.breadcrumbs">
-        <div className="book-step3__shell">
+      <div className="book-step-3__crumbs" data-name="module.breadcrumbs">
+        <div className="book-step-3__shell">
           <nav
-            className="book-step3__shell-inner book-step3__crumbs-inner"
+            className="book-step-3__shell-inner book-step-3__crumbs-inner"
             data-name="component.breadcrumbs"
             aria-label="Breadcrumb"
           >
-            <button type="button" className="book-step3__crumb-link">
+            <button type="button" className="book-step-3__crumb-link">
               Home
             </button>
-            <span className="book-step3__crumb-sep" aria-hidden>
+            <span className="book-step-3__crumb-sep" aria-hidden>
               /
             </span>
-            <span className="book-step3__crumb-current">Book Appointment</span>
+            <span className="book-step-3__crumb-current">Book Appointment</span>
           </nav>
         </div>
       </div>
 
-      <div className="book-step3__body">
-        <div className="book-step3__body-fill" aria-hidden>
-          <div className="book-step3__body-fill-solid" />
+      <div className="book-step-3__body">
+        <div className="book-step-3__body-fill" aria-hidden>
+          <div className="book-step-3__body-fill-solid" />
           <img
-            className="book-step3__body-fill-img"
+            className="book-step-3__body-fill-img"
             src={imgBodyFill}
             alt=""
           />
         </div>
 
-        <div className="book-step3__shell">
-          <div className="book-step3__shell-inner book-step3__main">
-            <h1 className="book-step3__title">Book Appointment</h1>
+        <div className="book-step-3__shell">
+          <div className="book-step-3__shell-inner book-step-3__main">
+            <h1 className="book-step-3__title">Book Appointment</h1>
             <BookAppointmentProgress
               steps={progressSteps}
               interactive={false}
             />
 
             <section
-              className="book-step3__card"
+              className="book-step-3__card"
               data-name="component.appointment.summary"
-              aria-labelledby="book-step3-reserved"
+              aria-labelledby="book-step-3-reserved"
             >
-              <h2 id="book-step3-reserved" className="book-step3__headline">
+              <h2 id="book-step-3-reserved" className="book-step-3__headline">
                 Appointment reserved!
               </h2>
               <OkAccent />
 
               <div
-                className="book-step3__notice"
+                className="book-step-3__notice"
                 data-name="component.gse.system.message"
               >
                 <p>An email confirmation is on its way.</p>
@@ -193,49 +193,49 @@ export function BookStep3ConfirmationScreen({
               </AppointmentSummaryStack>
 
               <div
-                className="book-step3__order"
+                className="book-step-3__order"
                 data-name="component.co.order.summary"
               >
-                <p className="book-step3__order-title">Order summary</p>
-                <div className="book-step3__order-list" data-name="list">
-                  <div className="book-step3__order-row" data-name="Subtotal">
+                <p className="book-step-3__order-title">Order summary</p>
+                <div className="book-step-3__order-list" data-name="list">
+                  <div className="book-step-3__order-row" data-name="Subtotal">
                     <p>Subtotal</p>
                     <Price amount={pricing.subtotal} />
                   </div>
                   <div
-                    className="book-step3__order-row"
+                    className="book-step-3__order-row"
                     data-name="Order Discount"
                   >
                     <p>Order discount</p>
                     <Price amount={pricing.discount} />
                   </div>
                   <div
-                    className="book-step3__order-row"
+                    className="book-step-3__order-row"
                     data-proto-booster-line="true"
                   >
                     <p>{BOOSTER_DOSE_SUMMARY_LABEL}</p>
-                    <p className="book-step3__order-plain">
+                    <p className="book-step-3__order-plain">
                       {includeBoosterDose
                         ? "Included (+ £75.00)"
                         : "Not included"}
                     </p>
                   </div>
-                  <div className="book-step3__order-row" data-name="Shipping">
+                  <div className="book-step-3__order-row" data-name="Shipping">
                     <p>Delivery</p>
-                    <p className="book-step3__order-plain">Via email</p>
+                    <p className="book-step-3__order-plain">Via email</p>
                   </div>
-                  <div className="book-step3__order-row" data-name="Sales Tax">
+                  <div className="book-step-3__order-row" data-name="Sales Tax">
                     <p>Sales tax</p>
                     <Price amount={pricing.tax} />
                   </div>
                 </div>
-                <div className="book-step3__order-total" data-name="Total">
+                <div className="book-step-3__order-total" data-name="Total">
                   <p>Total</p>
                   <Price amount={pricing.total} large />
                 </div>
               </div>
 
-              <div className="book-step3__meta">
+              <div className="book-step-3__meta">
                 <MetaRow label="Order Placed" value={BOOK_STEP3_ORDER_PLACED} />
                 <MetaRow label="Name" value={BOOK_STEP3_CUSTOMER_NAME} />
                 <MetaRow label="Email" value={BOOK_STEP3_CUSTOMER_EMAIL} />
@@ -246,30 +246,30 @@ export function BookStep3ConfirmationScreen({
                 <MetaRow label="Paid with" value={BOOK_STEP3_PAID_WITH} />
               </div>
 
-              <div className="book-step3__advantage proto-confirm-advantage">
-                <div className="book-step3__advantage-inner">
-                  <div className="book-step3__advantage-rows">
-                    <span className="book-step3__advantage-label">
+              <div className="book-step-3__advantage proto-confirm-advantage">
+                <div className="book-step-3__advantage-inner">
+                  <div className="book-step-3__advantage-rows">
+                    <span className="book-step-3__advantage-label">
                       Points received
                     </span>
-                    <span className="book-step3__advantage-value">
+                    <span className="book-step-3__advantage-value">
                       {BOOK_STEP3_POINTS_RECEIVED}
                     </span>
-                    <span className="book-step3__advantage-label">
+                    <span className="book-step-3__advantage-label">
                       Points to spend in store
                     </span>
-                    <span className="book-step3__advantage-value">
+                    <span className="book-step-3__advantage-value">
                       {BOOK_STEP3_POINTS_TO_SPEND}
                     </span>
                     <button
                       type="button"
-                      className="book-step3__advantage-link uxds-link"
+                      className="book-step-3__advantage-link uxds-link"
                     >
                       Open My Advantage Card details
                     </button>
                   </div>
                   <img
-                    className="book-step3__advantage-card"
+                    className="book-step-3__advantage-card"
                     src={bootsAdvantageCard}
                     alt="My Advantage Card"
                     decoding="async"
@@ -277,15 +277,15 @@ export function BookStep3ConfirmationScreen({
                 </div>
               </div>
 
-              <div className="book-step3__cta-row">
+              <div className="book-step-3__cta-row">
                 <ButtonPrimary
-                  className="book-step3__cta uxds-btn-primary--commerce"
+                  className="book-step-3__cta uxds-btn-primary--commerce"
                   onClick={onExploreMore}
                 >
                   Explore more vaccinations
                 </ButtonPrimary>
                 <ButtonPrimary
-                  className="book-step3__cta uxds-btn-primary--commerce"
+                  className="book-step-3__cta uxds-btn-primary--commerce"
                   type="button"
                 >
                   Add to Google Calendar
@@ -294,13 +294,13 @@ export function BookStep3ConfirmationScreen({
 
               <button
                 type="button"
-                className="book-step3__open-appt"
+                className="book-step-3__open-appt"
                 data-proto-open-appointment="true"
                 aria-label="Open Appointments"
                 onClick={onOpenAppointments}
               >
                 <img
-                  className="book-step3__open-appt-icon"
+                  className="book-step-3__open-appt-icon"
                   src={iconArrowsSecondary}
                   alt=""
                   width={16}

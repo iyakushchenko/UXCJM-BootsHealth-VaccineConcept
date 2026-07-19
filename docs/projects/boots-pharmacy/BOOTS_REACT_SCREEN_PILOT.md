@@ -66,8 +66,8 @@ Status: **OK** = matches Make; **Partial** = works with known delta; **Gap** = s
 
 | Make chrome | React status | Notes |
 |-------------|--------------|-------|
-| Progress 16px + teal/#fff bars | OK | `book-step1__progress*` |
-| Pill search 360 / `#c3c3c3` | OK | `book-step1__search` |
+| Progress 16px + teal/#fff bars | OK | `book-step-1__progress*` |
+| Pill search 360 / `#c3c3c3` | OK | `book-step-1__search` |
 | Summary pills + Change | OK | Vaccine / Recipient |
 | Near-me tertiary control | OK | FilterChip remapped to tertiary look |
 | Chosen store tile + map asset | OK | `.proto-chosen-slot` class kept |
@@ -121,14 +121,14 @@ Book Step 1 targets (child 7):
 3. Confirm React card matches Make look (progress teal underline, pill search, near-me, Continue); Make absolute layout gone for this tab.
 4. Search or Near me → Availability Tool → choose Covent Garden → chosen card + map.
 5. Continue → Book Step 2 (React) — pick date/time → Reserve → Step 3 (Make).
-6. Optional: play Traditional CJM through `choose-location` / `book-step2*` beats.
+6. Optional: play Traditional CJM through `choose-location` / `book-step-2*` beats.
 
 ---
 
 ## Code
 
-- `src/projects/boots-pharmacy/screens/book-step1/BookStep1LocationScreen.tsx`
-- `src/projects/boots-pharmacy/screens/book-step1/mountBookStep1Screen.tsx`
-- `src/projects/boots-pharmacy/screens/book-step2/BookStep2DateTimeScreen.tsx`
-- `src/projects/boots-pharmacy/screens/book-step2/mountBookStep2Screen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step-2/BookStep2DateTimeScreen.tsx`
+- `src/projects/boots-pharmacy/screens/book-step-2/mountBookStep2Screen.tsx`
 - Wire mount in `BootsPharmacyProjectView.tsx`

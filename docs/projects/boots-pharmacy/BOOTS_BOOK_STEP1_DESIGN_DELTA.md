@@ -2,7 +2,7 @@
 
 **Status:** Audit + restore (2026-07-19)  
 **Source of truth:** Make Frame child **7** (`Step 4` / `Body5`) **plus** live wire CSS in `globals-screens.css` / `globals-chrome.css` (computed look).  
-**React:** `src/projects/boots-pharmacy/screens/book-step1/`  
+**React:** `src/projects/boots-pharmacy/screens/book-step-1/`  
 **Rule:** Visual fidelity > inventing UXDS-looking backgrounds. See [VISUAL_FIDELITY.md](../../product/VISUAL_FIDELITY.md) §1.2.
 
 ---
@@ -11,7 +11,7 @@
 
 1. Measured Make `Body5` in `frame/index.tsx` (white base + `imgBody` @ `opacity-31`, card `758px`, progress `560px`, etc.).
 2. Measured **live** overrides for `nth-child(7)` (progress/card/help → **863px**; progress labels **16px** / active **navy bold**; booster checked `#afccca` + mark `#305854`).
-3. Diffed against React `BookStep1LocationScreen` + `book-step1-location.css` before restore.
+3. Diffed against React `BookStep1LocationScreen` + `book-step-1-location.css` before restore.
 4. Restored gaps; remaining intentional rows are marked below.
 
 ---
@@ -22,8 +22,8 @@ Boots content grid (header logo + `ProtoFooter`):
 
 | Layer | Make / Studio guideline | React (after fix) |
 |-------|-------------------------|-------------------|
-| Outer shell | max-width **1440px**, centered; **padding-left/right 64px** | `.book-step1__shell` same |
-| Inner column | max-width **1312px**, `width: 100%`, centered — **no side pad on inner** | `.book-step1__shell-inner` same |
+| Outer shell | max-width **1440px**, centered; **padding-left/right 64px** | `.book-step-1__shell` same |
+| Inner column | max-width **1312px**, `width: 100%`, centered — **no side pad on inner** | `.book-step-1__shell-inner` same |
 | Crumbs | full-bleed white band → shell → inner; Home starts on logo left edge | Same structure |
 | Main | Body `p-[64px]` on full width (artboard); live Studio uses same 64/1312 column | Shell 64px sides + main `padding: 64px 0` (vertical only) |
 
@@ -35,11 +35,11 @@ Boots content grid (header logo + `ProtoFooter`):
 
 | Element | Make (value/source) | React (current after fix) | Status | Fix plan |
 |---------|---------------------|---------------------------|--------|----------|
-| **Page template / content column** | Header: `px-[64px]` → `max-w-[1312px]` container; ProtoFooter: shell 1440+64 → inner 1312 | `.book-step1__shell` / `__shell-inner` | **match** (was **gap** — pad inside 1312) | Shared logo column |
-| **Page body background — solid** | `Body5`: absolute `bg-white` inset-0 under content | `.book-step1__body-fill-solid` `#ffffff` | **match** | Kept |
-| **Page body background — decorative fill** | `Body5`: `imgBody` (`6d60145a….png`) absolute, `object-bottom`, `opacity: 0.31`, full size over white | Same asset + `.book-step1__body-fill-img` `opacity: 0.31`, `object-position: bottom` | **match** (was **gap** — solid white only) | Restored fill layer under `.book-step1__main` |
-| **Crumbs band fill** | `module.breadcrumbs` `bg-white`, no border | `.book-step1__crumbs` `#ffffff`, no border | **match** (was UXDS neutral + `#d6d6d6` bottom border) | Removed border; solid white |
-| **Crumbs horizontal inset** | Shell pad **64px**; inner **1312** (logo edge) | Same via `.book-step1__shell` | **match** | See page template section |
+| **Page template / content column** | Header: `px-[64px]` → `max-w-[1312px]` container; ProtoFooter: shell 1440+64 → inner 1312 | `.book-step-1__shell` / `__shell-inner` | **match** (was **gap** — pad inside 1312) | Shared logo column |
+| **Page body background — solid** | `Body5`: absolute `bg-white` inset-0 under content | `.book-step-1__body-fill-solid` `#ffffff` | **match** | Kept |
+| **Page body background — decorative fill** | `Body5`: `imgBody` (`6d60145a….png`) absolute, `object-bottom`, `opacity: 0.31`, full size over white | Same asset + `.book-step-1__body-fill-img` `opacity: 0.31`, `object-position: bottom` | **match** (was **gap** — solid white only) | Restored fill layer under `.book-step-1__main` |
+| **Crumbs band fill** | `module.breadcrumbs` `bg-white`, no border | `.book-step-1__crumbs` `#ffffff`, no border | **match** (was UXDS neutral + `#d6d6d6` bottom border) | Removed border; solid white |
+| **Crumbs horizontal inset** | Shell pad **64px**; inner **1312** (logo edge) | Same via `.book-step-1__shell` | **match** | See page template section |
 | **Crumbs vertical pad** | `py-[16px]` | `padding-top/bottom: 16px` on band | **match** | — |
 | **Crumbs Home link** | `#305854`, underline, 10/12 | `#305854`, underline, 10/12 | **match** (was navy `#012169` fallback) | Teal link restored |
 | **Crumbs delimiter** | Rotated 1.257×14.871 `#c3c3c3` bar | Text `/` in `#c3c3c3` | **intentional** | Text sep is readable; bar glyph not required for PO fill complaint |
@@ -56,13 +56,13 @@ Boots content grid (header logo + `ProtoFooter`):
 | **Vaccine / Recipient pills** | `#f5f5f5`, radius 24, p 16; label 13/24 regular; value 13/24 semibold; Change tertiary | Same | **match** | — |
 | **Change / Change location CTA** | Transparent; `#5c5c5c` 12/16 semibold; icon `#AFCCCA` → hover label black / icon `#012169`; no wash; single line | Same + `nowrap` / `inline-flex` | **match** | FE_STANDARDS §1 |
 | **Section title “Location”** | 31/32 semibold `#3a3a3a` center | Same | **match** | — |
-| **Field label “Location”** | Make `Label` above Text Field, 13/24, tracking 0.1px | `.book-step1__field-label` | **match** (was missing) | Restored |
+| **Field label “Location”** | Make `Label` above Text Field, 13/24, tracking 0.1px | `.book-step-1__field-label` | **match** (was missing) | Restored |
 | **Search + near-me layout** | `Frame209` flex-wrap, gap 16, field flex-1 + near-me beside | Flex-wrap, gap 16, field flex-1 + near-me | **match** (was stacked column) | Restored side-by-side |
 | **Search field chrome** | Pill 360, h 48, border `#c3c3c3`, white fill; wire placeholder grey | Same + inset navy ring hover/focus (chrome pattern) | **match** | — |
 | **Search placeholder copy** | Wire sets `Search for City, Postcode, Location...` `#5c5c5c` / 400 (Figma showed “London”) | Same placeholder | **match** | Follows live wire, not static Figma string |
 | **Search icon** | Body5 glyph `#012169`, 24px slot | Inline `SearchGlyph` `#012169` | **match** (was `#AFCCCA` asset) | Navy glyph |
 | **Near-me control** | Make / Availability tertiary beside search: compact icon+label, map-pin 16×16, `#AFCCCA`→navy hover, label `#5c5c5c`→black, nowrap | Shared `NearMeCta` + `.proto-near-me-cta` (same as Availability search-row); slot `h72/pt24` beside field | **match** (was FilterChip fork) | FE_STANDARDS §1.2 — same string/role → one component |
-| **Chosen store tile** | `.proto-chosen-tile`: border `#f2f2f2`, radius 8, map + store row, Change location tertiary | `.book-step1__chosen` same language | **match** | — |
+| **Chosen store tile** | `.proto-chosen-tile`: border `#f2f2f2`, radius 8, map + store row, Change location tertiary | `.book-step-1__chosen` same language | **match** | — |
 | **Booster checkbox unchecked** | Live: white / border `#c3c3c3` (Make path) | Same | **match** | — |
 | **Booster checkbox hover** | Fill `#c6e5e1` | Same | **match** | — |
 | **Booster checkbox checked** | Live child-7: fill `#afccca`, mark `#305854`, label weight 700 | Same | **match** | Aligns to computed Make, not raw Figma `#c6e5e1`/`#3A3A3A` |

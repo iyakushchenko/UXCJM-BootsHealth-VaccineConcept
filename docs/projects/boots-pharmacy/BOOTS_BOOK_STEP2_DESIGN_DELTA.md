@@ -2,7 +2,7 @@
 
 **Status:** Pilot ship (2026-07-19)  
 **Source of truth:** Make Frame child **4** (`Body3` / `ComponentAppointmentSummary1`) + live wire calendar CSS in `globals-screens.css`.  
-**React:** `src/projects/boots-pharmacy/screens/book-step2/`  
+**React:** `src/projects/boots-pharmacy/screens/book-step-2/`  
 **Rule:** Visual fidelity > inventing UXDS-looking backgrounds. See [VISUAL_FIDELITY.md](../../product/VISUAL_FIDELITY.md) §1.2.
 
 ---

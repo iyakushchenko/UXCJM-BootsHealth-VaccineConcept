@@ -1,0 +1,21 @@
+---
+description: UX Studio file naming — new files must follow NAMING.md
+alwaysApply: true
+---
+
+# Naming (new files)
+
+Full pack: [docs/product/NAMING.md](docs/product/NAMING.md).
+
+| Kind | Convention |
+|------|------------|
+| React components | `PascalCase.tsx` |
+| Hooks / modules / mounts / contracts | `camelCase.ts(x)` |
+| Screen folders | kebab **`=` `screenId`** (`book-step-1`, not `book-step1`) |
+| Page / kit CSS | `kebab-case.css` (BEM block ≈ screenId) |
+| Product doctrine docs | `SCREAMING_SNAKE.md` |
+| Project docs | `docs/projects/<id>/…` |
+| Scripts | `kebab-case.mjs` |
+| Tests | `*.test.ts` in `__tests__/` (colocated OK for tiny UXDS pure units) |
+
+**Forward-only:** do not mass-rename historical docs. Legacy names OK until touched. High-ROI renames only when they stop agents stumbling (e.g. folder ≠ URL id).

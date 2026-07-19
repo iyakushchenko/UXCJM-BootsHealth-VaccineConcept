@@ -20,7 +20,7 @@
 
 ## Summary
 
-Live localhost audit of React Book Step 3 confirms hybrid mount at Frame child **3**: Make chrome retired (`display:none` + `data-proto-make-retired="book-step-3"`), React host `[data-proto-react-screen="book-step-3"]` with progress/card **863px**, shell **1440/64**, body “Appointment reserved!” + order summary, AIR hook `data-proto-open-appointment="true"` on Open Appointments. CTA labels nowrap. MCP sanity **pass** (REC⊗CJM). No LEGACY growth (`book-step3-confirmation.css` + UXDS primary). Adjacent Step 2 slot-grid left-align + Step 1 browse tab stay re-checked PASS (`66e7fe0`).
+Live localhost audit of React Book Step 3 confirms hybrid mount at Frame child **3**: Make chrome retired (`display:none` + `data-proto-make-retired="book-step-3"`), React host `[data-proto-react-screen="book-step-3"]` with progress/card **863px**, shell **1440/64**, body “Appointment reserved!” + order summary, AIR hook `data-proto-open-appointment="true"` on Open Appointments. CTA labels nowrap. MCP sanity **pass** (REC⊗CJM). No LEGACY growth (`book-step-3-confirmation.css` + UXDS primary). Adjacent Step 2 slot-grid left-align + Step 1 browse tab stay re-checked PASS (`66e7fe0`).
 
 ---
 
@@ -32,7 +32,7 @@ Live localhost audit of React Book Step 3 confirms hybrid mount at Frame child *
 |---|--------|----------|
 | A1 | **PASS** | Confirmation: “Appointment reserved!”, mint notice, summary pills (Vaccine/Recipient/Location/Date), order summary + Advantage card; navy primary “Explore more vaccinations”. |
 | A2 | **PASS** | Delta doc covers progress complete state, pills, order block, CTAs. |
-| A3 | **PASS** | Page CSS scoped `.book-step3*`; commerce primary via UXDS; no new `globals-screens` rules for this screen. |
+| A3 | **PASS** | Page CSS scoped `.book-step-3*`; commerce primary via UXDS; no new `globals-screens` rules for this screen. |
 
 ### B. Layout / max-width / alignment
 
