@@ -131,13 +131,13 @@
         "status": "NEEDS-REPROVE",
         "pass": false,
         "stampedAt": {
-          "sha": "d7ce01c",
+          "sha": "d6e4951",
           "date": "2026-07-19",
-          "version": "0.0.24",
+          "version": "0.0.27",
           "auditor": "Quinn (QA)",
-          "note": "Prior HARD-GREEN @ d7ce01c invalidated by PO-go FAQ Accordion kit + download CTA DS hover (new probe steps pdp-faq-accordion-* / pdp-download-cta-hover). Do not false-PROVEN — re-run __studioRunMcpPageProbe({ screenId:\"pdp\", reload:false })."
+          "note": "Quinn MCP full matrix PASS @ d6e4951/v0.0.27 (incl. pdp-faq-accordion-* + pdp-download-cta-hover + logged-out avail start + overlay-eyes + teardown). Uma §0a FAQ/download PROVEN — Arch may re-run PAGE FINAL PASS. HARD-GREEN not restored by Quinn. Evidence: FE_AUDIT_PDP_MCP_2026-07-19.md + UMA_FIDELITY_PDP_2026-07-19.md"
         },
-        "url": "http://127.0.0.1:5186/?project=boots-pharmacy&screen=pdp",
+        "url": "http://127.0.0.1:5188/?project=boots-pharmacy&screen=pdp",
         "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PDP_PAGE_FINAL_PASS_2026-07-19.md",
         "matrix": [
           { "id": "overlay-arm", "pass": true, "detail": "BR panel visible" },
@@ -151,13 +151,16 @@
           { "id": "pdp-heart-hover", "pass": true },
           { "id": "pdp-book-logged-out", "pass": true },
           { "id": "pdp-overlay-eyes-login", "pass": true, "detail": "overlay eyes refused under-click" },
-          { "id": "pdp-login-close", "pass": true },
-          { "id": "pdp-check-avail", "pass": true },
+          { "id": "pdp-login-close", "pass": true, "detail": "teardown clean; stay screen=pdp" },
+          { "id": "pdp-check-avail", "pass": true, "detail": "logged-out Find Pharmacy start" },
           { "id": "pdp-overlay-eyes-avail", "pass": true, "detail": "overlay eyes refused under-click" },
-          { "id": "pdp-avail-close", "pass": true },
+          { "id": "pdp-avail-close", "pass": true, "detail": "teardown clean; stay screen=pdp" },
           { "id": "pdp-crumb-plp", "pass": true },
           { "id": "plp-to-pdp", "pass": true },
-          { "id": "pdp-below-fold-scroll", "pass": true, "detail": "scroll-into-view + overlay visible" },
+          { "id": "pdp-below-fold-scroll", "pass": true, "detail": "already in view + overlay visible" },
+          { "id": "pdp-faq-accordion-toggle", "pass": true },
+          { "id": "pdp-faq-accordion-reopen", "pass": true },
+          { "id": "pdp-download-cta-hover", "pass": true },
           { "id": "url-screen", "pass": true }
         ],
         "landmarks": {
