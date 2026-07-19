@@ -1,6 +1,6 @@
-# Journey recording (foundation)
+# Journey recording
 
-Foundation for **record → export → replay → compile** without a studio UI panel yet. Events compile to the same beat/action model the playback engine uses.
+Foundation + Studio shell UI for **record → export → replay → compile**. Events compile to the same beat/action model the playback engine uses.
 
 See also: [PLAYBACK.md](./PLAYBACK.md) (engine), [SHELL.md](./SHELL.md) (shell architecture).
 
@@ -25,10 +25,28 @@ compileRecordingToBeatTimeline    (future journeys.ts compiler input)
 | Module | Path | Owns |
 |--------|------|------|
 | **Types** | `app/recording/protoRecordingTypes.ts` | Event union, session shape, replay options |
-| **Session** | `app/recording/protoRecordingSession.ts` | start/stop/pause, append, serialize |
+| **Session** | `app/recording/protoRecordingSession.ts` | start/stop/pause, append, serialize, last session |
 | **Capture** | `app/recording/protoRecordingCapture.ts` | Snapshot provider, interaction bridge, touchpoint |
 | **Replay** | `app/recording/protoRecordingReplay.ts` | `replayRecordingSession`, `compileRecordingToBeatTimeline` |
 | **MCP** | `app/recording/protoRecordingMcpHelpers.ts` | `window.__protoStartRecording` etc. |
+| **UI** | `app/nav/ProtoNavRecordingControls.tsx` | Studio shell REC deck (same session APIs) |
+
+---
+
+## Studio UI
+
+In the nav status bar (next to the cassette transport), use the **REC** deck:
+
+| Control | Action |
+|---------|--------|
+| ● | Start recording (current project / persona / journey) |
+| ❚❚ / ► | Pause / resume |
+| ■ | Stop — keeps session for export / replay |
+| ↓ | Download `.recording.json` |
+| ↑ | Import a saved `.recording.json` |
+| ↺ | Replay last stopped or imported session (v1 transport) |
+
+UI and MCP share `protoRecordingSession` + `replayRecordingSession` — no second session store.
 
 ---
 
@@ -68,17 +86,18 @@ Import a saved session:
 window.__protoImportRecording?.(jsonString)
 ```
 
+Export / replay / compile fall back to the **last stopped or imported** session when nothing is live.
+
 ---
 
 ## v1 vs future
 
 | v1 (now) | v2+ |
 |----------|-----|
-| In-memory session + JSON export | Recording UI panel |
-| Transport + dwell replay | Demo-click replay via `simulateDemoPointerClick` |
-| Touchpoint boundary compilation | Full compile to `journeys.ts` beats |
-| Capture via existing hooks | Wire-intent replay via `runBeatAction` |
-| MCP helpers | Retreat-aware replay matrix |
+| In-memory session + JSON export | Demo-click replay via `simulateDemoPointerClick` |
+| Studio REC deck + MCP helpers | Full compile to `journeys.ts` beats |
+| Transport + dwell replay | Wire-intent replay via `runBeatAction` |
+| Capture via existing hooks | Retreat-aware replay matrix |
 
 ---
 

@@ -59,8 +59,8 @@ The PO may override with a clear product veto (“wrong priority for the busines
 
 1. ✅ Lock doctrine + product docs.  
 2. ✅ PO delivered UXDS (Larkin) + X-Suite integration intent — inventoried under `docs/uxds/` + [X_SUITE_INTEGRATION.md](./X_SUITE_INTEGRATION.md).  
-3. **Next build: recording UI** on the existing recording foundation (engine).  
-4. Implement UXDS CSS token bridge (`docs/uxds/TOKEN_BRIDGE.md`) as part of first React screen.  
+3. ✅ Recording UI on the existing recording foundation (Studio REC deck + MCP).  
+4. **Next:** Implement UXDS CSS token bridge (`docs/uxds/TOKEN_BRIDGE.md`) as part of first React screen.  
 5. Pilot: one Boots screen rebuilt React + UXDS.  
 6. Scaffold command + broader rebuild; keep journey format open for X-Suite import; compiler recording → journey proposals later.
 

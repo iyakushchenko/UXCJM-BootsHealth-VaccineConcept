@@ -3,13 +3,16 @@ import {
   appendRecordingEvent,
   deserializeRecordingSession,
   getActiveRecordingSession,
+  getLastRecordingSession,
   isRecordingActive,
   pauseRecording,
   resetRecordingSessionForTests,
   resumeRecording,
   serializeRecordingSession,
+  stageRecordingSession,
   startRecording,
   stopRecording,
+  subscribeRecordingSession,
 } from "@/app/recording/protoRecordingSession";
 import type { ProtoRecordingSession } from "@/app/recording/protoRecordingTypes";
 import {
@@ -97,6 +100,19 @@ describe("protoRecordingSession", () => {
     const finished = stopRecording();
     expect(finished?.stoppedAt).toBeDefined();
     expect(getActiveRecordingSession()).toBeNull();
+    expect(getLastRecordingSession()?.id).toBe(finished?.id);
+  });
+
+  it("stages imported sessions and notifies subscribers", () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribeRecordingSession(listener);
+    const imported = sampleSession();
+
+    stageRecordingSession(imported);
+
+    expect(getLastRecordingSession()).toEqual(imported);
+    expect(listener).toHaveBeenCalled();
+    unsubscribe();
   });
 
   it("dedupes rapid duplicate transport events", () => {

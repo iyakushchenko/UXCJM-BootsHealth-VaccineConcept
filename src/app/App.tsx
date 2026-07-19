@@ -8,6 +8,7 @@ import {
 } from "react";
 import ProtoNavPanel from "@/app/nav/ProtoNavPanel";
 import { ProtoNavScenarioControls } from "@/app/nav/ProtoNavScenarioControls";
+import { ProtoNavRecordingControls } from "@/app/nav/ProtoNavRecordingControls";
 import { ProtoNavJourneyMenu } from "@/app/nav/ProtoNavJourneyMenu";
 import { ProtoNavStudioSelect } from "@/app/nav/ProtoNavStudioSelect";
 import {
@@ -74,6 +75,7 @@ import {
   registerRecordingSnapshotProvider,
 } from "@/app/recording/protoRecordingCapture";
 import { registerProtoRecordingMcpHelpers } from "@/app/recording/protoRecordingMcpHelpers";
+import { replayRecordingSession } from "@/app/recording/protoRecordingReplay";
 import { registerProtoJourneyMcpHelpers } from "@/app/journey/protoJourneyMcpHelpers";
 import { summarizeJourney } from "@/app/journey/protoJourneyFile";
 import { useProtoPlaybackGuard } from "@/app/shell/useProtoPlaybackGuard";
@@ -1258,39 +1260,51 @@ export default function App() {
     return () => registerRecordingSnapshotProvider(null);
   }, [orchestraModeId]);
 
+  const getRecordingStartOptions = useCallback(
+    () => ({
+      projectId: playbackSnapshotRef.current.projectId,
+      personaId: playbackSnapshotRef.current.personaId,
+      journeyId: playbackSnapshotRef.current.journeyId,
+      orchestraMode: orchestraModeId,
+      journeyCatalog: studioJourneys.map((journey) => summarizeJourney(journey)),
+    }),
+    [orchestraModeId, studioJourneys]
+  );
+
+  const triggerRecordingTransport = useCallback(
+    (
+      action: import("@/app/shell/protoPlaybackInteractionContext").ManualTransportAction
+    ) => {
+      switch (action) {
+        case "play":
+          transportActionsRef.current.play();
+          break;
+        case "step-back":
+          transportActionsRef.current.stepBack();
+          break;
+        case "step-forward":
+          transportActionsRef.current.stepForward();
+          break;
+        case "jump-to-start":
+          transportActionsRef.current.jumpToStart();
+          break;
+        case "jump-to-end":
+          transportActionsRef.current.jumpToEnd();
+          break;
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     return registerProtoRecordingMcpHelpers({
       getDefaultStartOptions: () => ({
-        projectId: playbackSnapshotRef.current.projectId,
-        personaId: playbackSnapshotRef.current.personaId,
-        journeyId: playbackSnapshotRef.current.journeyId,
-        orchestraMode: orchestraModeId,
-        journeyCatalog: studioJourneys.map((journey) =>
-          summarizeJourney(journey)
-        ),
+        ...getRecordingStartOptions(),
         metadata: { recordedFrom: "mcp" },
       }),
-      triggerTransport: (action) => {
-        switch (action) {
-          case "play":
-            transportActionsRef.current.play();
-            break;
-          case "step-back":
-            transportActionsRef.current.stepBack();
-            break;
-          case "step-forward":
-            transportActionsRef.current.stepForward();
-            break;
-          case "jump-to-start":
-            transportActionsRef.current.jumpToStart();
-            break;
-          case "jump-to-end":
-            transportActionsRef.current.jumpToEnd();
-            break;
-        }
-      },
+      triggerTransport: triggerRecordingTransport,
     });
-  }, [orchestraModeId, studioJourneys]);
+  }, [getRecordingStartOptions, triggerRecordingTransport]);
 
   useEffect(() => {
     return registerProtoJourneyMcpHelpers({
@@ -1579,10 +1593,30 @@ export default function App() {
               }}
               qaBeatId={currentBeat?.id ?? null}
               qaBeatLabel={currentBeat?.label ?? studioTouchpoint.label}
+              recordingControls={
+                <ProtoNavRecordingControls
+                  getStartOptions={getRecordingStartOptions}
+                  onReplay={(session) =>
+                    replayRecordingSession(session, {
+                      triggerTransport: triggerRecordingTransport,
+                      stepDelayMs: 200,
+                    })
+                  }
+                />
+              }
             />
           ) : (
             <div className="proto-nav-scenario">
               <div className="proto-nav-studio-menus">{projectStudioSelect}</div>
+              <ProtoNavRecordingControls
+                getStartOptions={getRecordingStartOptions}
+                onReplay={(session) =>
+                  replayRecordingSession(session, {
+                    triggerTransport: triggerRecordingTransport,
+                    stepDelayMs: 200,
+                  })
+                }
+              />
             </div>
           )
         }

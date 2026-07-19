@@ -10,7 +10,33 @@ const SESSION_VERSION = 1 as const;
 const DEDUPE_WINDOW_MS = 80;
 
 let activeSession: ProtoRecordingSession | null = null;
+let lastSession: ProtoRecordingSession | null = null;
 let paused = false;
+const listeners = new Set<() => void>();
+
+function notifyRecordingListeners(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+/** Subscribe to session start/stop/pause/stage changes (Studio UI + tests). */
+export function subscribeRecordingSession(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function getLastRecordingSession(): ProtoRecordingSession | null {
+  return lastSession;
+}
+
+/** Stage a stopped or imported session for export / replay. */
+export function stageRecordingSession(session: ProtoRecordingSession): void {
+  lastSession = session;
+  notifyRecordingListeners();
+}
 
 function newSessionId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -94,6 +120,7 @@ export function startRecording(options: StartRecordingOptions = {}): ProtoRecord
     },
   };
   paused = false;
+  notifyRecordingListeners();
   return activeSession;
 }
 
@@ -101,6 +128,7 @@ export function pauseRecording(): boolean {
   if (!activeSession) return false;
   paused = true;
   activeSession.paused = true;
+  notifyRecordingListeners();
   return true;
 }
 
@@ -108,6 +136,7 @@ export function resumeRecording(): boolean {
   if (!activeSession) return false;
   paused = false;
   activeSession.paused = false;
+  notifyRecordingListeners();
   return true;
 }
 
@@ -118,6 +147,8 @@ export function stopRecording(): ProtoRecordingSession | null {
   const finished = activeSession;
   activeSession = null;
   paused = false;
+  lastSession = finished;
+  notifyRecordingListeners();
   return finished;
 }
 
@@ -168,5 +199,7 @@ export function deserializeRecordingSession(raw: string): ProtoRecordingSession 
 /** Test-only — clears active session state. */
 export function resetRecordingSessionForTests(): void {
   activeSession = null;
+  lastSession = null;
   paused = false;
+  listeners.clear();
 }

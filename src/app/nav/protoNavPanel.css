@@ -511,6 +511,55 @@
   color: #f0f4ff;
 }
 
+/* Recording deck — sibling cassette strip for record / export / replay */
+
+.proto-nav-recording {
+  margin-left: 4px;
+}
+
+.proto-nav-recording__label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 2.4rem;
+  margin-right: 2px;
+  padding: 0 3px;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.proto-nav-recording--live .proto-nav-recording__label {
+  color: #ffb4b4;
+  text-shadow: 0 0 6px rgba(255, 80, 80, 0.45);
+}
+
+.proto-nav-recording--paused .proto-nav-recording__label {
+  color: #ead9ad;
+}
+
+.proto-nav-recording__btn--rec:not(:disabled) {
+  color: #ffb4b4;
+}
+
+.proto-nav-recording--live .proto-nav-recording__btn--rec:not(:disabled) {
+  color: #fff0f0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 8px rgba(220, 70, 70, 0.35);
+}
+
+.proto-nav-recording__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Studio indicator — camera-lens housing; green transport blink while live */
 
 .proto-nav-scenario__on-air {

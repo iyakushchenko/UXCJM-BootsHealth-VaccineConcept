@@ -41,6 +41,8 @@ export type ProtoNavScenarioControlsProps = {
   onJumpToEnd: () => void;
   qaBeatId?: string | null;
   qaBeatLabel?: string | null;
+  /** Optional recording deck (same session APIs as MCP helpers). */
+  recordingControls?: ReactNode;
 };
 
 function CassettePauseIcon() {
@@ -198,6 +200,7 @@ export function ProtoNavScenarioControls({
   onJumpToEnd,
   qaBeatId,
   qaBeatLabel,
+  recordingControls,
 }: ProtoNavScenarioControlsProps) {
   const STEP_DIODE_MS = CONTROL_ROOM_TAP_MS;
   const CLICK_DIODE_MS = CONTROL_ROOM_TAP_MS;
@@ -556,6 +559,7 @@ export function ProtoNavScenarioControls({
           <CassetteJumpToEndIcon />
         </button>
       </div>
+      {recordingControls}
     </div>
   );
 }

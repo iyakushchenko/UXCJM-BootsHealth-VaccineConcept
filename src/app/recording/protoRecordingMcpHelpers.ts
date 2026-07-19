@@ -1,12 +1,14 @@
 import {
   deserializeRecordingSession,
   getActiveRecordingSession,
+  getLastRecordingSession,
   serializeRecordingSession,
   startRecording,
   stopRecording,
   pauseRecording,
   resumeRecording,
   isRecordingActive,
+  stageRecordingSession,
 } from "@/app/recording/protoRecordingSession";
 import type { ProtoRecordingSession } from "@/app/recording/protoRecordingTypes";
 import {
@@ -15,6 +17,12 @@ import {
   summarizeRecordingSession,
 } from "@/app/recording/protoRecordingReplay";
 import type { StartRecordingOptions } from "@/app/recording/protoRecordingSession";
+
+function resolveRecordingSession(
+  session?: ProtoRecordingSession
+): ProtoRecordingSession | null {
+  return session ?? getActiveRecordingSession() ?? getLastRecordingSession();
+}
 
 declare global {
   interface Window {
@@ -59,23 +67,27 @@ export function registerProtoRecordingMcpHelpers(options?: {
   window.__protoGetRecording = () => getActiveRecordingSession();
 
   window.__protoExportRecording = (session) => {
-    const target = session ?? getActiveRecordingSession();
+    const target = resolveRecordingSession(session);
     if (!target) return null;
     return serializeRecordingSession(target);
   };
 
-  window.__protoImportRecording = (json) => deserializeRecordingSession(json);
+  window.__protoImportRecording = (json) => {
+    const imported = deserializeRecordingSession(json);
+    stageRecordingSession(imported);
+    return imported;
+  };
 
   window.__protoCompileRecording = (session) => {
-    const target = session ?? getActiveRecordingSession();
+    const target = resolveRecordingSession(session);
     if (!target) {
-      throw new Error("No active recording session");
+      throw new Error("No recording session to compile");
     }
     return compileRecordingToBeatTimeline(target);
   };
 
   window.__protoReplayRecording = async (session) => {
-    const target = session ?? getActiveRecordingSession();
+    const target = resolveRecordingSession(session);
     if (!target) {
       throw new Error("No recording session to replay");
     }
