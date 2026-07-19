@@ -3,7 +3,7 @@
 **Date:** 2026-07-19  
 **Verdict:** **PROVEN** (chrome / domain identity)  
 **Scope:** PANEL `.studio-*` + `data-studio-*` clean cut after filename phase 1  
-**Host:** `http://localhost:5182/` (tip pending commit)
+**Host:** `http://localhost:5182/` · tip `37569c1`
 
 ---
 
