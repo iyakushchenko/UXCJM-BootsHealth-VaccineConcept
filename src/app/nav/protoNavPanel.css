@@ -308,7 +308,7 @@
   margin-right: 2px;
 }
 
-/* Rec-mode-only session event counter (REC: N) after Playback|Rec switch */
+/* Rec-mode-only session event counter (STEPS: N) after Playback|Rec switch */
 .proto-nav-scenario__mode-control .proto-nav-scenario__counter--recording {
   min-width: 3.5rem;
   margin-right: 0;
