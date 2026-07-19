@@ -4,9 +4,13 @@
  *
  *   await window.__studioRunMcpPageProbe?.()
  *   await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
+ *   await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
  */
 
-import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
+import {
+  simulateDemoPointerClick,
+  simulateDemoPointerHover,
+} from "@/app/scenario/demoCursor";
 import {
   getPrototypeScrollRoot,
   isDemoTargetInPrototypeView,
@@ -87,15 +91,58 @@ type ProbeStep = {
    * assert — presence / custom assert.
    * refuse-click — PASS only when overlay is open AND click is refused.
    * reveal — scroll prototype root to target (no click); proves below-fold visibility.
+   * hover — robo-hover dwell + optional assert (CSS :hover may be rule-checked).
    */
-  action?: "click" | "assert" | "refuse-click" | "reveal";
+  action?: "click" | "assert" | "refuse-click" | "reveal" | "hover";
   /** Optional assert after click / for assert-only steps. */
   assert?: () => boolean | string;
   /** Extra wait after click (ms) for loaders / reveal. */
   settleMs?: number;
   /** Poll assert until true or timeout (assert steps). */
   waitMs?: number;
+  /**
+   * When selector is missing, PASS with detail instead of FAIL.
+   * Use sparingly for temporary optional bands — prefer hard FAIL once mounted.
+   */
+  softSkipIfMissing?: boolean;
+  /** Detail logged when soft-skipping a missing selector. */
+  softSkipDetail?: string;
 };
+
+function normalizeText(el: Element | null | undefined): string {
+  return (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+
+function looksFuchsiaColor(cssColor: string): boolean {
+  const s = cssColor.toLowerCase();
+  if (s.includes("e91e8c") || s.includes("c2186e")) return true;
+  const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return false;
+  const r = Number(m[1]);
+  const g = Number(m[2]);
+  const b = Number(m[3]);
+  // Hot pink / fuchsia family — high R+B, suppressed G.
+  return r > 180 && g < 80 && b > 100;
+}
+
+/** Best-effort: stylesheet contains a selector fragment (cross-origin sheets skipped). */
+function stylesheetHasRule(selectorFrag: string): boolean {
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+    for (const rule of Array.from(rules)) {
+      const selectorText = (rule as CSSStyleRule).selectorText;
+      if (typeof selectorText === "string" && selectorText.includes(selectorFrag)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -441,6 +488,318 @@ function plpProbeSteps(): ProbeStep[] {
   ];
 }
 
+/**
+ * PDP probe (Quinn criteria 2026-07-19).
+ * Overlay-arm is injected by runMcpPageProbe before these steps.
+ * L14–L20 below-fold: reveal via data-studio-probe-below-fold on React band.
+ */
+function pdpProbeSteps(): ProbeStep[] {
+  return [
+    {
+      id: "pdp-host",
+      selector: '[data-studio-react-screen="pdp"]',
+      action: "assert",
+      assert: () => {
+        if (document.querySelector('[data-studio-react-screen="pdp"]') == null) {
+          return "missing React PDP host";
+        }
+        if (
+          document.querySelector('[data-studio-make-retired="pdp"]') == null
+        ) {
+          return "Make leak: expected data-studio-make-retired=pdp on retired children";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-landmarks",
+      selector: '.pdp[data-studio-react-screen="pdp"]',
+      action: "assert",
+      assert: () => {
+        const root = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"]'
+        );
+        if (!root) return "missing BEM root .pdp";
+        if (!root.querySelector("header")) return "missing header inside React host";
+        if (!root.querySelector("main")) return "missing main inside React host";
+        return true;
+      },
+    },
+    {
+      id: "pdp-advantage",
+      selector: '.pdp[data-studio-react-screen="pdp"] .pdp__advantage',
+      action: "assert",
+      assert: () => {
+        const bar = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] .pdp__advantage'
+        );
+        const text = normalizeText(bar);
+        if (!/Collect 3 points for every £1/i.test(text)) {
+          return `Advantage copy miss (got "${text.slice(0, 80)}")`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-no-loader",
+      selector: '.pdp[data-studio-react-screen="pdp"]',
+      action: "assert",
+      assert: () => {
+        const root = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"]'
+        );
+        if (!root) return "missing .pdp root";
+        const text = normalizeText(root);
+        if (/Updating…|Updating\.\.\./i.test(text)) {
+          return "invented Updating… copy (LE1–LE3 N/A)";
+        }
+        if (
+          root.querySelector(
+            '[data-studio-plp-listing-loader], .pdp__loader, [data-studio-pdp-loader]'
+          )
+        ) {
+          return "invented PDP loader / spinner";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-booster-price-on",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]',
+      action: "assert",
+      assert: () => {
+        const box = document.querySelector<HTMLElement>(
+          '.pdp[data-studio-react-screen="pdp"] button[data-name="component.input.checkbox"]'
+        );
+        if (box?.getAttribute("data-checkbox-checked") !== "true") {
+          return "booster should be checked by default";
+        }
+        const book = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]'
+        );
+        const text = normalizeText(book);
+        if (!/£150\b/.test(text)) {
+          return `expected Book now £150 with booster (got "${text}")`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-booster-uncheck",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-name="component.input.checkbox"]',
+      action: "click",
+      settleMs: 350,
+      assert: () => {
+        const box = document.querySelector<HTMLElement>(
+          '.pdp[data-studio-react-screen="pdp"] button[data-name="component.input.checkbox"]'
+        );
+        if (box?.getAttribute("data-checkbox-checked") !== "false") {
+          return "booster still checked after uncheck click";
+        }
+        const book = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]'
+        );
+        const text = normalizeText(book);
+        if (!/£75\b/.test(text)) {
+          return `expected Book now £75 without booster (got "${text}")`;
+        }
+        // Demo cursor does not force CSS :hover — prove mint hover via stylesheet rule.
+        if (
+          !stylesheetHasRule(".pdp__checkbox-row:hover .pdp__checkbox-box") &&
+          !stylesheetHasRule(".pdp__checkbox-row:hover")
+        ) {
+          return "missing unchecked mint hover CSS for booster checkbox";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-booster-recheck",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-name="component.input.checkbox"]',
+      action: "click",
+      settleMs: 350,
+      assert: () => {
+        const book = document.querySelector(
+          '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]'
+        );
+        const text = normalizeText(book);
+        if (!/£150\b/.test(text)) {
+          return `expected Book now £150 after recheck (got "${text}")`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-heart-hover",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[aria-label="Add to wishlist"]',
+      action: "hover",
+      settleMs: 420,
+      assert: () => {
+        const heart = document.querySelector<HTMLElement>(
+          '.pdp[data-studio-react-screen="pdp"] .pdp__heart-icon:not(.is-active)'
+        );
+        if (!heart) return "empty wishlist heart missing";
+        const color = getComputedStyle(heart).color;
+        if (looksFuchsiaColor(color)) {
+          return `empty heart must not be fuchsia at rest (got ${color})`;
+        }
+        // Navy/teal glyph + mint wash on hover — CSS contract (I12 / PLP I10).
+        if (
+          !stylesheetHasRule(
+            ".pdp__icon-hit:hover .pdp__heart-icon:not(.is-active)"
+          )
+        ) {
+          return "missing empty-heart hover CSS (navy/link, not fuchsia)";
+        }
+        if (!stylesheetHasRule(".pdp__icon-hit:hover::before")) {
+          return "missing mint wash hover CSS on wishlist hit";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-book-logged-out",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]',
+      action: "click",
+      settleMs: 450,
+      assert: () => {
+        if (!isBlockingModalOpen()) {
+          return "Login modal did not open (logged-out Book now)";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "pdp") {
+          return `expected stay screen=pdp with login, got ${screenId ?? "?"}`;
+        }
+        if (modalId !== "login") {
+          return `expected &modal=login, got ${modalId ?? "missing"}`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-overlay-eyes-login",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-check-availability"]',
+      action: "refuse-click",
+    },
+    {
+      id: "pdp-login-close",
+      selector: '[data-studio-modal="login"] button[aria-label="Close login"]',
+      action: "click",
+      settleMs: 400,
+      assert: () => {
+        if (isBlockingModalOpen()) {
+          return "Login still open after close";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "pdp") {
+          return `expected stay on screen=pdp after login close, got ${screenId ?? "?"}`;
+        }
+        if (modalId) {
+          return `expected modal cleared after login close, got &modal=${modalId}`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-check-avail",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-check-availability"]',
+      action: "click",
+      settleMs: 500,
+      assert: () => {
+        if (!isBlockingModalOpen()) {
+          return "Choose Pharmacy / Availability did not open";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "pdp") {
+          return `expected stay screen=pdp with avail, got ${screenId ?? "?"}`;
+        }
+        if (modalId !== "choose-pharmacy") {
+          return `expected &modal=choose-pharmacy, got ${modalId ?? "missing"}`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-overlay-eyes-avail",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-action="pdp-book-now"]',
+      action: "refuse-click",
+    },
+    {
+      id: "pdp-avail-close",
+      selector:
+        '[data-studio-modal="choose-pharmacy"] button[aria-label="Close Availability Tool"]',
+      action: "click",
+      settleMs: 400,
+      assert: () => {
+        if (isBlockingModalOpen()) {
+          return "Availability tool still open after close";
+        }
+        const { modalId, screenId } = parseStudioUrl();
+        if (screenId !== "pdp") {
+          return `expected stay on screen=pdp after avail close, got ${screenId ?? "?"}`;
+        }
+        if (modalId) {
+          return `expected modal cleared after avail close, got &modal=${modalId}`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-crumb-plp",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] button[data-studio-crumb="vaccination"]',
+      action: "click",
+      settleMs: 500,
+      assert: () => {
+        const { screenId } = parseStudioUrl();
+        if (screenId !== "plp") {
+          return `expected screen=plp after Vaccination crumb, got ${screenId ?? "?"}`;
+        }
+        if (
+          document.querySelector('[data-studio-react-screen="plp"]') == null
+        ) {
+          return "React PLP host missing after crumb";
+        }
+        return true;
+      },
+    },
+    {
+      id: "plp-to-pdp",
+      selector:
+        '[data-studio-react-screen="plp"] button[data-studio-action="plp-book-now"]',
+      action: "click",
+      settleMs: 550,
+      waitMs: 4000,
+      assert: () => {
+        const { screenId } = parseStudioUrl();
+        if (screenId !== "pdp") {
+          return `expected screen=pdp after PLP Book now, got ${screenId ?? "?"}`;
+        }
+        if (
+          document.querySelector('.pdp[data-studio-react-screen="pdp"]') == null
+        ) {
+          return "React PDP host missing after PLP→PDP";
+        }
+        return true;
+      },
+    },
+    {
+      id: "pdp-below-fold-scroll",
+      selector:
+        '.pdp[data-studio-react-screen="pdp"] [data-studio-probe-below-fold="true"]',
+      action: "reveal",
+    },
+  ];
+}
+
 function bookStepProbeSteps(screenId: string): ProbeStep[] {
   return [
     {
@@ -456,6 +815,7 @@ function bookStepProbeSteps(screenId: string): ProbeStep[] {
 
 function stepsForScreen(screenId: string): ProbeStep[] | null {
   if (screenId === "plp") return plpProbeSteps();
+  if (screenId === "pdp") return pdpProbeSteps();
   if (
     screenId === "book-step-1" ||
     screenId === "book-step-2" ||
@@ -487,10 +847,23 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
   if (step.action === "assert") {
     const runAssert = () => {
       const el = document.querySelector<HTMLElement>(step.selector);
-      if (!el) return `selector miss: ${step.selector}`;
+      if (!el) {
+        if (step.softSkipIfMissing) {
+          return true;
+        }
+        return `selector miss: ${step.selector}`;
+      }
       if (step.assert) return step.assert();
       return true;
     };
+    const elMissing =
+      document.querySelector<HTMLElement>(step.selector) == null;
+    if (elMissing && step.softSkipIfMissing) {
+      const detail =
+        step.softSkipDetail ?? `soft-skip: selector missing (${step.selector})`;
+      logStep(step.id, true, detail);
+      return { id: step.id, pass: true, detail };
+    }
     const out = step.waitMs
       ? await waitForAssert(runAssert, step.waitMs)
       : runAssert();
@@ -505,6 +878,12 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
 
   const el = document.querySelector<HTMLElement>(step.selector);
   if (!el) {
+    if (step.softSkipIfMissing) {
+      const detail =
+        step.softSkipDetail ?? `soft-skip: selector missing (${step.selector})`;
+      logStep(step.id, true, detail);
+      return { id: step.id, pass: true, detail };
+    }
     const detail = `selector miss: ${step.selector}`;
     logStep(step.id, false, detail);
     return { id: step.id, pass: false, detail };
@@ -559,6 +938,36 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
     return { id: step.id, pass: true, detail: "overlay eyes refused under-click" };
   }
 
+  if (step.action === "hover") {
+    await revealDemoTargetForAgent(el);
+    let hoverAssert: boolean | string = true;
+    const hovered = await simulateDemoPointerHover(el, step.settleMs ?? 400, {
+      scroll: true,
+      onHoverStart: () => {
+        if (step.assert) hoverAssert = step.assert();
+      },
+    });
+    if (!hovered) {
+      const detail = "robo-cursor hover failed";
+      logStep(step.id, false, detail);
+      return { id: step.id, pass: false, detail };
+    }
+    if (hoverAssert !== true) {
+      const detail =
+        typeof hoverAssert === "string" ? hoverAssert : "hover assert failed";
+      logStep(step.id, false, detail);
+      return { id: step.id, pass: false, detail };
+    }
+    if (!isAgentTestingOverlayDomVisible()) {
+      const detail = "overlay vanished after hover";
+      logStep(step.id, false, detail);
+      return { id: step.id, pass: false, detail };
+    }
+    logStep(step.id, true);
+    await postStepReveal(el);
+    return { id: step.id, pass: true };
+  }
+
   // click (default)
   await revealDemoTargetForAgent(el);
   const clicked = await simulateDemoPointerClick(el, { scroll: true });
@@ -572,7 +981,9 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
 
   await delay(step.settleMs ?? 280);
   if (step.assert) {
-    const out = step.assert();
+    const out = step.waitMs
+      ? await waitForAssert(step.assert, step.waitMs)
+      : step.assert();
     if (out !== true) {
       const detail = typeof out === "string" ? out : "post-click assert failed";
       logStep(step.id, false, detail);

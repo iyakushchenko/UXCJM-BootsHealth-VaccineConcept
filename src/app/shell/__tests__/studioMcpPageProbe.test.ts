@@ -2,10 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { runMcpPageProbe } from "@/app/shell/studioMcpPageProbe";
 
 const simulateDemoPointerClick = vi.fn(async () => true);
+const simulateDemoPointerHover = vi.fn(async () => true);
 
 vi.mock("@/app/scenario/demoCursor", () => ({
   simulateDemoPointerClick: (...args: unknown[]) =>
     simulateDemoPointerClick(...args),
+  simulateDemoPointerHover: (...args: unknown[]) =>
+    simulateDemoPointerHover(...args),
 }));
 
 vi.mock("@/app/shell/agentTestingOverlay", () => ({
@@ -57,6 +60,11 @@ describe("runMcpPageProbe", () => {
     vi.restoreAllMocks();
     simulateDemoPointerClick.mockReset();
     simulateDemoPointerClick.mockResolvedValue(true);
+    simulateDemoPointerHover.mockReset();
+    simulateDemoPointerHover.mockImplementation(async (_el, _ms, opts) => {
+      opts?.onHoverStart?.(_el as HTMLElement);
+      return true;
+    });
     isBlockingModalOpen.mockReset();
     isBlockingModalOpen.mockReturnValue(false);
     isElementBlockedByModal.mockReset();
@@ -426,5 +434,212 @@ describe("runMcpPageProbe", () => {
       false
     );
     expect(result.pass).toBe(false);
+  });
+
+  it("passes PDP recipe with overlay eyes + below-fold reveal (L14–L20)", async () => {
+    const belowFold = { tagName: "SECTION" };
+    const pdpRoot = {
+      tagName: "DIV",
+      className: "pdp",
+      textContent:
+        "Chickenpox Collect 3 points for every £1 you spend with Boots Advantage Card‡",
+      querySelector: (sel: string) => {
+        if (sel === "header") return { tagName: "HEADER" };
+        if (sel === "main") return { tagName: "MAIN" };
+        if (sel.includes("data-studio-probe-below-fold")) return belowFold;
+        return null;
+      },
+    };
+    const retired = { tagName: "DIV" };
+    const advantage = {
+      tagName: "DIV",
+      textContent:
+        "Collect 3 points for every £1 you spend with Boots Advantage Card‡",
+    };
+    let boosterChecked = true;
+    const checkbox = {
+      tagName: "BUTTON",
+      getAttribute: (name: string) =>
+        name === "data-checkbox-checked" ? String(boosterChecked) : null,
+    };
+    const book = {
+      tagName: "BUTTON",
+      get textContent() {
+        return boosterChecked ? "Book now - £150" : "Book now - £75";
+      },
+    };
+    const checkAvail = { tagName: "BUTTON" };
+    const heartBtn = { tagName: "BUTTON" };
+    const heartIcon = {
+      tagName: "SPAN",
+      classList: { contains: () => false },
+    };
+    const crumb = { tagName: "BUTTON" };
+    const plpHost = { tagName: "DIV" };
+    const plpBook = { tagName: "BUTTON" };
+    const loginClose = { tagName: "BUTTON" };
+    const availClose = { tagName: "BUTTON" };
+
+    let modalOpen = false;
+    let modalKind: "login" | "choose-pharmacy" | null = null;
+    const locationState = {
+      href: "http://localhost:5173/?project=boots-pharmacy&screen=pdp",
+      search: "?project=boots-pharmacy&screen=pdp",
+    };
+
+    const syncUrl = () => {
+      const modalQ = modalKind ? `&modal=${modalKind}` : "";
+      const screen = locationState.search.includes("screen=plp") ? "plp" : "pdp";
+      // screen driven below via search assignment
+      void screen;
+      const screenId = /screen=([^&]+)/.exec(locationState.search)?.[1] ?? "pdp";
+      locationState.search = `?project=boots-pharmacy&screen=${screenId}${modalQ}`;
+      locationState.href = `http://localhost:5173/${locationState.search}`;
+    };
+
+    simulateDemoPointerClick.mockImplementation(async (el: { tagName?: string }) => {
+      if (el === checkbox) {
+        boosterChecked = !boosterChecked;
+        return true;
+      }
+      if (el === book && !modalOpen) {
+        modalOpen = true;
+        modalKind = "login";
+        isBlockingModalOpen.mockReturnValue(true);
+        syncUrl();
+        return true;
+      }
+      if (el === checkAvail && modalOpen) {
+        return false;
+      }
+      if (el === checkAvail && !modalOpen) {
+        modalOpen = true;
+        modalKind = "choose-pharmacy";
+        isBlockingModalOpen.mockReturnValue(true);
+        syncUrl();
+        return true;
+      }
+      if (el === book && modalOpen) {
+        return false;
+      }
+      if (el === loginClose || el === availClose) {
+        modalOpen = false;
+        modalKind = null;
+        isBlockingModalOpen.mockReturnValue(false);
+        syncUrl();
+        return true;
+      }
+      if (el === crumb) {
+        locationState.search = "?project=boots-pharmacy&screen=plp";
+        locationState.href =
+          "http://localhost:5173/?project=boots-pharmacy&screen=plp";
+        return true;
+      }
+      if (el === plpBook) {
+        locationState.search = "?project=boots-pharmacy&screen=pdp";
+        locationState.href =
+          "http://localhost:5173/?project=boots-pharmacy&screen=pdp";
+        return true;
+      }
+      return true;
+    });
+    isElementBlockedByModal.mockImplementation(
+      (el) => modalOpen && (el === checkAvail || el === book)
+    );
+
+    const hoverRule = {
+      selectorText:
+        ".pdp__icon-hit:hover .pdp__heart-icon:not(.is-active)",
+      cssText:
+        ".pdp__icon-hit:hover .pdp__heart-icon:not(.is-active){color:var(--uxds-text-link-link)}",
+    };
+    const washRule = {
+      selectorText: ".pdp__icon-hit:hover::before",
+      cssText: ".pdp__icon-hit:hover::before{background:#eef8f7}",
+    };
+    const checkboxHoverRule = {
+      selectorText: ".pdp__checkbox-row:hover .pdp__checkbox-box",
+      cssText:
+        ".pdp__checkbox-row:hover .pdp__checkbox-box{background:var(--uxds-surface-accent-soft)}",
+    };
+
+    vi.stubGlobal("window", { location: locationState });
+    vi.stubGlobal("document", {
+      styleSheets: [
+        {
+          cssRules: [hoverRule, washRule, checkboxHoverRule],
+        },
+      ],
+      querySelector: (sel: string) => {
+        if (sel === '.pdp[data-studio-react-screen="pdp"]') return pdpRoot;
+        if (sel === '[data-studio-react-screen="pdp"]') return pdpRoot;
+        if (sel.includes("data-studio-make-retired")) return retired;
+        if (sel.includes(".pdp__advantage")) return advantage;
+        if (sel.includes('data-name="component.input.checkbox"')) return checkbox;
+        if (sel.includes('data-studio-action="pdp-book-now"')) return book;
+        if (sel.includes('data-studio-action="pdp-check-availability"'))
+          return checkAvail;
+        if (sel.includes('aria-label="Add to wishlist"')) return heartBtn;
+        if (sel.includes(".pdp__heart-icon:not(.is-active)")) return heartIcon;
+        if (sel.includes('data-studio-crumb="vaccination"')) return crumb;
+        if (sel === '[data-studio-react-screen="plp"]') return plpHost;
+        if (sel.includes('data-studio-action="plp-book-now"')) return plpBook;
+        if (sel.includes('data-studio-modal="login"')) return loginClose;
+        if (sel.includes('data-studio-modal="choose-pharmacy"')) return availClose;
+        if (sel.includes("data-studio-probe-below-fold")) return belowFold;
+        return null;
+      },
+      querySelectorAll: () => [],
+    });
+    vi.stubGlobal("getComputedStyle", () => ({ color: "rgb(175, 204, 202)" }));
+
+    const result = await runMcpPageProbe({
+      screenId: "pdp",
+      reload: false,
+    });
+
+    expect(result.screenId).toBe("pdp");
+    expect(result.checks.find((c) => c.id === "overlay-arm")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-host")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-landmarks")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-advantage")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-no-loader")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-booster-price-on")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-booster-uncheck")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-booster-recheck")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-heart-hover")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-book-logged-out")?.pass).toBe(
+      true
+    );
+    expect(
+      result.checks.find((c) => c.id === "pdp-overlay-eyes-login")?.pass
+    ).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-login-close")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-check-avail")?.pass).toBe(
+      true
+    );
+    expect(
+      result.checks.find((c) => c.id === "pdp-overlay-eyes-avail")?.pass
+    ).toBe(true);
+    expect(result.checks.find((c) => c.id === "pdp-avail-close")?.pass).toBe(
+      true
+    );
+    expect(result.checks.find((c) => c.id === "pdp-crumb-plp")?.pass).toBe(true);
+    expect(result.checks.find((c) => c.id === "plp-to-pdp")?.pass).toBe(true);
+    const below = result.checks.find((c) => c.id === "pdp-below-fold-scroll");
+    expect(below?.pass).toBe(true);
+    expect(below?.detail ?? "").not.toMatch(/soft-skip/);
+    expect(result.checks.find((c) => c.id === "url-screen")?.pass).toBe(true);
+    expect(result.pass).toBe(true);
   });
 });

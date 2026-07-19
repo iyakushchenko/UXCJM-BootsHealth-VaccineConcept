@@ -31,6 +31,7 @@ Journey proves hub: retreat/robot-qa sessions pass `resetToHub: true`.
 ```js
 await window.__studioRunMcpPageProbe?.() // current ?screen=; reload defaults false
 await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
+await window.__studioRunMcpPageProbe?.({ screenId: "pdp", reload: false })
 // optional: { resetToHub: true } — only for journey clean slate
 // optional one clean-tab reload after sitrep: { screenId: "plp", reload: true }
 ```
@@ -47,6 +48,8 @@ Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each r
 5. Probe `finally` → `stop({ result, settleMs })` then `scheduleAgentTestingOverlayEnsureClear(settle+1s)` — overlay DOM **absent** after settle; `forceClear()` always wired.
 
 **PLP recipe includes** `overlay-arm`, `plp-search-icons` (icon end + single clear), `plp-filter-view-all`, `plp-filter-option-counters`, `plp-below-fold-scroll`, overlay-eyes. Source contracts: [PARITY_RATCHETS.md](../product/PARITY_RATCHETS.md).
+
+**PDP recipe includes** `overlay-arm`, mount/leak + landmarks, Advantage, no invented loader, booster £150↔£75 (+ mint hover CSS), empty-heart hover CSS (not fuchsia), Book→`login` + overlay-eyes, Check avail→`choose-pharmacy` + overlay-eyes, Vaccination crumb→PLP, PLP Book→PDP, `url-screen=pdp`. **`pdp-below-fold-scroll` soft-skips** until Finn mounts register **L14–L20** and stamps `data-studio-probe-below-fold` (Quinn criteria). Open PDP first (`?screen=pdp`), logged-out for Book→login.
 
 ```js
 window.__studioAgentTestingOverlay?.start("optional title") // prefer __studio*; __proto* alias OK
