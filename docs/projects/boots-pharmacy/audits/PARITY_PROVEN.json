@@ -43,11 +43,11 @@
     {
       "screenId": "plp",
       "status": "proven",
-      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19_RAGE5.md",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19_RAGE6.md",
       "mcpMatrixAt": {
-        "sha": "bc14a94",
+        "sha": "4a74c1c",
         "date": "2026-07-19",
-        "note": "hide results count during Reset/filter refresh; count-hide-load ratchet; MCP plp-reset-filters + plp-reset-count-ready (v0.0.13)"
+        "note": "region→country cascade + clear country checks (I3b); search icon end/borderless; counters/View all/10; reset count-hide; overlay eyes; stay on plp; version chip 0.0.14 — MCP __studioRunMcpPageProbe FINAL PASS"
       },
       "requireMcp": true
     }
