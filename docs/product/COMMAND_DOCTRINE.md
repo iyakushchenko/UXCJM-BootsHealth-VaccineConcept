@@ -28,12 +28,15 @@ The human PO does **not** need to re-argue role, sequencing, CSS architecture, m
 
 For any more-or-less serious change (chrome, URL, REC, page behavior, CI gates):
 
-1. **Brief** — teammates get a lean artifact ([FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) / project `features/`), not chat-only.  
-2. **Cross-check** — Quinn↔Finn and Uma↔Bea before “done”.  
-3. **Pax** — accept bump / notes / push when user-visible (human PO overrides).  
-4. **Board** — Arch updates [NEXT_STEPS.md](./NEXT_STEPS.md); Ben updates notes/CHANGELOG when Pax says bump.
+1. **Dispatch** — **Arch (Director)** is the parent coordinator. For serious workstreams, Arch **MUST** launch needed callsigns (**Bea / Finn / Uma / Quinn / Ben**) as **parallel sibling subagents** with **role-scoped prompts** — not one mega-agent wearing every hat. Full map: [TEAM.md](./TEAM.md) § Parallel dispatch.  
+2. **Brief** — teammates get a lean artifact ([FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) / project `features/`), not chat-only (Bea subagent when separable).  
+3. **Build + cross-check** — Finn / Uma / Quinn as siblings when slices are independent; Quinn↔Finn and Uma↔Bea before “done”.  
+4. **Pax** — accept bump / notes / push when user-visible (human PO overrides).  
+5. **Board + gates** — Arch synthesizes, assigns blockers, updates [NEXT_STEPS.md](./NEXT_STEPS.md); Quinn MCP prove still required before audit **PROVEN**; Ben updates notes/CHANGELOG when Pax says bump and runs **CI sitrep** after push (`gh run list`).
 
-Trivial one-line docs may skip; **do not** skip for user-visible or REC/URL work.
+**Do not parallelize** when the change is a tightly coupled **single-file hotfix**, a trivial docs/typo, or an atomic unblock that must land before siblings can start — see [TEAM.md](./TEAM.md) § When NOT to parallelize. That exception does **not** waive Quinn MCP / Uma audit on UI ships or **team check** after a big task.
+
+Trivial one-line docs may skip briefs; **do not** skip for user-visible or REC/URL work.
 
 ### 0.2 Standing PO commands — `team report` / `team check`
 
@@ -41,10 +44,10 @@ Trivial one-line docs may skip; **do not** skip for user-visible or REC/URL work
 
 | Command | When | What |
 |---------|------|------|
-| **`team report`** | PO says it (or clear equivalent) | Arch facilitates lean sitrep: every callsign 1–3 sentences; Pax status + decisions pending; Arch closes with NOW/NEXT so PO can answer only `+` / `ok` / `go` / `do`. No essays. |
-| **`team check`** | PO says it **or Arch auto-triggers after each big task completion** (do not wait for PO) | Whole-team workstream review; cross-check; surface blockers + instruct owning callsign; Quinn CI/Pages if relevant; Ben `gh` sitrep; Arch assigns concrete tasks until green. Short per-role results + Arch assignments. **Each callsign must report:** Uma (UI/UX) fidelity checklist PASS/FAIL **plus** explicit `loading states` and `checkbox/radio hover` PASS/FAIL on migrated screens; Bea (BA) register complete? / Missing P0? (**loading/empty/updating = P0 rows** when Make has them); Quinn (QA) interaction matrix (hover/click) PASS/FAIL **including** Make-like filter loading + checkbox hover prove; Finn (FE) gaps fixed or blocked. Arch steers until Uma checklist + Bea register + Quinn matrix are green. |
+| **`team report`** | PO says it (or clear equivalent) | Arch facilitates lean sitrep: every callsign 1–3 sentences; Pax status + decisions pending; Arch closes with NOW/NEXT so PO can answer only `+` / `ok` / `go` / `do`. No essays. Prefer fresh sibling sitreps when the stream used parallel dispatch. |
+| **`team check`** | PO says it **or Arch auto-triggers after each big task completion** (do not wait for PO) | Whole-team workstream review after Arch synthesizes sibling handoffs; cross-check; surface blockers + instruct owning callsign; Quinn CI/Pages + **MCP prove** if relevant; Ben `gh` sitrep; Arch assigns concrete tasks until green. Short per-role results + Arch assignments. **Each callsign must report:** Uma (UI/UX) fidelity checklist PASS/FAIL **plus** explicit `loading states` and `checkbox/radio hover` PASS/FAIL on migrated screens; Bea (BA) register complete? / Missing P0? (**loading/empty/updating = P0 rows** when Make has them); Quinn (QA) interaction matrix (hover/click) PASS/FAIL **including** Make-like filter loading + checkbox hover prove; Finn (FE) gaps fixed or blocked; Ben (BE) CI sitrep when push/CI touched. Arch steers until Uma checklist + Bea register + Quinn matrix are green. |
 
-**Hard rules:** After a big ship, Arch runs **team check** before declaring done — tests green alone do not skip it. Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**. Quinn **cannot PASS** if the Make-parity register still has unchecked P0s **or** without an MCP localhost real-user evidence log for the screen matrix. Wrong/missed Make loading scenario (e.g. blank + “Updating results…” alone), **duplicate** loader copy, **invented** hover chrome not in Make, or missing checkbox/radio hover = automatic fail. Arch **rejects** audit **PROVEN** without MCP evidence.
+**Hard rules:** After a big ship, Arch runs **team check** before declaring done — tests green alone do not skip it. Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**. Quinn **cannot PASS** if the Make-parity register still has unchecked P0s **or** without an MCP localhost real-user evidence log for the screen matrix. Wrong/missed Make loading scenario (e.g. blank + “Updating results…” alone), **duplicate** loader copy, **invented** hover chrome not in Make, or missing checkbox/radio hover = automatic fail. Arch **rejects** audit **PROVEN** without MCP evidence. Collapsing a separable workstream into one mega-agent is a process fail — relaunch as sibling subagents.
 
 ### Proactive forecasting (mandatory on every task)
 

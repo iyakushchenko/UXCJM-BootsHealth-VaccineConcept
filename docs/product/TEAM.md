@@ -20,7 +20,40 @@
 | **Ben (BE)** | Version / changelog / CI / gates / push mechanics | [VERSIONING.md](./VERSIONING.md), check scripts, `gh run list` |
 | **Pax (PO sim)** | Acts like this project’s human PO: intolerant of near-dups / missed chrome; wants hard guardrails, Pages truth, no Actions burn, decisive next steps. **Decides whether/when to bump version + changelog + push** (human PO overrides) | [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md) decisions log |
 
-Never bare callsign alone in team output — always `Name (Role)` as above. One Cursor session may wear several hats — still **name the hat** when writing artifacts (“Finn (FE): mounted…”, “Quinn (QA): proved…”).
+Never bare callsign alone in team output — always `Name (Role)` as above.
+
+**Locked (PO mandate, 2026-07-19) — dispatch as separate sub-agents:** For serious workstreams, **Arch (Director)** is the parent coordinator and **MUST** launch callsigns as **parallel sibling subagents** (Bea / Finn / Uma / Quinn / Ben — whoever the stream needs), each with a **role-scoped prompt**. Do **not** collapse separable work into one mega-agent wearing every hat. Arch synthesizes results, assigns blockers to owning callsigns, and runs **team check**. Quinn MCP prove before **PROVEN** and Ben CI sitrep remain mandatory (below). Exception: tightly coupled single-file hotfixes — see § Parallel dispatch.
+
+---
+
+## Parallel dispatch (Arch must spawn siblings)
+
+**Trigger:** Any more-or-less serious workstream (chrome, URL, REC, page behavior, Make→React, CI gates, multi-file ships).
+
+| Who | Does |
+|-----|------|
+| **Arch (Director)** | Parent / Tech Dir. Sequences the stream; **launches** Bea/Finn/Uma/Quinn/Ben as **separate parallel sibling subagents** with role-scoped prompts; synthesizes; assigns blockers; runs **team check**; distrusts handoffs until proven. |
+| **Bea / Finn / Uma / Quinn / Ben** | Each runs in their own subagent when their slice is in scope — not as one fused mega-prompt. |
+| **Pax (PO sim)** | Usually stays in Arch’s synthesis (release call); spawn only when a dedicated accept/bump judgment is needed. |
+
+**Hard rules:**
+
+1. **Parent coordinator = Arch** — Arch oversees; subagents build/prove in their lanes.  
+2. **Parallel siblings when separable** — if Bea brief, Finn code, Uma audit, Quinn MCP, Ben gates can run as distinct slices, **spawn them as separate subagents** (same turn when independent).  
+3. **Role-scoped prompts** — each subagent prompt states callsign + owns + out-of-scope + artifact path; no “do everyone’s job.”  
+4. **Arch synthesizes** — merge sitreps; reopen BAD handoffs; assign concrete blockers to the owning callsign.  
+5. **Quinn MCP prove before PROVEN** — Arch **rejects** FE audit **PROVEN** without MCP localhost real-user evidence ([§ Standing PO commands](#standing-po-commands-hard-process)).  
+6. **Ben CI sitrep** — after push / CI-impacting change, Ben (or Arch wearing Ben with explicit sitrep) runs `gh run list` per [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5.
+
+### When NOT to parallelize
+
+Stay in one Arch session (no sibling spawn) when:
+
+- **Tightly coupled single-file hotfix** — one file, one obvious fix, no brief/audit split needed.  
+- **Trivial docs / typo** — process note or one-line copy with no UI/behavior.  
+- **Atomic unblock** — a 2-minute blocker that must land before any sibling can start (then spawn siblings).
+
+Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, or to skip **team check** after a big task.
 
 ---
 
@@ -82,13 +115,13 @@ Never bare callsign alone in team output — always `Name (Role)` as above. One 
 
 ## How they talk (lean, not chat-only)
 
-1. **Brief first** — Bea (or Arch) drops a 1-pager before serious build.  
-2. **Implement** — Finn builds; Uma watches chrome/L&F.  
-3. **Cross-check before “done”** — Quinn↔Finn (behavior/gates), Uma↔Bea (acceptance vs pixels).  
+1. **Brief first** — Arch spawns **Bea (BA)** (or writes the brief as Bea) → lean 1-pager before serious build.  
+2. **Implement** — Arch spawns **Finn (FE)** (+ **Uma (UI/UX)** when chrome/L&F is in play) as sibling subagents when separable.  
+3. **Cross-check before “done”** — Arch spawns **Quinn (QA)** ↔ Finn prove and **Uma** ↔ Bea fidelity as siblings; Quinn MCP matrix required before PROVEN.  
 4. **Pax accept** — for user-visible ships: bump? changelog? push? Pax decides; human PO can override.  
-5. **Close the board** — Arch updates NEXT_STEPS; Ben executes notes/release/push when Pax says yes.
+5. **Close the board** — Arch updates NEXT_STEPS; **Ben (BE)** executes notes/release/push + CI sitrep when Pax says yes.
 
-Serious work = this loop. Trivial typos / one-line docs may skip briefs; **do not** skip for chrome, URL, REC, or page behavior.
+Serious work = this loop **with parallel sibling subagents** (§ Parallel dispatch). Trivial typos / one-line docs may skip briefs; **do not** skip for chrome, URL, REC, or page behavior.
 
 ---
 
@@ -110,16 +143,18 @@ Serious work = this loop. Trivial typos / one-line docs may skip briefs; **do no
 ## Process guardrail (serious change)
 
 ```
-Bea brief → Finn (+ Uma) build → Quinn prove + Uma audit (if UI)
-        → Pax: bump / notes / push? → Ben executes → Arch board update
+Arch spawns siblings → Bea brief → Finn (+ Uma) build → Quinn prove + Uma audit (if UI)
+        → Pax: bump / notes / push? → Ben executes + CI sitrep → Arch synthesizes + board + team check
 ```
 
 | Step | Fail if… |
 |------|----------|
+| Dispatch | Separable serious stream collapsed into one mega-agent (no sibling subagents) |
 | Briefs | Chat-only “we’ll fix it” with no acceptance |
-| Cross-check | Finn “done” with no Quinn evidence; Uma skipped on UI |
+| Cross-check | Finn “done” with no Quinn MCP evidence; Uma skipped on UI; Arch stamps PROVEN without MCP |
 | Pax | Version/push on user-visible ship without Pax (or human PO) call |
 | Version bump | Ben bumps `package.json` but Quinn did not prove UI chip matches (chip lie = felony) |
+| CI | Push without Ben `gh` sitrep when CI was touched |
 | Board | NEXT_STEPS / notes stale after Pax said bump |
 
 ---
