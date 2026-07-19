@@ -16,7 +16,7 @@
 | Cheap static checks in `npm test` (e.g. `check:links`) | Extra workflows that only re-run the same gate |
 | One CI workflow + Pages deploy | Parallel sitrep / audit / “notify” workflows that burn minutes |
 | `timeout-minutes` on smoke | Unbounded browser jobs |
-| Node **22** everywhere (`.nvmrc`, Actions) | Node 20 (deprecated) |
+| Node **22** everywhere (`.nvmrc`, Actions `node-version`) + `actions/checkout@v5` / `setup-node@v5` (action runtime off Node 20) | Node 20 app runtime or `@v4` actions that still warn on Node 20 |
 
 **Why smoke left default CI:** Auto Playwright on every push cost minutes, slowed feedback, and still missed Studio chrome bugs (e.g. REC usable while CJM on). Script kept; trigger is manual.
 
