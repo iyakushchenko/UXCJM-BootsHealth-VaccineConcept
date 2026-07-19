@@ -102,7 +102,7 @@ Deploy green ≠ visual proof. Verify `data-studio-react-screen`, deep link, ove
 
 ### 10. Agent overlay — POLICY (landed + clean slate)
 
-BR **AGENT TESTING** + invisible click guard; `touch()`; MCP `stop({ reload: true })`; never lightbox / sticky `?proof=`. Post-test: `resetStudioAfterAgentTest()` → `?project=…&screen=hub` (no `modal`) before reload.
+BR **AGENT TESTING** + invisible click guard; `touch()`; MCP `stop({ reload: true })`; never lightbox / sticky `?proof=`. Post-test default: stay on current screen; `resetToHub: true` only for CJM/journey. Screen ships: `__studioRunMcpPageProbe` + `check:parity-proven`.
 
 ### 11. Versioning — HABIT THEN AUTOMATION
 

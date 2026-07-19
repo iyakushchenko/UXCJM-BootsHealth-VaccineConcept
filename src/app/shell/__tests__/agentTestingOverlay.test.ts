@@ -98,10 +98,10 @@ describe("agentTestingOverlay", () => {
       dispatchEvent,
       location: {
         reload,
-        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy",
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
         pathname: "/",
         search:
-          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy",
+          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
         hash: "",
       },
       history: { state: null, replaceState, pushState: vi.fn() },
@@ -112,10 +112,23 @@ describe("agentTestingOverlay", () => {
     expect(isAgentTestingOverlayActive()).toBe(false);
     expect(isAgentTestingOverlaySettling()).toBe(true);
     expect(reload).not.toHaveBeenCalled();
-    // Sitrep starts with clean-slate URL (hub, no modal).
+    // Sitrep stays on current screen; strips ephemeral proof.
     expect(replaceState).toHaveBeenCalled();
     expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
-      "/?project=boots-pharmacy&screen=hub"
+      "/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy"
+    );
+    expect(String(replaceState.mock.calls.at(-1)?.[2])).not.toContain("proof");
+    expect(dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "studio-post-agent-reset",
+        detail: {
+          state: {
+            projectId: "boots-pharmacy",
+            screenId: "book-step-1",
+            modalId: "choose-pharmacy",
+          },
+        },
+      })
     );
 
     vi.advanceTimersByTime(DEFAULT_SETTLE_MS - 1);
@@ -128,14 +141,13 @@ describe("agentTestingOverlay", () => {
     expect(reload).not.toHaveBeenCalled();
     vi.advanceTimersByTime(120);
     expect(reload).toHaveBeenCalledTimes(1);
-    // Immediate pre-reload reset must not leave modal in the bar.
+    // Pre-reload reset keeps screen (default stay-on-page).
     expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
-      "/?project=boots-pharmacy&screen=hub"
+      "/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy"
     );
-    expect(String(replaceState.mock.calls.at(-1)?.[2])).not.toContain("modal");
   });
 
-  it("manual stop defaults to settle without reload", () => {
+  it("stop({ resetToHub: true }) lands hub URL", () => {
     vi.useFakeTimers();
     const reload = vi.fn();
     const replaceState = vi.fn();
@@ -149,10 +161,45 @@ describe("agentTestingOverlay", () => {
       dispatchEvent: vi.fn(),
       location: {
         reload,
-        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy",
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=plp",
+        pathname: "/",
+        search: "?project=boots-pharmacy&screen=plp",
+        hash: "",
+      },
+      history: { state: null, replaceState, pushState: vi.fn() },
+    });
+
+    startAgentTestingOverlay("hub-reset");
+    stopAgentTestingOverlay({ reload: true, resetToHub: true });
+    expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
+      "/?project=boots-pharmacy&screen=hub"
+    );
+    vi.advanceTimersByTime(DEFAULT_SETTLE_MS + 120);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
+      "/?project=boots-pharmacy&screen=hub"
+    );
+  });
+
+  it("manual stop defaults to settle without reload and stays on screen", () => {
+    vi.useFakeTimers();
+    const reload = vi.fn();
+    const replaceState = vi.fn();
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("window", {
+      setTimeout: (fn: TimerHandler, ms?: number) =>
+        globalThis.setTimeout(fn as () => void, ms),
+      clearTimeout: (id: ReturnType<typeof setTimeout>) =>
+        globalThis.clearTimeout(id),
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent,
+      location: {
+        reload,
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=x",
         pathname: "/",
         search:
-          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy",
+          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=x",
         hash: "",
       },
       history: { state: null, replaceState, pushState: vi.fn() },
@@ -163,7 +210,18 @@ describe("agentTestingOverlay", () => {
     expect(isAgentTestingOverlayActive()).toBe(false);
     expect(isAgentTestingOverlaySettling()).toBe(true);
     expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
-      "/?project=boots-pharmacy&screen=hub"
+      "/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy"
+    );
+    expect(dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: {
+          state: {
+            projectId: "boots-pharmacy",
+            screenId: "book-step-1",
+            modalId: "choose-pharmacy",
+          },
+        },
+      })
     );
     vi.advanceTimersByTime(DEFAULT_SETTLE_MS);
     expect(isAgentTestingOverlaySettling()).toBe(false);

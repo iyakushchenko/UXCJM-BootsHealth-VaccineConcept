@@ -36,11 +36,20 @@ export const HUB_SCREEN_ID = "hub";
 export const DEFAULT_STUDIO_PROJECT_ID = "boots-pharmacy";
 
 /**
- * Deterministic post-agent / MCP-test home.
- * After `__studioRun*` / `__protoRun*` sitrep (+ optional reload):
- * `?project=<current|boots-pharmacy>&screen=hub` — no `modal`, no ephemeral.
+ * Hub screen id used when `resetToHub: true` (CJM / journey tests only).
+ * Default post-agent path stays on the current screen — see
+ * {@link resetStudioAfterAgentTest}.
  */
 export const STUDIO_POST_AGENT_HOME_SCREEN_ID = HUB_SCREEN_ID;
+
+export type ResetStudioAfterAgentTestOptions = {
+  /**
+   * When true: land hub (legacy CJM/journey clean slate).
+   * Default false: keep current project + screen (+ persona/mode/modal);
+   * strip only ephemeral agent params; dismiss live lightboxes via event.
+   */
+  resetToHub?: boolean;
+};
 
 /** Window event: App closes lightboxes + applies post-agent home nav. */
 export const STUDIO_POST_AGENT_RESET_EVENT = "studio-post-agent-reset";
@@ -156,7 +165,7 @@ export function stripEphemeralStudioQuery(
 }
 
 /**
- * Build the deterministic post-agent landing URL state.
+ * Build hub landing URL state (CJM / journey / explicit resetToHub).
  * Preserves project when present; always hub; never modal / persona / mode.
  */
 export function buildStudioPostAgentHomeState(
@@ -166,6 +175,23 @@ export function buildStudioPostAgentHomeState(
   return {
     projectId: current.projectId ?? DEFAULT_STUDIO_PROJECT_ID,
     screenId: STUDIO_POST_AGENT_HOME_SCREEN_ID,
+  };
+}
+
+/**
+ * Default post-agent stay state: current project + screen (+ persona/mode/modal).
+ * Ephemeral keys are stripped separately; sticky agent dirt is closed via event.
+ */
+export function buildStudioPostAgentStayState(
+  search: string = typeof window !== "undefined" ? window.location.search : ""
+): StudioUrlState {
+  const current = parseStudioUrl(search);
+  return {
+    projectId: current.projectId ?? DEFAULT_STUDIO_PROJECT_ID,
+    screenId: current.screenId ?? STUDIO_POST_AGENT_HOME_SCREEN_ID,
+    personaId: current.personaId,
+    modeId: current.modeId,
+    modalId: current.modalId,
   };
 }
 
@@ -182,14 +208,20 @@ export function isStudioPostAgentResetSyncLocked(
 }
 
 /**
- * Clean slate after agent / MCP tests: strip ephemeral + modal, land on hub.
+ * After agent / MCP tests: strip ephemeral params, optionally land hub.
+ * Default: stay on current project + screen (+ persona/mode/modal).
+ * Pass `{ resetToHub: true }` for CJM/journey clean slate.
  * Writes the address bar, then dispatches {@link STUDIO_POST_AGENT_RESET_EVENT}
- * so App can dismiss Choose Pharmacy / popups and apply hub nav (no-reload path).
+ * so App can dismiss sticky lightboxes / popups and apply nav (no-reload path).
  * Call again immediately before `location.reload()` so a settle-window race
- * cannot leave `&modal=` in the bar.
+ * cannot re-stamp ephemeral keys.
  */
-export function resetStudioAfterAgentTest(): StudioUrlState {
-  const state = buildStudioPostAgentHomeState();
+export function resetStudioAfterAgentTest(
+  options?: ResetStudioAfterAgentTestOptions
+): StudioUrlState {
+  const state = options?.resetToHub
+    ? buildStudioPostAgentHomeState()
+    : buildStudioPostAgentStayState();
   postAgentResetSyncLockUntil = Date.now() + POST_AGENT_RESET_SYNC_LOCK_MS;
   stripEphemeralStudioQuery();
   writeStudioUrl(state);

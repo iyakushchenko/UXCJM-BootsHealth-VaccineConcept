@@ -14,15 +14,25 @@ While an agent drives localhost, Studio shows a **compact bottom-right status pa
 
 **Sitrep settle (DONE):** on `stop()` (nest → 0), the panel does **not** vanish instantly. It enters a short **AGENT DONE — SITREP** state (~5s, configurable `settleMs` clamped 4–6s): final status + last log lines stay readable; click guard is **released** so the PO can use the page while reading. After the settle delay the panel clears; if `reload: true`, reload runs **after** settle (not during). Manual **Dismiss** / `stop({ force: true })` still clears **instantly**. A tiny recent-session stack (max 5, `sessionStorage`) may show under the log during settle — keep it simple, not a notification center product.
 
-**Post-test clean slate (mandatory):** on `stop()` (nest → 0) and again immediately before any `reload`, Studio runs `resetStudioAfterAgentTest()`:
+**Post-test reset (mandatory):** on `stop()` (nest → 0) and again immediately before any `reload`, Studio runs `resetStudioAfterAgentTest()`:
 
-| Step | Behavior |
+| Mode | Behavior |
 |------|----------|
-| URL | `?project=<current\|boots-pharmacy>&screen=hub` — **no** `&modal=`, no ephemeral (`proof`, …) |
-| Live UI | Dispatches `studio-post-agent-reset` → App closes Choose Pharmacy / popups and applies hub |
-| Reload | Re-asserts clean URL **then** `location.reload()` so boot cannot reopen a sticky lightbox |
+| **Default (page / sanity / probe)** | Stay on current `project` + `screen` (+ persona/mode/modal). Strip only ephemeral (`proof`, …). Close sticky popups via `studio-post-agent-reset`. **Do not** bounce to hub/onboarding. |
+| **`resetToHub: true`** (CJM / journey smokes) | `?project=<current\|boots-pharmacy>&screen=hub` — no modal |
 
-Default post-test home: **`?project=boots-pharmacy&screen=hub`** (project preserved when already in the bar). Quinn proves: open Choose Pharmacy → `__protoRunMcpSanityCheck` / overlay `stop({ reload: true })` → after sitrep/reload, no lightbox, clean hub URL.
+Quinn proves stay-on-page: open PLP → `__studioRunMcpPageProbe()` → stop/reload → still `screen=plp`.  
+Journey proves hub: retreat/robot-qa sessions pass `resetToHub: true`.
+
+### Visible page probe (Quinn + Ben — screen ships)
+
+```js
+await window.__studioRunMcpPageProbe?.() // current ?screen=
+await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
+// optional: { resetToHub: true } — only for journey clean slate
+```
+
+Drives the shared CJM/AIR **robo-cursor** (`simulateDemoPointerClick`) to each recipe target and logs **PASS** / **FAIL** on the AGENT TESTING panel. Prefer this over silent `evaluate_script` clicks for every React screen ship.
 
 ```js
 window.__studioAgentTestingOverlay?.start("optional title") // prefer __studio*; __proto* alias OK
@@ -40,15 +50,16 @@ window.__studioAgentTestingOverlay?.isActive() // false during settle
 
 | Event | Behavior |
 |-------|----------|
-| `__protoRunMcpSanityCheck` / `__protoRun*` session `finally` | Always `stop({ reload: true })` — sitrep ~5s, clean-slate hub URL, then reload |
+| `__studioRunMcpPageProbe` / sanity `finally` | `stop({ reload: true })` — sitrep ~5s, **stay on screen**, then reload |
+| CJM/journey `__protoRun*` session `finally` | `stop({ reload: true, resetToHub: true })` — sitrep ~5s, hub URL, then reload |
 | Mutating `__proto*` / `__studio*` helpers | Auto-`touch()` + log helper name (read-only getters + `EnsureCleanStudio` / `AbortAll` skipped) |
 | DevTools MCP clicks only | Agent **must** call `touch()` at session start (or rely on idle auto-stop) |
-| `stop()` nest → 0 | Enter DONE/SITREP settle (default **5s**); release click guard; **clean slate** (hub, dismiss modal); keep log visible |
-| Settle timer fires | Hide panel; re-assert clean URL; if `reload: true`, deferred `location.reload()` (~120ms) after URL strip |
+| `stop()` nest → 0 | Enter DONE/SITREP settle (default **5s**); release click guard; stay-on-page reset (or hub if `resetToHub`); keep log visible |
+| Settle timer fires | Hide panel; re-assert URL; if `reload: true`, deferred `location.reload()` (~120ms) after URL strip |
 | Idle timeout | Auto `stop()` → sitrep after **~45s** without log/touch (abandoned touch-only sessions) |
 | Safety timeout | Auto `stop({ force: true })` after **3 min** (skips settle) |
 | `beforeunload` | Clears active/settle state + sessionStorage persist |
-| Page load / overlay install / stop | Strip ephemeral + (on stop) land post-agent hub — never leave `?proof=*` or sticky `&modal=` |
+| Page load / overlay install / stop | Strip ephemeral; stay on current screen unless `resetToHub` — never leave `?proof=*` |
 | Page load | **Never** restores stale "testing" unless `sessionStorage.protoAgentTestingOverlayContinue=1` (default: never) |
 | Dismiss / `forceClear()` / `stop({ force: true })` | Immediate clear (no settle) + clean slate; no reload unless `reload: true` |
 | Titles | Always clean `AGENT TESTING` / `AGENT DONE — SITREP` — never raw `__studio*` names |

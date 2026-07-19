@@ -175,6 +175,8 @@ describe("studioMcpHelpers", () => {
     expect(transports).toEqual(["play"]);
     expect(typeof win.__protoAbortAll).toBe("function");
     expect(typeof win.__protoRunMcpSanityCheck).toBe("function");
+    expect(typeof win.__protoRunMcpPageProbe).toBe("function");
+    expect(typeof win.__studioRunMcpPageProbe).toBe("function");
     expect(typeof win.__protoRunHomePlaySmoke).toBe("function");
     expect(typeof win.__protoRunRetreatSmoke).toBe("function");
     expect(typeof win.__protoRunAgenticStepForwardSmoke).toBe("function");

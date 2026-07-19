@@ -4,7 +4,7 @@
 **Status:** Locked (PO mandate, 2026-07-19) — mandatory before any screen **PROVEN**  
 **Refs:** [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) · [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) · [FE_STANDARDS.md](./FE_STANDARDS.md) · [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)
 
-**Hard rule:** A screen is **not PROVEN** until this checklist is explicitly pass/fail in the audit + **team check**. Green Vitest/build alone = BAD.
+**Hard rule:** A screen is **not PROVEN** until this checklist is explicitly pass/fail in the audit + **team check**, with MCP matrix evidence cited, and `PARITY_PROVEN.json` updated (`npm run check:parity-proven`). Green Vitest/build alone = BAD.
 
 **Bea (BA)** must list every Make band/component in the parity register **before** Finn codes — including **loading / empty / updating** states as **P0** rows when Make has them. Missing whole components (see Advantage Card bar on PLP) = ship fail.
 

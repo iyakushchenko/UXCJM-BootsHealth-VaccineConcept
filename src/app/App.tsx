@@ -286,16 +286,18 @@ export default function App() {
     },
   });
 
-  // Agent overlay stop → dismiss Choose Pharmacy / popups + land hub (URL already written).
+  // Agent overlay stop → dismiss sticky popups; apply stay/hub URL (already written).
   useEffect(() => {
     const onPostAgentReset = (event: Event) => {
       const detail = (event as CustomEvent<StudioPostAgentResetDetail>).detail;
       const state = detail?.state;
-      closeAvailabilityToolRef.current();
       wireApiRef.current?.closeAllPopups();
       applyStudioScreen({
         projectId: state?.projectId ?? studioProjectId,
         screenId: state?.screenId ?? HUB_SCREEN_ID,
+        personaId: state?.personaId,
+        modeId: state?.modeId,
+        modalId: state?.modalId,
         screens: SCREENS,
         currentProjectId: studioProjectId,
         setProjectId: setStudioProjectId,
@@ -303,8 +305,12 @@ export default function App() {
         setModeId: setOrchestraModeId,
         setCurrent,
         setHubOpen,
-        applyModal: () => {
-          closeAvailabilityToolRef.current();
+        applyModal: (modalId) => {
+          if (modalId === STUDIO_MODAL.choosePharmacy) {
+            openAvailabilityToolRef.current(AVAIL_INTENT.pickList);
+          } else {
+            closeAvailabilityToolRef.current();
+          }
         },
         syncUrl: true,
       });

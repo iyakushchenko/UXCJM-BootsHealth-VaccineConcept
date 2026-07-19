@@ -58,7 +58,7 @@ Aliases on parse: `availability`, `avail` → `choose-pharmacy`.
 4. **Refresh / deep link** — restores project + screen (+ modal when present).
 5. **Back/forward** — `popstate` re-applies query (screen + modal).
 6. **Ephemeral strip** — `proof`, `mcpDebug`, `agentTest`, `agentOverlay` removed on boot, overlay install, and overlay stop. Never re-written by studio sync.
-7. **Post-agent home** — after MCP / agent overlay `stop()` (and again immediately before reload): `resetStudioAfterAgentTest()` → `?project=<current|boots-pharmacy>&screen=hub` with **no** `modal`. Prevents sticky Choose Pharmacy after sitrep reload.
+7. **Post-agent reset** — after MCP / agent overlay `stop()` (and again immediately before reload): `resetStudioAfterAgentTest()`. **Default:** stay on current `project`+`screen`(+persona/mode/modal); strip ephemeral only. **`resetToHub: true`:** land `screen=hub` (CJM/journey). Quinn proves page probe → still `screen=plp`.
 
 Implementation: `src/app/shell/studioUrl.ts` · `useStudioUrlSync.ts` · `studioModalGuard.ts` · `agentTestingOverlay.ts`.
 

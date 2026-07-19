@@ -12,7 +12,8 @@
  * MCP helpers should call stop({ reload: true }) so the PO gets a clean tab
  * after the sitrep settle window (reload runs after settle, not instantly).
  * Manual console experiments default to reload: false.
- * Post-test clean slate: hub home, no modal / ephemeral (see resetStudioAfterAgentTest).
+ * Post-test default: stay on current project+screen (strip ephemeral only).
+ * Pass resetToHub: true for CJM/journey hub clean slate.
  *
  * Touch-only / DevTools sessions without stop(): idle auto-stop (~45s) → sitrep,
  * plus hard safety timeout (3 min force clear). Titles stay clean ("AGENT TESTING").
@@ -43,6 +44,11 @@ export type StopAgentTestingOverlayOptions = {
   force?: boolean;
   /** After settle (or force teardown), reload once. MCP helpers: true. Manual: false. */
   reload?: boolean;
+  /**
+   * When true: force hub after stop/reload (CJM/journey).
+   * Default false: stay on current project + screen.
+   */
+  resetToHub?: boolean;
   /**
    * DONE/SITREP visible duration before hide (ms).
    * Default 5000; clamped to 4000–6000. Ignored when `force: true`.
@@ -76,6 +82,8 @@ let beforeUnloadBound = false;
 let visibilityBound = false;
 let reloadPending = false;
 let settleReload = false;
+/** Latched for settle + deferred reload (default stay-on-page). */
+let settleResetToHub = false;
 
 /**
  * Never show raw `__studio*` / `__proto*` helper names in the title
@@ -357,11 +365,12 @@ function teardownDom(): void {
 function scheduleReload(delayMs = 120): void {
   if (reloadPending || typeof window === "undefined") return;
   reloadPending = true;
+  const resetToHub = settleResetToHub;
   // Defer so MCP evaluate_script can return the run result before navigation.
   window.setTimeout(() => {
-    // Last chance: strip modal before reload so boot cannot reopen Choose Pharmacy.
+    // Last chance: re-assert stay/hub URL before reload.
     try {
-      resetStudioAfterAgentTest();
+      resetStudioAfterAgentTest({ resetToHub });
     } catch {
       /* ignore */
     }
@@ -369,9 +378,9 @@ function scheduleReload(delayMs = 120): void {
   }, delayMs);
 }
 
-function safeResetStudio(): void {
+function safeResetStudio(resetToHub = settleResetToHub): void {
   try {
-    resetStudioAfterAgentTest();
+    resetStudioAfterAgentTest({ resetToHub });
   } catch {
     /* never leave overlay stuck because URL reset threw */
   }
@@ -387,6 +396,8 @@ function finishSettle(): void {
   if (settleReload) {
     settleReload = false;
     scheduleReload(120);
+  } else {
+    settleResetToHub = false;
   }
 }
 
@@ -397,12 +408,16 @@ function cancelSettle(instantReload?: boolean): void {
   clearSettleTimer();
   teardownDom();
   if (wantReload) scheduleReload(120);
-  else safeResetStudio();
+  else {
+    safeResetStudio();
+    settleResetToHub = false;
+  }
 }
 
 function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   const settleMs = clampSettleMs(options?.settleMs);
   settleReload = !!options?.reload;
+  settleResetToHub = !!options?.resetToHub;
   settling = true;
   active = false;
   clearSafetyTimer();
@@ -415,7 +430,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   }
   // Release pointer block so PO can use the page while reading sitrep.
   releaseClickGuard();
-  // Dismiss lightboxes + land hub URL during sitrep (reload re-asserts clean bar).
+  // Strip ephemeral; stay on page unless resetToHub (reload re-asserts URL).
   safeResetStudio();
   setTitle(SITREP_TITLE);
   setHint(
@@ -470,6 +485,8 @@ export function stopAgentTestingOverlay(
   try {
     if (options?.force) {
       nest = 0;
+      settleResetToHub = !!options.resetToHub;
+      settleReload = !!options.reload;
       if (active) logAgentTestingOverlay("overlay stop");
       active = false;
       clearSafetyTimer();
@@ -485,6 +502,7 @@ export function stopAgentTestingOverlay(
       unbindVisibility();
       teardownDom();
       if (options.reload) scheduleReload(120);
+      else settleResetToHub = false;
       return;
     }
     nest = Math.max(0, nest - 1);

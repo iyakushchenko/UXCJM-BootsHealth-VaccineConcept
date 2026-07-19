@@ -1,7 +1,11 @@
 /** Dev-only helpers for Chrome DevTools MCP / agent testing.
  *
  * NORMAL MCP TEST (one call, safe, no transport):
- *   await window.__protoRunMcpSanityCheck?.()
+ *   await window.__studioRunMcpSanityCheck?.()
+ *
+ * Visible page probe (robo-cursor + overlay PASS/FAIL):
+ *   await window.__studioRunMcpPageProbe?.() // current screen
+ *   await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
  *
  * STOP everything:
  *   window.__protoAbortAll?.()
@@ -15,7 +19,6 @@ import { runTraditionalControlRoomRobotQa } from "@/app/shell/controlRoomQaRunne
 import { logControlPanel } from "@/app/shell/controlPanelLog";
 import {
   disableCursorQaEyes,
-  enableCursorQaEyes,
   formatPlaybackCursorEventSummary,
   getCursorDiagnosticState,
 } from "@/app/shell/playbackCursorDiagnostic";
@@ -37,6 +40,15 @@ import {
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/agentTestingOverlay";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
+import {
+  mcpDelay as delay,
+  withMcpTestSession,
+} from "@/app/shell/mcpTestSession";
+import {
+  runMcpPageProbe,
+  type McpPageProbeOptions,
+  type McpPageProbeResult,
+} from "@/app/shell/studioMcpPageProbe";
 import { stripEphemeralStudioQuery } from "@/app/shell/studioUrl";
 
 export type StudioMcpState = {
@@ -192,6 +204,16 @@ declare global {
       checks: SmokeRetreatCheck[];
       state?: StudioMcpState;
     }>;
+    /**
+     * Visible page probe — robo-cursor to click targets; overlay PASS/FAIL per step.
+     * Stays on current screen after stop (unless resetToHub).
+     */
+    __protoRunMcpPageProbe?: (
+      options?: McpPageProbeOptions
+    ) => Promise<McpPageProbeResult>;
+    __studioRunMcpPageProbe?: (
+      options?: McpPageProbeOptions
+    ) => Promise<McpPageProbeResult>;
     __protoDiagnosticFlashes?: () => import("@/app/shell/playbackDiagnosticFlash").DiagnosticFlashRecord[];
   }
 }
@@ -286,35 +308,6 @@ function runSmokeRetreatChecks(): SmokeRetreatResult {
     pass: checks.every((check) => check.pass),
     checks,
   };
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-async function withMcpTestSession<T>(
-  label: string,
-  run: () => Promise<T>
-): Promise<T> {
-  const prior = getMcpTestSession();
-  if (prior) {
-    requestMcpTestAbort("superseded");
-    endMcpTestSession(prior.id);
-  }
-  const id = beginMcpTestSession(label);
-  enableCursorQaEyes();
-  startAgentTestingOverlay(`AGENT TESTING — ${label}`);
-  logAgentTestingOverlay(`session: ${label}`);
-  try {
-    return await run();
-  } finally {
-    // reload:true — clean tab for PO after agent verify (deferred so result returns).
-    stopAgentTestingOverlay({ reload: true });
-    disableCursorQaEyes();
-    endMcpTestSession(id);
-  }
 }
 
 function chatHandoffReached(state: StudioMcpState): boolean {
@@ -755,11 +748,21 @@ export function registerStudioMcpHelpers(options: {
     try {
       logAgentTestingOverlay("sanity: retreat baseline");
       const baseline = runSmokeRetreatChecks();
+      logAgentTestingOverlay(
+        `sanity: retreat ${baseline.pass ? "PASS" : "FAIL"}`
+      );
       logAgentTestingOverlay("sanity: REC⊗CJM xor");
       const xor = await runRecCjmXorSanityChecks();
+      for (const check of xor.checks) {
+        logAgentTestingOverlay(
+          `${check.pass ? "PASS" : "FAIL"}  ${check.id}${
+            check.detail ? ` — ${check.detail}` : ""
+          }`
+        );
+      }
       const checks = [...baseline.checks, ...xor.checks];
       const pass = checks.every((check) => check.pass);
-      logAgentTestingOverlay(`sanity: ${pass ? "PASS" : "FAIL"}`);
+      logAgentTestingOverlay(`FINAL  ${pass ? "PASS" : "FAIL"}`);
       logControlPanel("qa:run", { source: "sanity-check", pass });
       return {
         pass,
@@ -767,9 +770,13 @@ export function registerStudioMcpHelpers(options: {
         state: window.__protoStudioState?.(),
       };
     } finally {
-      stopAgentTestingOverlay({ reload: true });
+      // Stay on current screen — do not bounce to hub after chrome sanity.
+      stopAgentTestingOverlay({ reload: true, resetToHub: false });
     }
   };
+
+  window.__protoRunMcpPageProbe = (options) => runMcpPageProbe(options);
+  window.__studioRunMcpPageProbe = window.__protoRunMcpPageProbe;
 
   window.__protoSetOrchestraMode = (modeId) => {
     if (!ORCHESTRA_MODE_IDS.includes(modeId)) return false;
@@ -815,7 +822,11 @@ export function registerStudioMcpHelpers(options: {
   };
 
   window.__protoRunRetreatSmoke = (smokeOptions) =>
-    withMcpTestSession("retreat-smoke", () => runRetreatSmokeBody(smokeOptions));
+    withMcpTestSession(
+      "retreat-smoke",
+      () => runRetreatSmokeBody(smokeOptions),
+      { resetToHub: true }
+    );
 
   async function runRetreatSmokeBody(
     smokeOptions?: { timeoutMs?: number }
@@ -955,7 +966,9 @@ export function registerStudioMcpHelpers(options: {
   }
 
   window.__protoRunHomePlaySmoke = (smokeOptions) =>
-    withMcpTestSession("home-play-smoke", async () => {
+    withMcpTestSession(
+      "home-play-smoke",
+      async () => {
     const timeoutMs = smokeOptions?.timeoutMs ?? 25000;
     window.__protoEnsureCleanStudio?.();
     window.__protoSetOrchestraMode?.("agentic-cjm");
@@ -989,20 +1002,28 @@ export function registerStudioMcpHelpers(options: {
       reason: "timeout",
       state: window.__protoStudioState?.(),
     };
-    });
+      },
+      { resetToHub: true }
+    );
 
   window.__protoRunAgenticStepForwardSmoke = (smokeOptions) =>
-    withMcpTestSession("agentic-step-forward", () =>
-      runStepForwardSmokeForMode("agentic-cjm", smokeOptions)
+    withMcpTestSession(
+      "agentic-step-forward",
+      () => runStepForwardSmokeForMode("agentic-cjm", smokeOptions),
+      { resetToHub: true }
     );
 
   window.__protoRunTraditionalStepForwardSmoke = (smokeOptions) =>
-    withMcpTestSession("traditional-step-forward", () =>
-      runStepForwardSmokeForMode("traditional-cjm", smokeOptions)
+    withMcpTestSession(
+      "traditional-step-forward",
+      () => runStepForwardSmokeForMode("traditional-cjm", smokeOptions),
+      { resetToHub: true }
     );
 
   window.__protoRunTraditionalPlaySmoke = (smokeOptions) =>
-    withMcpTestSession("traditional-play-smoke", async () => {
+    withMcpTestSession(
+      "traditional-play-smoke",
+      async () => {
     const timeoutMs = smokeOptions?.timeoutMs ?? 120_000;
     window.__protoEnsureCleanStudio?.();
     window.__protoSetOrchestraMode?.("traditional-cjm");
@@ -1040,10 +1061,14 @@ export function registerStudioMcpHelpers(options: {
       reason: "timeout",
       state: window.__protoStudioState?.(),
     };
-    });
+      },
+      { resetToHub: true }
+    );
 
   window.__protoRunTraditionalRetreatSmoke = (smokeOptions) =>
-    withMcpTestSession("traditional-retreat-smoke", async () => {
+    withMcpTestSession(
+      "traditional-retreat-smoke",
+      async () => {
     const timeoutMs = smokeOptions?.timeoutMs ?? 120_000;
     const checks: RetreatSmokeCheck[] = [];
     const deadline = Date.now() + timeoutMs;
@@ -1158,10 +1183,14 @@ export function registerStudioMcpHelpers(options: {
       pass: checks.every((check) => check.pass),
       checks,
     };
-    });
+      },
+      { resetToHub: true }
+    );
 
   window.__protoRunTraditionalControlRoomRobotQa = () =>
-    withMcpTestSession("robot-qa", runTraditionalControlRoomRobotQa);
+    withMcpTestSession("robot-qa", runTraditionalControlRoomRobotQa, {
+      resetToHub: true,
+    });
 
   armOverlayOnStudioHelpers();
 
@@ -1183,6 +1212,8 @@ export function registerStudioMcpHelpers(options: {
     delete window.__protoRunTraditionalControlRoomRobotQa;
     delete window.__protoAbortAll;
     delete window.__protoRunMcpSanityCheck;
+    delete window.__protoRunMcpPageProbe;
+    delete window.__studioRunMcpPageProbe;
     delete window.__protoCursorDiagnostics;
     delete window.__protoMcpEyes;
     delete window.__protoDiagnosticFlashes;

@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "projectId": "boots-pharmacy",
+  "updatedAt": "2026-07-19",
+  "note": "Hard gate for React-migrated screens. npm run check:parity-proven (via npm test) fails unless each required screen has status=proven, a live auditPath with PROVEN + MCP matrix evidence, and mcpMatrixAt. No merge without this.",
+  "requiredScreens": [
+    "book-step-1",
+    "book-step-2",
+    "book-step-3",
+    "plp"
+  ],
+  "screens": [
+    {
+      "screenId": "book-step-1",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP1_2026-07-19_3e7dd92.md",
+      "mcpMatrixAt": {
+        "sha": "3e7dd92",
+        "date": "2026-07-19"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "book-step-2",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP2_2026-07-19.md",
+      "mcpMatrixAt": {
+        "sha": "af50556",
+        "date": "2026-07-19"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "book-step-3",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_BOOK_STEP3_2026-07-19.md",
+      "mcpMatrixAt": {
+        "sha": "66e7fe0",
+        "date": "2026-07-19"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "plp",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19_RAGE3.md",
+      "mcpMatrixAt": {
+        "sha": "d2ac06c",
+        "date": "2026-07-19"
+      },
+      "requireMcp": true
+    }
+  ]
+}

@@ -147,7 +147,7 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | Interaction fidelity + shared kits | Recording needs playable controls; prefer `src/uxds/interactions/` over per-screen scripts — [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) |
 | UI motion | **`framer-motion`** default — `AnimatePresence` / `motion.*`; no custom keyframe zoos unless DS deviation — [FE_STANDARDS.md](./FE_STANDARDS.md) §9 |
 | Progressive learning | Append [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) when a new failure class appears |
-| **Agent felonies** | **CI / `npm test` FAIL = felony.** Gates: `check:felonies` (proto filenames, PANEL `.proto-*`, `data-proto-*`, `docs/product/BOOTS_*`, channel), `check:hygiene`, `check:links`, `check:version`. Do not skip or `--no-verify`. |
+| **Agent felonies** | **CI / `npm test` FAIL = felony.** Gates: `check:felonies` (proto filenames, PANEL `.proto-*`, `data-proto-*`, `docs/product/BOOTS_*`, channel), `check:hygiene`, `check:links`, `check:version`, **`check:parity-proven`** (React-migrated screens need PROVEN audit + MCP matrix in `docs/projects/<id>/audits/PARITY_PROVEN.json`). Do not skip or `--no-verify`. No merge without the parity gate. |
 
 ---
 
@@ -212,7 +212,7 @@ Assume **regressions** and **label collisions** until checked. Example: duplicat
 
 ### Doctrine (non-negotiable)
 
-Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim.
+Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim. React-migrated screens must also be listed **proven** in `PARITY_PROVEN.json` with MCP matrix evidence — `npm run check:parity-proven` fails CI otherwise.
 
 | Claim | Status until Nazi QA **PROVEN** |
 |-------|----------------------------------|

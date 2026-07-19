@@ -61,8 +61,8 @@ Never bare callsign alone in team output — always `Name (Role)` as above. One 
 |----------|-------------|
 | **Uma (UI/UX)** | Fidelity checklist PASS/FAIL + failed items ([UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md)). **Also mandatory on every migrated screen:** `loading states — PASS\|FAIL` and `checkbox/radio hover — PASS\|FAIL` |
 | **Bea (BA)** | Register complete? Any Missing P0? (every Make band listed before Finn coded). **Loading / empty / updating states must be P0 rows** when Make has them — mechanism + layout, not copy-only |
-| **Quinn (QA)** | Interaction matrix PASS/FAIL — **cannot PASS** without unchecked-P0-free register **and** a **MCP localhost real-user evidence log** for the screen matrix (overlay start → each step → stop/clean slate). Cite MCP steps in team check. |
-| **Ben (BE)** | Owns MCP session hygiene with Quinn (vite up, overlay start/stop, clean slate); `gh` sitrep after push |
+| **Quinn (QA)** | Interaction matrix PASS/FAIL — **cannot PASS** without unchecked-P0-free register **and** a **MCP localhost real-user evidence log** for the screen matrix. **Always** use `__studioRunMcpPageProbe` (robo-cursor + overlay PASS/FAIL) for screen ships; cite MCP steps in team check. Gate: `check:parity-proven`. |
+| **Ben (BE)** | Owns MCP session hygiene with Quinn (vite up, page probe overlay start/stop, stay-on-page prove); `gh` sitrep after push; keeps `PARITY_PROVEN.json` honest |
 | **Finn (FE)** | Gaps fixed or blocked |
 
 **Hard rules:**
@@ -71,7 +71,8 @@ Never bare callsign alone in team output — always `Name (Role)` as above. One 
 - Ship **cannot** be “done” if **Uma (UI/UX)** or **Quinn (QA)** reports **FAIL**.  
 - Blank listing + lone “Updating results…” (or equivalent) **without** Make’s spinner/overlay/skeleton = automatic Uma + Quinn **FAIL**.  
 - **Forbidden to invent** hover/loading chrome not in Make.  
-- **MCP real-user matrix mandatory for every screen ship** (Quinn + Ben). Arch **rejects** audit **PROVEN** without MCP evidence log.
+- **MCP real-user matrix mandatory for every screen ship** (Quinn + Ben). Prefer `__studioRunMcpPageProbe` so the PO sees the robo-cursor + overlay PASS/FAIL. Arch **rejects** audit **PROVEN** without MCP evidence log.  
+- **No merge** without `npm run check:parity-proven` green (`PARITY_PROVEN.json` + audit PROVEN + MCP section).
 
 ---
 

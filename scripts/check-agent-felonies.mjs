@@ -12,7 +12,7 @@
  *  6. version chip must track package.json (no hardcoded UI semver; JSON import present)
  *
  * Companion gates (also in npm test):
- *  - check:hygiene · check:links · check:version
+ *  - check:hygiene · check:links · check:version · check:parity-proven
  *
  * Concept LEGACY `.proto-*` in globals-*.css / Make wire / UXDS link aliases = OK until screen retire.
  * Policy: docs/product/NAMING.md · COMMAND_DOCTRINE.md

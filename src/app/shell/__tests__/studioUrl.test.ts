@@ -10,6 +10,7 @@ import {
   resolveStudioScreenTarget,
   serializeStudioUrl,
   buildStudioPostAgentHomeState,
+  buildStudioPostAgentStayState,
   isStudioPostAgentResetSyncLocked,
   resetStudioAfterAgentTest,
   stripEphemeralStudioQuery,
@@ -126,15 +127,27 @@ describe("studioUrl", () => {
     });
   });
 
-  it("resetStudioAfterAgentTest strips modal + proof and dispatches home", () => {
+  it("buildStudioPostAgentStayState keeps project+screen+modal", () => {
+    expect(
+      buildStudioPostAgentStayState(
+        "?project=boots-pharmacy&screen=plp&modal=choose-pharmacy&proof=x"
+      )
+    ).toEqual({
+      projectId: "boots-pharmacy",
+      screenId: "plp",
+      modalId: "choose-pharmacy",
+    });
+  });
+
+  it("resetStudioAfterAgentTest stays on screen by default and strips proof", () => {
     const replaceState = vi.fn();
     const dispatchEvent = vi.fn();
     vi.stubGlobal("window", {
       location: {
-        href: "http://localhost:5173/?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=plp&modal=choose-pharmacy&proof=junk",
         pathname: "/",
         search:
-          "?project=boots-pharmacy&screen=book-step-1&modal=choose-pharmacy&proof=junk",
+          "?project=boots-pharmacy&screen=plp&modal=choose-pharmacy&proof=junk",
         hash: "",
       },
       history: { state: null, replaceState, pushState: vi.fn() },
@@ -144,12 +157,14 @@ describe("studioUrl", () => {
     const state = resetStudioAfterAgentTest();
     expect(state).toEqual({
       projectId: "boots-pharmacy",
-      screenId: "hub",
+      screenId: "plp",
+      modalId: "choose-pharmacy",
     });
     expect(replaceState).toHaveBeenCalled();
     const next = replaceState.mock.calls.at(-1)?.[2] as string;
-    expect(next).toBe("/?project=boots-pharmacy&screen=hub");
-    expect(next).not.toContain("modal");
+    expect(next).toBe(
+      "/?project=boots-pharmacy&screen=plp&modal=choose-pharmacy"
+    );
     expect(next).not.toContain("proof");
     expect(dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -158,6 +173,29 @@ describe("studioUrl", () => {
       })
     );
     expect(isStudioPostAgentResetSyncLocked()).toBe(true);
+  });
+
+  it("resetStudioAfterAgentTest({ resetToHub: true }) lands hub", () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=plp&modal=choose-pharmacy",
+        pathname: "/",
+        search: "?project=boots-pharmacy&screen=plp&modal=choose-pharmacy",
+        hash: "",
+      },
+      history: { state: null, replaceState, pushState: vi.fn() },
+      dispatchEvent: vi.fn(),
+    });
+
+    const state = resetStudioAfterAgentTest({ resetToHub: true });
+    expect(state).toEqual({
+      projectId: "boots-pharmacy",
+      screenId: "hub",
+    });
+    expect(String(replaceState.mock.calls.at(-1)?.[2])).toBe(
+      "/?project=boots-pharmacy&screen=hub"
+    );
   });
 
   it("writeStudioUrl replaces bar and drops ephemeral keys", () => {

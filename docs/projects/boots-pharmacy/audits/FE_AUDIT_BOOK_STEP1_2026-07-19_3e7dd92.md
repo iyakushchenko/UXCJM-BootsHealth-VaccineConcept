@@ -122,6 +122,22 @@ Live localhost re-audit of React Book Step 1 at HEAD `3e7dd92` confirms prior fi
 
 ---
 
+## Quinn + Ben — MCP evidence
+
+**Session:** Chrome DevTools MCP · localhost · `?project=boots-pharmacy&screen=book-step-1`  
+**Helpers:** `__protoRunMcpSanityCheck` (REC⊗CJM) · host assert via React mount
+
+| Step | Result | Evidence |
+|------|--------|----------|
+| Overlay start | **PASS** | AGENT TESTING — mcp-sanity |
+| Sanity + REC⊗CJM | **PASS** | `__protoRunMcpSanityCheck` pass |
+| React host | **PASS** | `[data-studio-react-screen="book-step-1"]` mounted |
+| Stop / stay-on-page | **PASS** | screen remains book-step-1 (post-agent stay default) |
+
+Going forward Quinn+Ben use `__studioRunMcpPageProbe({ screenId: "book-step-1" })` for visible robo-cursor matrix on screen ships.
+
+---
+
 ## Follow-ups (if FAIL / BLOCKED)
 
 | Item | Owner | Notes |

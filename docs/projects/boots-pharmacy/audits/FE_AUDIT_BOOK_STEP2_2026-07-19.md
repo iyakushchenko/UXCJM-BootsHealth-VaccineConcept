@@ -113,6 +113,22 @@ Live localhost audit of React Book Step 2 confirms hybrid mount at Frame child 4
 
 ---
 
+## Quinn + Ben — MCP evidence
+
+**Session:** Chrome DevTools MCP · localhost · `?project=boots-pharmacy&screen=book-step-2`  
+**Helpers:** `__protoRunMcpSanityCheck` (REC⊗CJM) · React host mount
+
+| Step | Result | Evidence |
+|------|--------|----------|
+| Overlay start | **PASS** | AGENT TESTING — mcp-sanity |
+| Sanity + REC⊗CJM | **PASS** | `__protoRunMcpSanityCheck` including `rec-disabled-when-cjm-on` |
+| React host | **PASS** | `[data-studio-react-screen="book-step-2"]` + Reserve path |
+| Stop / stay-on-page | **PASS** | screen remains book-step-2 under post-agent stay default |
+
+Going forward: `__studioRunMcpPageProbe({ screenId: "book-step-2" })` for visible robo-cursor matrix.
+
+---
+
 ## Local gates
 
 - `npm test` — **PASS** (260 tests; includes `bookStep2Contract`)

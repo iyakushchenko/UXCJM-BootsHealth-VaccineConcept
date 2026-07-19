@@ -31,12 +31,12 @@ Spot or forecast: layout/L&F drift; style zoo; bad handoffs; missing hover/focus
 5. **No LEGACY growth** on new React pages — page CSS / UXDS / theme only (BASE → THEME → PANEL → LEGACY).
 6. **Domain identity** — no new `.proto-*` / `data-proto-*`; PANEL = `.studio-*` / `data-studio-*`; prefer `__studio*` (`__proto*` aliases OK).
 7. **Hygiene** — `npm run check:hygiene` green; no silent monster growth (`HYGIENE.md`).
-7b. **Felonies** — `npm run check:felonies` (+ `check:version`) in `npm test`; CI/test fail = agent law break (no proto filenames, no PANEL `.proto-*` / engine `data-proto-*`, no new `docs/product/BOOTS_*`).
+7b. **Felonies** — `npm run check:felonies` (+ `check:version` + **`check:parity-proven`**) in `npm test`; CI/test fail = agent law break (no proto filenames, no PANEL `.proto-*` / engine `data-proto-*`, no new `docs/product/BOOTS_*`, no React screen ship without PROVEN+MCP in `PARITY_PROVEN.json`).
 8. **Project docs** under `docs/projects/<id>/` — engine doctrine stays in `docs/product/`.
 9. **Post-push CI sitrep (BE)** — `gh run list -R iyakushchenko/ux-studio -L 10`; never assume green from local tests. → `ci-sitrep.mdc`
-10. **Agent overlay** — `__studioAgentTestingOverlay` / `__protoAgentTestingOverlay` touch + sitrep settle; strip ephemeral URL params (`proof`, etc.).
+10. **Agent overlay** — `__studioAgentTestingOverlay` / `__protoAgentTestingOverlay` touch + sitrep settle; strip ephemeral URL params (`proof`, etc.). Default post-test **stays on current screen**; `resetToHub: true` only for CJM/journey.
 11. **URL navigable state** — `?project=&screen=` (+ optional `&modal=` for blocking lightboxes) for deep links / recording; folder name = `screenId`. Sitrep/agent overlay z-index above concept modals.
-12. **Nazi QA** — FE audit **PROVEN** under `docs/projects/<id>/audits/` before claiming UI done / PO green-light. Tests alone **cannot skip**. Chrome class renames → Nazi QA light.
+12. **Nazi QA** — FE audit **PROVEN** under `docs/projects/<id>/audits/` before claiming UI done / PO green-light. Tests alone **cannot skip**. Chrome class renames → Nazi QA light. Update `PARITY_PROVEN.json` on every migrated-screen ship.
 13. **Distrust subagent “done”** until proven (JSX/CSS gate or localhost).
 14. **Naming** — `NAMING.md` / `ARCHITECTURE.md` domain folders; no half-renames.
 15. **Progressive learning** — append `docs/product/LESSONS_LEARNED.md` when a new failure class appears.
@@ -48,7 +48,7 @@ Spot or forecast: layout/L&F drift; style zoo; bad handoffs; missing hover/focus
 21. **`team report` / `team check`** — honor PO commands per doctrine §0.2; after big ships Arch auto-runs **team check** before “done”; always display `Name (Role)`. Team check MUST include Uma fidelity checklist + Bea register completeness + Quinn interaction matrix; ship blocked on Uma/Quinn FAIL.
 22. **Make→React fidelity** — Bea lists every Make band before Finn codes (**loading/empty/updating = P0**); Uma Nazi-hovers every CTA/icon **and** signs off loading states + checkbox/radio hover ([UMA_FIDELITY_NOTES.md](../../docs/product/UMA_FIDELITY_NOTES.md)); whole-component miss = ship fail; wrong preloader scenario = ship fail; zero tolerance on near-dups / fidelity slips.
 23. **No invent vs Make** — forbidden to invent hover colors, loader copy placement, or attention chrome not in Make CSS/behavior (e.g. fuchsia-on-empty heart, duplicate “Updating results…”). Prefer under-match over invent.
-24. **MCP real-user matrix** — every screen ship: Quinn + Ben prove on localhost via Chrome DevTools MCP + agent overlay (start → log matrix → stop/clean slate). Arch **rejects** FE audit **PROVEN** without that evidence log. Prior PROVEN is BAD when PO disputes pixels.
+24. **MCP real-user matrix** — every screen ship: Quinn + Ben prove on localhost via `__studioRunMcpPageProbe` (visible robo-cursor + overlay PASS/FAIL) + cite in audit. Arch **rejects** FE audit **PROVEN** without that evidence log. Prior PROVEN is BAD when PO disputes pixels. `check:parity-proven` enforces this in CI.
 
 ## Hybrid Make + React (Boots)
 

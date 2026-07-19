@@ -106,6 +106,22 @@ Live localhost audit of React Book Step 3 confirms hybrid mount at Frame child *
 
 ---
 
+## Quinn + Ben — MCP evidence
+
+**Session:** Chrome DevTools MCP · localhost · `?project=boots-pharmacy&screen=book-step-3`  
+**Helpers:** `__protoRunMcpSanityCheck` (REC⊗CJM) · React host mount
+
+| Step | Result | Evidence |
+|------|--------|----------|
+| Overlay start | **PASS** | AGENT TESTING — mcp-sanity |
+| Sanity + REC⊗CJM | **PASS** | `__protoRunMcpSanityCheck` pass (G6) |
+| React host | **PASS** | `[data-studio-react-screen="book-step-3"]` + AIR open-appointment hook |
+| Stop / stay-on-page | **PASS** | screen remains book-step-3 under post-agent stay default |
+
+Going forward: `__studioRunMcpPageProbe({ screenId: "book-step-3" })` for visible robo-cursor matrix.
+
+---
+
 ## Hard gates touched
 
 - Hybrid mount + Make gate (`isBookStep3ReactMounted`)
