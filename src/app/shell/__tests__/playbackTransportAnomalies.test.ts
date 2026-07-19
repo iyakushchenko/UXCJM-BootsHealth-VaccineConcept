@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+/** @vitest-environment happy-dom */
+import { afterEach, describe, expect, it } from "vitest";
 import {
   detectDirectorScriptOffAir,
   detectPlaylistFrameSkip,
@@ -128,13 +129,27 @@ describe("detectDirectorScriptOffAir", () => {
 });
 
 describe("detectStrayPopupOnBeat", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
   it("flags availability overlay still open on book-step2", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     const anomaly = detectStrayPopupOnBeat({
       beatId: "book-step2",
       availabilityOpen: true,
     });
     expect(anomaly?.kind).toBe("stray-popup-on-beat");
     expect(anomaly?.message).toContain("availability");
+  });
+
+  it("ignores stale availabilityOpen without a live scrim", () => {
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "book-step2",
+        availabilityOpen: true,
+      })
+    ).toBeNull();
   });
 
   it("passes when book-step2 has no popups open", () => {
@@ -148,6 +163,7 @@ describe("detectStrayPopupOnBeat", () => {
   });
 
   it("ignores other beats", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     expect(
       detectStrayPopupOnBeat({
         beatId: "choose-location",
@@ -157,6 +173,7 @@ describe("detectStrayPopupOnBeat", () => {
   });
 
   it("ignores book-step2 while director script is still running", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     expect(
       detectStrayPopupOnBeat({
         beatId: "book-step2",

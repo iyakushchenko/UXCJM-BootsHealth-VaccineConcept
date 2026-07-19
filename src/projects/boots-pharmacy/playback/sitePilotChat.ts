@@ -11,6 +11,11 @@ import {
   scrollPrototypeScrollToBottom,
 } from "@/app/scenario/scenarioEngine";
 import {
+  playbackDiagTypeInEnd,
+  playbackDiagTypeInProgress,
+  playbackDiagTypeInStart,
+} from "@/app/shell/playbackDiag";
+import {
   beginSitePilotChatPlaybackThinking,
   endSitePilotChatThinking,
   fadeOutSitePilotChatThinking,
@@ -194,23 +199,29 @@ export async function simulateSarahTypingInComposer(text: string): Promise<void>
     "textarea.proto-agentic-query, textarea.site-pilot-composer__query"
   );
   if (!ta) {
+    playbackDiagTypeInStart("chat", text.length, "composer missing — delay only");
+    playbackDiagTypeInEnd(false, "composer textarea missing");
     await delay(700);
     return;
   }
 
+  playbackDiagTypeInStart("chat", text.length, "chat composer type-in");
   setReactTextareaValue(ta, "");
   syncComposerHeight(ta);
   ta.focus();
   scrollChatToBottom();
+  playbackDiagTypeInProgress(0);
 
   for (let i = 0; i < text.length; i++) {
     if (preludeAborted) {
       setReactTextareaValue(ta, "");
       syncComposerHeight(ta);
+      playbackDiagTypeInEnd(false, "aborted");
       return;
     }
     setReactTextareaValue(ta, text.slice(0, i + 1));
     syncComposerHeight(ta);
+    playbackDiagTypeInProgress(i + 1);
     if (i % 8 === 0) scrollChatToBottom();
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);
   }
@@ -218,12 +229,14 @@ export async function simulateSarahTypingInComposer(text: string): Promise<void>
   if (preludeAborted) {
     setReactTextareaValue(ta, "");
     syncComposerHeight(ta);
+    playbackDiagTypeInEnd(false, "aborted");
     return;
   }
 
   await pulseComposerSend();
   setReactTextareaValue(ta, "");
   syncComposerHeight(ta);
+  playbackDiagTypeInEnd(true, "typed + send");
 }
 
 export async function runSitePilotChatBeforeReveal(

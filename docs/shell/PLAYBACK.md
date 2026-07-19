@@ -2,7 +2,7 @@
 
 How the Proto Studio journey engine works, how to change scripts safely, and what to verify after every playback-related change.
 
-See also: [SHELL.md](./SHELL.md) (architecture), [PROJECTS.md](./PROJECTS.md) (registering projects/personas).
+See also: [SHELL.md](./SHELL.md) (architecture), [PROJECTS.md](./PROJECTS.md) (registering projects/personas), **[PLAYBACK_DIAG.md](./PLAYBACK_DIAG.md)** (console type-in / step / retreat contract — Auto-Rule R13).
 
 ---
 

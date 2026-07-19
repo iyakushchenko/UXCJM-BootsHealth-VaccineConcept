@@ -4,6 +4,11 @@ import {
   simulateDemoPointerClick,
 } from "@/app/scenario/demoCursor";
 import type { HomeScriptId } from "@/app/orchestra/types";
+import {
+  playbackDiagTypeInEnd,
+  playbackDiagTypeInProgress,
+  playbackDiagTypeInStart,
+} from "@/app/shell/playbackDiag";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 import {
   scriptAborted,
@@ -137,38 +142,43 @@ async function simulateSarahHomeTyping(text: string): Promise<boolean> {
   await delay(HOME_DOM_SETTLE_MS);
   if (shouldAbort()) return false;
 
-  // Default React home query already matches demo intent — click send only.
-  if (ta.value.trim() === text.trim()) {
-    const sendBtn = getHomeSendButton();
-    if (!sendBtn) return false;
-    return simulateDemoPointerClick(sendBtn, { shouldAbort });
-  }
-
+  // Always clear + type-in during CJM (never skip for prefilled HOME_QUERY_DEFAULT).
+  // Prefill skip hid the animation after React Site Pilot mount — PLAYBACK_DIAG.
+  playbackDiagTypeInStart("site-pilot", text.length, "sarah-query-submit");
   setReactTextareaValue(ta, "");
   syncHomeQueryHeight(ta);
   ta.focus();
+  playbackDiagTypeInProgress(0);
 
   for (let i = 0; i < text.length; i++) {
     if (shouldAbort()) {
       setReactTextareaValue(ta, "");
       syncHomeQueryHeight(ta);
+      playbackDiagTypeInEnd(false, "aborted");
       return false;
     }
     setReactTextareaValue(ta, text.slice(0, i + 1));
     syncHomeQueryHeight(ta);
+    playbackDiagTypeInProgress(i + 1);
     await delay(TYPING_MS_PER_CHAR + Math.random() * TYPING_MS_JITTER);
   }
 
   if (shouldAbort()) {
     setReactTextareaValue(ta, "");
     syncHomeQueryHeight(ta);
+    playbackDiagTypeInEnd(false, "aborted");
     return false;
   }
 
   const sendBtn = getHomeSendButton();
-  if (!sendBtn) return false;
+  if (!sendBtn) {
+    playbackDiagTypeInEnd(false, "send button missing");
+    return false;
+  }
 
-  return simulateDemoPointerClick(sendBtn, { shouldAbort });
+  const clicked = await simulateDemoPointerClick(sendBtn, { shouldAbort });
+  playbackDiagTypeInEnd(clicked, clicked ? "typed + send" : "send click failed");
+  return clicked;
 }
 
 async function runSarahQuerySubmit(

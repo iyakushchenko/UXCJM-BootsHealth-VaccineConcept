@@ -90,14 +90,15 @@
 
 | Must re-read | Focus |
 |--------------|--------|
+| [../shell/PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · R13 | Type-in / step / retreat console prove before claiming CJM green |
 | [../shell/RECORDING.md](../shell/RECORDING.md) — MCP / overlay / page probe | `__studioRunMcpPageProbe`, sitrep, stay-on-page |
 | LESSONS: overlay eyes, MCP matrix, **scroll-into-view**, **overlay visible every probe**, false PROVEN, **fixed localhost / reuse tab** | Prove fail classes |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty — no PROVEN without MCP log |
 | [VERSIONING.md](./VERSIONING.md) DoD when bump | Chip = package.json |
 | [../shell/URL.md](../shell/URL.md) modal ids + **canonical `localhost:5173`** | Prove deep-link / overlay registry; never invent ports |
-| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 | `list_pages` → reuse tab; `new_page` only if empty |
+| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · R13 | `list_pages` → reuse tab; PLAYBACK_DIAG assertTypeIn on CJM ships |
 
-**Knowledge used tip:** RECORDING MCP section + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
+**Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
 
 ### Ben (BE)
 
@@ -141,6 +142,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Ben (BE): <gate/version/CI> — applied: <script/check>
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
+
+**Knowledge improved** (2026-07-19 · stream: CJM playback straighten — type-in + fade + PLAYBACK_DIAG · R12):
+- Arch (Director): R13 `playback-diag` Auto-Rule + PLAYBACK_DIAG contract; no false Chat PROVEN/Final Pass — applied: STUDIO_AUTO_RULES · PLAYBACK_DIAG.md
+- Finn (FE): Never skip Site Pilot type-in for prefilled default; restore Chat top + composer fade; wire diag events — applied: sitePilotHome · sitePilotChat · chat.css · playbackDiag
+- Quinn (QA): Console assertTypeIn + step/retreat smokes on :5173 — applied: PLAYBACK_DIAG prove recipe
+- Ben (BE): Window APIs on MCP helper install; R12 one push no CI await — applied: studioMcpHelpers · playbackDiag
 
 **Knowledge improved** (2026-07-19 · stream: Chat sticky composer scroll pad · R12):
 - Finn (FE): Overlay `.chat__composer-dock` + ResizeObserver `--studio-chat-composer-h` → column `padding-bottom`/`scroll-padding-bottom`; playback honors CSS scroll-pad — applied: ChatScreen · chat.css · playbackScroll

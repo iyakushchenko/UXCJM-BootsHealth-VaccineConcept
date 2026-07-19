@@ -104,16 +104,33 @@ function queryVisibleProtoScreen(childIndex: number): HTMLElement | null {
   return null;
 }
 
+function findVisibleHistoryViewDetails(
+  screen: HTMLElement
+): HTMLElement | null {
+  // Make exports a zero-size / display:none ghost card first — never first-match.
+  const cards = screen.querySelectorAll<HTMLElement>(
+    '[data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]'
+  );
+  for (const card of cards) {
+    if (!isClickableTarget(card)) continue;
+    const viewBtn = card.querySelector<HTMLElement>(
+      '[data-studio-appointment-view-details="true"]'
+    );
+    if (viewBtn && isClickableTarget(viewBtn)) return viewBtn;
+  }
+  return (
+    Array.from(
+      screen.querySelectorAll<HTMLElement>(
+        '[data-studio-appointment-view-details="true"]'
+      )
+    ).find((btn) => isClickableTarget(btn)) ?? null
+  );
+}
+
 function isAppointmentHistoryReady(): boolean {
   const historyScreen = queryVisibleProtoScreen(2);
   if (!historyScreen) return false;
-  const firstCard = historyScreen.querySelector<HTMLElement>(
-    '[data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]'
-  );
-  const viewBtn = firstCard?.querySelector<HTMLElement>(
-    '[data-studio-appointment-view-details="true"]'
-  );
-  return Boolean(viewBtn && isClickableTarget(viewBtn));
+  return Boolean(findVisibleHistoryViewDetails(historyScreen));
 }
 
 async function waitForVisibleTarget(
@@ -562,6 +579,14 @@ async function runBookLocationPick(
 
   runtime.closeAvailability();
   runtime.closeAllPopups();
+  // Wait for avail scrim to unmount — book-step2 dwell FAIL stray-popup-on-beat otherwise.
+  for (let i = 0; i < 40; i++) {
+    if (shouldAbort()) return false;
+    const scrim = document.querySelector(".studio-avail-scrim, .proto-avail-scrim");
+    if (!scrim) break;
+    runtime.closeAvailability();
+    await delay(50);
+  }
 
   return !shouldAbort();
 }
@@ -602,13 +627,8 @@ async function waitForFirstHistoryViewDetails(
   screen: HTMLElement
 ): Promise<HTMLElement | null> {
   for (let i = 0; i < 80; i++) {
-    const firstCard = screen.querySelector<HTMLElement>(
-      '[data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]'
-    );
-    const viewBtn = firstCard?.querySelector<HTMLElement>(
-      '[data-studio-appointment-view-details="true"]'
-    );
-    if (viewBtn && isClickableTarget(viewBtn)) return viewBtn;
+    const viewBtn = findVisibleHistoryViewDetails(screen);
+    if (viewBtn) return viewBtn;
     await delay(50);
   }
   return null;

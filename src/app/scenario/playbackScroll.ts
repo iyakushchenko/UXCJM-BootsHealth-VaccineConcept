@@ -336,11 +336,27 @@ function isScrollPanePopupLocked(el: HTMLElement | null | undefined): boolean {
   );
 }
 
-/** True when Chat column is on the active (displayed) screen — not a hidden sibling. */
+/** URL truth — Chat column must not steal scroll on PLP/PDP/book beats. */
+function isChatScreenActiveInStudio(): boolean {
+  if (typeof location === "undefined") return false;
+  const screen = new URLSearchParams(location.search).get("screen");
+  // Explicit non-chat screen → never prefer `.chat__column` (even if still mounted).
+  if (screen && screen !== "chat") return false;
+  if (screen === "chat") return true;
+  // No ?screen= — fall back to a visible React chat host.
+  if (typeof document === "undefined") return false;
+  const host = document.querySelector<HTMLElement>(
+    '[data-studio-react-screen="chat"]'
+  );
+  return Boolean(host && host.getClientRects().length > 0);
+}
+
+/** True when Chat column is on the active (displayed) Chat screen — not a sibling. */
 function isActiveChatColumnScrollHost(el: HTMLElement | null): el is HTMLElement {
   if (!el?.isConnected) return false;
   // Inactive Boots screens use display:none — zero client rects.
   if (el.getClientRects().length === 0) return false;
+  if (!isChatScreenActiveInStudio()) return false;
   return el.scrollHeight - el.clientHeight > 1 || el.clientHeight > 0;
 }
 
@@ -547,7 +563,8 @@ export function animateScrollTo(
       }
 
       const progress = Math.min(1, (now - startTime) / duration);
-      const currentTarget = resolveTargetTop?.() ?? top;
+      const maxNow = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+      const currentTarget = clamp(resolveTargetTop?.() ?? top, 0, maxNow);
       scrollEl.scrollTop =
         startTop + (currentTarget - startTop) * easeOutCubic(progress);
 

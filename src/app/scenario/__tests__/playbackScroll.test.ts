@@ -235,6 +235,7 @@ describe("getPrototypeScrollRoot", () => {
   });
 
   it("prefers active .chat__column when outer prototype cannot scroll", () => {
+    window.history.replaceState({}, "", "/?screen=chat");
     document.body.innerHTML = `
       <div class="studio-scroll--prototype" style="height:400px;overflow:hidden">
         <div data-studio-react-screen="chat">
@@ -261,6 +262,7 @@ describe("getPrototypeScrollRoot", () => {
   });
 
   it("keeps .studio-scroll--prototype when chat column is not active", () => {
+    window.history.replaceState({}, "", "/?screen=plp");
     document.body.innerHTML = `
       <div class="studio-scroll--prototype" style="height:400px;overflow:auto">
         <div data-studio-react-screen="chat" style="display:none">
@@ -274,6 +276,27 @@ describe("getPrototypeScrollRoot", () => {
     Object.defineProperty(proto, "clientHeight", { value: 400, configurable: true });
     const plp = document.getElementById("plp")!;
     expect(getPrototypeScrollRoot(plp)).toBe(proto);
+  });
+
+  it("does not prefer chat column when ?screen= is a non-chat page", () => {
+    window.history.replaceState({}, "", "/?screen=book-step-3");
+    document.body.innerHTML = `
+      <div class="studio-scroll--prototype" style="height:400px;overflow:hidden">
+        <div data-studio-react-screen="chat">
+          <div class="chat__column" style="height:400px;overflow:auto"></div>
+        </div>
+        <div id="confirm">Confirm</div>
+      </div>
+    `;
+    const proto = document.querySelector<HTMLElement>(".studio-scroll--prototype")!;
+    Object.defineProperty(proto, "scrollHeight", { value: 400, configurable: true });
+    Object.defineProperty(proto, "clientHeight", { value: 400, configurable: true });
+    const column = document.querySelector<HTMLElement>(".chat__column")!;
+    column.getClientRects = () =>
+      [{ width: 400, height: 400 }] as unknown as DOMRectList;
+    Object.defineProperty(column, "scrollHeight", { value: 1600, configurable: true });
+    Object.defineProperty(column, "clientHeight", { value: 400, configurable: true });
+    expect(getPrototypeScrollRoot(document.getElementById("confirm"))).toBe(proto);
   });
 });
 

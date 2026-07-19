@@ -107,8 +107,13 @@ export function detectStrayPopupOnBeat(options: {
   if (options.isScripting) return null;
   if (options.beatId !== "book-step2") return null;
 
+  // Stale React `availabilityOpen` without a live scrim is not a stray popup.
+  const availScrimLive =
+    typeof document !== "undefined" &&
+    Boolean(document.querySelector(".studio-avail-scrim, .proto-avail-scrim"));
+
   const open = [
-    options.availabilityOpen ? "availability" : "",
+    options.availabilityOpen && availScrimLive ? "availability" : "",
     options.loginPopupOpen ? "login" : "",
     options.vaccinePickerOpen ? "vaccine picker" : "",
     options.recipientPickerOpen ? "recipient picker" : "",

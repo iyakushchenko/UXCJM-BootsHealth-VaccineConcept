@@ -7,6 +7,7 @@ import {
   notifyRecordingDemoClick,
   notifyRecordingFromInteraction,
 } from "@/app/recording/recordingCapture";
+import { playbackDiagLog } from "@/app/shell/playbackDiag";
 
 export type PlaybackInteractionKind =
   | "transport"
@@ -69,6 +70,13 @@ export function notePlaybackTransport(action: ManualTransportAction): void {
     kind: "transport",
     label: TRANSPORT_LABELS[action],
   });
+  if (action === "step-forward") {
+    playbackDiagLog("step-forward", TRANSPORT_LABELS[action]);
+  } else if (action === "step-back") {
+    playbackDiagLog("step-back", TRANSPORT_LABELS[action]);
+  } else {
+    playbackDiagLog("transport", TRANSPORT_LABELS[action]);
+  }
 }
 
 export function notePlaybackDirectorScript(options: {

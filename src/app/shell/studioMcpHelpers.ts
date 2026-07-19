@@ -7,14 +7,10 @@
  *   await window.__studioRunMcpPageProbe?.() // current screen
  *   await window.__studioRunMcpPageProbe?.({ screenId: "plp" })
  *
- * Robo-cursor native feedback (R10):
- *   await window.__studioProveRoboCursorFeedback?.(".proto-avail-header .proto-popup-close")
- *
- * STOP everything:
- *   window.__protoAbortAll?.()
- *
- * Console filter: `[StudioControlPanel]` (diagnostics = console.warn)
- * Eyes: `window.__protoMcpEyes()`
+ * Robo-cursor (R10): await window.__studioProveRoboCursorFeedback?.(sel)
+ * PLAYBACK_DIAG: window.__studioPlaybackDiag?.() / __studioAssertTypeIn?.()
+ * STOP: window.__protoAbortAll?.()
+ * Console: `[StudioControlPanel]` · `[PLAYBACK_DIAG]` · Eyes: `__protoMcpEyes()`
  */
 
 import type { OrchestraModeId } from "@/app/orchestra/types";
@@ -27,6 +23,12 @@ import {
   getStudioCursorDiagnosticsBundle,
 } from "@/app/shell/playbackCursorDiagnostic";
 import { getRecentDiagnosticFlashes } from "@/app/shell/playbackDiagnosticFlash";
+import {
+  installPlaybackDiagWindowApis,
+  playbackDiagClear,
+  playbackDiagLog,
+  uninstallPlaybackDiagWindowApis,
+} from "@/app/shell/playbackDiag";
 import type { ProveRoboCursorFeedbackResult } from "@/app/shell/studioProveRoboCursorFeedback";
 import {
   beginMcpTestSession,
@@ -412,7 +414,7 @@ async function dismissDiagnosticsUntilClear(maxMs = 4000): Promise<boolean> {
   return !window.__protoStudioState?.()?.diagnosticOpen;
 }
 
-async function runStepForwardSmokeForMode(
+  async function runStepForwardSmokeForMode(
   orchestraMode: OrchestraModeId,
   smokeOptions?: { timeoutMs?: number; maxSteps?: number }
 ): Promise<StepForwardSmokeResult> {
@@ -432,6 +434,8 @@ async function runStepForwardSmokeForMode(
     finalState: state ?? window.__protoStudioState?.(),
   });
 
+  playbackDiagClear();
+  playbackDiagLog("info", `step-forward-smoke start (${orchestraMode})`);
   window.__protoEnsureCleanStudio?.();
   throwIfMcpTestAborted();
   window.__protoSetOrchestraMode?.(orchestraMode);
@@ -615,6 +619,7 @@ export function registerStudioMcpHelpers(options: {
 
   installAgentTestingOverlayApi();
   installStudioAgentTeardownContractApi();
+  installPlaybackDiagWindowApis();
   stripEphemeralStudioQuery();
 
   window.__protoDismissPlaybackDiagnostic = () => {
@@ -848,6 +853,7 @@ export function registerStudioMcpHelpers(options: {
         blocked: true,
         blockReason: "no-active-mcp-session — call a __protoRun* test or __protoStartRecording first",
       });
+      playbackDiagLog("transport", `blocked: no-active-mcp-session (${action})`);
       return false;
     }
     if (isMcpTestAborted()) {
@@ -856,10 +862,12 @@ export function registerStudioMcpHelpers(options: {
         blocked: true,
         blockReason: "mcp-test-aborted",
       });
+      playbackDiagLog("transport", `blocked: mcp-test-aborted (${action})`);
       return false;
     }
     if (!options.triggerTransport) return false;
     logControlPanel(`transport:${action}`, { source: "mcp-helper" });
+    // notePlaybackTransport (via App triggerTransport) emits PLAYBACK_DIAG step events.
     options.triggerTransport(action);
     return true;
   };
@@ -1240,6 +1248,7 @@ export function registerStudioMcpHelpers(options: {
   return () => {
     uninstallAgentTestingOverlayApi();
     uninstallStudioAgentTeardownContractApi();
+    uninstallPlaybackDiagWindowApis();
     delete window.__protoDismissPlaybackDiagnostic;
     delete window.__protoStudioState;
     delete window.__protoEnsureCleanStudio;

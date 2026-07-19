@@ -73,6 +73,13 @@ export const STUDIO_AUTO_RULES: readonly StudioAutoRule[] = [
       "Canonical http://localhost:5173 only; one Vite; Chrome MCP reuses tab (list_pages → select/navigate; never new_page unless zero pages)",
     ciGate: "check:felonies",
   },
+  {
+    id: "playback-diag",
+    title:
+      "CJM type-in / step / retreat console diags (__studioPlaybackDiag / __studioAssertTypeIn) — never skip prefilled type-in",
+    ciGate: "vitest",
+    mcpAssert: "__studioAssertTypeIn",
+  },
 ] as const;
 
 /** Ids Arch/Ben expect wired — felony scan fails if catalog drops one. */

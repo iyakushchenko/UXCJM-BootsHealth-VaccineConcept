@@ -4,6 +4,7 @@ import {
   isDwellLandingBeat,
 } from "@/app/orchestra/journeyBeatDirector";
 import type { JourneyBeat, JourneyRuntime } from "@/app/orchestra/types";
+import { playbackDiagLog } from "@/app/shell/playbackDiag";
 import { notePlaybackRetreatSync } from "@/app/shell/playbackInteractionContext";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 import { resolvePlaybackScriptKind } from "@/app/shell/playbackScriptRegistry";
@@ -63,6 +64,9 @@ export async function syncBeatRetreatState(
     scriptKind: channel ?? resolvePlaybackScriptKind(scriptId),
   });
 
+  playbackDiagLog("retreat-sync", `${channel ?? "dwell"}:${String(scriptId)}`, {
+    beatId: beat.id,
+  });
   playbackScrollMonitor.noteRetreatSync();
 
   if (channel === "home" && beat.homeScript) {

@@ -10,6 +10,24 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-19
 
+### CJM type-in skipped + Chat fade removed — PLAYBACK_DIAG (PO / Finn + Quinn + Ben)
+
+- **Symptom / class:** Agentic CJM Site Pilot type-in animation missing (instant jump to chat); Chat composer/under-bar fade wash gone after “remove gradient” ship; step/retreat hard to prove without console evidence.
+- **Root cause:** `simulateSarahHomeTyping` skipped typing when `ta.value === AGENTIC_HOME_DEMO_QUERY` (React `HOME_QUERY_DEFAULT` prefill). Composer fade removed in `95a2eda` without keeping under-bar wash. No console type-in/step contract.
+- **Gate (Auto-Rule `playback-diag` R13):** Always clear + type-in during CJM (never prefill-skip). Restore SitePilot bar `::after` top fade + composer-edge fade. Console: `__studioPlaybackDiag` / `__studioAssertTypeIn` (+ `__proto*` aliases). Prove: [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) + step-forward/retreat smokes on R11 `:5173`.
+
+### Journey-lock `overflow:hidden` kills CJM eased scroll (PO / Finn)
+
+- **Symptom / class:** Agentic step-forward dies late (`diagnostic-on-step-1N`) with `scroll-path-deviation` on appointment-history — expected ~120px, actual stuck ~0–6.
+- **Root cause:** `.studio-scroll--journey-locked` shared popup-lock CSS `overflow: hidden !important`, so `scrollTop` writes during eased director scroll were ignored. Event blockers already prevent user wheel/touch.
+- **Gate:** Journey-lock CSS = overscroll/touch-action only; popup `.studio-scroll--locked` keeps overflow hidden. `getPrototypeScrollRoot` must not prefer `.chat__column` when `?screen=` is non-chat.
+
+### Appointment history ghost card first-match (PO / Finn)
+
+- **Symptom / class:** `history-view-details` / late agentic step → scroll-path-deviation or miss; first `recent.order` card is 0×0 with `display:none` View Details.
+- **Root cause:** `querySelector` first card is a Make ghost template; visible cards are siblings 2+.
+- **Gate:** `findVisibleHistoryViewDetails` — first `isClickableTarget` card + button (never bare first-match).
+
 ### Scrollbar gutter always-on → empty white strip on short pages (PO / Finn)
 
 - **Symptom / class:** Home Site Pilot shows a white bar / fake scrollbar track with nothing to scroll; tall pages / modal lock still X-jump when classic `scrollbar-gutter: stable` width ≠ thin 4px thumb.

@@ -10,7 +10,8 @@ import {
   type ScrollSample,
 } from "@/app/shell/playbackScrollAnomalies";
 
-const NAVIGATION_SCROLL_GRACE_MS = 700;
+/** Tab / screen changes — eased camera mid-flight must not FAIL path deviation. */
+const NAVIGATION_SCROLL_GRACE_MS = 1200;
 const RETREAT_SYNC_SCROLL_GRACE_MS = 900;
 
 export type ScrollAnimationTelemetry = {
@@ -170,6 +171,8 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       samples = [];
       lastScrollTop = null;
       pinActive = false;
+      // Drop in-flight animation telemetry — layout/host just changed.
+      animation = null;
       clearBurstWatch();
     },
     noteRetreatSync() {
@@ -243,15 +246,19 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       }
 
       const now = performance.now();
-      const deviation = detectScrollPathDeviation({
-        startTop: animation.startTop,
-        targetTop: animation.targetTop,
-        duration: animation.duration,
-        startTime: animation.startTime,
-        actualTop: scrollTop,
-        now,
-      });
-      if (deviation && !inScriptWatch) report(deviation);
+      // Suppress during director scripts AND screen/retreat grace (confirmation→history
+      // click scroll must not FAIL when the host swaps mid-ease).
+      if (!inScriptWatch && !inPassiveScrollGrace()) {
+        const deviation = detectScrollPathDeviation({
+          startTop: animation.startTop,
+          targetTop: animation.targetTop,
+          duration: animation.duration,
+          startTime: animation.startTime,
+          actualTop: scrollTop,
+          now,
+        });
+        if (deviation) report(deviation);
+      }
 
       animation.lastFrameTime = now;
       lastScrollTop = scrollTop;

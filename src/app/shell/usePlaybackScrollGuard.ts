@@ -7,7 +7,10 @@ import {
   directorScriptScrollsViewport,
 } from "@/app/orchestra/journeyBeatDirector";
 
-import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
+import {
+  cancelPlaybackScroll,
+  getPrototypeScrollRoot,
+} from "@/app/scenario/playbackScroll";
 
 import type { ScrollAnomaly } from "@/app/shell/playbackScrollAnomalies";
 
@@ -165,6 +168,8 @@ export function usePlaybackScrollGuard({
       prevAvailabilityOpenRef.current !== availabilityOpen;
 
     if (childChanged || protoTabChanged || availabilityChanged) {
+      // Abort mid-ease camera — host/layout just swapped (confirmation→history).
+      cancelPlaybackScroll("abort");
       monitor.noteScreenChange();
     }
     prevChildIndexRef.current = childIndex;

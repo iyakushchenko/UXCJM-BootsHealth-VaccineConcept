@@ -56,6 +56,8 @@ const TRADITIONAL_BOOKING_BEATS: JourneyDefinition["beats"] = [
     label: "Book - Step 2",
     kind: "tab-landing",
     protoTab: 6,
+    // choose-location may leave avail React flag briefly — hard-close on land.
+    onEnter: "close-availability",
     dwellMs: 2800,
   },
   {

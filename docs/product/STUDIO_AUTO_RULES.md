@@ -42,8 +42,9 @@
 | R10 | **`robo-cursor-native-feedback`** | Robo-cursor = **native hover+press everywhere** (buttons/links/DS secondary/outline/popup close — not chat-only); press = down→dwell→up→click; default graphic after click | `vitest` | `demoCursorInteraction` + `demoCursorPseudoBridge` (top-level selector split + insertRule) | MCP: PDP Check availability bg/border change; Book now; popup close press |
 | R11 | **`fixed-localhost-reuse-tab`** | **One** localhost URL forever; agents must **not** open new ports/windows/tabs | `check:felonies` (vite `port`+`strictPort`) | — | Chrome DevTools MCP: `list_pages` → `select_page` / `navigate_page` on existing; **`new_page` only if zero pages** |
 | R12 | **`batch-ship-push`** | **No push after every tiny fix** + **no await CI/Pages** on routine ships (push → move on; await only HARD-GREEN / release / PO-asked prove) | Process (Pax/Ben) — no static CI gate | — | — |
+| R13 | **`playback-diag`** | CJM type-in / step / retreat regressions checkable from console every night | `vitest` (`playbackDiag`) | `__studioPlaybackDiag` / `__studioAssertTypeIn` | Step-forward + retreat smokes + assertTypeIn |
 
-**Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table for **CI-gated** rules (R1–R11). **R12** is process-only (docs + director); do not invent a fake CI assert.
+**Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table for **CI-gated** rules (R1–R11, R13). **R12** is process-only (docs + director); do not invent a fake CI assert.
 
 ---
 
@@ -183,6 +184,23 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 
 ---
 
+## R13 — PLAYBACK_DIAG (HARD prove contract)
+
+**Fail class:** CJM type-in animation missing / step-forward or retreat silently broken after React Site Pilot / Chat migration — agents claim green without console evidence.
+
+**Contract:**
+
+1. Type-in on Site Pilot home **always** clears + types (never skip because prefilled `HOME_QUERY_DEFAULT` matches demo query).
+2. Chat composer type-in logs the same diag events.
+3. Step-forward / step-back / retreat-sync emit `[PLAYBACK_DIAG]` console events.
+4. Window APIs installed with MCP helpers: `__studioPlaybackDiag`, `__studioPlaybackDiagClear`, `__studioAssertTypeIn` (`__proto*` aliases).
+5. Quinn prove uses assert + step/retreat smokes on **R11** `:5173` reuse tab — see [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md).
+
+**CI:** Vitest `playbackDiag.test.ts`.  
+**Docs:** [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · [PLAYBACK.md](../shell/PLAYBACK.md).
+
+---
+
 ## Adding a rule (Arch / Ben)
 
 1. Reproduce once in [LESSONS_LEARNED.md](./LESSONS_LEARNED.md).  
@@ -195,5 +213,5 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 ## Related
 
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) · [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) · [PARITY_RATCHETS.md](./PARITY_RATCHETS.md)  
-- [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0b · [../shell/RECORDING.md](../shell/RECORDING.md) · [../shell/URL.md](../shell/URL.md)  
+- [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0b · [../shell/RECORDING.md](../shell/RECORDING.md) · [../shell/URL.md](../shell/URL.md) · [../shell/PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md)  
 - Scripts: `scripts/check-agent-felonies.mjs` · `scripts/check-parity-ratchets.mjs` · `scripts/check-theme-brand.mjs`

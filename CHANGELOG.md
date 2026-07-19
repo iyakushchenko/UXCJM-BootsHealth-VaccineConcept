@@ -6,6 +6,8 @@
 - **project:** Chat sticky composer: overlay dock + dynamic --studio-chat-composer-h pad/scroll-pad; transparent scrollbar track; probe chat-composer-scroll-pad
 - **shell:** Thin-track overflow-y:scroll when overflowing (+ chat always-scroll); lock pads --studio-scrollbar-size — no classic scrollbar-gutter white bar; no X jump
 - **project:** Chat: restore Site Pilot bar (Frame337); UXDS .uxds-link bubble links; overflow-sync thin track + left pad so center X stable
+- **shell:** PLAYBACK_DIAG R13: type-in/step/retreat console contract; journey-lock overflow fix
+- **project:** Chat top+composer fade restore; Site Pilot CJM type-in; history visible View Details
 
 ## v0.0.43 - 190726
 - **project:** Traditional pdp-book-now prefers React PDP host (skip make-retired); Chat MCP recipe expanded; Uma §0a PARTIAL composer identity — no Chat Final Pass
