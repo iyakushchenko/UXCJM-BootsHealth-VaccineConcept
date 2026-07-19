@@ -4,6 +4,7 @@
 **Date:** 2026-07-19  
 **Auditor:** Uma (UI/UX) + Quinn (QA) + Ben (BE) — MCP localhost  
 **Prior tip (distrusted):** `e284f67` / prior “PROVEN” audits **INVALID** for these bugs  
+**Ship tip:** `d2ac06c`  
 **Version:** `0.0.8`  
  
 **Checklist:** [../../../product/FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [UMA_FIDELITY_NOTES.md](../../../product/UMA_FIDELITY_NOTES.md)  
