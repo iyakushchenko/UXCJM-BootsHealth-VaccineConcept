@@ -3,7 +3,7 @@
 **Surface / slice:** PLP Vaccinations — PO rage fidelity fix (Advantage bar, heart, Book hover, tile border, Reset Filters) + process harden  
 **Date:** 2026-07-19  
 **Auditor:** Uma (UI/UX) + Quinn (QA) — strict (“Nazi QA”) re-audit  
-**Implementer handoff / audited tip:** _(stamp after commit)_  
+**Implementer handoff / audited tip:** `6b014c9`  
 **Version:** `0.0.6`  
 **Checklist:** [../../../product/FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [UMA_FIDELITY_NOTES.md](../../../product/UMA_FIDELITY_NOTES.md) · [VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [FE_STANDARDS.md](../../../product/FE_STANDARDS.md) · [DS_STRICTNESS.md](../../../product/DS_STRICTNESS.md)  
 **Register:** [../features/PLP_MAKE_PARITY_REGISTER.md](../features/PLP_MAKE_PARITY_REGISTER.md)
