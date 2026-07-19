@@ -102,6 +102,11 @@ import {
 } from "@/projects/boots-pharmacy/data/protoAppointments";
 import type { ProtoProjectShellBridge, ProtoProjectWireApi } from "@/projects/types";
 import { storeNavIndex } from "@/app/shell/protoNavStorage";
+import {
+  isBookStep1ReactMounted,
+  mountBookStep1Screen,
+  unmountBookStep1Screen,
+} from "@/projects/boots-pharmacy/screens/book-step1/mountBookStep1Screen";
 
 
 /**
@@ -1373,9 +1378,55 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     return () => { cancelAnimationFrame(raf); clearTimeout(t); };
   }, [current]);
 
-  // Book – Step 1 (child 7): current breadcrumb crumb → “Book Appointment”
+  // Book Step 1 — React + UXDS pilot (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== 7) {
+      unmountBookStep1Screen();
+      return;
+    }
+
+    const onContinue = () => {
+      if (!chosenLocationRef.current) {
+        openPickLocations("list", { locationRequired: true });
+        return;
+      }
+      setCurrent(5); // Book - Step 2 - Date and Time
+    };
+
+    mountBookStep1Screen({
+      chosenLocation,
+      vaccineName: chosenVaccine.name,
+      recipient: chosenRecipient,
+      includeBoosterDose,
+      onOpenSearch: () => openPickLocations("list"),
+      onOpenNearMe: () => openPickLocations("nearMe"),
+      onChangeLocation: () => openPickLocations("list"),
+      onChangeVaccine: openVaccinePicker,
+      onChangeRecipient: openRecipientPicker,
+      onToggleBooster: () => setIncludeBoosterDose((prev) => !prev),
+      onContinue,
+    });
+
+    // Ensure ProtoFooter remounts after Make footer is hidden.
+    setupProtoFooters({
+      onGoToPlp: () => goRef.current(PROTO_INDEX_PLP),
+    });
+  }, [
+    current,
+    chosenLocation,
+    chosenVaccine.name,
+    chosenRecipient,
+    includeBoosterDose,
+  ]);
+
+  useEffect(() => {
+    return () => unmountBookStep1Screen();
+  }, []);
+
+  // Book – Step 1 (child 7): breadcrumb rewrite — Make path only
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 7) return;
+    if (isBookStep1ReactMounted()) return;
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
@@ -2456,8 +2507,9 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current]);
 
-  // Screen 5 (Book Appointment Step 1, child 7): search + “near me” open Locations popup.
+  // Screen 5 (Book Appointment Step 1, child 7): search + “near me” — Make path only
   useEffect(() => {
+    if (isBookStep1ReactMounted()) return;
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
@@ -2592,11 +2644,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current, goSitePilotHome]);
 
-  // Location states on Book Appointment Step 1 (child 7) — per original CJM:
-  //   chosenLocation === null  → INITIAL: search placeholder + near-me
-  //   chosenLocation set       → SELECTED: clone Guide map UI (child 5 template)
-  // “Change location” reopens the Locations popup (child 6). Child 5 is never nav.
+  // Location states on Book Appointment Step 1 (child 7) — Make path only.
+  // React pilot owns chosen-location UI when mounted.
   useEffect(() => {
+    if (isBookStep1ReactMounted()) return;
     const page5 = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
@@ -3555,6 +3606,8 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
     if (childIndex !== 7 && childIndex !== 4) return;
+    // React Book Step 1 owns Vaccine Change via props.
+    if (childIndex === 7 && isBookStep1ReactMounted()) return;
 
     const screen = document.querySelector(
       `.proto-viewport > div > div:nth-child(${childIndex})`
@@ -3632,6 +3685,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const childIndex = SCREENS[current]?.childIndex;
     if (childIndex !== 7 && childIndex !== 4) return;
+    if (childIndex === 7 && isBookStep1ReactMounted()) return;
 
     const screen = document.querySelector(
       `.proto-viewport > div > div:nth-child(${childIndex})`
@@ -3840,9 +3894,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current]);
 
-  // Book Step 1 — Continue: no location → location picker; else → Step 2
+  // Book Step 1 — Continue (Make path only; React screen wires Continue in-component)
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 7) return;
+    if (isBookStep1ReactMounted()) return;
     const screen = document.querySelector(
       ".proto-viewport > div > div:nth-child(7)"
     ) as HTMLElement | null;
@@ -3936,13 +3991,15 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       cleanups.push(() => checkboxRow.removeEventListener("click", onToggle));
     };
 
-    const page5 = document.querySelector(
-      ".proto-viewport > div > div:nth-child(7)"
-    ) as HTMLElement | null;
-    page5
-      ?.querySelectorAll<HTMLElement>(".proto-chosen-checkbox")
-      .forEach((el) => el.remove());
-    wireBoosterCheckbox(page5);
+    if (!isBookStep1ReactMounted()) {
+      const page5 = document.querySelector(
+        ".proto-viewport > div > div:nth-child(7)"
+      ) as HTMLElement | null;
+      page5
+        ?.querySelectorAll<HTMLElement>(".proto-chosen-checkbox")
+        .forEach((el) => el.remove());
+      wireBoosterCheckbox(page5);
+    }
 
     const pdpScreen = document.querySelector(
       ".proto-viewport > div > div:nth-child(8)"

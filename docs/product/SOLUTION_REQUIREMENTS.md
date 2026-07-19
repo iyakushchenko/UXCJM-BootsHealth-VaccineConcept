@@ -105,7 +105,8 @@ Standing order remains:
 1. ✅ Finish product docs commit hygiene.  
 2. ✅ **Recording UI** (engine).  
 3. ✅ Thin **token bridge + Boots styleguide + interaction kits** (`src/uxds/`, Availability Tool mode-B enrichment).  
-4. **Next:** one Boots **screen** rebuilt React + UXDS (full page pilot).  
+4. ✅ First Boots **screen** rebuilt React + UXDS — Book Step 1 Location ([BOOTS_REACT_SCREEN_PILOT.md](./BOOTS_REACT_SCREEN_PILOT.md)).  
+5. **Next:** second screen (Book Step 2 or PLP) + grow kits by use.  
 
 If PO pastes “build this frame now,” that **overrides** and page pilot jumps the queue.
 
@@ -152,7 +153,7 @@ UXDS file access: **already have**.
 
 - ✅ Recording UI (engine) — still needs page interactivity for useful record  
 - ✅ Thin UXDS FE foundation (tokens, kits, Boots theme) — landed; grow by use  
-- First **full** React + UXDS Boots **screen** pilot when you point at a frame (or mode B from what we have)  
+- ✅ First **full** React + UXDS Boots **screen** pilot — Book Step 1 (mode B)  
 
 **Readiness for record:** page interactivity first ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)); engine REC alone is not enough if the screen cannot be used.
 
