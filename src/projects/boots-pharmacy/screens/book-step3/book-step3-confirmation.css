@@ -142,58 +142,7 @@
   color: #3a3a3a;
 }
 
-.book-step3__progress {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  width: 863px;
-  max-width: 100%;
-  min-height: 40px;
-  overflow: clip;
-  pointer-events: none;
-}
-
-.book-step3__progress-step {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 8px;
-  height: 40px;
-  min-width: 0;
-}
-
-.book-step3__progress-step ol {
-  display: block;
-  flex: 1 1 0;
-  margin: 0;
-  padding: 0;
-  list-style: decimal;
-  width: 100%;
-  min-height: 0;
-  font-size: 16px;
-  line-height: 1.4;
-  font-weight: 400;
-  color: #3a3a3a;
-}
-
-.book-step3__progress-step.is-active ol,
-.book-step3__progress-step[data-proto-step-active="true"] ol {
-  font-weight: 700;
-  color: var(--uxds-text-link-link);
-}
-
-.book-step3__progress-step li {
-  margin-left: 15px;
-}
-
-.book-step3__progress-bar {
-  height: 8px;
-  width: 100%;
-  flex-shrink: 0;
-  background: var(--uxds-surface-accent-soft);
-}
+/* Progress + summary pills → UXDS kits */
 
 .book-step3__card {
   display: flex;
@@ -248,26 +197,6 @@
   white-space: nowrap;
 }
 
-.book-step3__pill-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.book-step3__pill {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 24px;
-  width: 100%;
-  padding: 16px;
-  border-radius: 24px;
-  background: #f5f5f5;
-  box-sizing: border-box;
-}
-
-.book-step3__pill-label,
 .book-step3__meta-label {
   margin: 0;
   flex: 1 1 99px;
@@ -278,7 +207,6 @@
   color: #3a3a3a;
 }
 
-.book-step3__pill-value,
 .book-step3__meta-value {
   margin: 0;
   flex: 1 1 144px;

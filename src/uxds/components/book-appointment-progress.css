@@ -1,0 +1,73 @@
+/* BASE — booking appointment progress (component.book.appointment.progress) */
+
+.uxds-book-progress {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 863px;
+  max-width: 100%;
+  min-height: 40px;
+  overflow: clip;
+}
+
+.uxds-book-progress__step {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+  height: 40px;
+  min-width: 0;
+}
+
+.uxds-book-progress__step ol {
+  display: block;
+  flex: 1 1 0;
+  margin: 0;
+  padding: 0;
+  list-style: decimal;
+  width: 100%;
+  min-height: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #3a3a3a;
+}
+
+.uxds-book-progress__step.is-active ol,
+.uxds-book-progress__step[data-proto-step-active="true"] ol {
+  font-weight: 700;
+  color: var(--uxds-text-link-link);
+}
+
+.uxds-book-progress__step[data-proto-book-step-back="true"] {
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.uxds-book-progress__step li {
+  margin-left: 15px;
+}
+
+.uxds-book-progress__step li span {
+  line-height: 1.4;
+}
+
+.uxds-book-progress__bar {
+  height: 8px;
+  width: 100%;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.uxds-book-progress__step.is-active .uxds-book-progress__bar,
+.uxds-book-progress__step[data-proto-step-active="true"] .uxds-book-progress__bar,
+.uxds-book-progress__step.is-completed .uxds-book-progress__bar,
+.uxds-book-progress__step [data-proto-book-progress="completed"] {
+  background: var(--uxds-surface-accent-soft);
+}

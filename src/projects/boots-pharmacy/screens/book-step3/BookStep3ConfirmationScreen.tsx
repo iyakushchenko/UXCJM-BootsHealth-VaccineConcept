@@ -9,7 +9,13 @@ import {
   computeOrderPricing,
 } from "@/projects/boots-pharmacy/data/protoOrderPricing";
 import { formatBookStep2Heading } from "@/projects/boots-pharmacy/screens/book-step2/bookStep2CalendarData";
-import { ButtonPrimary } from "@/uxds/components";
+import {
+  AppointmentSummaryPill,
+  AppointmentSummaryStack,
+  BookAppointmentProgress,
+  ButtonPrimary,
+  buildBookProgressSteps,
+} from "@/uxds/components";
 import {
   BOOK_STEP3_CUSTOMER_EMAIL,
   BOOK_STEP3_CUSTOMER_NAME,
@@ -36,12 +42,6 @@ export type BookStep3ConfirmationScreenProps = {
   onExploreMore: () => void;
   onOpenAppointments: () => void;
 };
-
-const PROGRESS_STEPS = [
-  { n: 1, label: "Choose Location" },
-  { n: 2, label: "Choose Date and Time" },
-  { n: 3, label: "Confirmation" },
-] as const;
 
 function formatDateTime(slot: ChosenBookingSlot): string {
   return `${formatBookStep2Heading(slot.month, slot.day)}, ${slot.time}`;
@@ -72,15 +72,6 @@ function OkAccent() {
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="book-step3__pill" data-name="Week Schedule">
-      <p className="book-step3__pill-label">{label}</p>
-      <p className="book-step3__pill-value">{value}</p>
-    </div>
-  );
-}
-
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="book-step3__meta-row" data-name="Week Schedule">
@@ -104,45 +95,6 @@ function Price({ amount, large }: { amount: number; large?: boolean }) {
   );
 }
 
-function BookProgress() {
-  return (
-    <div
-      className="book-step3__progress"
-      data-name="component.book.appointment.progress"
-      style={{ pointerEvents: "none" }}
-    >
-      {PROGRESS_STEPS.map((step) => {
-        const isActive = step.n === 3;
-        return (
-          <div
-            key={step.n}
-            className={[
-              "book-step3__progress-step",
-              "is-completed",
-              isActive ? "is-active" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            {...(isActive
-              ? { "data-proto-step-active": "true" as const }
-              : {})}
-          >
-            <ol start={step.n}>
-              <li>
-                <span>{step.label}</span>
-              </li>
-            </ol>
-            <div
-              className="book-step3__progress-bar"
-              data-proto-book-progress="completed"
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 /**
  * React + UXDS pilot for Book — Step 3 (Confirmation).
  * Retires Make HTML for Frame child 3; AIR hook `data-proto-open-appointment`.
@@ -161,6 +113,9 @@ export function BookStep3ConfirmationScreen({
     chosenLocation?.name ||
     "426 StrandLondon, Greater London WC2R 0QE";
   const pricing = computeOrderPricing(includeBoosterDose);
+  const progressSteps = buildBookProgressSteps(3, {
+    confirmationComplete: true,
+  });
 
   return (
     <div
@@ -199,7 +154,10 @@ export function BookStep3ConfirmationScreen({
         <div className="book-step3__shell">
           <div className="book-step3__shell-inner book-step3__main">
             <h1 className="book-step3__title">Book Appointment</h1>
-            <BookProgress />
+            <BookAppointmentProgress
+              steps={progressSteps}
+              interactive={false}
+            />
 
             <section
               className="book-step3__card"
@@ -218,18 +176,21 @@ export function BookStep3ConfirmationScreen({
                 <p>An email confirmation is on its way.</p>
               </div>
 
-              <div className="book-step3__pill-stack">
-                <SummaryRow label="Vaccine" value={vaccineName} />
-                <SummaryRow
+              <AppointmentSummaryStack>
+                <AppointmentSummaryPill label="Vaccine" value={vaccineName} />
+                <AppointmentSummaryPill
                   label="Recipient"
                   value={recipientModeLabel(recipient)}
                 />
-                <SummaryRow label="Location" value={locationValue} />
-                <SummaryRow
+                <AppointmentSummaryPill
+                  label="Location"
+                  value={locationValue}
+                />
+                <AppointmentSummaryPill
                   label="Date and Time"
                   value={formatDateTime(slot)}
                 />
-              </div>
+              </AppointmentSummaryStack>
 
               <div
                 className="book-step3__order"

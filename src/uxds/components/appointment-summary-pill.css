@@ -1,0 +1,90 @@
+/* BASE — appointment summary pill + Change tertiary (Week Schedule row) */
+
+.uxds-summary-pill-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.uxds-summary-pill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 24px;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.uxds-summary-pill__label {
+  margin: 0;
+  flex: 1 1 99px;
+  max-width: 125px;
+  font-size: 13px;
+  line-height: 24px;
+  font-weight: 400;
+  color: #3a3a3a;
+}
+
+.uxds-summary-pill__value {
+  margin: 0;
+  flex: 1 1 144px;
+  font-size: 13px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #3a3a3a;
+}
+
+/* Tertiary Change — icon+text nowrap; label→black, icon→navy on hover */
+.uxds-summary-pill__change {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 360px;
+  background: transparent;
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.36px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.uxds-summary-pill__change span {
+  white-space: nowrap;
+}
+
+.uxds-summary-pill__change svg path {
+  fill: var(--uxds-icon-icon-accent-soft);
+  transition: fill 0.18s ease;
+}
+
+.uxds-summary-pill__change:hover,
+.uxds-summary-pill__change:active {
+  background: transparent;
+  color: #000000;
+}
+
+.uxds-summary-pill__change:hover svg path,
+.uxds-summary-pill__change:active svg path {
+  fill: var(--uxds-text-link-link);
+}
+
+.uxds-summary-pill__change:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.uxds-summary-pill__change:focus-visible {
+  outline: 2px solid var(--uxds-border-border-focus);
+  outline-offset: 2px;
+}

@@ -8,14 +8,14 @@
 
 ## NOW
 
-1. [ ] **Grow UXDS by page** — extract kits only when a second screen needs them; retire LEGACY screen-by-screen ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
+1. [ ] **Fidelity debt (non-blocking)** — Step 1/2/3 hex→tokens harden; dead child-7 / child-4 / child-3 LEGACY CSS cleanup when touching those files; tertiary CTA layer extraction when next shared use forces it (summary Change already in UXDS).
 
 ---
 
 ## NEXT
 
-2. [ ] **Fidelity debt (non-blocking)** — Step 1/2/3 hex→tokens harden; dead child-7 / child-4 / child-3 LEGACY CSS cleanup when touching those files; tertiary CTA layer extraction when next shared use forces it.
-3. [ ] **Versioning habit** — append notes on every user-visible ship (`npm run notes:append`). Release/tag CI stays **later**.
+2. [ ] **Versioning habit** — append notes on every user-visible ship (`npm run notes:append`). Release/tag CI stays **later**.
+3. [ ] **Grow UXDS by page (ongoing)** — extract only when a second screen needs it; no speculative catalog ([COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md)).
 
 ---
 
@@ -29,6 +29,8 @@
 
 ## Done recently (context)
 
+- [x] **UXDS book kits** — `BookAppointmentProgress` + `AppointmentSummaryPill` extracted; Steps 1–3 wired; light audit [FE_AUDIT_UXDS_BOOK_KITS_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_UXDS_BOOK_KITS_2026-07-19.md) **PROVEN**.
+- [x] **Agent testing overlay (PO rage)** — BR corner status + invisible click capture; MCP `stop({ reload: true })`; tip `4f0e12a`.
 - [x] **Docs layout** — Boots product docs + FE audits under `docs/projects/boots-pharmacy/`; engine doctrine stays in `docs/product/`; old paths keep stubs.
 - [x] **createRoot unmount race** — defer `root.unmount()` so book-step hosts never tear down during parent commit (tip `49e6397`).
 - [x] **GitHub Pages verify (Step 3)** — deploy `1a567be` green; Pages `data-proto-react-screen=book-step-3`; Step 2 short time rows left-aligned; Step 1 under agentic-cjm browse stays (no Home/tab1 snap); REC⊗CJM (CJM on → REC disabled); `__protoAgentTestingOverlay` start/log/stop on Pages.

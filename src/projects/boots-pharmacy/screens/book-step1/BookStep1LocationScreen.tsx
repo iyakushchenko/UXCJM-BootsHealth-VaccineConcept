@@ -1,7 +1,13 @@
 import locationsMapChosen from "@/assets/locations-map-chosen.png";
 import imgBodyFill from "@/projects/boots-pharmacy/frame/6d60145a5be9172088977b4513e3f4859a70c66a.png";
 import { NearMeCta } from "@/projects/boots-pharmacy/chrome/NearMeCta";
-import { ButtonPrimary } from "@/uxds/components";
+import {
+  AppointmentSummaryPill,
+  AppointmentSummaryStack,
+  BookAppointmentProgress,
+  ButtonPrimary,
+  buildBookProgressSteps,
+} from "@/uxds/components";
 import {
   Disclosure,
   DisclosureContent,
@@ -37,12 +43,6 @@ export type BookStep1LocationScreenProps = {
   onToggleBooster: () => void;
   onContinue: () => void;
 };
-
-const PROGRESS_STEPS = [
-  { n: 1, label: "Choose Location", active: true },
-  { n: 2, label: "Choose Date and Time", active: false },
-  { n: 3, label: "Confirmation", active: false },
-] as const;
 
 function EditGlyph() {
   return (
@@ -93,65 +93,6 @@ function CheckboxCheckMark() {
   );
 }
 
-function SummaryPill({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: () => void;
-}) {
-  return (
-    <div className="book-step1__pill" data-name="Week Schedule">
-      <p className="book-step1__pill-label">{label}</p>
-      <p className="book-step1__pill-value">{value}</p>
-      <button
-        type="button"
-        className="book-step1__pill-change"
-        data-name="component.input.button"
-        onClick={onChange}
-      >
-        <EditGlyph />
-        <span>Change</span>
-      </button>
-    </div>
-  );
-}
-
-function BookProgress() {
-  return (
-    <div
-      className="book-step1__progress"
-      data-name="component.book.appointment.progress"
-    >
-      {PROGRESS_STEPS.map((step) => (
-        <div
-          key={step.n}
-          className={
-            step.active
-              ? "book-step1__progress-step is-active"
-              : "book-step1__progress-step"
-          }
-          {...(step.active
-            ? { "data-proto-step-active": "true" as const }
-            : {})}
-        >
-          <ol start={step.n}>
-            <li>
-              <span>{step.label}</span>
-            </li>
-          </ol>
-          <div
-            className="book-step1__progress-bar"
-            data-proto-book-progress={step.active ? "current" : "upcoming"}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /**
  * React + UXDS pilot for Book — Step 1 (Location).
  * Retires Make HTML for this screen only; Studio wiring preserved via data-name.
@@ -170,6 +111,7 @@ export function BookStep1LocationScreen({
   onToggleBooster,
   onContinue,
 }: BookStep1LocationScreenProps) {
+  const progressSteps = buildBookProgressSteps(1);
   return (
     <div
       className="book-step1"
@@ -212,24 +154,24 @@ export function BookStep1LocationScreen({
         <div className="book-step1__shell">
           <div className="book-step1__shell-inner book-step1__main">
             <h1 className="book-step1__title">Book Appointment</h1>
-            <BookProgress />
+            <BookAppointmentProgress steps={progressSteps} />
 
             <section
               className="book-step1__card"
               aria-labelledby="book-step1-location"
             >
-            <div className="book-step1__pill-stack">
-              <SummaryPill
+            <AppointmentSummaryStack>
+              <AppointmentSummaryPill
                 label="Vaccine"
                 value={vaccineName}
                 onChange={onChangeVaccine}
               />
-              <SummaryPill
+              <AppointmentSummaryPill
                 label="Recipient"
                 value={recipientModeLabel(recipient)}
                 onChange={onChangeRecipient}
               />
-            </div>
+            </AppointmentSummaryStack>
 
             <h2 id="book-step1-location" className="book-step1__section-title">
               Location
@@ -292,7 +234,7 @@ export function BookStep1LocationScreen({
                     </div>
                     <button
                       type="button"
-                      className="book-step1__pill-change"
+                      className="uxds-summary-pill__change"
                       data-name="component.input.button"
                       data-proto-change-loc="true"
                       onClick={onChangeLocation}

@@ -1,10 +1,15 @@
-import type { KeyboardEvent } from "react";
 import imgBodyFill from "@/projects/boots-pharmacy/frame/6d60145a5be9172088977b4513e3f4859a70c66a.png";
 import { PROTO_TODAY_TOOLTIP } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import type { ChosenBookingSlot } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import type { RecipientMode } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
 import { recipientModeLabel } from "@/projects/boots-pharmacy/popups/RecipientPickerPopup";
-import { ButtonPrimary } from "@/uxds/components";
+import {
+  AppointmentSummaryPill,
+  AppointmentSummaryStack,
+  BookAppointmentProgress,
+  ButtonPrimary,
+  buildBookProgressSteps,
+} from "@/uxds/components";
 import {
   BOOK_STEP2_AFTERNOON,
   BOOK_STEP2_EVENING,
@@ -39,108 +44,6 @@ export type BookStep2DateTimeScreenProps = {
   /** Progress step 1 — back to Book Step 1 (React owns; Make wire gated). */
   onBackToStep1: () => void;
 };
-
-const PROGRESS_STEPS = [
-  { n: 1, label: "Choose Location", state: "completed" as const },
-  { n: 2, label: "Choose Date and Time", state: "active" as const },
-  { n: 3, label: "Confirmation", state: "upcoming" as const },
-];
-
-function EditGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
-      <path
-        fill="var(--uxds-icon-icon-accent-soft)"
-        fillRule="evenodd"
-        d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-9.2 9.2H2.1v-3.4l9.6-9.8Zm.7 1.4L3.5 11.6v1h1l8.9-8.9-1-1Z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
-function SummaryPill({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: () => void;
-}) {
-  return (
-    <div className="book-step2__pill" data-name="Week Schedule">
-      <p className="book-step2__pill-label">{label}</p>
-      <p className="book-step2__pill-value">{value}</p>
-      <button
-        type="button"
-        className="book-step2__pill-change"
-        data-name="component.input.button"
-        onClick={onChange}
-      >
-        <EditGlyph />
-        <span>Change</span>
-      </button>
-    </div>
-  );
-}
-
-function BookProgress({ onBackToStep1 }: { onBackToStep1: () => void }) {
-  return (
-    <div
-      className="book-step2__progress"
-      data-name="component.book.appointment.progress"
-    >
-      {PROGRESS_STEPS.map((step) => {
-        const isActive = step.state === "active";
-        const isCompleted = step.state === "completed";
-        const isStep1Back = step.n === 1 && isCompleted;
-        return (
-          <div
-            key={step.n}
-            className={[
-              "book-step2__progress-step",
-              isActive ? "is-active" : "",
-              isCompleted ? "is-completed" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            {...(isActive
-              ? { "data-proto-step-active": "true" as const }
-              : {})}
-            {...(isStep1Back
-              ? {
-                  "data-proto-book-step-back": "true" as const,
-                  role: "button" as const,
-                  tabIndex: 0,
-                  "aria-label": "Go back to Choose Location",
-                  onClick: onBackToStep1,
-                  onKeyDown: (e: KeyboardEvent) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onBackToStep1();
-                    }
-                  },
-                }
-              : {})}
-          >
-            <ol start={step.n}>
-              <li>
-                <span>{step.label}</span>
-              </li>
-            </ol>
-            <div
-              className="book-step2__progress-bar"
-              data-proto-book-progress={
-                isActive ? "current" : isCompleted ? "completed" : "upcoming"
-              }
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 function MonthCalendar({
   label,
@@ -301,6 +204,9 @@ export function BookStep2DateTimeScreen({
     "Choose a location";
 
   const heading = formatBookStep2Heading(slot.month, slot.day);
+  const progressSteps = buildBookProgressSteps(2, {
+    onBackToStep1,
+  });
 
   return (
     <div
@@ -339,30 +245,30 @@ export function BookStep2DateTimeScreen({
         <div className="book-step2__shell">
           <div className="book-step2__shell-inner book-step2__main">
             <h1 className="book-step2__title">Book Appointment</h1>
-            <BookProgress onBackToStep1={onBackToStep1} />
+            <BookAppointmentProgress steps={progressSteps} />
 
             <section
               className="book-step2__card"
               data-name="component.appointment.summary"
               aria-labelledby="book-step2-datetime"
             >
-              <div className="book-step2__pill-stack">
-                <SummaryPill
+              <AppointmentSummaryStack>
+                <AppointmentSummaryPill
                   label="Vaccine"
                   value={vaccineName}
                   onChange={onChangeVaccine}
                 />
-                <SummaryPill
+                <AppointmentSummaryPill
                   label="Recipient"
                   value={recipientModeLabel(recipient)}
                   onChange={onChangeRecipient}
                 />
-                <SummaryPill
+                <AppointmentSummaryPill
                   label="Location"
                   value={locationValue}
                   onChange={onChangeLocation}
                 />
-              </div>
+              </AppointmentSummaryStack>
 
               <h2
                 id="book-step2-datetime"

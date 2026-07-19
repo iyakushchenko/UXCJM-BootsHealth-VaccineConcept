@@ -10,6 +10,8 @@
 - **project:** Book Step 3 React Confirmation — host book-step-3; FE audit PROVEN localhost; Pages verify next
 - **shell:** Agent testing overlay (__protoAgentTestingOverlay) auto on MCP sanity / __protoRun*
 - **docs:** LESSONS_LEARNED + director/checklist/audit G7–G9 hard gates
+- **shell:** Agent testing overlay: BR status panel + invisible click capture; MCP stop({ reload: true })
+- **uxds:** Extract BookAppointmentProgress + AppointmentSummaryPill; wire Book Steps 1-3; retire triplicated screen CSS
 
 ## v0.0.1 - 190726
 

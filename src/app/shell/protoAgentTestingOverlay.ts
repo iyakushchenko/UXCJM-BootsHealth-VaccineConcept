@@ -235,7 +235,10 @@ export function installAgentTestingOverlayApi(): void {
   if (!shouldContinueFromPersist()) {
     clearPersist();
     // Orphan DOM from a hard refresh / HMR — do not leave it active.
-    if (typeof document !== "undefined") {
+    if (
+      typeof document !== "undefined" &&
+      typeof document.getElementById === "function"
+    ) {
       const orphan = document.getElementById(ROOT_ID);
       if (orphan) {
         orphan.dataset.active = "false";
