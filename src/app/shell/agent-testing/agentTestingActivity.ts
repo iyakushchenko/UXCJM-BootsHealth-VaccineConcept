@@ -1,5 +1,7 @@
 /** Live activity line for the agent-testing overlay (PO mid-flight pulse). */
 
+import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
+
 export type AgentTestingActivityPhase =
   | "idle"
   | "preparing"
@@ -8,14 +10,15 @@ export type AgentTestingActivityPhase =
   | "settling"
   | "paused";
 
-export type AgentTestingSessionOwner = "manual" | "agent";
+/** @deprecated Prefer AgentTestingSessionKind from agentTestingSession */
+export type AgentTestingSessionOwner = AgentTestingSessionKind;
 
 /** Drop noise details that produce “Logging… logger” class copy. */
 function meaningfulDetail(detail?: string): string | undefined {
   const trimmed = detail?.trim();
   if (!trimmed) return undefined;
   if (
-    /^(logger|resumed|paused|capture on|capture off|capture|capture paused|capture resumed|user-message|po-note|overlay start|overlay stop|ready)$/i.test(
+    /^(logger|resumed|paused|capture on|capture off|capture|capture paused|capture resumed|user-message|po-note|overlay start|overlay stop|ready|reply)$/i.test(
       trimmed
     )
   ) {
@@ -36,15 +39,27 @@ function meaningfulDetail(detail?: string): string | undefined {
 export function formatActivityStatus(
   phase: AgentTestingActivityPhase,
   detail?: string,
-  owner: AgentTestingSessionOwner = "agent"
+  kind: AgentTestingSessionKind = "agent"
 ): string {
   const tip = meaningfulDetail(detail);
-  if (owner === "manual") {
+  if (kind === "manual") {
     switch (phase) {
       case "paused":
-        return "Paused — send a message";
+        return "Paused";
       case "running":
-        return tip ? `Capturing — ${tip}` : "Capturing clicks";
+        return tip ? `Capturing — ${tip}` : "Capturing";
+      case "settling":
+        return "Closing…";
+      default:
+        return "Idle";
+    }
+  }
+  if (kind === "observe") {
+    switch (phase) {
+      case "paused":
+        return "Paused";
+      case "running":
+        return tip ? `Observing — ${tip}` : "Observing";
       case "settling":
         return "Closing…";
       default:
@@ -57,11 +72,11 @@ export function formatActivityStatus(
     case "running":
       return tip ? `Agent running: ${tip}` : "Agent running";
     case "waiting":
-      return tip ? `Waiting — ${tip}` : "Waiting…";
+      return tip ? `Waiting — ${tip}` : "Awaiting reply";
     case "settling":
       return "Wrapping up…";
     case "paused":
-      return "Paused — send a message";
+      return "Paused";
     default:
       return "Idle";
   }

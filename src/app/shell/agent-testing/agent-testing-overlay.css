@@ -493,6 +493,16 @@
   color: #8ec5ff !important;
 }
 
+.studio-agent-testing-overlay__log li[data-kind="agent-prompt"] .studio-agent-testing-overlay__log-body {
+  color: #b8a0ff !important;
+  font-weight: 600;
+}
+
+.studio-agent-testing-overlay__log li[data-kind="observe-escalate"] .studio-agent-testing-overlay__log-body {
+  color: #f0b060 !important;
+  font-weight: 600;
+}
+
 .studio-agent-testing-overlay__log li[data-kind="init"] .studio-agent-testing-overlay__log-body {
   color: #9aa3c7 !important;
 }

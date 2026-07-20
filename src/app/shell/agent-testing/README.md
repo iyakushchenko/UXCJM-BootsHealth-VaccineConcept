@@ -2,6 +2,47 @@
 
 **Refs:** [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](../../../../docs/product/STUDIO_AUTO_RULES.md) R15 · [TEAM.md](../../../../docs/product/TEAM.md) · [PAINPOINTS.md](../../../../docs/product/PAINPOINTS.md) PP-10…PP-12
 
+## Session kind SSoT (no mode soup)
+
+**One overlay · one gate · explicit `sessionKind`:** `manual` | `agent` | `observe`  
+Module: [`agentTestingSession.ts`](./agentTestingSession.ts) — do **not** reintroduce `loggerSession` / dual owner flags.
+
+```
+idle ──bug/open──► manual (paused) ──Resume──► manual (capturing)
+  │                    │
+  │                    ├──handoff(oversee)──► agent | observe
+  │                    └──handoff(!oversee) / touch──► wipe → agent
+  │
+  ├──start/touch──► agent (locked)
+  └──open({kind:'observe'})──► observe (capturing, soft bug)
+                                    │
+                                    └──Alarm/escalate──► agent (locked)
+                                                           │
+                                                           └──unlock──► observe | ask proceed?
+```
+
+| Kind | Capture | Dismiss | Bug chip | Status |
+|------|---------|---------|----------|--------|
+| **manual** | Pause freezes clock+capture; opens paused | Close × / bug toggle | **Amber active** | `Paused` / `Capturing` |
+| **agent** | Pause + halt Play; Message = note or reply to agent-prompt | **Locked** | **Disabled** | `Agent running` / `Paused` / `Awaiting reply` |
+| **observe** | Capturing on; user clicks free | Close × (not bug toggle) | **Calm/soft** | `Observing` / `Paused` |
+
+### Handoff helpers
+
+```js
+__studioOpenQaLogger({ kind: "manual" | "observe" | "agent", oversee?: boolean })
+__studioQaHandoff({ oversee: true, kind?: "agent" | "observe" }) // keep ring/log
+__studioQaHandoff({ oversee: false }) // wipe → agent (default on touch)
+__studioAskUserInQa("Does Book now look right?") // log kind agent-prompt
+__studioQaSessionKind() // current kind
+```
+
+- **oversee:false** (default when agent connects): stop session, clear to green field, open as `agent`.
+- **oversee:true**: keep log/ring (incl. user-message); switch to agent or observe.
+- Observe Alarm → `observe-escalate` log + agent lock; `__studioAgentTestingOverlay.unlockObserve()` returns to observe.
+
+Dump includes `sessionKind` (+ `gateMode` alias).
+
 ## Overlay CTAs (PO mid-flight)
 
 | CTA | Meaning | Latch code |
@@ -14,14 +55,12 @@ Primary: `window.__studioAgentTestingTakeover` / `__studioConsumePoSignal()`. Du
 
 ## QA diag gate / free-form logger
 
-- Version-chip **amber BUG** icon **toggles** **MANUAL TEST** (`toggleLogger`) — open or **close + stop capture**. Idle chip muted; active while manual popup open.
-- Agent `touch` / `start` → **AGENT TESTING** — **locked** (no close/reset; header bug disabled).
-- **Pause / Resume** (clock + capture): Pause freezes elapsed; agent also `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Manual opens **paused** at 0:00.
-- While capturing: **page clicks** + **screen nav** appear in the visible log (`Click: …`, `Screen → …`); full detail stays in ring/dump.
-- Log colors: capture muted · system/control **blue** · user message **amber** · alarms/errors warn · init muted accent. Warm-up collapses to one **Initializing…** row.
-- **Session** bar (mode / project / persona / CJM) separate from **Touchpoints** strip.
-- **Close (×)** stops capture (same as bug icon). **Reset** clears log/ring/timer (`Session reset`).
-- **Save Log**: disabled while capturing; enabled when paused / idle / settled.
+- Bug chip: amber = **manual** open only; calm idle; disabled = **agent** lock; soft = **observe**.
+- While capturing: **page clicks** + **screen nav** in visible log; full detail in ring/dump.
+- Log colors: capture muted · system **blue** · user message **amber** · agent-prompt **violet** · observe-escalate **orange** · alarms warn · init muted.
+- Warm-up → one **Initializing…** row.
+- **Session** bar ≠ **Touchpoints** strip.
+- **Close (×)** / **Reset** (manual + observe). **Save Log** gated while capturing.
 
 See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § QA diag gate.
 

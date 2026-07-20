@@ -18,7 +18,9 @@ export type AgentTestingLogKind =
   | "click"
   | "nav"
   | "system"
-  | "init";
+  | "init"
+  | "agent-prompt"
+  | "observe-escalate";
 
 export type AgentTestingLogEntry = {
   atMs: number;

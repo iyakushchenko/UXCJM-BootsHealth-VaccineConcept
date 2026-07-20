@@ -361,14 +361,16 @@ describe("agentTestingOverlay", () => {
     expect(formatPreArmHint(3)).toBe("Preparing - starting in 3s");
     expect(formatActivityStatus("preparing", "2s")).toBe("Getting ready — 2s");
     expect(formatActivityStatus("running")).toBe("Agent running");
-    expect(formatActivityStatus("waiting")).toBe("Waiting…");
+    expect(formatActivityStatus("waiting")).toBe("Awaiting reply");
     expect(formatActivityStatus("settling", "pass")).toBe("Wrapping up…");
-    expect(formatActivityStatus("paused", undefined, "manual")).toBe(
-      "Paused — send a message"
-    );
+    expect(formatActivityStatus("paused", undefined, "manual")).toBe("Paused");
     expect(formatActivityStatus("running", "logger", "manual")).toBe(
-      "Capturing clicks"
+      "Capturing"
     );
+    expect(formatActivityStatus("running", undefined, "observe")).toBe(
+      "Observing"
+    );
+    expect(formatActivityStatus("paused", undefined, "agent")).toBe("Paused");
     expect(DEFAULT_SETTLE_MS).toBeGreaterThanOrEqual(8000);
   });
 

@@ -40,8 +40,28 @@ import {
 import {
   formatActivityStatus,
   type AgentTestingActivityPhase,
-  type AgentTestingSessionOwner,
 } from "@/app/shell/agent-testing/agentTestingActivity";
+import {
+  bugIconClosesSession,
+  canUserDismissSession,
+  escalateObserveToAgent,
+  getSessionKind,
+  hintForSessionKind,
+  isAgentLocked,
+  isAwaitingUserReply,
+  isLoggerStyleSession,
+  resolveHandoffKind,
+  resolveOpenKind,
+  setAwaitingUserReply,
+  setSessionKind,
+  shouldBlockPageClicks,
+  shouldWipeOnHandoff,
+  titleForSessionKind,
+  unlockAgentToObserve,
+  type OpenQaLoggerOptions,
+  type QaHandoffOptions,
+  type AgentTestingSessionKind,
+} from "@/app/shell/agent-testing/agentTestingSession";
 import {
   buildAgentTestingDump,
   consoleSeparator,
@@ -105,7 +125,6 @@ const HISTORY_KEY = "protoAgentTestingOverlayHistory";
 const HISTORY_MAX = 5;
 const HISTORY_LINE_CAP = 12;
 const DEFAULT_TITLE = "AGENT TESTING";
-const MANUAL_TITLE = "MANUAL TEST";
 const PREPARE_TITLE = "AGENT TESTING - preparing...";
 
 export type StopAgentTestingOverlayOptions = {
@@ -139,11 +158,19 @@ type OverlayApi = {
   /** Always clear instantly (Dismiss / stuck recovery). Hard-removes DOM. */
   forceClear: () => void;
   /** Free-form QA logger (version chip) — opens gate, page clicks allowed. */
-  openLogger: () => void;
+  openLogger: (options?: OpenQaLoggerOptions | string) => void;
   /** Soft-close logger (keep DOM, close gate). */
   softClose: () => void;
   /** Bug-icon toggle — open or close+stop manual capture. */
   toggleLogger: () => void;
+  /** Agent/MCP handoff — wipe or oversee. */
+  handoff: (options?: QaHandoffOptions) => void;
+  /** Ask PO a question in the log (agent-prompt). */
+  askUser: (prompt: string) => boolean;
+  /** Observe → agent lock (Alarm path). */
+  escalateObserve: () => boolean;
+  /** Agent → observe unlock after escalate. */
+  unlockObserve: () => boolean;
   /** Clear log/ring/timer for a fresh manual session. */
   resetSession: () => void;
   /** Append PO free-text note into log + dump ring. */
@@ -176,11 +203,7 @@ type HistoryEntry = {
 
 let active = false;
 let settling = false;
-/** Free-form logger from version chip — page clicks allowed, soft dismiss. */
-let loggerSession = false;
-/** Who owns the live panel: manual (user) vs agent mid-flight. */
-let sessionOwner: AgentTestingSessionOwner = "agent";
-/** Manual capture pause — gate stays open; ring/log appends skip (except user-message). */
+/** Pause freezes capture + clock (all kinds). */
 let capturePaused = false;
 let logEntries: AgentTestingLogEntry[] = [];
 let sessionTitle = DEFAULT_TITLE;
@@ -493,7 +516,7 @@ function saveDump(
         outcome: String(t.outcome),
       })),
       poSignal: extras?.poSignal ?? peekPoSignal(),
-      gateMode: sessionOwner,
+      gateMode: getSessionKind(),
       capturePaused,
     });
     pushAgentTestingDump(dump);
@@ -533,6 +556,9 @@ export function ringAgentTestingAlarm(note?: string): void {
       beatId: signal.beat ?? undefined,
     })
   );
+  if (getSessionKind() === "observe") {
+    escalateObserveToAgentSession("alarm");
+  }
   try {
     console.warn(
       "[AGENT_TESTING] sequence / expected-steps mismatch",
@@ -810,16 +836,17 @@ function refreshActivityDom(): void {
   const label = formatActivityStatus(
     activityPhase,
     activityDetail,
-    sessionOwner
+    getSessionKind()
   );
   el.textContent = label;
   el.dataset.phase = activityPhase;
   root.dataset.phase = activityPhase;
+  const kind = getSessionKind();
   const live =
     activityPhase === "preparing" ||
     activityPhase === "running" ||
     activityPhase === "waiting" ||
-    (sessionOwner === "manual" &&
+    ((kind === "manual" || kind === "observe") &&
       activityPhase === "running" &&
       !capturePaused);
   el.dataset.live = live ? "true" : "false";
@@ -893,13 +920,13 @@ function syncCaptureWatch(): void {
 }
 
 function closeManualSession(reason: string): void {
-  if (sessionOwner === "agent" && (active || settling)) return;
+  if (!canUserDismissSession() && (active || settling)) return;
   softCloseAgentTestingLogger(reason);
 }
 
-/** Instant clear of log / ring / timer — fresh manual session, one system line. */
+/** Instant clear of log / ring / timer — fresh session, one system line. */
 function resetManualSession(): void {
-  if (sessionOwner === "agent" && (active || settling)) return;
+  if (!canUserDismissSession() && (active || settling)) return;
   if (!active) return;
   logEntries = [];
   timelineKeys = [];
@@ -959,7 +986,7 @@ function armIdleTimer(): void {
     if (!active || settling) return;
     // Journey/play smokes run minutes — never idle-kill an active MCP session.
     // Free-form QA logger stays open while the diag gate is open.
-    if (getMcpTestSession() || isQaDiagLoggerMode() || loggerSession) {
+    if (getMcpTestSession() || isQaDiagLoggerMode() || isLoggerStyleSession()) {
       armIdleTimer();
       return;
     }
@@ -1094,11 +1121,11 @@ function renderHistory(entries: HistoryEntry[]): void {
   box.appendChild(list);
 }
 
-function setQaSessionLock(mode: AgentTestingSessionOwner | null): void {
+function setQaSessionLock(mode: AgentTestingSessionKind | null): void {
   if (typeof document === "undefined") return;
   const rootEl = document.documentElement;
   if (!rootEl?.dataset) return;
-  if (mode === "agent" || mode === "manual") {
+  if (mode === "agent" || mode === "manual" || mode === "observe") {
     rootEl.dataset.studioQaLock = mode;
   } else {
     delete rootEl.dataset.studioQaLock;
@@ -1110,11 +1137,13 @@ function syncSessionChrome(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
   if (!root) return;
-  root.dataset.owner = sessionOwner;
+  const kind = getSessionKind();
+  root.dataset.owner = kind;
+  root.dataset.kind = kind;
   root.dataset.capture = capturePaused ? "paused" : "on";
-  setQaSessionLock(active || settling ? sessionOwner : null);
+  setQaSessionLock(active || settling ? kind : null);
 
-  const locked = sessionOwner === "agent" && (active || settling);
+  const locked = isAgentLocked() && (active || settling);
   const closeBtn = root.querySelector<HTMLButtonElement>(
     ".studio-agent-testing-overlay__close"
   );
@@ -1145,7 +1174,7 @@ function syncSessionChrome(): void {
     captureBtn.disabled = !show;
     captureBtn.textContent = capturePaused ? "Resume" : "Pause";
     captureBtn.title =
-      sessionOwner === "agent"
+      kind === "agent"
         ? capturePaused
           ? "Resume capture (does not auto-Play — transport stays stopped)"
           : "Pause — freeze clock + halt Play; type Message, then Resume"
@@ -1304,15 +1333,16 @@ function ensureOverlayChrome(root: HTMLElement): void {
 function toggleCapturePause(): void {
   if (!active || settling) return;
   const next = !capturePaused;
-  if (next && sessionOwner === "agent") {
+  if (next && getSessionKind() === "agent") {
     try {
       haltPlaybackForPoSignal("po-pause");
     } catch {
       /* hang-safe */
     }
   }
+  const kind = getSessionKind();
   const label =
-    sessionOwner === "agent"
+    kind === "agent"
       ? next
         ? "Agent paused (Play halted)"
         : "Agent resumed (capture on)"
@@ -1464,7 +1494,9 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
     capturePaused &&
     entry.kind !== "user-message" &&
     entry.kind !== "po-note" &&
-    entry.kind !== "system"
+    entry.kind !== "system" &&
+    entry.kind !== "agent-prompt" &&
+    entry.kind !== "observe-escalate"
   ) {
     return;
   }
@@ -1848,11 +1880,13 @@ export function startAgentTestingOverlay(title?: string): void {
   active = true;
   settling = false;
   settleResult = "neutral";
-  loggerSession = false;
-  sessionOwner = "agent";
+  setSessionKind("agent");
+  setAwaitingUserReply(false);
   capturePaused = false;
   clearEnsureClearTimer();
-  const resolved = resolveAgentTestingOverlayTitle(title);
+  const resolved = resolveAgentTestingOverlayTitle(
+    title ?? titleForSessionKind("agent")
+  );
   sessionTitle = resolved;
   const root = ensureRoot();
   if (root) {
@@ -1863,12 +1897,10 @@ export function startAgentTestingOverlay(title?: string): void {
     root.querySelector(".studio-agent-testing-overlay__history")?.remove();
     syncAgentTestingNavClearance(ROOT_ID, root);
   }
-  setAgentTestingHtmlFlag(true);
+  setAgentTestingHtmlFlag(shouldBlockPageClicks("agent"));
   setTitle(resolved);
   setResultBadge("neutral");
-  setHint(
-    "AGENT TESTING — Pause freezes the clock; Message then Resume."
-  );
+  setHint(hintForSessionKind("agent"));
   setActivityPhase("running");
   openQaDiagGate({ logger: false, reason: "overlay-start" });
   setQaDiagLoggerMode(false);
@@ -2048,34 +2080,18 @@ export function stopAgentTestingOverlay(
 /**
  * Ensure the BR panel is visible while an agent drives the tab.
  * Safe to call on every helper / DevTools evaluate - does not bump nest.
+ * Default handoff: if manual/observe open without oversee → wipe → agent.
  */
 export function touchAgentTestingOverlay(title?: string): void {
-  // Open gate only when actually arming / refreshing an agent session —
-  // not when a read-only status helper was mistakenly wrapped (see helperOverlayArm).
   openQaDiagGate({ reason: "overlay-touch" });
   if (settling) {
     abandonSettleForRearch();
   }
-  // Agent touch takes ownership even if a manual logger was open.
-  if (active && sessionOwner === "manual") {
-    loggerSession = false;
-    sessionOwner = "agent";
-    if (capturePaused) {
-      capturePaused = false;
-      resumeElapsedClock();
-    }
-    setAgentTestingHtmlFlag(true);
-    setHint(
-      "AGENT TESTING — Pause freezes the clock; Message then Resume."
-    );
-    const agentTitle = resolveAgentTestingOverlayTitle(title ?? DEFAULT_TITLE);
-    sessionTitle = agentTitle;
-    setTitle(agentTitle);
-    if (hasDomQuery()) {
-      const root = document.getElementById(ROOT_ID);
-      if (root) delete root.dataset.logger;
-    }
-    syncSessionChrome();
+  const kind = getSessionKind();
+  if (active && (kind === "manual" || kind === "observe")) {
+    // Default connect without explicit oversee = wipe + agent lock.
+    applyQaHandoff({ oversee: false, title });
+    return;
   }
   if (active) {
     noteActivity();
@@ -2084,7 +2100,6 @@ export function touchAgentTestingOverlay(title?: string): void {
       sessionTitle = resolved;
       setTitle(resolved);
     }
-    // Repair invisible DOM (HMR / orphan teardown / z-index race).
     if (!isAgentTestingOverlayDomVisible()) {
       ensureAgentTestingOverlayDomArmed(resolved);
     }
@@ -2094,49 +2109,237 @@ export function touchAgentTestingOverlay(title?: string): void {
   startAgentTestingOverlay(title);
 }
 
-/**
- * Version-chip free-form logger — MANUAL TEST, page clicks allowed, soft dismiss.
- */
-export function openAgentTestingLogger(title?: string): void {
-  if (sessionOwner === "agent" && (active || settling)) {
-    // Agent lock — ignore manual open mid-flight.
-    return;
+function wipeSessionContext(): void {
+  logEntries = [];
+  timelineKeys = [];
+  lastStepAt = 0;
+  try {
+    replaceQaDiagRing([]);
+  } catch {
+    /* ignore */
   }
-  openQaDiagGate({ logger: true, reason: "version-chip" });
-  setQaDiagLoggerMode(true);
-  loggerSession = true;
-  sessionOwner = "manual";
-  // Manual opens paused — clock stays at 0 until Resume (no free-run).
-  capturePaused = true;
+  setAwaitingUserReply(false);
+}
+
+/**
+ * Agent/MCP handoff into an open logger (or start agent).
+ * oversee:false (default) → stop/wipe → green-field agent.
+ * oversee:true → keep log/ring (incl. user-message) → agent|observe.
+ */
+export function handoffQaSession(options?: QaHandoffOptions): void {
+  applyQaHandoff(options);
+}
+
+function applyQaHandoff(options?: QaHandoffOptions): void {
+  const wipe = shouldWipeOnHandoff(options);
+  const target = resolveHandoffKind(options);
   if (settling) abandonSettleForRearch();
+
+  if (wipe) {
+    wipeSessionContext();
+    nest = 1;
+    sessionStartedAt = Date.now();
+    lastStepAt = sessionStartedAt;
+    resetElapsedClock(true);
+  }
+
+  setSessionKind(target, { escalatedFromObserve: false });
+  setAwaitingUserReply(false);
+  capturePaused = false;
+  active = true;
+  settling = false;
+  settleResult = "neutral";
+
   const resolved = resolveAgentTestingOverlayTitle(
-    title?.trim() || MANUAL_TITLE
+    options?.title ?? titleForSessionKind(target)
   );
   sessionTitle = resolved;
   const root = ensureRoot();
   if (root) {
     root.dataset.active = "true";
     root.dataset.settling = "false";
-    root.dataset.logger = "true";
+    delete root.dataset.result;
+    if (isLoggerStyleSession(target)) root.dataset.logger = "true";
+    else delete root.dataset.logger;
+    syncAgentTestingNavClearance(ROOT_ID, root);
+  }
+  openQaDiagGate({
+    logger: isLoggerStyleSession(target),
+    reason: wipe ? "handoff-wipe" : "handoff-oversee",
+  });
+  setQaDiagLoggerMode(isLoggerStyleSession(target));
+  setAgentTestingHtmlFlag(shouldBlockPageClicks(target));
+  setTitle(resolved);
+  setResultBadge("neutral");
+  setHint(hintForSessionKind(target));
+  setActivityPhase("running");
+  if (!wipe) {
+    pushLogEntry({
+      atMs: performance.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: `Handoff → ${target} (oversee)`,
+      outcome: "ok",
+      kind: "system",
+    });
+  } else {
+    pushLogEntry({
+      atMs: performance.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: `Handoff → ${target} (fresh)`,
+      outcome: "ok",
+      kind: "system",
+    });
+  }
+  writePersist(resolved);
+  bindBeforeUnload();
+  bindVisibility();
+  armElapsedTimer();
+  resumeElapsedClock();
+  noteActivity();
+  refreshSitrepDom();
+  refreshActivityDom();
+  renderLog();
+  syncSessionChrome();
+  syncCaptureWatch();
+  softShowOverlayPanel(root);
+}
+
+/** Observe → agent lock (Alarm / anomaly). */
+export function escalateObserveToAgentSession(reason = "escalate"): boolean {
+  if (!escalateObserveToAgent()) return false;
+  capturePaused = false;
+  setAgentTestingHtmlFlag(true);
+  setQaDiagLoggerMode(false);
+  const resolved = titleForSessionKind("agent");
+  sessionTitle = resolved;
+  setTitle(resolved);
+  setHint(hintForSessionKind("agent"));
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `Escalated observe → agent (${reason})`,
+    outcome: "ok",
+    kind: "observe-escalate",
+  });
+  setActivityPhase("running", "escalated");
+  syncSessionChrome();
+  syncCaptureWatch();
+  return true;
+}
+
+/** After agent work on escalated observe — unlock back to observe. */
+export function unlockObserveSession(): boolean {
+  if (!unlockAgentToObserve()) return false;
+  setAgentTestingHtmlFlag(false);
+  setQaDiagLoggerMode(true);
+  const resolved = titleForSessionKind("observe");
+  sessionTitle = resolved;
+  setTitle(resolved);
+  setHint(hintForSessionKind("observe"));
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: "Unlocked → observe",
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase("running");
+  syncSessionChrome();
+  syncCaptureWatch();
+  return true;
+}
+
+/**
+ * Agent asks PO a question in the visible log (Message/Send = reply).
+ */
+export function askUserInQa(prompt: string): boolean {
+  const trimmed = prompt.trim();
+  if (!trimmed) return false;
+  if (!active) {
+    startAgentTestingOverlay();
+  } else if (getSessionKind() === "observe") {
+    escalateObserveToAgentSession("ask-user");
+  } else if (getSessionKind() === "manual") {
+    applyQaHandoff({ oversee: true, kind: "agent" });
+  }
+  if (!isQaDiagGateOpen()) {
+    openQaDiagGate({ logger: false, reason: "agent-prompt" });
+  }
+  const body =
+    trimmed.length > 160 ? `${trimmed.slice(0, 158)}…` : trimmed;
+  setAwaitingUserReply(true);
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `Agent asks: ${body}`,
+    outcome: "ok",
+    kind: "agent-prompt",
+  });
+  setActivityPhase("waiting", "reply");
+  syncSessionChrome();
+  return true;
+}
+
+/**
+ * Open QA logger — kind manual|observe|agent.
+ * Default: manual (paused). observe opens capturing.
+ */
+export function openAgentTestingLogger(
+  options?: OpenQaLoggerOptions | string
+): void {
+  if (isAgentLocked() && (active || settling)) {
+    return;
+  }
+  const opts: OpenQaLoggerOptions =
+    typeof options === "string" ? { title: options } : options ?? {};
+  if (opts.oversee === true && active) {
+    applyQaHandoff({
+      oversee: true,
+      kind: opts.kind === "observe" ? "observe" : "agent",
+      title: opts.title,
+    });
+    return;
+  }
+  const kind = resolveOpenKind(opts);
+  openQaDiagGate({
+    logger: isLoggerStyleSession(kind),
+    reason: "version-chip",
+  });
+  setQaDiagLoggerMode(isLoggerStyleSession(kind));
+  setSessionKind(kind);
+  setAwaitingUserReply(false);
+  // Manual opens paused; observe/agent start capturing.
+  capturePaused = kind === "manual";
+  if (settling) abandonSettleForRearch();
+  const resolved = resolveAgentTestingOverlayTitle(
+    opts.title?.trim() || titleForSessionKind(kind)
+  );
+  sessionTitle = resolved;
+  const root = ensureRoot();
+  if (root) {
+    root.dataset.active = "true";
+    root.dataset.settling = "false";
+    if (isLoggerStyleSession(kind)) root.dataset.logger = "true";
+    else delete root.dataset.logger;
     delete root.dataset.result;
     syncAgentTestingNavClearance(ROOT_ID, root);
   }
   active = true;
   settling = false;
   nest = Math.max(nest, 1);
-  setAgentTestingHtmlFlag(false); // do not block page
+  setAgentTestingHtmlFlag(shouldBlockPageClicks(kind));
   setTitle(resolved);
   setResultBadge("neutral");
-  setHint("MANUAL TEST — Resume to capture; Pause freezes the clock.");
+  setHint(hintForSessionKind(kind));
   if (!sessionStartedAt) {
     sessionStartedAt = Date.now();
     lastStepAt = sessionStartedAt;
   }
-  resetElapsedClock(false);
-  setActivityPhase("paused");
+  resetElapsedClock(!capturePaused);
+  setActivityPhase(capturePaused ? "paused" : "running");
   syncSessionChrome();
   writePersist(resolved);
-  armElapsedTimer(); // sitrep refresh; clock frozen while paused
+  armElapsedTimer();
   noteActivity();
   refreshSitrepDom();
   refreshActivityDom();
@@ -2147,14 +2350,13 @@ export function openAgentTestingLogger(title?: string): void {
 
 /** Soft dismiss — close gate, stop capture, hide panel, keep DOM (no remount flash). */
 export function softCloseAgentTestingLogger(reason = "soft-close"): void {
-  if (sessionOwner === "agent" && (active || settling)) {
-    // Agent lock — user cannot soft-dismiss.
+  if (!canUserDismissSession() && (active || settling)) {
     return;
   }
   unbindCaptureWatch();
   closeQaDiagGate({ reason });
-  loggerSession = false;
-  sessionOwner = "manual";
+  setSessionKind("manual");
+  setAwaitingUserReply(false);
   capturePaused = false;
   setQaDiagLoggerMode(false);
   nest = 0;
@@ -2178,41 +2380,50 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   if (root) {
     delete root.dataset.logger;
     delete root.dataset.owner;
+    delete root.dataset.kind;
   }
   setActivityPhase("idle");
   syncSessionChrome();
 }
 
 /**
- * Bug-icon toggle: open MANUAL TEST, or close + stop capture when already open.
- * Agent lock unchanged (no-op while agent owns the session).
+ * Bug-icon toggle: open MANUAL TEST, or close+stop when manual popup open.
+ * Observe: calm chip — does not toggle-close (use Close ×). Agent lock: no-op.
  */
 export function toggleAgentTestingLogger(): void {
-  if (sessionOwner === "agent" && (active || settling)) {
+  if (isAgentLocked() && (active || settling)) {
     return;
   }
-  if (active && sessionOwner === "manual") {
+  if (active && bugIconClosesSession()) {
     softCloseAgentTestingLogger("bug-icon");
     return;
   }
-  openAgentTestingLogger();
+  if (active && getSessionKind() === "observe") {
+    // Soft active observe — bug stays calm; do not wipe via toggle.
+    return;
+  }
+  openAgentTestingLogger({ kind: "manual" });
 }
 
 /**
  * User free-text message → log + timeline + ring.
- * Kind `user-message` — treat with grain of salt (manual note).
+ * Manual = note only; agent awaiting reply = PO answer to agent-prompt.
  */
 export function appendAgentTestingUserMessage(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;
   if (!active) {
-    openAgentTestingLogger();
+    openAgentTestingLogger({ kind: "manual" });
   } else if (!isQaDiagGateOpen()) {
-    openQaDiagGate({ logger: sessionOwner === "manual", reason: "user-message" });
+    openQaDiagGate({
+      logger: isLoggerStyleSession(),
+      reason: "user-message",
+    });
   }
   const body =
     trimmed.length > 120 ? `${trimmed.slice(0, 118)}…` : trimmed;
-  const label = `Message: ${body}`;
+  const awaiting = isAwaitingUserReply();
+  const label = awaiting ? `Reply: ${body}` : `Message: ${body}`;
   pushLogEntry({
     atMs: performance.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -2221,8 +2432,14 @@ export function appendAgentTestingUserMessage(text: string): boolean {
     kind: "user-message",
   });
   markAgentTestingTimeline(`user-message:${Date.now()}`, "ok");
-  if (!capturePaused) {
-    setActivityPhase("running", "user-message");
+  if (awaiting) {
+    setAwaitingUserReply(false);
+    setActivityPhase("running", "reply");
+  } else if (!capturePaused) {
+    setActivityPhase(
+      getSessionKind() === "agent" ? "running" : "running",
+      "user-message"
+    );
   }
   return true;
 }
@@ -2284,8 +2501,8 @@ export function forceClearAgentTestingOverlay(): void {
     settling = false;
     settleReload = false;
     settleResult = "neutral";
-    loggerSession = false;
-    sessionOwner = "agent";
+    setSessionKind("agent");
+    setAwaitingUserReply(false);
     capturePaused = false;
     elapsedAccumMs = 0;
     elapsedRunStartedAt = 0;
@@ -2395,6 +2612,10 @@ export function installAgentTestingOverlayApi(): void {
     openLogger: openAgentTestingLogger,
     softClose: softCloseAgentTestingLogger,
     toggleLogger: toggleAgentTestingLogger,
+    handoff: handoffQaSession,
+    askUser: askUserInQa,
+    escalateObserve: escalateObserveToAgentSession,
+    unlockObserve: unlockObserveSession,
     resetSession: resetManualSession,
     appendPoNote: appendAgentTestingUserMessage,
     log: logAgentTestingOverlay,
@@ -2416,16 +2637,21 @@ export function installAgentTestingOverlayApi(): void {
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
-    window.__studioOpenQaLogger = () => openAgentTestingLogger();
+    window.__studioOpenQaLogger = (opts?: OpenQaLoggerOptions | string) =>
+      openAgentTestingLogger(opts);
     window.__studioToggleQaLogger = () => toggleAgentTestingLogger();
+    window.__studioQaHandoff = (opts?: QaHandoffOptions) =>
+      handoffQaSession(opts);
+    window.__studioAskUserInQa = (prompt: string) => askUserInQa(String(prompt ?? ""));
     window.__studioAppendPoNote = (text: string) =>
       appendAgentTestingUserMessage(String(text ?? ""));
     window.__studioQaDiagGateOpen = () => isQaDiagGateOpen();
+    window.__studioQaSessionKind = () => getSessionKind();
   }
   // Quiet restore — no remount thrash; show panel if gate was open.
   if (hydrated.open) {
     restoreLoggerFromRing(hydrated.ring);
-    openAgentTestingLogger(MANUAL_TITLE);
+    openAgentTestingLogger({ kind: "manual" });
   }
 }
 
@@ -2443,11 +2669,13 @@ function restoreLoggerFromRing(events: QaDiagRingEvent[]): void {
       kind:
         e.kind === "user-message" || e.kind === "po-note"
           ? "user-message"
-          : e.kind === "click" ||
+            : e.kind === "click" ||
               e.kind === "nav" ||
               e.kind === "system" ||
               e.kind === "init" ||
-              e.kind === "alarm"
+              e.kind === "alarm" ||
+              e.kind === "agent-prompt" ||
+              e.kind === "observe-escalate"
             ? (e.kind as AgentTestingLogEntry["kind"])
             : e.kind === "capture-pause" || e.kind === "capture-start"
               ? "system"
@@ -2492,8 +2720,11 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__protoDownloadAgentTestingDump;
     delete window.__studioOpenQaLogger;
     delete window.__studioToggleQaLogger;
+    delete window.__studioQaHandoff;
+    delete window.__studioAskUserInQa;
     delete window.__studioAppendPoNote;
     delete window.__studioQaDiagGateOpen;
+    delete window.__studioQaSessionKind;
   }
 }
 
@@ -2503,9 +2734,13 @@ declare global {
     __studioAgentTestingOverlay?: OverlayApi;
     __studioDownloadAgentTestingDump?: () => boolean;
     __protoDownloadAgentTestingDump?: () => boolean;
-    __studioOpenQaLogger?: () => void;
+    __studioOpenQaLogger?: (opts?: OpenQaLoggerOptions | string) => void;
     __studioToggleQaLogger?: () => void;
+    __studioQaHandoff?: (opts?: QaHandoffOptions) => void;
+    __studioAskUserInQa?: (prompt: string) => boolean;
     __studioAppendPoNote?: (text: string) => boolean;
+    __studioQaDiagGateOpen?: () => boolean;
+    __studioQaSessionKind?: () => AgentTestingSessionKind;
     __studioQaDiagGateOpen?: () => boolean;
   }
 }

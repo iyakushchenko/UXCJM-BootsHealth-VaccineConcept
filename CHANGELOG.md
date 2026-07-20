@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.73 - 200726
+- **shell:** QA overlay sessionKind SSoT (manual|agent|observe) — handoff wipe/oversee, agent-prompt, observe escalate; status Paused/Capturing
+
 ## v0.0.72 - 200726
 - **shell:** QA popup — visible click/nav log; color-coded kinds; Initializing… group; Close (X) + Reset; bug-icon closes + stops capture
 

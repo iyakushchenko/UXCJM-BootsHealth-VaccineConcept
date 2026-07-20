@@ -1301,6 +1301,18 @@ html[data-studio-qa-lock="agent"] .studio-nav-version__qa {
   color: rgba(140, 146, 156, 0.65);
 }
 
+/* Observe open — calm/soft (not full amber active) */
+html[data-studio-qa-lock="observe"] .studio-nav-version__qa {
+  border-color: rgba(140, 170, 210, 0.4);
+  background: rgba(24, 32, 44, 0.55);
+  color: #a8c4e0;
+}
+
+html[data-studio-qa-lock="observe"] .studio-nav-version__qa:hover {
+  color: #c8dcf0;
+  border-color: rgba(140, 170, 210, 0.55);
+}
+
 .studio-nav-version__bug-icon,
 .studio-nav-version__qa-icon {
   display: block;

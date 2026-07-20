@@ -33,6 +33,10 @@ export {
   openAgentTestingLogger,
   softCloseAgentTestingLogger,
   toggleAgentTestingLogger,
+  handoffQaSession,
+  askUserInQa,
+  escalateObserveToAgentSession,
+  unlockObserveSession,
   appendAgentTestingPoNote,
   appendAgentTestingUserMessage,
   scheduleAgentTestingOverlayEnsureClear,
@@ -92,3 +96,13 @@ export {
 } from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 
 export { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
+
+export {
+  getSessionKind,
+  setSessionKind,
+  isAgentLocked,
+  canUserDismissSession,
+  type AgentTestingSessionKind,
+  type OpenQaLoggerOptions,
+  type QaHandoffOptions,
+} from "@/app/shell/agent-testing/agentTestingSession";

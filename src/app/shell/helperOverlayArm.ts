@@ -41,6 +41,9 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "QaDiagGateOpen",
   "OpenQaLogger",
   "ToggleQaLogger",
+  "QaHandoff",
+  "AskUserInQa",
+  "QaSessionKind",
   "AppendPoNote",
   "DownloadAgentTestingDump",
   // Cleanup / abort manage overlay themselves — do not re-arm mid-reset.

@@ -31,7 +31,9 @@ export type AgentTestingDumpReason =
   | "scroll"
   | "manual";
 
-export type AgentTestingDumpGateMode = "manual" | "agent";
+import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
+
+export type AgentTestingDumpGateMode = AgentTestingSessionKind;
 
 export type AgentTestingDump = {
   atIso: string;
@@ -39,8 +41,10 @@ export type AgentTestingDump = {
   /** Explicit machine code — Alarm = ALARM_SEQUENCE_MISMATCH. */
   code?: string;
   title: string;
-  /** Who opened the overlay — manual (version chip) vs agent mid-flight. */
+  /** Who owns the overlay — manual | agent | observe. */
   gateMode: AgentTestingDumpGateMode;
+  /** Alias of gateMode — preferred field name for agents. */
+  sessionKind: AgentTestingSessionKind;
   capturePaused?: boolean;
   elapsedMs: number;
   sitrepLine?: string;
@@ -229,12 +233,15 @@ export function buildAgentTestingDump(options: {
 
   const sitrep = readAgentTestingSitrep();
 
+  const gateMode = options.gateMode ?? "agent";
+
   return {
     atIso: new Date().toISOString(),
     reason: options.reason,
     code: options.code ?? reasonDefaultCode(options.reason),
     title: options.title,
-    gateMode: options.gateMode ?? "agent",
+    gateMode,
+    sessionKind: gateMode,
     capturePaused: options.capturePaused ?? false,
     elapsedMs: options.elapsedMs,
     sitrepLine: options.sitrepLine ?? sitrep.line,
