@@ -16,10 +16,10 @@ Primary: `window.__studioAgentTestingTakeover` / `__studioConsumePoSignal()`. Du
 
 - Version-chip **amber BUG** icon opens **MANUAL TEST** (`openLogger`) and sets **`qaDiagGateOpen`**. Idle chip is muted; active only while manual popup is open.
 - Agent `touch` / `start` → **AGENT TESTING** — **locked** (no dismiss; header bug disabled).
-- **Pause / Resume** (manual + agent): pauses ring appends; agent Pause also `haltPlaybackForPoSignal("po-pause")`. **Explicit Resume** — does not auto-Play. Flow: Pause → Message/Send → Resume.
-- **Save Log** (was Dump): disabled while capture is in progress; enabled when paused, settled, or idle.
-- Message field under the log → `user-message` (treat with grain of salt).
-- Dump is lean-rich compact JSON (`gateMode`, mode/screen/beat, capped events).
+- **Pause / Resume** (clock + capture): Pause freezes elapsed; agent also `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Manual opens **paused** at 0:00.
+- **Session** bar (mode / project / persona / CJM) separate from **Touchpoints** strip.
+- Status copy is short and meaningful (no “Logging… logger”).
+- **Save Log**: disabled while capturing; enabled when paused / idle / settled.
 
 See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § QA diag gate.
 

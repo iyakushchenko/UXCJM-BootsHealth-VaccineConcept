@@ -62,8 +62,10 @@ Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only 
 |--------|-----------|
 | Version-chip **BUG** / `__studioOpenQaLogger()` | **Opens** gate as **MANUAL TEST** (muted chip → active amber while open) |
 | Agent overlay `touch` / `start` | **Opens** gate as **AGENT TESTING** — **locked** (no dismiss; header bug disabled) |
-| **Pause / Resume** (manual or agent) | Gate stays open; ring appends stop. Agent Pause → `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Pause → Message → Resume. |
-| **Save Log** | Enabled when paused / idle / settled; **disabled** while capture is in progress |
+| **Pause / Resume** (clock row) | Freezes elapsed + capture. Agent → `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Manual opens **paused** at 0:00. |
+| **Session** bar | Mode · Project · Persona · CJM (separate from touchpoints) |
+| **Touchpoints** bar | Journey/touchpoint progress chips only |
+| **Save Log** | Enabled when paused / idle / settled; **disabled** while capturing |
 | Manual **Dismiss** / soft-close | **Closes** gate |
 | Agent `forceClear` / settle teardown | **Closes** gate + unlocks header |
 | Refresh | Gate + capped ring (~300) restored as MANUAL TEST if gate was open |

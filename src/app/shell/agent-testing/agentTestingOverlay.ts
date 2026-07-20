@@ -189,6 +189,10 @@ let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 let elapsedTimer: ReturnType<typeof setInterval> | null = null;
 let sessionStartedAt = 0;
 let lastStepAt = 0;
+/** Accumulated elapsed while running (excludes paused gaps). */
+let elapsedAccumMs = 0;
+/** Wall clock when current run segment started; 0 while paused / stopped. */
+let elapsedRunStartedAt = 0;
 let beforeUnloadBound = false;
 let visibilityBound = false;
 let reloadPending = false;
@@ -315,15 +319,45 @@ function clearElapsedTimer(): void {
   }
 }
 
+function getElapsedMs(): number {
+  if (elapsedRunStartedAt > 0 && !capturePaused) {
+    return elapsedAccumMs + Math.max(0, Date.now() - elapsedRunStartedAt);
+  }
+  return elapsedAccumMs;
+}
+
+function resetElapsedClock(running: boolean): void {
+  elapsedAccumMs = 0;
+  elapsedRunStartedAt = running ? Date.now() : 0;
+  setElapsedLabel(formatElapsed(0));
+}
+
+function pauseElapsedClock(): void {
+  if (elapsedRunStartedAt > 0) {
+    elapsedAccumMs += Math.max(0, Date.now() - elapsedRunStartedAt);
+    elapsedRunStartedAt = 0;
+  }
+  setElapsedLabel(formatElapsed(elapsedAccumMs));
+}
+
+function resumeElapsedClock(): void {
+  if (elapsedRunStartedAt === 0) {
+    elapsedRunStartedAt = Date.now();
+  }
+  setElapsedLabel(formatElapsed(getElapsedMs()));
+}
+
 function armElapsedTimer(): void {
   clearElapsedTimer();
   if (!active || settling) return;
   const tick = () => {
     if (!active || settling) return;
-    setElapsedLabel(formatElapsed(Date.now() - sessionStartedAt));
+    setElapsedLabel(formatElapsed(getElapsedMs()));
     refreshSitrepDom();
-    maybeAutoFlagCursorIssue();
-    maybeAutoFlagScrollIssue();
+    if (!capturePaused) {
+      maybeAutoFlagCursorIssue();
+      maybeAutoFlagScrollIssue();
+    }
   };
   tick();
   elapsedTimer = setInterval(tick, ELAPSED_TICK_MS);
@@ -341,24 +375,34 @@ function refreshSitrepDom(): void {
   const sitrep = readAgentTestingSitrep();
   lastSitrepLine = sitrep.line;
   if (!hasDomQuery()) return;
-  const el = document.querySelector<HTMLElement>(
+  const sessionEl = document.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__session-line"
+  );
+  if (sessionEl) sessionEl.textContent = sitrep.sessionLine;
+  // Compat: legacy sitrep node if present
+  const legacy = document.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__sitrep"
   );
-  if (el) el.textContent = sitrep.line;
+  if (legacy && !sessionEl) legacy.textContent = sitrep.sessionLine;
 }
 
 function renderTimeline(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
+  const wrap = root?.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__timeline-wrap"
+  );
   const strip = root?.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__timeline"
   );
   if (!strip) return;
   strip.replaceChildren();
   if (timelineKeys.length === 0) {
-    strip.hidden = true;
+    if (wrap) wrap.hidden = true;
+    else strip.hidden = true;
     return;
   }
+  if (wrap) wrap.hidden = false;
   strip.hidden = false;
   for (const item of timelineKeys) {
     const chip = document.createElement("span");
@@ -433,7 +477,7 @@ function saveDump(
     const dump = buildAgentTestingDump({
       reason,
       title: sessionTitle,
-      elapsedMs: sessionStartedAt ? Date.now() - sessionStartedAt : 0,
+      elapsedMs: getElapsedMs(),
       sitrepLine: lastSitrepLine,
       log: logEntries,
       code: extras?.code,
@@ -1010,18 +1054,27 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__capture-toggle"
   );
   if (captureBtn) {
-    const show = (active || settling) && !settling;
+    const show = active && !settling;
     captureBtn.hidden = !show;
     captureBtn.disabled = !show;
     captureBtn.textContent = capturePaused ? "Resume" : "Pause";
     captureBtn.title =
       sessionOwner === "agent"
         ? capturePaused
-          ? "Resume agent capture (does not auto-Play — transport stays stopped)"
-          : "Pause agent work — halt Play; type Message, then Resume"
+          ? "Resume capture (does not auto-Play — transport stays stopped)"
+          : "Pause — freeze clock + halt Play; type Message, then Resume"
         : capturePaused
-          ? "Resume capture (append to log/ring)"
-          : "Pause capture (gate stays open; ring appends stop)";
+          ? "Resume capture + clock"
+          : "Pause — freeze clock + stop capture";
+  }
+
+  const elapsed = root.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__elapsed"
+  );
+  if (elapsed) {
+    elapsed.dataset.live =
+      active && !settling && !capturePaused ? "true" : "false";
+    elapsed.title = capturePaused ? "Elapsed (paused)" : "Elapsed";
   }
 
   const saveBtn = root.querySelector<HTMLButtonElement>(
@@ -1061,6 +1114,69 @@ function ensureMessageUnderLog(root: HTMLElement): void {
   if (submit) submit.textContent = "Send";
 }
 
+/** Migrate older overlay DOM: Pause beside clock; Session + Touchpoints bars. */
+function ensureOverlayChrome(root: HTMLElement): void {
+  const panel = root.querySelector(".studio-agent-testing-overlay__panel");
+  const header = root.querySelector(".studio-agent-testing-overlay__header");
+  if (!panel || !header) return;
+
+  let clock = header.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__clock"
+  );
+  const elapsed = header.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__elapsed"
+  );
+  const pauseBtn = root.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__capture-toggle"
+  );
+  if (elapsed && !clock) {
+    clock = document.createElement("div");
+    clock.className = "studio-agent-testing-overlay__clock";
+    elapsed.replaceWith(clock);
+    clock.appendChild(elapsed);
+  }
+  if (clock && pauseBtn && pauseBtn.parentElement !== clock) {
+    clock.appendChild(pauseBtn);
+  }
+
+  if (!panel.querySelector(".studio-agent-testing-overlay__session")) {
+    const session = document.createElement("div");
+    session.className = "studio-agent-testing-overlay__session";
+    session.setAttribute("aria-label", "Session context");
+    session.innerHTML = `
+      <p class="studio-agent-testing-overlay__bar-title">Session</p>
+      <p class="studio-agent-testing-overlay__session-line">Session — waiting for studio state</p>
+    `;
+    const activity = panel.querySelector(
+      ".studio-agent-testing-overlay__activity"
+    );
+    if (activity?.nextSibling) {
+      panel.insertBefore(session, activity.nextSibling);
+    } else {
+      panel.appendChild(session);
+    }
+    panel.querySelector(".studio-agent-testing-overlay__sitrep")?.remove();
+  }
+
+  let wrap = panel.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__timeline-wrap"
+  );
+  const timeline = panel.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__timeline"
+  );
+  if (timeline && !wrap) {
+    wrap = document.createElement("div");
+    wrap.className = "studio-agent-testing-overlay__timeline-wrap";
+    wrap.hidden = timeline.hidden;
+    const title = document.createElement("p");
+    title.className = "studio-agent-testing-overlay__bar-title";
+    title.textContent = "Touchpoints";
+    timeline.replaceWith(wrap);
+    wrap.appendChild(title);
+    wrap.appendChild(timeline);
+  }
+}
+
 /**
  * Pause / Resume capture.
  * Manual: stops ring appends (gate stays open).
@@ -1086,6 +1202,7 @@ function toggleCapturePause(): void {
         : "Capture resumed";
   // Status row must land even when pausing (gate would otherwise drop it).
   if (next) {
+    pauseElapsedClock();
     pushLogEntry({
       atMs: performance.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -1096,6 +1213,7 @@ function toggleCapturePause(): void {
     capturePaused = true;
   } else {
     capturePaused = false;
+    resumeElapsedClock();
     pushLogEntry({
       atMs: performance.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -1104,10 +1222,8 @@ function toggleCapturePause(): void {
       kind: "info",
     });
   }
-  setActivityPhase(
-    capturePaused ? "paused" : "running",
-    capturePaused ? "paused" : "resumed"
-  );
+  armElapsedTimer();
+  setActivityPhase(capturePaused ? "paused" : "running");
   appendQaDiagRing({
     kind: capturePaused ? "capture-pause" : "capture-start",
     text: capturePaused ? "paused" : "resumed",
@@ -1129,6 +1245,7 @@ function ensureRoot(): HTMLElement | null {
   if (root) {
     syncAgentTestingNavClearance(ROOT_ID, root);
     ensureMessageUnderLog(root);
+    ensureOverlayChrome(root);
     return root;
   }
   root = document.createElement("div");
@@ -1141,23 +1258,31 @@ function ensureRoot(): HTMLElement | null {
       <div class="studio-agent-testing-overlay__header">
         <p class="studio-agent-testing-overlay__badge" hidden></p>
         <p class="studio-agent-testing-overlay__title">${DEFAULT_TITLE}</p>
-        <span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span>
+        <div class="studio-agent-testing-overlay__clock">
+          <span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span>
+          <button type="button" class="studio-agent-testing-overlay__capture-toggle" hidden title="Pause or resume">Pause</button>
+        </div>
         <button type="button" class="studio-agent-testing-overlay__dismiss">Dismiss</button>
       </div>
-      <p class="studio-agent-testing-overlay__hint">Page visible - clicks blocked. Mid-flight QA below.</p>
+      <p class="studio-agent-testing-overlay__hint">Page visible — mid-flight QA below.</p>
       <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
-      <p class="studio-agent-testing-overlay__sitrep">sitrep — waiting for control panel</p>
-      <div class="studio-agent-testing-overlay__timeline" hidden aria-label="Script timeline"></div>
+      <div class="studio-agent-testing-overlay__session" aria-label="Session context">
+        <p class="studio-agent-testing-overlay__bar-title">Session</p>
+        <p class="studio-agent-testing-overlay__session-line">Session — waiting for studio state</p>
+      </div>
+      <div class="studio-agent-testing-overlay__timeline-wrap" hidden>
+        <p class="studio-agent-testing-overlay__bar-title">Touchpoints</p>
+        <div class="studio-agent-testing-overlay__timeline" aria-label="Touchpoint progress"></div>
+      </div>
       <div class="studio-agent-testing-overlay__actions">
-        <button type="button" class="studio-agent-testing-overlay__capture-toggle" hidden title="Pause or resume capture">Pause</button>
         <button type="button" class="studio-agent-testing-overlay__alarm" title="Sequence / expected-steps mismatch — latches live PO signal for the running agent">Alarm</button>
         <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird — latches live PO signal">Cursor</button>
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
-        <button type="button" class="studio-agent-testing-overlay__dump" title="Download lean dump JSON">Save Log</button>
+        <button type="button" class="studio-agent-testing-overlay__dump" title="Download lean dump JSON when paused or idle">Save Log</button>
       </div>
-      <ol class="studio-agent-testing-overlay__log"></ol>
+      <ol class="studio-agent-testing-overlay__log" data-empty="true"></ol>
       <form class="studio-agent-testing-overlay__note" autocomplete="off">
-        <input type="text" class="studio-agent-testing-overlay__note-input" name="user-message" maxlength="280" placeholder="Message — Enter to send" aria-label="Message" />
+        <input type="text" class="studio-agent-testing-overlay__note-input" name="user-message" maxlength="280" placeholder="Message" aria-label="Message" />
         <button type="submit" class="studio-agent-testing-overlay__note-submit">Send</button>
       </form>
     </div>
@@ -1288,6 +1413,15 @@ function renderLog(): void {
   );
   if (!list) return;
   list.replaceChildren();
+  if (logEntries.length === 0) {
+    list.dataset.empty = "true";
+    const empty = document.createElement("li");
+    empty.className = "studio-agent-testing-overlay__log-empty";
+    empty.textContent = "No events yet";
+    list.appendChild(empty);
+    return;
+  }
+  delete list.dataset.empty;
   for (const entry of logEntries) {
     const li = document.createElement("li");
     li.dataset.outcome = entry.outcome;
@@ -1299,10 +1433,10 @@ function renderLog(): void {
     body.className = "studio-agent-testing-overlay__log-body";
     const count =
       entry.count && entry.count > 1 ? ` ×${entry.count}` : "";
-    const dur = entry.durationMs != null && entry.durationMs > 0
-      ? ` (${Math.round(entry.durationMs)}ms)`
-      : "";
-    // Prefer formatLogRowText body without duplicating time
+    const dur =
+      entry.durationMs != null && entry.durationMs > 0
+        ? ` (${Math.round(entry.durationMs)}ms)`
+        : "";
     const full = formatLogRowText(entry);
     const withoutTime = full.startsWith(entry.timeLabel)
       ? full.slice(entry.timeLabel.length).trimStart()
@@ -1538,7 +1672,8 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   setResultBadge(settleResult);
   setActivityPhase("settling", settleResult === "neutral" ? undefined : settleResult);
   clearElapsedTimer();
-  setElapsedLabel(formatElapsed(Date.now() - sessionStartedAt));
+  pauseElapsedClock();
+  setElapsedLabel(formatElapsed(getElapsedMs()));
   refreshSitrepDom();
   if (settleResult === "fail") {
     saveDump("fail");
@@ -1597,7 +1732,7 @@ export function startAgentTestingOverlay(title?: string): void {
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(
-    "AGENT TESTING — page clicks blocked. Pause to message; Save Log when idle/paused."
+    "AGENT TESTING — Pause freezes the clock; Message then Resume."
   );
   setActivityPhase("running");
   openQaDiagGate({ logger: false, reason: "overlay-start" });
@@ -1614,9 +1749,12 @@ export function startAgentTestingOverlay(title?: string): void {
     lastAutoScrollFlagKey = "";
     sessionStartedAt = Date.now();
     lastStepAt = sessionStartedAt;
+    resetElapsedClock(true);
     renderTimeline();
     consoleSeparator("START", resolved);
     logAgentTestingOverlay("overlay start");
+  } else if (!elapsedRunStartedAt && !capturePaused) {
+    resumeElapsedClock();
   }
   armElapsedTimer();
   refreshSitrepDom();
@@ -1780,10 +1918,13 @@ export function touchAgentTestingOverlay(title?: string): void {
   if (active && sessionOwner === "manual") {
     loggerSession = false;
     sessionOwner = "agent";
-    capturePaused = false;
+    if (capturePaused) {
+      capturePaused = false;
+      resumeElapsedClock();
+    }
     setAgentTestingHtmlFlag(true);
     setHint(
-      "AGENT TESTING — page clicks blocked. Pause to message; Save Log when idle/paused."
+      "AGENT TESTING — Pause freezes the clock; Message then Resume."
     );
     const agentTitle = resolveAgentTestingOverlayTitle(title ?? DEFAULT_TITLE);
     sessionTitle = agentTitle;
@@ -1823,7 +1964,8 @@ export function openAgentTestingLogger(title?: string): void {
   setQaDiagLoggerMode(true);
   loggerSession = true;
   sessionOwner = "manual";
-  capturePaused = false;
+  // Manual opens paused — clock stays at 0 until Resume (no free-run).
+  capturePaused = true;
   if (settling) abandonSettleForRearch();
   const resolved = resolveAgentTestingOverlayTitle(
     title?.trim() || MANUAL_TITLE
@@ -1843,17 +1985,16 @@ export function openAgentTestingLogger(title?: string): void {
   setAgentTestingHtmlFlag(false); // do not block page
   setTitle(resolved);
   setResultBadge("neutral");
-  setHint(
-    "MANUAL TEST — page clicks allowed. Pause capture; Message + Save Log when paused."
-  );
-  setActivityPhase("running", "logger");
-  syncSessionChrome();
-  writePersist(resolved);
-  armElapsedTimer();
+  setHint("MANUAL TEST — Resume to capture; Pause freezes the clock.");
   if (!sessionStartedAt) {
     sessionStartedAt = Date.now();
     lastStepAt = sessionStartedAt;
   }
+  resetElapsedClock(false);
+  setActivityPhase("paused");
+  syncSessionChrome();
+  writePersist(resolved);
+  armElapsedTimer(); // sitrep refresh; clock frozen while paused
   noteActivity();
   refreshSitrepDom();
   refreshActivityDom();
@@ -1881,6 +2022,8 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   clearSettleTimer();
   clearEnsureClearTimer();
   clearElapsedTimer();
+  elapsedAccumMs = 0;
+  elapsedRunStartedAt = 0;
   clearPersist();
   unbindBeforeUnload();
   unbindVisibility();
@@ -1983,6 +2126,8 @@ export function forceClearAgentTestingOverlay(): void {
     loggerSession = false;
     sessionOwner = "agent";
     capturePaused = false;
+    elapsedAccumMs = 0;
+    elapsedRunStartedAt = 0;
     closeQaDiagGate({ reason: "force-clear" });
     setQaDiagLoggerMode(false);
     setQaSessionLock(null);

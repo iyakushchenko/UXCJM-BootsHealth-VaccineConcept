@@ -39,11 +39,16 @@ export type AgentTestingSitrep = {
   mode?: string;
   cjm?: string;
   experience?: string;
+  projectId?: string;
+  personaId?: string;
   screenId?: string;
   beat?: string;
   counter?: string;
   touchpointKey?: string;
+  /** Full legacy line (dump / diagnostics). */
   line: string;
+  /** Session bar only — mode / project / persona / CJM. */
+  sessionLine: string;
 };
 
 export type LogAgentTestingStepInput = {

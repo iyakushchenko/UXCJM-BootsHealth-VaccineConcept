@@ -10,36 +10,59 @@ export type AgentTestingActivityPhase =
 
 export type AgentTestingSessionOwner = "manual" | "agent";
 
+/** Drop noise details that produce “Logging… logger” class copy. */
+function meaningfulDetail(detail?: string): string | undefined {
+  const trimmed = detail?.trim();
+  if (!trimmed) return undefined;
+  if (
+    /^(logger|resumed|paused|capture on|capture off|capture|capture paused|capture resumed|user-message|po-note|overlay start|overlay stop|ready)$/i.test(
+      trimmed
+    )
+  ) {
+    return undefined;
+  }
+  if (/^[A-Z][a-zA-Z0-9]{0,40}$/.test(trimmed) && !/\s/.test(trimmed)) {
+    const soft = trimmed.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+    if (soft.includes("type in") || soft.includes("typein")) return "type-in";
+    if (soft.includes("click")) return "click";
+    if (soft.includes("scroll")) return "scroll";
+    if (soft.includes("cursor")) return "cursor";
+  }
+  if (/type-?in/i.test(trimmed)) return "type-in";
+  if (trimmed.length > 32) return `${trimmed.slice(0, 30)}…`;
+  return trimmed;
+}
+
 export function formatActivityStatus(
   phase: AgentTestingActivityPhase,
   detail?: string,
   owner: AgentTestingSessionOwner = "agent"
 ): string {
-  const trimmed = detail?.trim();
+  const tip = meaningfulDetail(detail);
   if (owner === "manual") {
     switch (phase) {
       case "paused":
-        return trimmed ? `Paused — ${trimmed}` : "Paused — capture off";
+        return "Paused — send a message";
       case "running":
-        return trimmed ? `Logging… ${trimmed}` : "Logging…";
+        return tip ? `Capturing — ${tip}` : "Capturing clicks";
       case "settling":
-        return trimmed ? `Settling… ${trimmed}` : "Settling…";
+        return "Closing…";
       default:
-        return trimmed || "Manual idle";
+        return "Idle";
     }
   }
   switch (phase) {
     case "preparing":
-      return trimmed ? `Preparing… ${trimmed}` : "Preparing…";
+      return tip ? `Getting ready — ${tip}` : "Getting ready…";
     case "running":
-      return trimmed ? `Running… ${trimmed}` : "Running script…";
+      return tip ? `Agent running: ${tip}` : "Agent running";
     case "waiting":
-      return trimmed ? `Waiting… ${trimmed}` : "Waiting…";
+      return tip ? `Waiting — ${tip}` : "Waiting…";
     case "settling":
-      return trimmed ? `Settling… ${trimmed}` : "Settling sitrep…";
+      return "Wrapping up…";
     case "paused":
-      return trimmed ? `Paused… ${trimmed}` : "Paused…";
+      return "Paused — send a message";
     default:
-      return trimmed || "Idle";
+      return "Idle";
   }
 }

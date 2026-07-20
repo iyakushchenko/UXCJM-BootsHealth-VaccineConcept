@@ -359,10 +359,16 @@ describe("agentTestingOverlay", () => {
     expect(formatSitrepTitle("fail")).toBe("AGENT DONE - FAIL");
     expect(formatSitrepTitle("neutral")).toBe("AGENT DONE - SITREP");
     expect(formatPreArmHint(3)).toBe("Preparing - starting in 3s");
-    expect(formatActivityStatus("preparing", "2s")).toBe("Preparing… 2s");
-    expect(formatActivityStatus("running")).toBe("Running script…");
+    expect(formatActivityStatus("preparing", "2s")).toBe("Getting ready — 2s");
+    expect(formatActivityStatus("running")).toBe("Agent running");
     expect(formatActivityStatus("waiting")).toBe("Waiting…");
-    expect(formatActivityStatus("settling", "pass")).toBe("Settling… pass");
+    expect(formatActivityStatus("settling", "pass")).toBe("Wrapping up…");
+    expect(formatActivityStatus("paused", undefined, "manual")).toBe(
+      "Paused — send a message"
+    );
+    expect(formatActivityStatus("running", "logger", "manual")).toBe(
+      "Capturing clicks"
+    );
     expect(DEFAULT_SETTLE_MS).toBeGreaterThanOrEqual(8000);
   });
 
