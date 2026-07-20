@@ -243,7 +243,7 @@
       "status": "proven",
       "hardGreen": true,
       "stampedAt": {
-        "sha": "ba24641",
+        "sha": "acffdb6",
         "date": "2026-07-20",
         "note": "Uma+Finn structure + ButtonPrimary CTAs + SitePilotComposer DS; main landmark; BEM chat; make-retired; header waived (Make Body9). Quinn MCP 20/20."
       },
@@ -251,7 +251,7 @@
         "status": "HARD-GREEN",
         "pass": true,
         "stampedAt": {
-          "sha": "ba24641",
+          "sha": "acffdb6",
           "date": "2026-07-20",
           "version": "0.0.60",
           "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN",
