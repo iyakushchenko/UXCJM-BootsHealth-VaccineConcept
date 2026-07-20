@@ -28,13 +28,15 @@ describe("agentTestingMcpStatus", () => {
   });
 
   it("formats labels", () => {
-    expect(formatMcpStatusLabel("control")).toBe("MCP — CONTROL");
-    expect(formatMcpStatusLabel("observe")).toBe("MCP — OBSERVE");
-    expect(formatMcpStatusLabel("pending")).toBe("MCP — CONTROL · PENDING");
+    expect(formatMcpStatusLabel("control")).toBe("AGENT — CONTROL");
+    expect(formatMcpStatusLabel("observe")).toBe("AGENT — OBSERVE");
+    expect(formatMcpStatusLabel("pending")).toBe("AGENT — CONTROL · PENDING");
     expect(formatMcpStatusLabel("error", "timeout")).toBe(
-      "MCP — ERROR: timeout"
+      "AGENT — ERROR: timeout"
     );
     expect(formatMcpStatusLabel("idle")).toBe("");
+    expect(formatMcpStatusLabel("connecting")).toBe("AGENT — STARTING");
+    expect(formatMcpStatusLabel("connected")).toBe("AGENT — READY");
   });
 
   it("derives CONTROL / OBSERVE / PENDING from session", () => {
@@ -169,7 +171,7 @@ describe("agentTestingMcpStatus", () => {
         awaitingReply: true,
         now: Date.now(),
       }).label
-    ).toBe("MCP — ERROR: latch fail");
+    ).toBe("AGENT — ERROR: latch fail");
     resetMcpStatusLatches();
     expect(
       deriveMcpConnectionStatus({

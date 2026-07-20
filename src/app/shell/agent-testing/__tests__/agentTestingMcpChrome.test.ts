@@ -68,7 +68,7 @@ describe("agentTestingMcpChrome — no ghost OBS", () => {
       '<span class="studio-nav-version__mcp" data-phase="observe">OBS</span>' +
       '<div id="agent-testing-overlay"><div class="studio-agent-testing-overlay__mcp-status">' +
       '<span class="studio-agent-testing-overlay__mcp-diode" data-phase="observe"></span>' +
-      '<span class="studio-agent-testing-overlay__mcp" data-phase="observe">MCP — OBSERVE</span>' +
+      '<span class="studio-agent-testing-overlay__mcp" data-phase="observe">AGENT — OBSERVE</span>' +
       "</div></div>";
     document.documentElement.dataset.studioMcpStatus = "observe";
     const input = {

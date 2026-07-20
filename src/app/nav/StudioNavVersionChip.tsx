@@ -4,7 +4,8 @@ import { toggleAgentTestingLogger } from "@/app/shell/agent-testing/agentTesting
 /**
  * Sticky right chip on the page-tabs row — version + channel.
  * Amber BUG icon toggles MANUAL TEST logger (open / close+stop capture).
- * Small MCP hint (CTRL / OBS / PENDING) mirrors overlay status when agent online.
+ * Small CTRL/OBS/PENDING hint mirrors in-app AGENT latch when overlay is open
+ * (not Cursor Chrome-DevTools MCP — tooltip says so on the chip).
  */
 export function StudioNavVersionChip() {
   const release = getStudioRelease();

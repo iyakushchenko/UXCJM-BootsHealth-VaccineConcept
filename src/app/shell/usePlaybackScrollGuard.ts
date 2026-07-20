@@ -168,9 +168,9 @@ export function usePlaybackScrollGuard({
       prevAvailabilityOpenRef.current !== availabilityOpen;
 
     if (childChanged || protoTabChanged || availabilityChanged) {
-      // Abort mid-ease camera — host/layout just swapped (confirmation→history).
-      cancelPlaybackScroll("abort");
+      // Host/layout swap — intentional camera handoff, not a scroll anomaly.
       monitor.noteScreenChange();
+      cancelPlaybackScroll("replace");
     }
     prevChildIndexRef.current = childIndex;
     prevProtoTabRef.current = protoTab;

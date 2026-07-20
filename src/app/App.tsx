@@ -634,7 +634,8 @@ export default function App() {
     const stop = () => {
       stopAllPlaybackRef.current();
       cancelDemoCursorTravel();
-      cancelPlaybackScroll();
+      // Intentional stop — do not flag scroll-interrupted.
+      cancelPlaybackScroll("replace");
     };
     registerPoSignalPlaybackHalt(stop);
     const w = window as Window & {
@@ -1732,7 +1733,7 @@ export default function App() {
         );
       }
       recordPlaybackDiagnosticDismiss(source);
-      cancelPlaybackScroll();
+      cancelPlaybackScroll("replace");
       playbackScrollMonitor.reset();
       setPlaybackDiagnostic(null);
     });
@@ -1747,7 +1748,7 @@ export default function App() {
         } else {
           recordPlaybackDiagnosticDismiss("mcp-helper");
         }
-        cancelPlaybackScroll();
+        cancelPlaybackScroll("replace");
         playbackScrollMonitor.reset();
         setPlaybackDiagnostic(null);
       },
@@ -1926,7 +1927,7 @@ export default function App() {
           // Cancel = acknowledge → hard-stop Play + latch (same class as overlay Alarm).
           acknowledgePlaybackDiagnosticStop("overlay-cancel");
           recordPlaybackDiagnosticDismiss("overlay");
-          cancelPlaybackScroll();
+          cancelPlaybackScroll("replace");
           playbackScrollMonitor.reset();
           setPlaybackDiagnostic(null);
         }}

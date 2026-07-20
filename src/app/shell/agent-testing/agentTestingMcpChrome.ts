@@ -1,9 +1,11 @@
 /**
- * MCP chrome paint — nav OBS/CTRL hint, Message diode+label, viewport border.
+ * QA latch chrome paint — nav OBS/CTRL hint, Message diode+label, viewport border.
  * Live only when overlay is truly open (active + gate + visible). Never ghost.
+ * Labels = in-app AGENT latch (not Cursor MCP).
  */
 
 import {
+  AGENT_LATCH_STATUS_TITLE,
   deriveMcpConnectionStatus,
   type McpConnectionStatus,
 } from "@/app/shell/agent-testing/agentTestingMcpStatus";
@@ -122,12 +124,15 @@ export function paintMcpChromeDom(
       chip.hidden = false;
       chip.textContent = status.label;
       chip.dataset.phase = status.phase;
-      chip.title = status.label;
-      if (wrap) wrap.hidden = false;
+      chip.title = `${status.label} — ${AGENT_LATCH_STATUS_TITLE}`;
+      if (wrap) {
+        wrap.hidden = false;
+        wrap.title = AGENT_LATCH_STATUS_TITLE;
+      }
       if (diode) {
         diode.hidden = false;
         diode.dataset.phase = status.phase;
-        diode.title = status.label;
+        diode.title = `${status.label} — ${AGENT_LATCH_STATUS_TITLE}`;
       }
     }
   }
@@ -161,7 +166,7 @@ export function paintMcpChromeDom(
       navHint.hidden = false;
       navHint.textContent = shortNavPhase(status.phase);
       navHint.dataset.phase = status.phase;
-      navHint.title = status.label;
+      navHint.title = `${status.label} — ${AGENT_LATCH_STATUS_TITLE}`;
     }
   }
 }

@@ -214,7 +214,7 @@ export function abortBookPlayback(): void {
   playbackGeneration += 1;
   playbackAborted = true;
   notePlaybackCursorEvent("abort", { abortReason: "book-playback-abort" });
-  cancelPlaybackScroll("abort");
+  cancelPlaybackScroll("replace");
   resetDemoCursorTravelOrigin();
   if (bookScriptInFlight) {
     removeDemoCursor({ immediate: true });

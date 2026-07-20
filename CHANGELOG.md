@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.93 - 200726
+- --lane=studio --intent=AGENT latch labels (not Cursor MCP); Close wipes agent ghost; chat pull-up scroll cancel uses replace (no false SCROLL_ANOMALY)
+
 ## v0.0.92 - 200726
 - **shell:** Lean MCP chat log filter (no CONNECTING spam); harden Play halt via __studioStopAllPlayback; full matrix M1-M8 + PP retest
 

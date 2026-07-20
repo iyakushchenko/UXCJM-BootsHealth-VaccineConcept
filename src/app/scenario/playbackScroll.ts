@@ -633,8 +633,10 @@ export function animateScrollTo(
     playbackScrollAnimating = true;
 
     const tick = (now: number) => {
-      // Pull-up tween owns layoutY — abort camera mid-flight (prevents JUMP ΔY~500).
+      // Pull-up tween owns layoutY — yield camera mid-flight (prevents JUMP ΔY~500).
+      // Treat as replace so scroll guard does not open PlaybackDiagnostic.
       if (isChatPullUpScrollLocked()) {
+        scrollReplacePending = true;
         finish(false);
         return;
       }

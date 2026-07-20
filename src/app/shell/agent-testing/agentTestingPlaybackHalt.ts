@@ -50,7 +50,8 @@ export function haltPlaybackForPoSignal(reason = "po-signal"): void {
   }
 
   try {
-    cancelPlaybackScroll();
+    // Intentional halt — never raise scroll-interrupted diagnostic.
+    cancelPlaybackScroll("replace");
   } catch {
     /* hang-safe */
   }

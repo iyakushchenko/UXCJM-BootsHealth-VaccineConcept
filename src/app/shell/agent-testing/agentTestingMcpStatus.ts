@@ -1,10 +1,16 @@
 /**
- * MCP connection status for the QA overlay — derived from sessionKind + latches.
+ * In-app QA latch status for the overlay — derived from sessionKind + latches.
+ * Labels say **AGENT — …** (not Cursor Chrome-DevTools MCP). Legacy code ids keep `mcp*`.
  * No parallel mode soup: CONTROL ↔ agent, OBSERVE ↔ observe, PENDING ↔ awaiting reply.
  *
  * PENDING timeout (default 60s): auto-pause capture + log line; clear PENDING.
  * Override: `window.__studioQaPendingTimeoutMs` (prove / tests).
  */
+
+/** Human helper — status line / nav title (never implies Cursor MCP). */
+export const AGENT_LATCH_STATUS_TITLE =
+  "In-app testing latch (not Cursor MCP)";
+
 
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
 
@@ -19,7 +25,7 @@ export type McpConnectionPhase =
 
 export type McpConnectionStatus = {
   phase: McpConnectionPhase;
-  /** e.g. `MCP — CONTROL` / `MCP — CONTROL · PENDING` */
+  /** e.g. `AGENT — CONTROL` / `AGENT — CONTROL · PENDING` */
   label: string;
   error?: string;
   pendingDeadlineAt?: number | null;
@@ -185,17 +191,17 @@ export function formatMcpStatusLabel(
 ): string {
   switch (phase) {
     case "connecting":
-      return "MCP — CONNECTING";
+      return "AGENT — STARTING";
     case "connected":
-      return "MCP — CONNECTED";
+      return "AGENT — READY";
     case "control":
-      return "MCP — CONTROL";
+      return "AGENT — CONTROL";
     case "observe":
-      return "MCP — OBSERVE";
+      return "AGENT — OBSERVE";
     case "pending":
-      return "MCP — CONTROL · PENDING";
+      return "AGENT — CONTROL · PENDING";
     case "error":
-      return `MCP — ERROR: ${error?.trim() || "unknown"}`;
+      return `AGENT — ERROR: ${error?.trim() || "unknown"}`;
     default:
       return "";
   }

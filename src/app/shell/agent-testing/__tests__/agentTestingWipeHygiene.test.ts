@@ -101,6 +101,16 @@ describe("agentTesting wipe hygiene (forceClear / softClose)", () => {
       .__studioQaPendingTimeoutMs;
   });
 
+  it("softClose on agent lock forceClears (no ghost CONTROL)", () => {
+    openAgentTestingLogger({ kind: "agent" });
+    expect(isAgentTestingOverlayActive()).toBe(true);
+    expect(getSessionKind()).toBe("agent");
+    softCloseAgentTestingLogger("unit-agent-close");
+    expect(isAgentTestingOverlayActive()).toBe(false);
+    expect(getSessionKind()).toBe("manual");
+    expect(isQaDiagGateOpen()).toBe(false);
+  });
+
   it("softClose wipes log ring + gate and returns to manual", () => {
     openAgentTestingLogger({ kind: "manual" });
     expect(isAgentTestingOverlayActive()).toBe(true);

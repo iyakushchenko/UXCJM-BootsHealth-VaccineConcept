@@ -88,12 +88,13 @@ When PO **Send**s a Message (or Reply) mid-flight:
 
 **Playback diagnostic open:** QA pauses, latches `PLAYBACK_DIAGNOSTIC_OPEN`, logs control-room Alarm-red sitrep, blocks Play until Ack/`__studioConsumePlaybackDiagnostic`.
 
-**MCP phase changes (lean filter — HARD):** diode + status line under Message = live SSoT for CONNECTING/CONNECTED/CONTROL.  
+**QA latch phase changes (lean filter — HARD):** diode + status line under Message = live SSoT for STARTING/READY/CONTROL.
+Chat timeline is **not** a full phase dump — filter in `shouldLogMcpPhaseToChat`:  
 Visible chat log **does not** spam flash transitions. Log only:
 
 | Log to chat? | Phase / event |
 |--------------|---------------|
-| NO | CONNECTING · CONNECTED · first settle to CONTROL/OBSERVE · idle |
+| NO | STARTING · READY · first settle to CONTROL/OBSERVE · idle |
 | YES | ERROR · PENDING start · CONTROL↔OBSERVE kind switch · leave ERROR |
 | NO (dup) | PENDING leave — Reply / timeout rows already cover it |
 
@@ -132,18 +133,20 @@ Mismatch = desync — fix bridge, do not trust vibes. See [PLAYBACK_DIAG.md](../
 
 **Architect (PO 2026-07-20):** Prefer QA dump/ring over the diagnostic **popup** for agents. Popup stays for PO eyes; agents ingest via Save Log / `__studioConsumePlaybackDiagnostic` (dismisses modal + latch). Do **not** rebuild two monitors.
 
-### MCP connection status
+### QA latch status (not Cursor MCP)
 
-Primary: **lean muted status line** under Message/Send with a **live connection diode** (same camera-lens LED language as playback/REC). Short nav hint beside bug icon (CTRL / OBS / PENDING) only while overlay is **actually open** (gate + `data-active`) — never ghost OBS when closed.
+**Studio `AGENT — CONTROL/OBSERVE` is not Cursor Chrome-DevTools MCP.** It means the **in-app agent-testing / QA gate session** is active (latch + overlay). Cursor may drive the browser via DevTools MCP independently; the status line only reflects Studio's own CONTROL/OBSERVE/PENDING latch. Tooltip: *In-app testing latch (not Cursor MCP)*. Legacy helper names (`__studioMcpConnectionStatus`, CSS `mcp-*`) stay for API stability.
+
+Primary: **lean muted status line** under Message/Send with a **live connection diode** (same camera-lens LED language as playback/REC). Short nav hint beside bug icon (CTRL / OBS / PENDING) only while overlay is **actually open** (gate + `data-active`) — never ghost when closed. **Close × / softClose / forceClear** always wipe AGENT mode (no stuck CONTROL after prove waves).
 
 | Phase | Label | Diode | Viewport |
 |-------|-------|-------|----------|
-| CONNECTING | `MCP — CONNECTING` | pulse cool | — |
-| CONNECTED | `MCP — CONNECTED` | pulse cool (brief) | — |
-| CONTROL | `MCP — CONTROL` | bright green | **10px gold** |
-| OBSERVE | `MCP — OBSERVE` | fuchsia | — |
-| CONTROL · PENDING | `MCP — CONTROL · PENDING` | blue pulse | **10px blue** |
-| ERROR | `MCP — ERROR: …` | red | **10px red** |
+| STARTING | `AGENT — STARTING` | pulse cool | — |
+| READY | `AGENT — READY` | pulse cool (brief) | — |
+| CONTROL | `AGENT — CONTROL` | bright green | **10px gold** |
+| OBSERVE | `AGENT — OBSERVE` | fuchsia | — |
+| CONTROL · PENDING | `AGENT — CONTROL · PENDING` | blue pulse | **10px blue** |
+| ERROR | `AGENT — ERROR: …` | red | **10px red** |
 | Idle / closed | hidden | off | none |
 
 **PENDING timeout (default 60s):** auto-pause capture + log `MCP pending timed out (Ns) — paused; resume when ready`. Override: `window.__studioQaPendingTimeoutMs`. Clear on user Reply/Send.

@@ -63,6 +63,22 @@ describe("playbackScrollMonitor", () => {
     expect(anomalies).toEqual([]);
   });
 
+  it("replace-style end does not report scroll-interrupted", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onAnimationStart({ startTop: 0, targetTop: 400, duration: 500 });
+    monitor.onAnimationEnd({
+      completed: false,
+      finalTop: 120,
+      replaced: true,
+    });
+
+    expect(anomalies).toEqual([]);
+  });
+
   it("still reports jumps when not in navigation grace", () => {
     const anomalies: string[] = [];
     const monitor = createPlaybackScrollMonitor();

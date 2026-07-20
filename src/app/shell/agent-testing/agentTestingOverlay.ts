@@ -1109,7 +1109,12 @@ function syncCaptureWatch(): void {
 }
 
 function closeManualSession(reason: string): void {
-  if (!canUserDismissSession() && (active || settling)) return;
+  // Agent lock used to hide Close and no-op — left ghost AGENT TESTING + CONTROL.
+  // Explicit Close / forceClear always wipe (PO: SoftClose/forceClear clear AGENT mode).
+  if (isAgentLocked() && (active || settling)) {
+    forceClearAgentTestingOverlay();
+    return;
+  }
   softCloseAgentTestingLogger(reason);
 }
 
@@ -1320,10 +1325,11 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__close"
   );
   if (closeBtn) {
-    closeBtn.hidden = locked;
-    closeBtn.disabled = locked;
+    // Always offer Close — agent wipe uses forceClear (no ghost CONTROL latch).
+    closeBtn.hidden = false;
+    closeBtn.disabled = false;
     closeBtn.title = locked
-      ? "Agent session locked — cannot close"
+      ? "Close — wipe agent session (in-app latch, not Cursor MCP)"
       : "Close — stop capture";
   }
   const resetBtn = root.querySelector<HTMLButtonElement>(
@@ -2904,6 +2910,10 @@ export function openAgentTestingLogger(
 
 /** Soft dismiss — close gate, stop capture, hide panel, keep DOM (no remount flash). */
 export function softCloseAgentTestingLogger(reason = "soft-close"): void {
+  if (isAgentLocked() && (active || settling)) {
+    forceClearAgentTestingOverlay();
+    return;
+  }
   if (!canUserDismissSession() && (active || settling)) {
     return;
   }

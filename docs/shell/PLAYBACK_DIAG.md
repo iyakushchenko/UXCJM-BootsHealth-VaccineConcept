@@ -66,7 +66,7 @@ Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only 
 | `__studioOpenQaLogger({ kind, oversee? })` | Open as kind; oversee keeps context |
 | `__studioQaHandoff({ oversee })` | Default wipe→agent; oversee keeps ring/log |
 | `__studioAskUserInQa(prompt)` | `agent-prompt` row; Message/Send → `Reply: …`; starts PENDING (60s) |
-| MCP status chip | `MCP — CONTROL` (green) / `OBSERVE` (fuchsia) / `CONTROL · PENDING` / … |
+| QA latch status chip | `AGENT — CONTROL` (green) / `OBSERVE` (fuchsia) / `CONTROL · PENDING` / … — **in-app latch, not Cursor MCP** |
 | `__studioMcpConnectionStatus()` | Snapshot `{ phase, label, … }` |
 | PENDING timeout | Auto-pause + log; `__studioQaPendingTimeoutMs` override for prove |
 | Agent `touch` / `start` | Agent lock; if manual/observe open without oversee → wipe |

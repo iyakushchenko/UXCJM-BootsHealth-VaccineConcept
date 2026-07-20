@@ -52,6 +52,9 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-26 | QA action blindness | PO cannot see Save Log / export / toolbar lifecycle in timeline — sitrep incomplete. | COMPLETE | M8 retest: Save Log · + QA · Pause rows |
 | PP-27 | Stale playback diagnostic leak | Modal left open after self-test/SF/Play jobs — blocks further work. | COMPLETE | leftover=false after matrix + smoke |
 | PP-28 | MCP chat log noise | CONNECTING→CONNECTED→CONTROL flash spam drowns PO/agent sitrep. | COMPLETE | v0.0.92 lean filter; diode carries live; chat meaningful-only |
+| PP-29 | MCP label ≠ Cursor | Status said `MCP — CONTROL/CONNECTED` → PO thought Cursor MCP was linked. | COMPLETE | Labels `AGENT — …` + tooltip “not Cursor MCP” |
+| PP-30 | Ghost AGENT CONTROL | Close × hidden on agent lock; overlay stayed CONTROL after prove/pause with no mid-flight agent. | COMPLETE | Close/softClose → forceClear wipe |
+| PP-31 | Chat pull-up scroll false FAIL | Chat bubble pull-up called `cancelPlaybackScroll("abort")` → PlaybackDiagnostic SCROLL_ANOMALY mid agentic. | COMPLETE | intentional cancels use `"replace"` |
 
 ---
 

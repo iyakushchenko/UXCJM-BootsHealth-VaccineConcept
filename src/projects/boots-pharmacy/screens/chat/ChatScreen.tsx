@@ -285,8 +285,8 @@ function useChatBubbleMotionDiag(
         requestAnimationFrame(armSample);
         return;
       }
-      // Sync cancel — prior settle ease must not move layoutY mid pull-up.
-      cancelPlaybackScroll("abort");
+      // Intentional handoff to chat pull-up — must NOT flag scroll-interrupted.
+      cancelPlaybackScroll("replace");
       sampleCancelRef.current = startChatBubbleMotionSample({
         id: options.id,
         el,
