@@ -37,7 +37,7 @@ export function PlaybackDiagnosticOverlay({
           aria-modal="false"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12 } }}
           transition={studioPanelTransition}
         >
           <div className="studio-playback-diagnostic__card">

@@ -98,6 +98,7 @@ import {
   type QaListenDeps,
 } from "@/app/shell/agent-testing/agentTestingQaListenBridge";
 import { registerQaDiagnosticOpenHandler } from "@/app/shell/playbackDiagQaBridge";
+import { clearStalePlaybackDiagnostic } from "@/app/shell/playbackDiagQaBridge";
 import {
   buildAgentTestingDump,
   consoleSeparator,
@@ -618,14 +619,72 @@ function saveDump(
 /**
  * Save Log / agent parse — always the **current** session (not a stale Alarm dump).
  * Pushes to last-N store then downloads that payload.
+ * ALWAYS logs the export into the QA timeline (PO sitrep blindness fix).
  */
 export function downloadCurrentAgentTestingLog(): boolean {
+  logQaToolbarAction("Save Log · export");
   if (!active && logEntries.length === 0) {
-    return downloadAgentTestingDump();
+    const ok = downloadAgentTestingDump();
+    logQaToolbarAction(
+      ok ? "Save Log · downloaded (latest dump)" : "Save Log · export failed",
+      ok ? "ok" : "fail"
+    );
+    return ok;
   }
   const dump = saveDump("manual");
-  if (!dump) return false;
-  return downloadAgentTestingDump(dump);
+  if (!dump) {
+    logQaToolbarAction("Save Log · export failed", "fail");
+    return false;
+  }
+  const ok = downloadAgentTestingDump(dump);
+  logQaToolbarAction(
+    ok
+      ? `Save Log · downloaded (${dump.log?.length ?? 0} rows)`
+      : "Save Log · download failed",
+    ok ? "ok" : "fail"
+  );
+  return ok;
+}
+
+/** Visible QA toolbar / lifecycle row — never silent. */
+function logQaToolbarAction(
+  label: string,
+  outcome: "ok" | "soft-fail" | "fail" = "ok"
+): void {
+  const entry = {
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label,
+    outcome,
+    kind: "system" as const,
+  };
+  if (active || settling) {
+    pushLogEntry(entry);
+    return;
+  }
+  try {
+    appendQaDiagRing({ kind: "system", label, text: label });
+  } catch {
+    /* hang-safe */
+  }
+  try {
+    console.info("[AGENT_TESTING]", label);
+  } catch {
+    /* ignore */
+  }
+}
+
+function dismissStaleDiagForSession(source: string): void {
+  try {
+    clearStalePlaybackDiagnostic(source);
+  } catch {
+    /* hang-safe */
+  }
+  try {
+    diagnosticBlocking = false;
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -649,6 +708,7 @@ export function appendAgentTestingSessionFinale(
   });
   settleResult = result;
   setResultBadge(result);
+  dismissStaleDiagForSession("session-finale");
   try {
     setTitle(
       result === "pass" ? "PASS — session finale" : "FAIL — session finale"
@@ -1058,6 +1118,7 @@ function resetManualSession(): void {
   if (!canUserDismissSession() && (active || settling)) return;
   if (!active) return;
   if (!logDirty) return;
+  logQaToolbarAction("Reset · wipe log/ring/timer");
   logEntries = [];
   timelineKeys = [];
   lastStepAt = 0;
@@ -1715,15 +1776,19 @@ function toggleCapturePause(): void {
   const label =
     kind === "agent"
       ? next
-        ? "Agent paused (Play halted)"
-        : "Agent resumed (capture on)"
+        ? "QA · Pause (Play halted)"
+        : "QA · Resume (capture on)"
       : kind === "observe"
         ? next
-          ? "Observe paused (Play halted)"
-          : "Observe resumed (capture on)"
+          ? "QA · Pause (Play halted)"
+          : "QA · Resume (capture on)"
         : next
-          ? "Capture paused (Play halted)"
-          : "Capture resumed";
+          ? sessionHadProgress
+            ? "QA · Pause (Play halted)"
+            : "QA · CAPTURE off"
+          : sessionHadProgress
+            ? "QA · Resume (capture on)"
+            : "QA · CAPTURE on";
   // Status row must land even when pausing (gate would otherwise drop it).
   if (next) {
     pauseElapsedClock();
@@ -2437,6 +2502,9 @@ export function stopAgentTestingOverlay(
   options?: StopAgentTestingOverlayOptions
 ): void {
   try {
+    dismissStaleDiagForSession(
+      options?.force ? "qa-stop-force" : "qa-stop"
+    );
     if (options?.force) {
       nest = 0;
       latchSettleResetFlags(options);
@@ -2839,6 +2907,10 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   if (!canUserDismissSession() && (active || settling)) {
     return;
   }
+  logQaToolbarAction(`Close · ${reason}`);
+  dismissStaleDiagForSession(
+    reason.startsWith("qa-") ? reason : `qa-${reason}`
+  );
   unbindCaptureWatch();
   closeQaDiagGate({ reason });
   setSessionKind("manual");
@@ -3027,6 +3099,8 @@ export function isAgentTestingOverlayDomPresent(): boolean {
  */
 export function forceClearAgentTestingOverlay(): void {
   try {
+    logQaToolbarAction("forceClear · wipe session");
+    dismissStaleDiagForSession("force-clear");
     nest = 0;
     active = false;
     settling = false;

@@ -556,6 +556,15 @@ export async function runChatBubbleMotionSelfTest(options?: {
   } catch {
     /* hang-safe */
   }
+  try {
+    (
+      w as Window & {
+        __studioClearStalePlaybackDiagnostic?: (s?: string) => boolean;
+      }
+    ).__studioClearStalePlaybackDiagnostic?.("prove-wave-end");
+  } catch {
+    /* hang-safe */
+  }
 
   return result;
 }

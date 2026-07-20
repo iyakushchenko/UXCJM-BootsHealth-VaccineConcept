@@ -222,6 +222,15 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       );
     } finally {
       try {
+        (
+          w as Window & {
+            __studioClearStalePlaybackDiagnostic?: (s?: string) => boolean;
+          }
+        ).__studioClearStalePlaybackDiagnostic?.("self-test-end");
+      } catch {
+        /* hang-safe */
+      }
+      try {
         w.__studioForceClearAgentTestingOverlay?.();
       } catch {
         /* hang-safe */

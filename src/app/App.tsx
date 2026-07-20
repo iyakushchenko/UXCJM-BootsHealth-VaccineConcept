@@ -85,7 +85,7 @@ import {
   recordPlaybackDiagnosticDismiss,
   recordPlaybackDiagnosticOpen,
 } from "@/app/shell/playbackDiagnosticFlash";
-import { registerPlaybackDiagnosticDismiss } from "@/app/shell/playbackDiagQaBridge";
+import { registerPlaybackDiagnosticDismiss, registerPlaybackDiagnosticForceClear, isPlaybackDiagnosticSuppressed } from "@/app/shell/playbackDiagQaBridge";
 import {
   logControlPanel,
   registerControlPanelSnapshotProvider,
@@ -241,6 +241,7 @@ export default function App() {
   }, []);
 
   const handlePlaybackDiagnostic = useCallback((error: PlaybackDiagnosticError) => {
+    if (isPlaybackDiagnosticSuppressed()) return;
     stopAllPlaybackRef.current();
     setPlaybackDiagnostic((prev) => {
       if (prev) return prev;
@@ -1706,12 +1707,25 @@ export default function App() {
 
   useEffect(() => {
     registerPlaybackDiagnosticDismiss((source) => {
-      acknowledgePlaybackDiagnosticStop(
-        source === "consume" ? "consume-playback-diagnostic" : source
-      );
+      const quiet =
+        source === "qa-session-end" ||
+        source === "force-clear" ||
+        source === "soft-close" ||
+        source === "self-test-end" ||
+        source === "prove-wave-end" ||
+        source === "session-finale" ||
+        source.startsWith("qa-");
+      if (!quiet) {
+        acknowledgePlaybackDiagnosticStop(
+          source === "consume" ? "consume-playback-diagnostic" : source
+        );
+      }
       recordPlaybackDiagnosticDismiss(source);
       cancelPlaybackScroll();
       playbackScrollMonitor.reset();
+      setPlaybackDiagnostic(null);
+    });
+    registerPlaybackDiagnosticForceClear(() => {
       setPlaybackDiagnostic(null);
     });
     const unregisterMcp = registerStudioMcpHelpers({
@@ -1779,6 +1793,7 @@ export default function App() {
     });
     return () => {
       registerPlaybackDiagnosticDismiss(null);
+      registerPlaybackDiagnosticForceClear(null);
       unregisterMcp();
     };
   }, [orchestraModeId]);

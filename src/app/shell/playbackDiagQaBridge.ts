@@ -3,9 +3,10 @@
  * One monitor path — agents read Save Log / ring; popup optional for PO eyes.
  */
 
+import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
+import { getOpenDiagnosticFlash } from "@/app/shell/playbackDiagnosticFlash";
 import { appendQaDiagRing, isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 import type { PlaybackDiagEvent } from "@/app/shell/playbackDiag";
-import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
 
 export type PlaybackDiagQaOutcome = "ok" | "soft-fail" | "fail";
 
@@ -40,8 +41,22 @@ let lastDiagnostic: {
   };
 } | null = null;
 
+let suppressDiagnosticUntil = 0;
+
+/** Brief suppress after session wipe so cancelScroll/reset cannot re-open modal. */
+export function suppressPlaybackDiagnosticBriefly(ms = 900): void {
+  suppressDiagnosticUntil = Date.now() + Math.max(0, ms);
+}
+
+export function isPlaybackDiagnosticSuppressed(): boolean {
+  return Date.now() < suppressDiagnosticUntil;
+}
+
 type DismissFn = (source: string) => void;
 let registeredDismiss: DismissFn | null = null;
+
+type ForceClearFn = () => void;
+let registeredForceClear: ForceClearFn | null = null;
 
 type DiagnosticOpenFn = (error: PlaybackDiagnosticError) => void;
 let registeredDiagnosticOpen: DiagnosticOpenFn | null = null;
@@ -49,6 +64,13 @@ let registeredDiagnosticOpen: DiagnosticOpenFn | null = null;
 /** App registers modal clear (setPlaybackDiagnostic(null) + flash dismiss). */
 export function registerPlaybackDiagnosticDismiss(fn: DismissFn | null): void {
   registeredDismiss = fn;
+}
+
+/** App registers hard setPlaybackDiagnostic(null) — no Alarm latch. */
+export function registerPlaybackDiagnosticForceClear(
+  fn: ForceClearFn | null
+): void {
+  registeredForceClear = fn;
 }
 
 /** QA overlay: pause + latch when diagnostic popup opens. */
@@ -317,15 +339,100 @@ export function consumePlaybackDiagnostic(
   return { ...peek, consumed: true, dismissed };
 }
 
+/**
+ * Quiet clear — session end / self-test / prove-wave wipe.
+ * Dismisses popup without Alarm latch. Never leave modal blocking after jobs.
+ * Hard-clears React state even when AnimatePresence / race left DOM painted.
+ */
+export function clearStalePlaybackDiagnostic(
+  source = "qa-session-end"
+): boolean {
+  let openDom = false;
+  try {
+    openDom =
+      typeof document !== "undefined" &&
+      document.querySelector(".studio-playback-diagnostic") != null;
+  } catch {
+    openDom = false;
+  }
+  let openFlash = false;
+  try {
+    openFlash = Boolean(getOpenDiagnosticFlash());
+  } catch {
+    openFlash = false;
+  }
+  const had = Boolean(lastDiagnostic) || openFlash || openDom;
+  try {
+    registeredDismiss?.(source);
+  } catch {
+    /* hang-safe */
+  }
+  try {
+    registeredForceClear?.();
+  } catch {
+    /* hang-safe */
+  }
+  // MCP harness quiet dismiss (DOM-gated) — second belt if React lagging.
+  try {
+    (
+      window as Window & {
+        __protoDismissPlaybackDiagnostic?: () => boolean;
+      }
+    ).__protoDismissPlaybackDiagnostic?.();
+  } catch {
+    /* hang-safe */
+  }
+  lastDiagnostic = null;
+  suppressPlaybackDiagnosticBriefly(900);
+  if (had) {
+    try {
+      appendQaDiagRing({
+        kind: "playback-diag",
+        label: `playback-diag · auto-dismiss (${source})`,
+        text: source,
+      });
+    } catch {
+      /* hang-safe */
+    }
+    try {
+      console.info("[AGENT_TESTING] stale playback diagnostic cleared", source);
+    } catch {
+      /* ignore */
+    }
+  }
+  return had;
+}
+
+/** True when diagnostic popup / flash is still open (leak detector). */
+export function isPlaybackDiagnosticModalOpen(): boolean {
+  try {
+    if (getOpenDiagnosticFlash()) return true;
+  } catch {
+    /* ignore */
+  }
+  try {
+    return (
+      typeof document !== "undefined" &&
+      document.querySelector(".studio-playback-diagnostic") != null
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function installPlaybackDiagQaBridgeApis(): void {
   if (typeof window === "undefined") return;
   const w = window as Window & {
     __studioConsumePlaybackDiagnostic?: typeof consumePlaybackDiagnostic;
     __studioPeekPlaybackDiagnostic?: typeof peekPlaybackDiagnostic;
+    __studioClearStalePlaybackDiagnostic?: typeof clearStalePlaybackDiagnostic;
+    __studioIsPlaybackDiagnosticOpen?: typeof isPlaybackDiagnosticModalOpen;
     __protoConsumePlaybackDiagnostic?: typeof consumePlaybackDiagnostic;
   };
   w.__studioConsumePlaybackDiagnostic = consumePlaybackDiagnostic;
   w.__studioPeekPlaybackDiagnostic = peekPlaybackDiagnostic;
+  w.__studioClearStalePlaybackDiagnostic = clearStalePlaybackDiagnostic;
+  w.__studioIsPlaybackDiagnosticOpen = isPlaybackDiagnosticModalOpen;
   w.__protoConsumePlaybackDiagnostic = consumePlaybackDiagnostic;
 }
 
@@ -334,9 +441,13 @@ export function uninstallPlaybackDiagQaBridgeApis(): void {
   const w = window as Window & {
     __studioConsumePlaybackDiagnostic?: unknown;
     __studioPeekPlaybackDiagnostic?: unknown;
+    __studioClearStalePlaybackDiagnostic?: unknown;
+    __studioIsPlaybackDiagnosticOpen?: unknown;
     __protoConsumePlaybackDiagnostic?: unknown;
   };
   delete w.__studioConsumePlaybackDiagnostic;
   delete w.__studioPeekPlaybackDiagnostic;
+  delete w.__studioClearStalePlaybackDiagnostic;
+  delete w.__studioIsPlaybackDiagnosticOpen;
   delete w.__protoConsumePlaybackDiagnostic;
 }
