@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playbackDiagNavCross } from "@/app/shell/playbackDiag";
 
 const CROSSFADE_MS = 280;
 const SWAP_AT_MS = Math.round(CROSSFADE_MS * 0.48);
@@ -32,16 +33,44 @@ export function useNavTransition() {
   useEffect(() => clearTimers, [clearTimers]);
 
   const runNavTransition = useCallback(
-    (apply: () => void, options?: { instant?: boolean }) => {
+    (
+      apply: () => void,
+      options?: {
+        instant?: boolean;
+        sameTab?: boolean;
+        screenBefore?: string | null;
+        screenAfter?: string | null;
+      }
+    ) => {
       clearTimers();
-      if (options?.instant || prefersReducedNavMotion()) {
+      const instant =
+        options?.instant === true || prefersReducedNavMotion();
+      if (instant) {
         setCrossToken(0);
+        playbackDiagNavCross({
+          detail: options?.instant
+            ? `nav-cross SKIP instant sameTab=${options?.sameTab ?? "?"}`
+            : `nav-cross SKIP reduced-motion sameTab=${options?.sameTab ?? "?"}`,
+          screenBefore: options?.screenBefore,
+          screenAfter: options?.screenAfter,
+          sameTab: options?.sameTab,
+          instant: true,
+          navCross: false,
+        });
         apply();
         return;
       }
 
       const crossId = ++crossIdRef.current;
       setCrossToken(crossId);
+      playbackDiagNavCross({
+        detail: `nav-cross RUN sameTab=${options?.sameTab ?? "?"}`,
+        screenBefore: options?.screenBefore,
+        screenAfter: options?.screenAfter,
+        sameTab: options?.sameTab,
+        instant: false,
+        navCross: true,
+      });
 
       swapTimerRef.current = window.setTimeout(() => {
         swapTimerRef.current = null;

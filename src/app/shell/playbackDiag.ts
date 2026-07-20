@@ -29,6 +29,8 @@ export type PlaybackDiagKind =
   | "scroll"
   | "click"
   | "skip"
+  | "screen-enter"
+  | "nav-cross"
   | "info";
 
 export type PlaybackDiagMode = "agentic" | "traditional" | "browse" | "unknown";
@@ -85,6 +87,16 @@ export type PlaybackDiagEvent = {
   /** Hub navigation reason + stack (PO leak forensics). */
   hubReason?: string | null;
   hubStack?: string | null;
+  /** Screen host presence / blink forensics (book-step-2/3 etc.). */
+  remountCount?: number;
+  renderCount?: number;
+  createdRoot?: boolean;
+  opacity?: number | null;
+  visibility?: string | null;
+  motionPresence?: boolean;
+  navCross?: boolean;
+  sameTab?: boolean;
+  instant?: boolean;
 };
 
 const MAX_EVENTS = 400;
@@ -131,6 +143,15 @@ function consolePayload(full: PlaybackDiagEvent): Record<string, unknown> {
     startScreenId: full.startScreenId,
     hubReason: full.hubReason,
     hubStack: full.hubStack,
+    remountCount: full.remountCount,
+    renderCount: full.renderCount,
+    createdRoot: full.createdRoot,
+    opacity: full.opacity,
+    visibility: full.visibility,
+    motionPresence: full.motionPresence,
+    navCross: full.navCross,
+    sameTab: full.sameTab,
+    instant: full.instant,
   };
 }
 
@@ -464,6 +485,16 @@ export type PlaybackDiagBundle = {
     count: number;
     last?: PlaybackDiagEvent;
   };
+  screenEnter: {
+    count: number;
+    last?: PlaybackDiagEvent;
+  };
+  navCross: {
+    count: number;
+    ran: number;
+    skipped: number;
+    last?: PlaybackDiagEvent;
+  };
 };
 
 export function getPlaybackDiagBundle(): PlaybackDiagBundle {
@@ -473,6 +504,8 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
   const playEnds = events.filter((e) => e.kind === "play-end");
   const resets = events.filter((e) => e.kind === "journey-reset");
   const hubNavs = events.filter((e) => e.kind === "hub-nav");
+  const screenEnters = events.filter((e) => e.kind === "screen-enter");
+  const navCrossEvents = events.filter((e) => e.kind === "nav-cross");
   const cursorEvents = events.filter((e) => e.kind === "cursor");
   const parks = cursorEvents.filter((e) => e.cursor?.parked);
   const scrollEvents = events.filter((e) => e.kind === "scroll");
@@ -531,7 +564,72 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
       count: hubNavs.length,
       last: hubNavs[hubNavs.length - 1],
     },
+    screenEnter: {
+      count: screenEnters.length,
+      last: screenEnters[screenEnters.length - 1],
+    },
+    navCross: {
+      count: navCrossEvents.length,
+      ran: navCrossEvents.filter((e) => e.navCross === true).length,
+      skipped: navCrossEvents.filter((e) => e.instant === true || e.navCross === false)
+        .length,
+      last: navCrossEvents[navCrossEvents.length - 1],
+    },
   };
+}
+
+/** React screen host enter / remount / opacity snapshot (blink forensics). */
+export function playbackDiagScreenEnter(options: {
+  screenId: string;
+  remountCount?: number;
+  renderCount?: number;
+  createdRoot?: boolean;
+  opacity?: number | null;
+  visibility?: string | null;
+  motionPresence?: boolean;
+  detail?: string;
+}): void {
+  push({
+    kind: "screen-enter",
+    surface: options.screenId,
+    detail:
+      options.detail ??
+      `screen-enter ${options.screenId} remount=${options.remountCount ?? "?"} render=${options.renderCount ?? "?"} opacity=${options.opacity ?? "?"} motion=${options.motionPresence ? "yes" : "no"}`,
+    screenAfter: options.screenId,
+    remountCount: options.remountCount,
+    renderCount: options.renderCount,
+    createdRoot: options.createdRoot,
+    opacity: options.opacity,
+    visibility: options.visibility,
+    motionPresence: options.motionPresence,
+    mode: resolvePlaybackDiagMode(),
+  });
+}
+
+/** Wire-mount nav crossfade start / skip (page blink when ran on same-tab). */
+export function playbackDiagNavCross(options: {
+  detail?: string;
+  screenBefore?: string | null;
+  screenAfter?: string | null;
+  sameTab?: boolean;
+  instant?: boolean;
+  navCross?: boolean;
+}): void {
+  const ran = options.navCross === true && options.instant !== true;
+  push({
+    kind: "nav-cross",
+    detail:
+      options.detail ??
+      (ran
+        ? `nav-cross RUN sameTab=${options.sameTab ?? "?"}`
+        : `nav-cross SKIP sameTab=${options.sameTab ?? "?"} instant=${options.instant ?? false}`),
+    screenBefore: options.screenBefore ?? readScreenId(),
+    screenAfter: options.screenAfter ?? readScreenId(),
+    sameTab: options.sameTab,
+    instant: options.instant,
+    navCross: ran,
+    mode: resolvePlaybackDiagMode(),
+  });
 }
 
 /** Play finished → CJM start (not hub / not stuck on last beat). */

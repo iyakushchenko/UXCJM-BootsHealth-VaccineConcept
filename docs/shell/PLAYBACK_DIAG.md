@@ -70,6 +70,8 @@ Filter DevTools console: `[PLAYBACK_DIAG]`.
 | `step-forward` / `step-back` / `retreat-sync` / `transport` | `beatId`, `detail` | Nav transport |
 | `play-end` / `journey-reset` | `startBeatId`, `startScreenId` | **Never silent hub** — destination = selected journey start |
 | `hub-nav` | `hubReason`, `hubStack`, `screenBefore`/`After` | **Every** hub open — reason + stack (PO leak forensics). Product = user Hub click only |
+| `screen-enter` | `surface` (screenId), `remountCount`, `renderCount`, `createdRoot`, `opacity`, `visibility`, `motionPresence` | React screen host mount / re-render (book-step-2/3 blink forensics) |
+| `nav-cross` | `navCross`, `instant`, `sameTab`, `screenBefore`/`After` | Wire-mount opacity crossfade **RUN** vs **SKIP** — same-tab journey steps must SKIP |
 
 ### Sample console line
 
@@ -88,6 +90,23 @@ Filter DevTools console: `[PLAYBACK_DIAG]`.
   startScreenId: "plp"
 }
 ```
+
+```text
+[PLAYBACK_DIAG] nav-cross {
+  detail: "nav-cross SKIP instant sameTab=true",
+  sameTab: true, instant: true, navCross: false,
+  screenBefore: "book-step-2", screenAfter: "book-step-2"
+}
+```
+
+```text
+[PLAYBACK_DIAG] screen-enter {
+  detail: "screen-enter book-step-2 remount=1 render=3 … motion=no",
+  remountCount: 1, renderCount: 3, motionPresence: false, opacity: 1
+}
+```
+
+**Blink rule (book-step-2/3):** Same-tab Step Forward must log `nav-cross SKIP` (not `RUN`). `nav-cross RUN` while `sameTab=true` = transition leakage FAIL.
 
 ---
 

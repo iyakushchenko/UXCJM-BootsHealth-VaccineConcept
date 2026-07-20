@@ -10,7 +10,9 @@ import {
   playbackDiagHubNav,
   playbackDiagJourneyReset,
   playbackDiagLog,
+  playbackDiagNavCross,
   playbackDiagPlayEnd,
+  playbackDiagScreenEnter,
   playbackDiagScroll,
   playbackDiagSkip,
   playbackDiagTarget,
@@ -186,5 +188,38 @@ describe("playbackDiag", () => {
     expect(bundle.hubNav.last?.screenAfter).toBe("hub");
     expect(warn).toHaveBeenCalled();
     expect(info).toHaveBeenCalled();
+  });
+
+  it("screen-enter + nav-cross track blink forensics", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    playbackDiagScreenEnter({
+      screenId: "book-step-2",
+      remountCount: 1,
+      renderCount: 2,
+      createdRoot: false,
+      opacity: 1,
+      visibility: "visible",
+      motionPresence: false,
+    });
+    playbackDiagNavCross({
+      sameTab: true,
+      instant: true,
+      navCross: false,
+      screenBefore: "book-step-2",
+      screenAfter: "book-step-2",
+    });
+    playbackDiagNavCross({
+      sameTab: false,
+      instant: false,
+      navCross: true,
+      screenBefore: "book-step-2",
+      screenAfter: "book-step-3",
+    });
+    const bundle = getPlaybackDiagBundle();
+    expect(bundle.screenEnter.count).toBe(1);
+    expect(bundle.screenEnter.last?.motionPresence).toBe(false);
+    expect(bundle.navCross.count).toBe(2);
+    expect(bundle.navCross.ran).toBe(1);
+    expect(bundle.navCross.skipped).toBe(1);
   });
 });

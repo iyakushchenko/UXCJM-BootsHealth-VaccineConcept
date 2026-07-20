@@ -10,6 +10,13 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-20
 
+### Book Step 2/3 page blink on same-tab Step Forward (PO / Finn + Quinn)
+
+- **Symptom / class:** Book Step 2 (and Step 3 funnel) pages blink while in-page steps work; suspected transition leakage.
+- **Root cause:** Journey **always** calls `goToTab` (hub-close safety) even when `protoTab` is unchanged (book-step2 date→time→reserve). `goToTab` ran `.studio-wire-mount--nav-cross` opacity crossfade (280ms → opacity 0) on every same-tab advance.
+- **Gate:** `resolveNavTransitionInstant` / `buildJourneyGoToTabTransition` — same-tab + hub closed → `instant: true` (still `setHubOpen(false)`). PLAYBACK_DIAG: `nav-cross` RUN vs SKIP + `screen-enter` remount/opacity/motion. Prove: same-tab SF → `nav-cross SKIP sameTab=true`, wire opacity stays 1; real tab change may still RUN.
+- **R11 trap:** `localhost` may hit IPv6 `[::1]` on a second Vite (abandoned clone) while `127.0.0.1:5173` is the real `E:\\UX\\ux-studio` server — prove on `http://127.0.0.1:5173/`.
+
 ### PO overlay / diagnostic dismiss must hard-stop Play sync (PO / Finn)
 
 - **Symptom / class:** Alarm/Cursor/Scroll click left Play running until next smoke poll; PLAYBACK DIAGNOSTIC Cancel left modal / did not stop cassette.

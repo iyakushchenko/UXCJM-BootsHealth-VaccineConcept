@@ -130,6 +130,7 @@ import {
 } from "@/app/shell/useStudioModalUrlBridge";
 import { useStudioUrlSync } from "@/app/shell/useStudioUrlSync";
 import { getProjectWire } from "@/projects/registry";
+import { buildJourneyGoToTabTransition } from "@/app/shell/navTransitionPolicy";
 import { useNavTransition } from "@/app/shell/useNavTransition";
 import type { AvailOpenIntent } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import {
@@ -234,10 +235,19 @@ export default function App() {
   const wireApiRef = useRef<ProjectWireApi | null>(null);
   const goRef = useRef<(i: number) => void>(() => {});
   const currentRef = useRef(current);
+  const hubOpenRef = useRef(hubOpen);
   const navPlaybackLockedRef = useRef(false);
   const navTransportLockedRef = useRef(false);
   const runNavTransitionRef = useRef<
-    (apply: () => void, options?: { instant?: boolean }) => void
+    (
+      apply: () => void,
+      options?: {
+        instant?: boolean;
+        sameTab?: boolean;
+        screenBefore?: string | null;
+        screenAfter?: string | null;
+      }
+    ) => void
   >((apply) => {
     apply();
   });
@@ -255,6 +265,7 @@ export default function App() {
   const resumeJourneyPlayRef = useRef<() => void>(() => {});
 
   currentRef.current = current;
+  hubOpenRef.current = hubOpen;
   journeyBeatIndexRef.current = journeyBeatIndex;
   setJourneyBeatIndexRef.current = setJourneyBeatIndex;
   activeJourneyRef.current = activeJourney;
@@ -351,15 +362,19 @@ export default function App() {
   const journeyRuntime = useMemo<JourneyRuntime>(
     () => ({
       goToTab: (screenIndex: number, options?: { instant?: boolean }) => {
-        // Product journey nav must leave hub — hubOpen=true + setCurrent alone
-        // leaves the hub overlay up (Play/end/reset looked like "return to hub").
-        runNavTransitionRef.current(
-          () => {
-            setHubOpen(false);
-            setCurrent(screenIndex);
-          },
-          options?.instant ? { instant: true } : undefined
-        );
+        // Always invoke — matching index must still close hub. Same-tab skips
+        // wire-mount opacity crossfade (book-step2 date→time→reserve blink).
+        const { transition } = buildJourneyGoToTabTransition({
+          screenIndex,
+          requestedInstant: options?.instant,
+          hubOpen: hubOpenRef.current,
+          currentIndex: currentRef.current,
+          screenIdAfter: SCREENS[screenIndex]?.screenId,
+        });
+        runNavTransitionRef.current(() => {
+          setHubOpen(false);
+          setCurrent(screenIndex);
+        }, transition);
       },
       openAvailability: (intent?: unknown) => {
         openAvailabilityToolRef.current(
@@ -379,7 +394,7 @@ export default function App() {
         applyModalFromUrl(modalId);
       },
     }),
-    [applyModalFromUrl]
+    [applyModalFromUrl, SCREENS]
   );
 
   const activeScreenScenario = useMemo(

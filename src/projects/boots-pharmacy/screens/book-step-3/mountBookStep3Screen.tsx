@@ -1,4 +1,5 @@
 import { createRoot, type Root } from "react-dom/client";
+import { noteReactScreenHostEnter } from "@/app/shell/screenHostDiag";
 import {
   BookStep3ConfirmationScreen,
   type BookStep3ConfirmationScreenProps,
@@ -20,6 +21,10 @@ let root: Root | null = null;
 let hostEl: HTMLElement | null = null;
 /** Cancels a deferred unmount when remount wins the race (tab flip / Strict Mode). */
 let unmountTimer: ReturnType<typeof setTimeout> | null = null;
+/** createRoot cycles (true remounts). */
+let remountCount = 0;
+/** mountBookStep3Screen invocations (prop re-renders included). */
+let renderCount = 0;
 
 function pageEl(): HTMLElement | null {
   return document.querySelector(BOOK_STEP3_SCREEN_SELECTOR);
@@ -86,8 +91,20 @@ export function mountBookStep3Screen(
 
   hideMakeChrome(page);
   const host = ensureHost(page);
-  if (!root) root = createRoot(host);
+  const createdRoot = !root;
+  if (!root) {
+    root = createRoot(host);
+    remountCount += 1;
+  }
+  renderCount += 1;
   root.render(<BookStep3ConfirmationScreen {...props} />);
+  noteReactScreenHostEnter({
+    screenId: BOOK_STEP3_REACT_SCREEN_ID,
+    host,
+    remountCount,
+    renderCount,
+    createdRoot,
+  });
 }
 
 /**
@@ -116,4 +133,9 @@ export function unmountBookStep3Screen(): void {
     h?.remove();
     if (page) restoreMakeChrome(page);
   }, 0);
+}
+
+/** Test / diag helper — remount cycles since page load. */
+export function getBookStep3RemountCount(): number {
+  return remountCount;
 }
