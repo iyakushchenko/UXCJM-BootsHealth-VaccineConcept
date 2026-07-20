@@ -1265,44 +1265,22 @@ function refreshMcpStatusDom(): void {
   const chip = root?.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__mcp"
   );
-  const mode = root?.querySelector<HTMLElement>(
-    ".studio-agent-testing-overlay__mcp-mode"
-  );
+  // Strip legacy duplicate "Connection · …" line if present
+  root
+    ?.querySelectorAll(".studio-agent-testing-overlay__mcp-mode")
+    .forEach((el) => el.remove());
   if (chip) {
     if (!status.label || status.phase === "idle") {
       chip.hidden = true;
       chip.textContent = "";
       delete chip.dataset.phase;
       if (wrap) wrap.hidden = true;
-      if (mode) {
-        mode.hidden = true;
-        mode.textContent = "";
-      }
     } else {
       chip.hidden = false;
       chip.textContent = status.label;
       chip.dataset.phase = status.phase;
       chip.title = status.label;
       if (wrap) wrap.hidden = false;
-      if (mode) {
-        mode.hidden = false;
-        const modeLine =
-          status.phase === "control"
-            ? "Connection · CONTROL (agent online)"
-            : status.phase === "observe"
-              ? "Connection · OBSERVE (user can interact)"
-              : status.phase === "pending"
-                ? "Connection · CONTROL · PENDING (awaiting reply)"
-                : status.phase === "error"
-                  ? `Connection · ERROR${status.error ? `: ${status.error}` : ""}`
-                  : status.phase === "connecting"
-                    ? "Connection · CONNECTING"
-                    : status.phase === "connected"
-                      ? "Connection · CONNECTED"
-                      : "";
-        mode.textContent = modeLine;
-        mode.dataset.phase = status.phase;
-      }
     }
   }
   if (root) {
@@ -1518,7 +1496,7 @@ function ensureOverlayChrome(root: HTMLElement): void {
     strayDump.remove();
   }
 
-  // MCP status under compose
+  // Lean MCP status line under Message/Send (no bordered chrome)
   let mcpStatus = panel.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__mcp-status"
   );
@@ -1527,8 +1505,15 @@ function ensureOverlayChrome(root: HTMLElement): void {
     mcpStatus.className = "studio-agent-testing-overlay__mcp-status";
     mcpStatus.hidden = true;
     mcpStatus.innerHTML =
-      '<span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>' +
-      '<span class="studio-agent-testing-overlay__mcp-mode" hidden></span>';
+      '<span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>';
+  } else {
+    mcpStatus
+      .querySelectorAll(".studio-agent-testing-overlay__mcp-mode")
+      .forEach((el) => el.remove());
+    if (!mcpStatus.querySelector(".studio-agent-testing-overlay__mcp")) {
+      mcpStatus.innerHTML =
+        '<span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>';
+    }
   }
   const note = panel.querySelector(".studio-agent-testing-overlay__note");
   if (note && mcpStatus.previousElementSibling !== note) {
@@ -1682,7 +1667,6 @@ function ensureRoot(): HTMLElement | null {
       </form>
       <div class="studio-agent-testing-overlay__mcp-status" hidden>
         <span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>
-        <span class="studio-agent-testing-overlay__mcp-mode" hidden></span>
       </div>
     </div>
   `;

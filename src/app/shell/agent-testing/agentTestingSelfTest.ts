@@ -1,6 +1,9 @@
 /**
  * Lean QA overlay self-test smoke for MCP / agents.
  * Full dual-role checklist: SELF_TEST.md — this runner covers fast trust checks only.
+ *
+ * Pace: near real-life, slightly faster (not ultra-fast) — avoids flaky CONNECTING flash
+ * and false fails from racing DOM. See QA_SELF_TEST_*_MS constants + SELF_TEST.md.
  */
 
 import { QA_SELF_TEST_SCENARIOS } from "@/app/shell/agent-testing/agentTestingSelfTest.scenarios";
@@ -14,10 +17,26 @@ import {
   unlockAgentToObserve,
 } from "@/app/shell/agent-testing/agentTestingSession";
 
+/**
+ * Between discrete UI actions (click, ask, toggle) — slightly faster than human,
+ * slower than hammering (200–500ms band; default 350).
+ */
+export const QA_SELF_TEST_STEP_MS = 350;
+
+/**
+ * After open/handoff — cover MCP CONNECTING(280)+CONNECTED(500) flash (~780ms)
+ * with a little cushion (matches light Play dwell floors, not marathon waits).
+ */
+export const QA_SELF_TEST_SETTLE_MS = 900;
+
+/** Brief clear/teardown pause before next open. */
+export const QA_SELF_TEST_CLEAR_MS = 250;
+
 export type QaSelfTestSmokeResult = {
   ok: boolean;
   atIso: string;
   scenarioCount: number;
+  paceMs: { step: number; settle: number; clear: number };
   checks: Array<{ id: string; ok: boolean; detail?: string }>;
 };
 
@@ -89,9 +108,11 @@ export function runQaSelfTestPureChecks(): QaSelfTestSmokeResult["checks"] {
 /**
  * Browser smoke: pure checks + optional DOM probe when overlay APIs exist.
  * Does not replace full SELF_TEST.md marathon — gates trust-breakers only.
+ * Uses QA_SELF_TEST_*_MS pacing (override via window.__studioQaSelfTestPaceMs).
  */
 export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
   const checks = runQaSelfTestPureChecks();
+  const pace = readPaceOverrides();
 
   if (typeof window !== "undefined") {
     const w = window as Window & {
@@ -112,9 +133,9 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     try {
       w.__studioForceClearAgentTestingOverlay?.();
-      await sleep(80);
+      await sleep(pace.clear);
       w.__studioOpenQaLogger?.({ kind: "observe" });
-      await sleep(850);
+      await sleep(pace.settle);
       const kind = w.__studioQaSessionKind?.();
       const phase = w.__studioMcpConnectionStatus?.()?.phase;
       checks.push(
@@ -125,8 +146,9 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
         )
       );
 
+      await sleep(pace.step);
       w.__studioAgentTestingOverlay?.ringAlarm?.("self-test");
-      await sleep(200);
+      await sleep(pace.step);
       const latch =
         w.__studioPeekPoSignal?.() ??
         (window as Window & { __studioAgentTestingTakeover?: { code?: string } })
@@ -140,8 +162,10 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
         )
       );
       w.__studioConsumePoSignal?.();
+      await sleep(pace.step);
 
       const unlocked = w.__studioAgentTestingOverlay?.unlockObserve?.();
+      await sleep(pace.step);
       checks.push(
         check(
           "dom-unlock",
@@ -153,8 +177,9 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       const empty = w.__studioAppendPoNote?.("   ");
       checks.push(check("empty-message-noop", empty === false, String(empty)));
 
+      await sleep(pace.step);
       w.__studioToggleQaLogger?.();
-      await sleep(80);
+      await sleep(pace.step);
       checks.push(
         check(
           "bug-toggle-observe-noop",
@@ -181,6 +206,35 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
     ok: checks.every((c) => c.ok),
     atIso: new Date().toISOString(),
     scenarioCount: QA_SELF_TEST_SCENARIOS.length,
+    paceMs: pace,
     checks,
+  };
+}
+
+function readPaceOverrides(): {
+  step: number;
+  settle: number;
+  clear: number;
+} {
+  const defaults = {
+    step: QA_SELF_TEST_STEP_MS,
+    settle: QA_SELF_TEST_SETTLE_MS,
+    clear: QA_SELF_TEST_CLEAR_MS,
+  };
+  if (typeof window === "undefined") return defaults;
+  const raw = (
+    window as Window & {
+      __studioQaSelfTestPaceMs?: Partial<typeof defaults>;
+    }
+  ).__studioQaSelfTestPaceMs;
+  if (!raw || typeof raw !== "object") return defaults;
+  const clamp = (n: unknown, fallback: number) =>
+    typeof n === "number" && Number.isFinite(n) && n >= 0
+      ? Math.round(n)
+      : fallback;
+  return {
+    step: clamp(raw.step, defaults.step),
+    settle: clamp(raw.settle, defaults.settle),
+    clear: clamp(raw.clear, defaults.clear),
   };
 }

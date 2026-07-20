@@ -125,5 +125,8 @@ export {
 export {
   runQaSelfTestSmoke,
   runQaSelfTestPureChecks,
+  QA_SELF_TEST_STEP_MS,
+  QA_SELF_TEST_SETTLE_MS,
+  QA_SELF_TEST_CLEAR_MS,
   type QaSelfTestSmokeResult,
 } from "@/app/shell/agent-testing/agentTestingSelfTest";

@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.80 - 200726
+- QA lean MCP status + paced self-test
+
 ## v0.0.79 - 200726
 - QA dual-role trust + self-test pack
 

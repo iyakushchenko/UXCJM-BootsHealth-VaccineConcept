@@ -2,10 +2,27 @@
 
 **Prove URL:** `http://127.0.0.1:5173/` only (`strictPort`).  
 **Catalog:** [`agentTestingSelfTest.scenarios.ts`](./agentTestingSelfTest.scenarios.ts)  
-**Lean runner:** `window.__studioRunQaSelfTestSmoke?.()` → pure session checks + short DOM probe.  
+**Lean runner:** `window.__studioRunQaSelfTestSmoke?.()` → pure session checks + paced DOM probe.  
 **Doctrine:** [PAINPOINTS.md](../../../../docs/product/PAINPOINTS.md) **PP-13** · [README.md](./README.md)
 
 The QA overlay is **load-bearing** for mid-flight agent work. Do not claim Studio/product green without a recent self-test when the overlay changed.
+
+---
+
+## Pace (near real-life, slightly faster)
+
+Ultra-fast sleeps invent flaky fails (MCP CONNECTING flash, latch races). Defaults:
+
+| Constant | Default | Role |
+|----------|---------|------|
+| `QA_SELF_TEST_STEP_MS` | **350** | Between actions (Alarm, unlock, toggle) — in the 200–500ms band |
+| `QA_SELF_TEST_SETTLE_MS` | **900** | After open — covers CONNECTING(~280)+CONNECTED(~500) flash |
+| `QA_SELF_TEST_CLEAR_MS` | **250** | After forceClear before reopen |
+
+Override for prove only: `window.__studioQaSelfTestPaceMs = { step: 400, settle: 1000 }`.  
+Do **not** drop settle below ~800ms unless you accept `phase=connected` as PASS (smoke already allows connected briefly).
+
+Manual marathon: same pacing — pause ~⅓–½s between clicks; wait ~1s after open before asserting MCP phase.
 
 ---
 
@@ -36,7 +53,7 @@ window.__studioPeekPoSignal?.() / __studioConsumePoSignal?.()
 
 | ID | Trust | How to prove |
 |----|-------|--------------|
-| observe-open-capture | Y | Observe open → `Observing` + MCP OBSERVE after ~800ms flash |
+| observe-open-capture | Y | Observe open → `Observing` + MCP OBSERVE after settle |
 | observe-page-click-log | Y | Quick View click → `Click: …` row (Studio tabs ignored by design) |
 | observe-alarm-escalate | Y | Alarm → agent + `ALARM_SEQUENCE_MISMATCH` latch |
 | observe-unlock | Y | `unlockObserve()` → observe |
@@ -60,5 +77,6 @@ Known nits (not trust-breakers): Studio nav clicks omitted from capture log; CON
 ```js
 const r = await window.__studioRunQaSelfTestSmoke?.()
 console.table(r?.checks)
+console.log(r?.paceMs) // { step: 350, settle: 900, clear: 250 }
 // r.ok === true → pure+DOM trust smoke green; still walk SELF_TEST table for marathon
 ```

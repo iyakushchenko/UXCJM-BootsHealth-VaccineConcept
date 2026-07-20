@@ -23,4 +23,16 @@ describe("agentTestingSelfTest", () => {
     const checks = runQaSelfTestPureChecks();
     expect(checks.every((c) => c.ok)).toBe(true);
   });
+
+  it("exports near-real-life pace constants", async () => {
+    const {
+      QA_SELF_TEST_STEP_MS,
+      QA_SELF_TEST_SETTLE_MS,
+      QA_SELF_TEST_CLEAR_MS,
+    } = await import("@/app/shell/agent-testing/agentTestingSelfTest");
+    expect(QA_SELF_TEST_STEP_MS).toBeGreaterThanOrEqual(200);
+    expect(QA_SELF_TEST_STEP_MS).toBeLessThanOrEqual(500);
+    expect(QA_SELF_TEST_SETTLE_MS).toBeGreaterThanOrEqual(800);
+    expect(QA_SELF_TEST_CLEAR_MS).toBeGreaterThanOrEqual(100);
+  });
 });

@@ -76,16 +76,16 @@ window.__studioForceClearAgentTestingOverlay?.()
 
 ### MCP connection status
 
-Primary: under Message/Send compose (not header). Short nav hint beside bug icon.
+Primary: **lean muted status line** under Message/Send (no bordered chip / no duplicate “Connection · …” box). Short nav hint beside bug icon (CTRL / OBS / PENDING).
 
-| Phase | Label | Color / viewport |
-|-------|-------|------------------|
-| CONNECTING | `MCP — CONNECTING` | soft blue |
-| CONNECTED | `MCP — CONNECTED` | soft blue (brief) |
-| CONTROL | `MCP — CONTROL` | bright green + **3px gold** viewport border |
-| OBSERVE | `MCP — OBSERVE` | bright fuchsia |
-| CONTROL · PENDING | `MCP — CONTROL · PENDING` | system blue + **3px blue** border |
-| ERROR | `MCP — ERROR: …` | red + **3px red** border |
+| Phase | Label | Viewport |
+|-------|-------|----------|
+| CONNECTING | `MCP — CONNECTING` | — |
+| CONNECTED | `MCP — CONNECTED` | — (brief) |
+| CONTROL | `MCP — CONTROL` | **3px gold** viewport border |
+| OBSERVE | `MCP — OBSERVE` | — |
+| CONTROL · PENDING | `MCP — CONTROL · PENDING` | **3px blue** border |
+| ERROR | `MCP — ERROR: …` | **3px red** border |
 | Idle | hidden | manual / no agent session |
 
 **PENDING timeout (default 60s):** auto-pause capture + log `MCP pending timed out (Ns) — paused; resume when ready`. Override: `window.__studioQaPendingTimeoutMs`. Clear on user Reply/Send.
@@ -106,7 +106,7 @@ __studioReportMcpConnectionError("latch fail")
 Overlay is **load-bearing** ([PP-13](../../../../docs/product/PAINPOINTS.md)). After any QA-tool ship:
 
 1. Open [`SELF_TEST.md`](./SELF_TEST.md) checklist (USER observe ↔ AGENT intervene).
-2. Lean smoke: `await window.__studioRunQaSelfTestSmoke?.()` — expect `ok: true`.
+2. Lean smoke (paced): `await window.__studioRunQaSelfTestSmoke?.()` — expect `ok: true` (~step 350ms / settle 900ms).
 3. Scenario catalog: `agentTestingSelfTest.scenarios.ts` (Vitest covers pure state).
 
 ## Overlay CTAs (PO mid-flight)
