@@ -427,8 +427,9 @@ export function compileRecordingToJourney(
 
 /**
  * Compile + add as a **new** CJM under project/persona (runtime catalog +
- * localStorage). Downloads still happen in the REC UI. Does **not** overwrite
- * the built-in agentic/traditional slots unless `addAsNew: false`.
+ * localStorage). REC UI collects a title (`label`) separately from recording
+ * JSON download. Does **not** overwrite the built-in agentic/traditional slots
+ * unless `addAsNew: false`.
  */
 export function saveRecordingAsJourney(
   session: RecordingSession,

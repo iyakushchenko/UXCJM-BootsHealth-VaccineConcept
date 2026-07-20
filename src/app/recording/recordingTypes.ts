@@ -276,7 +276,11 @@ export type RecordingReplayOptions = {
   applyTypedText?: (
     event: RecordingTypedTextApplyInput
   ) => boolean | void | Promise<boolean | void>;
-  /** Delay between transport / screen / demo-click events (ms). Default 400. */
+  /**
+   * Hold after each major replayed step (ms). Default 4000 (≥4s floor).
+   * Capture `atMs` gaps longer than this are honored. `0` disables holds (unit tests).
+   * Scroll uses a short settle after engine eased scroll — not this full floor.
+   */
   stepDelayMs?: number;
   shouldAbort?: () => boolean;
 };

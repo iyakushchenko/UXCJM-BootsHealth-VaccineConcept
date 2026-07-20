@@ -17,7 +17,9 @@ import {
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import {
   compileRecordingToBeatTimeline,
+  RECORDING_REPLAY_MIN_STEP_HOLD_MS,
   replayRecordingSession,
+  resolveRecordingReplayHoldMs,
 } from "@/app/recording/recordingReplay";
 import {
   buildPlaybackSelectorChain,
@@ -367,7 +369,7 @@ describe("replayRecordingSession", () => {
 
     const promise = replayRecordingSession(session, {
       triggerTransport: transport,
-      stepDelayMs: 50,
+      stepDelayMs: 0,
     });
 
     await vi.runAllTimersAsync();
@@ -378,6 +380,45 @@ describe("replayRecordingSession", () => {
     expect(result.unsupported).toBe(1);
 
     vi.useRealTimers();
+  });
+
+  it("resolveRecordingReplayHoldMs floors major steps at 4s and settles scroll briefly", () => {
+    const screen = {
+      kind: "screen" as const,
+      screenId: "plp",
+      atMs: 0,
+    };
+    const next = {
+      kind: "demo-click" as const,
+      element: "tile",
+      atMs: 1200,
+    };
+    expect(
+      resolveRecordingReplayHoldMs(screen, next, RECORDING_REPLAY_MIN_STEP_HOLD_MS)
+    ).toBe(RECORDING_REPLAY_MIN_STEP_HOLD_MS);
+
+    const longGapNext = { ...next, atMs: 9000 };
+    expect(
+      resolveRecordingReplayHoldMs(
+        screen,
+        longGapNext,
+        RECORDING_REPLAY_MIN_STEP_HOLD_MS
+      )
+    ).toBe(9000);
+
+    const scroll = {
+      kind: "scroll" as const,
+      scrollTop: 400,
+      atMs: 100,
+    };
+    expect(
+      resolveRecordingReplayHoldMs(scroll, next, RECORDING_REPLAY_MIN_STEP_HOLD_MS)
+    ).toBeGreaterThanOrEqual(200);
+    expect(
+      resolveRecordingReplayHoldMs(scroll, next, RECORDING_REPLAY_MIN_STEP_HOLD_MS)
+    ).toBeLessThan(RECORDING_REPLAY_MIN_STEP_HOLD_MS);
+
+    expect(resolveRecordingReplayHoldMs(screen, next, 0)).toBe(0);
   });
 
   it("replays screen events via applyScreen in order", async () => {

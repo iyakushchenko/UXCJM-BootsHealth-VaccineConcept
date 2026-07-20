@@ -195,10 +195,16 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ● | Start recording (current project / persona / journey) |
 | ❚❚ / ► | Pause / resume |
 | ■ | Stop — keeps session for export / replay |
-| ↓ | Download `.recording.json` |
+| ↓ | **Download JSON** — export `.recording.json` only (recording file; not journey compile) |
 | ↑ | Import a saved `.recording.json` |
 | ↺ | Replay last stopped or imported session (v3: transport + screen + demo/human-click + wire-intent + director-script + beat-enter + scroll + typed-text) |
-| ⌁ (save) | **Add as CJM** — compile → **new** journey id under current project+persona (runtime catalog + localStorage) + download `journey-*.json` (does **not** overwrite built-in Agentic/Traditional slots) |
+| + | **Add to project as CJM** — title popup (Studio nav chrome) → compile → **new** journey id under current project+persona (runtime catalog + localStorage + picker label). Does **not** overwrite built-in Agentic/Traditional slots. Separate from Download. |
+
+### Auto-play pacing (REC ↺)
+
+**Was missing (pre-v0.0.50):** bridge/MCP forced `stepDelayMs: 200` (and processor defaulted ~400ms) — Play was an immediate burst. Capture `atMs` / `dwell` existed but were not enforced as a ≥4s floor.
+
+**Now:** `replayRecordingSession` defaults to **`RECORDING_REPLAY_MIN_STEP_HOLD_MS = 4000`**. Major steps (screen / transport / demo-click / wire / director / beat-enter / typed-text / dwell) hold **max(4s, capture gap, dwellMs)**. Scroll uses **engine eased** `animateScrollElementIntoView` (same as CJM) plus a short settle (~280ms) — not a pixel snap / frame burst. Opt out with `stepDelayMs: 0` (tests only).
 
 UI and MCP share `recordingSession` + `replayRecordingSession` — no second session store.
 
@@ -291,11 +297,11 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 
 ### Compile → journeys (PO path) — **Add as CJM**
 
-1. Record (or ↑ import a `.recording.json`).
-2. Stop ■ then **Add as CJM** (or `__studioSaveRecordingAsJourney()`).
-3. Studio mints a free id (`rec-trad-…` / `rec-agentic-…`), merges into `journeyRuntimeStore`, persists in **localStorage** for that project+persona, selects it in the nav CJM picker, and downloads `journey-*.json`.
+1. Record (or ↑ import a `.recording.json`). Use **Download JSON** only for the recording file.
+2. Stop ■ then **+** → enter a **CJM title** in the Studio nav popup → **Add** (or `__studioSaveRecordingAsJourney(session, { label })`).
+3. Studio mints a free id (`rec-trad-…` / `rec-agentic-…`), uses the title as journey `label` + picker text, merges into `journeyRuntimeStore`, persists in **localStorage** for that project+persona, and selects it in the nav CJM picker.
 4. Turn **CJM** on and play/step — best-effort beats from the recording.
-5. Optional: keep the downloaded JSON under `data/journeys/` (repo) or re-apply with `__studioApplyJourney(json)`.
+5. Optional: export journey JSON via MCP `saved.json` / `__studioExportJourneyBundle()` — not conflated with REC Download.
 6. Clear runtime overlay: `__studioClearImportedJourneys()` (localStorage recorded CJMs re-hydrate on next load unless cleared from storage).
 
 **Mapped into beats:** touchpoint segments (or screen/director fallback), `director-script` → home/avail/book/tab scripts, known `wire-intent` / `beat-enter` → `onEnter`, `dwell` → `dwellMs`, snapshot `protoTab` / `currentTabIndex`.
@@ -318,7 +324,7 @@ Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-hom
 
 | v3 (now) | Later |
 |----------|-------|
-| In-memory session + JSON export + **Add as CJM** (localStorage + download) | Auto-commit into persona `journeys.ts` / `data/journeys/` |
+| In-memory session + recording JSON download + **Add as CJM** (title + localStorage) | Auto-commit into persona `journeys.ts` / `data/journeys/` |
 | Studio REC deck + MCP helpers | Nested scroll containers beyond prototype root |
 | Transport + screen + dwell + demo-click + human REC click + **beat-enter + scroll-to-target + typed-text** | Drag / contenteditable / rich form widgets |
 | Director-script + retreat-sync via shared script apply | — |

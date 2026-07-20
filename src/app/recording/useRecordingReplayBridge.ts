@@ -358,7 +358,7 @@ export function useRecordingReplayBridge(options: {
       applyBeatEnter: applyRecordingBeatEnter,
       applyScroll: applyRecordingScroll,
       applyTypedText: applyRecordingTypedText,
-      stepDelayMs: 200,
+      // Default ≥4s major-step hold (recordingReplay); omit override so capture gaps apply.
     }),
     [
       applyRecordingBeatEnter,

@@ -192,17 +192,11 @@ function ReplayIcon() {
   );
 }
 
-function JourneySaveIcon() {
+function AddCjmPlusIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
-      <path
-        d="M2 1.25h4.25L8.5 3.5V8.5a.25.25 0 0 1-.25.25H2.25A.25.25 0 0 1 2 8.5V1.5c0-.14.11-.25.25-.25z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path d="M3.25 1.5h3v2h-3z" fill="currentColor" />
-      <path d="M3 6.25h4v2.25H3z" fill="currentColor" />
+      <path d="M4.25 1.5h1.5v7h-1.5z" />
+      <path d="M1.5 4.25h7v1.5h-7z" />
     </svg>
   );
 }
@@ -339,14 +333,38 @@ export function StudioNavRecordingControls({
 }: StudioNavRecordingControlsProps) {
   const ui = useRecordingUiSnapshot();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const addCjmRootRef = useRef<HTMLSpanElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [replaying, setReplaying] = useState(false);
   const [statusNote, setStatusNote] = useState<string | null>(null);
+  const [addCjmOpen, setAddCjmOpen] = useState(false);
+  const [cjmTitle, setCjmTitle] = useState("");
 
   useEffect(() => {
     if (!statusNote) return;
     const timer = window.setTimeout(() => setStatusNote(null), 2400);
     return () => window.clearTimeout(timer);
   }, [statusNote]);
+
+  useEffect(() => {
+    if (!addCjmOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const root = addCjmRootRef.current;
+      if (!root || root.contains(event.target as Node)) return;
+      setAddCjmOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAddCjmOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    const focusTimer = window.setTimeout(() => titleInputRef.current?.focus(), 0);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+      window.clearTimeout(focusTimer);
+    };
+  }, [addCjmOpen]);
 
   const flashTap = (button: HTMLButtonElement) => {
     flashControlRoomButton(button, "studio-nav-scenario__btn--tap");
@@ -440,14 +458,28 @@ export function StudioNavRecordingControls({
     }
   };
 
-  const handleSaveAsJourney = (event: React.MouseEvent<HTMLButtonElement>) => {
-    let session = getActiveRecordingSession() ?? getLastRecordingSession();
-    logControlPanel("recording:add-as-cjm", {
+  const openAddCjmTitle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const session = getActiveRecordingSession() ?? getLastRecordingSession();
+    logControlPanel("recording:add-as-cjm-open", {
       blocked: !session || replaying,
       eventCount: session?.events.length ?? 0,
     });
     flashTap(event.currentTarget);
     if (!session || replaying) return;
+    const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+    setCjmTitle(`Recorded ${stamp}`);
+    setAddCjmOpen(true);
+  };
+
+  const confirmAddCjm = () => {
+    let session = getActiveRecordingSession() ?? getLastRecordingSession();
+    const title = cjmTitle.trim();
+    logControlPanel("recording:add-as-cjm", {
+      blocked: !session || replaying || !title,
+      eventCount: session?.events.length ?? 0,
+      label: title || null,
+    });
+    if (!session || replaying || !title) return;
     try {
       if (isRecordingActive()) {
         session = stopRecording() ?? session;
@@ -457,18 +489,14 @@ export function StudioNavRecordingControls({
         projectId: session.projectId ?? defaults.projectId,
         personaId: session.personaId ?? defaults.personaId,
         addAsNew: true,
+        label: title,
       });
-      const stamp = session.stoppedAt ?? session.startedAt ?? "session";
-      const safeStamp = stamp.replace(/[:.]/g, "-");
-      downloadTextJson(
-        `journey-${saved.journey.id}-${safeStamp}.json`,
-        saved.json
-      );
+      setAddCjmOpen(false);
       onSaveAsJourney?.(session, {
         journeyId: saved.journey.id,
         label: saved.journey.label,
       });
-      setStatusNote(`CJM · ${saved.journey.id}`);
+      setStatusNote(`CJM · ${saved.journey.label}`);
     } catch (error) {
       console.warn("[StudioRecording] add-as-cjm failed", error);
       setStatusNote("CJM FAIL");
@@ -550,16 +578,69 @@ export function StudioNavRecordingControls({
       >
         <ReplayIcon />
       </button>
-      <button
-        type="button"
-        className="studio-nav-step-btn studio-nav-scenario__btn"
-        aria-label="Add as CJM"
-        title="Add recording as a new CJM option (current project + persona) + download .json"
-        disabled={!ui.canExport || replaying}
-        onClick={handleSaveAsJourney}
+      <span
+        ref={addCjmRootRef}
+        className="studio-nav-recording-add-cjm"
+        data-studio-recording-add-cjm=""
       >
-        <JourneySaveIcon />
-      </button>
+        <button
+          type="button"
+          className="studio-nav-step-btn studio-nav-scenario__btn"
+          aria-label="Add to project as CJM"
+          title="Add recording as a new CJM (title, then confirm)"
+          aria-expanded={addCjmOpen}
+          aria-haspopup="dialog"
+          disabled={!ui.canExport || replaying}
+          onClick={openAddCjmTitle}
+        >
+          <AddCjmPlusIcon />
+        </button>
+        {addCjmOpen ? (
+          <div
+            className="studio-nav-recording-add-cjm__panel"
+            role="dialog"
+            aria-label="New CJM title"
+          >
+            <label className="studio-nav-recording-add-cjm__field">
+              <span className="studio-nav-recording-add-cjm__field-label">
+                CJM title
+              </span>
+              <input
+                ref={titleInputRef}
+                className="studio-nav-recording-add-cjm__input"
+                type="text"
+                value={cjmTitle}
+                maxLength={80}
+                placeholder="Journey title"
+                onChange={(event) => setCjmTitle(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    confirmAddCjm();
+                  }
+                }}
+              />
+            </label>
+            <div className="studio-nav-recording-add-cjm__actions">
+              <button
+                type="button"
+                className="studio-nav-recording-add-cjm__action"
+                onClick={() => setAddCjmOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="studio-nav-recording-add-cjm__action studio-nav-recording-add-cjm__action--confirm"
+                disabled={!cjmTitle.trim()}
+                onClick={confirmAddCjm}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </span>
       <input
         ref={fileInputRef}
         type="file"

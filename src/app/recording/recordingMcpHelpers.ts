@@ -159,7 +159,7 @@ export function registerRecordingMcpHelpers(options?: {
       applyBeatEnter: options.applyBeatEnter,
       applyScroll: options.applyScroll,
       applyTypedText: options.applyTypedText,
-      stepDelayMs: 200,
+      // Default ≥4s major-step hold (recordingReplay); omit override so capture gaps apply.
     });
   };
 

@@ -1,0 +1,112 @@
+/* Add-as-CJM title popup — same chrome language as `.studio-nav-journey-menu__panel` */
+
+.studio-nav-recording-add-cjm {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.studio-nav-recording-add-cjm__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 12.5rem;
+  padding: 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.studio-nav-recording-add-cjm__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.studio-nav-recording-add-cjm__field-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.studio-nav-recording-add-cjm__input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  outline: none;
+}
+
+.studio-nav-recording-add-cjm__input:focus {
+  border-color: rgba(234, 217, 173, 0.55);
+}
+
+.studio-nav-recording-add-cjm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+}
+
+.studio-nav-recording-add-cjm__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.2rem;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  background: linear-gradient(180deg, #5a5a5a 0%, #383838 48%, #242424 100%);
+  cursor: default;
+}
+
+.studio-nav-recording-add-cjm__action:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, #4a4a4a 0%, #2e2e2e 48%, #1a1a1a 100%);
+}
+
+.studio-nav-recording-add-cjm__action--confirm {
+  color: #3d3018;
+  background: linear-gradient(
+    180deg,
+    #faf0d4 0%,
+    #ead9ad 18%,
+    #dcc796 46%,
+    #c9b27a 100%
+  );
+}
+
+.studio-nav-recording-add-cjm__action--confirm:hover:not(:disabled) {
+  color: #2a2110;
+  background: linear-gradient(
+    180deg,
+    #fff6e0 0%,
+    #f0e2b8 18%,
+    #e4cf9e 46%,
+    #d4bc86 100%
+  );
+}
+
+.studio-nav-recording-add-cjm__action:disabled {
+  opacity: 0.45;
+}

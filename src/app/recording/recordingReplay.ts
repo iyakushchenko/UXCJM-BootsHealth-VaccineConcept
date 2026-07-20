@@ -20,6 +20,59 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
+ * Auto-play floor between major REC steps (screen / click / transport / …).
+ * Capture `atMs` gaps are honored when longer; `stepDelayMs: 0` opts out (tests).
+ */
+export const RECORDING_REPLAY_MIN_STEP_HOLD_MS = 4000;
+
+/** Scroll uses engine eased timing; only a short settle before the next event. */
+const RECORDING_REPLAY_SCROLL_SETTLE_MS = 280;
+
+function isMajorReplayHoldKind(kind: RecordedEvent["kind"]): boolean {
+  return (
+    kind === "transport" ||
+    kind === "screen" ||
+    kind === "demo-click" ||
+    kind === "wire-intent" ||
+    kind === "director-script" ||
+    kind === "beat-enter" ||
+    kind === "typed-text" ||
+    kind === "dwell"
+  );
+}
+
+/**
+ * Hold after a replayed event. Major steps ≥4s (or capture gap / stepDelayMs).
+ * Scroll: short settle only — camera motion is the engine ease, not a burst snap.
+ */
+export function resolveRecordingReplayHoldMs(
+  event: RecordedEvent,
+  next: RecordedEvent | undefined,
+  stepDelayMs: number
+): number {
+  if (stepDelayMs <= 0) return 0;
+  const gap =
+    next &&
+    typeof next.atMs === "number" &&
+    typeof event.atMs === "number" &&
+    Number.isFinite(next.atMs) &&
+    Number.isFinite(event.atMs)
+      ? Math.max(0, next.atMs - event.atMs)
+      : 0;
+  if (event.kind === "scroll") {
+    return Math.max(RECORDING_REPLAY_SCROLL_SETTLE_MS, Math.min(gap, stepDelayMs));
+  }
+  if (event.kind === "dwell") {
+    const dwell = event.durationMs ?? 0;
+    return Math.max(RECORDING_REPLAY_MIN_STEP_HOLD_MS, stepDelayMs, dwell, gap);
+  }
+  if (!isMajorReplayHoldKind(event.kind)) {
+    return Math.max(0, stepDelayMs);
+  }
+  return Math.max(RECORDING_REPLAY_MIN_STEP_HOLD_MS, stepDelayMs, gap);
+}
+
+/**
  * Propose beat boundaries from touchpoint markers in a recording.
  * Events between touchpoint markers become segment payloads for future
  * journeys.ts compilation.
@@ -106,10 +159,17 @@ export async function replayRecordingSession(
     return result;
   }
 
-  const stepDelayMs = options.stepDelayMs ?? 400;
+  const stepDelayMs =
+    options.stepDelayMs ?? RECORDING_REPLAY_MIN_STEP_HOLD_MS;
   const shouldAbort = options.shouldAbort ?? (() => false);
+  const events = session.events;
 
-  for (const event of session.events) {
+  for (let i = 0; i < events.length; i += 1) {
+    const event = events[i];
+    const next = events[i + 1];
+    const holdAfter = () =>
+      delay(resolveRecordingReplayHoldMs(event, next, stepDelayMs));
+
     if (shouldAbort()) {
       result.errors.push("replay aborted");
       break;
@@ -123,9 +183,7 @@ export async function replayRecordingSession(
       try {
         await trigger(event.action);
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `transport ${event.action}: ${err instanceof Error ? err.message : String(err)}`
@@ -151,9 +209,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `screen ${event.screenId}: ${err instanceof Error ? err.message : String(err)}`
@@ -163,8 +219,7 @@ export async function replayRecordingSession(
     }
 
     if (event.kind === "dwell") {
-      const dwellMs = event.durationMs ?? stepDelayMs;
-      await delay(dwellMs);
+      await holdAfter();
       result.replayed += 1;
       continue;
     }
@@ -189,9 +244,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `demo-click ${event.element}: ${err instanceof Error ? err.message : String(err)}`
@@ -218,9 +271,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `wire-intent ${event.intentId}: ${err instanceof Error ? err.message : String(err)}`
@@ -249,9 +300,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `director-script ${event.scriptId}: ${
@@ -280,9 +329,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `beat-enter ${event.actionId}: ${
@@ -310,9 +357,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `scroll: ${err instanceof Error ? err.message : String(err)}`
@@ -341,9 +386,7 @@ export async function replayRecordingSession(
           continue;
         }
         result.replayed += 1;
-        if (stepDelayMs > 0) {
-          await delay(stepDelayMs);
-        }
+        await holdAfter();
       } catch (err) {
         result.errors.push(
           `typed-text ${event.element ?? "field"}: ${

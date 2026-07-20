@@ -2,6 +2,10 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.50 - 200726
+- **shell:** REC replay ≥4s major-step hold + scroll settle; split Download vs + Add CJM title popup
+- **shell:** REC Download JSON (recording only) vs **+** Add as CJM with Studio-nav title popup (picker label)
+
 ## v0.0.49 - 200726
 - **shell:** REC scroll captures viewport **target** (`selectorChain` / `anchorSelector`); replay uses engine eased scroll-to-target (not pixel snap)
 - **shell:** REC **Add as CJM** — new free journey id under project+persona (picker + localStorage + download); does not overwrite Agentic/Traditional slots
