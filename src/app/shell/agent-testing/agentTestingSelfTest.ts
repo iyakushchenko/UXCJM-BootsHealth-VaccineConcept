@@ -6,6 +6,45 @@
  * and false fails from racing DOM. See QA_SELF_TEST_*_MS constants + SELF_TEST.md.
  */
 
+import { buildClickDetail } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
+import {
+  deriveAgentControlKind,
+  formatAgentControlKindSuffix,
+} from "@/app/shell/agent-testing/agentTestingControlKind";
+import { getDiagMirrorRows } from "@/app/shell/agent-testing/agentTestingDiagMirror";
+import {
+  beginFailHandoff,
+  clearFailHandoff,
+  confirmAgentFailTakeover,
+  resetFailHandoffForTests,
+} from "@/app/shell/agent-testing/agentTestingFailHandoff";
+import {
+  clearAgentTestingFinaleSeal,
+  isAgentTestingFinaleSealed,
+  sealAgentTestingFinale,
+} from "@/app/shell/agent-testing/agentTestingFinaleSeal";
+import {
+  formatOriginHostLabel,
+  formatOriginSessionLine,
+  resetOriginProbeForTests,
+} from "@/app/shell/agent-testing/agentTestingOriginProbe";
+import {
+  clearQaAgentPresence,
+  peekQaAgentPresence,
+  touchQaAgentPresence,
+} from "@/app/shell/agent-testing/agentTestingPresence";
+import {
+  clearQaProgressFreeze,
+  isQaProgressFrozen,
+  setQaProgressFreeze,
+} from "@/app/shell/agent-testing/agentTestingProgressFreeze";
+import {
+  getQaMessageRttStats,
+  messageAwarePendingFloorMs,
+  noteQaMessageConsumed,
+  noteQaMessageSent,
+  resetQaMessageRttForTests,
+} from "@/app/shell/agent-testing/agentTestingMessageRtt";
 import { QA_SELF_TEST_SCENARIOS } from "@/app/shell/agent-testing/agentTestingSelfTest.scenarios";
 import {
   escalateObserveToAgent,
@@ -16,6 +55,12 @@ import {
   shouldWipeOnHandoff,
   unlockAgentToObserve,
 } from "@/app/shell/agent-testing/agentTestingSession";
+import {
+  detectStaleGreenMismatches,
+  resetStaleGreenForTests,
+} from "@/app/shell/agent-testing/agentTestingStaleGreen";
+import { shouldBlockQaPlay } from "@/app/shell/agent-testing/agentTestingListen";
+import { formatMcpStatusLabel } from "@/app/shell/agent-testing/agentTestingMcpStatus";
 
 /**
  * Between discrete UI actions (click, ask, toggle) — slightly faster than human,
@@ -47,6 +92,14 @@ function check(id: string, ok: boolean, detail?: string) {
 /** Pure/session checks — always safe in Vitest + browser. */
 export function runQaSelfTestPureChecks(): QaSelfTestSmokeResult["checks"] {
   resetQaSessionForTests();
+  resetFailHandoffForTests();
+  clearQaProgressFreeze();
+  resetQaMessageRttForTests();
+  clearQaAgentPresence();
+  clearAgentTestingFinaleSeal();
+  resetOriginProbeForTests();
+  resetStaleGreenForTests();
+
   const out: QaSelfTestSmokeResult["checks"] = [];
 
   setSessionKind("observe");
@@ -93,15 +146,185 @@ export function runQaSelfTestPureChecks(): QaSelfTestSmokeResult["checks"] {
     )
   );
 
+  // --- recently shipped trust (pure) ---
+  beginFailHandoff({
+    reason: "self-test",
+    pause: () => undefined,
+    log: () => undefined,
+  });
+  setQaProgressFreeze("fail-handoff:self-test");
+  const frozen = isQaProgressFrozen();
+  const blocked = shouldBlockQaPlay({
+    overlayActive: true,
+    capturePaused: true,
+    diagnosticOpen: false,
+    progressFrozen: true,
+  });
+  out.push(
+    check(
+      "fail-handoff-freeze",
+      frozen && blocked,
+      `frozen=${frozen} block=${blocked}`
+    )
+  );
+  confirmAgentFailTakeover({ source: "self-test", log: () => undefined });
+  clearQaProgressFreeze();
+  clearFailHandoff();
+  out.push(
+    check(
+      "fail-handoff-unfreeze",
+      isQaProgressFrozen() === false,
+      "freeze lifted after clear"
+    )
+  );
+
+  touchQaAgentPresence("self-test");
+  const presence = peekQaAgentPresence();
+  const controlLabel = formatMcpStatusLabel("control");
+  out.push(
+    check(
+      "presence-online-linked",
+      presence.online &&
+        /ONLINE/i.test(presence.label) &&
+        /ONLINE/i.test(controlLabel),
+      presence.label || controlLabel
+    )
+  );
+
+  noteQaMessageSent(1_000);
+  const rtt = noteQaMessageConsumed(1_250);
+  const floor = messageAwarePendingFloorMs(1_000);
+  out.push(
+    check(
+      "message-rtt-helpers",
+      rtt === 250 &&
+        getQaMessageRttStats().lastRttMs === 250 &&
+        floor >= 1_000,
+      `rtt=${rtt} floor=${floor}`
+    )
+  );
+
+  const stepped = deriveAgentControlKind({
+    sessionKind: "agent",
+    cjmOn: true,
+    isPlaying: false,
+  });
+  const playback = deriveAgentControlKind({
+    sessionKind: "agent",
+    cjmOn: true,
+    isPlaying: true,
+  });
+  out.push(
+    check(
+      "control-kind-stepped-vs-playback",
+      stepped === "stepped" &&
+        playback === "playback" &&
+        formatAgentControlKindSuffix("stepped").includes("STEPPED") &&
+        formatAgentControlKindSuffix("playback").includes("PLAYBACK"),
+      `stepped=${stepped} playback=${playback}`
+    )
+  );
+
+  sealAgentTestingFinale();
+  out.push(
+    check(
+      "result-finale-seal",
+      isAgentTestingFinaleSealed() === true,
+      "sealed after RESULT"
+    )
+  );
+  clearAgentTestingFinaleSeal();
+
+  const host = formatOriginHostLabel({
+    hostname: "127.0.0.1",
+    port: "5173",
+    protocol: "http:",
+  });
+  out.push(
+    check(
+      "session-origin-active",
+      host === "Localhost:5173" &&
+        formatOriginSessionLine("active", host) ===
+          "Session: Localhost:5173 - Active",
+      host
+    )
+  );
+
+  if (typeof document !== "undefined") {
+    document.body.innerHTML = `
+      <div class="studio-nav-panel">
+        <div class="studio-nav-status-bar"><p class="studio-nav-status-bar__title">PLP</p></div>
+        <button data-studio-action="play">Play</button>
+      </div>`;
+    const empty = buildClickDetail(
+      document.querySelector(".studio-nav-status-bar")!
+    );
+    const btn = buildClickDetail(document.querySelector("button")!);
+    out.push(
+      check(
+        "control-room-interactive-only",
+        empty === null &&
+          btn?.surface === "control-room" &&
+          /Control room: Play/i.test(btn?.label || ""),
+        `empty=${empty} btn=${btn?.label}`
+      )
+    );
+    document.body.innerHTML = "";
+  } else {
+    out.push(
+      check(
+        "control-room-interactive-only",
+        true,
+        "skipped — no document (node)"
+      )
+    );
+  }
+
+  // pause-stops-capture is behavioral (isCapturing gate) — pure contract:
+  out.push(
+    check(
+      "pause-stops-capture",
+      shouldBlockQaPlay({
+        overlayActive: true,
+        capturePaused: true,
+        diagnosticOpen: false,
+      }) === true,
+      "capturePaused blocks play (capture watch shares pause gate)"
+    )
+  );
+
+  out.push(
+    check(
+      "stale-green-detect",
+      Array.isArray(detectStaleGreenMismatches("?screen=chat")),
+      "detector callable"
+    )
+  );
+
+  out.push(
+    check(
+      "diag-mirror-rows",
+      Array.isArray(getDiagMirrorRows(3)),
+      "mirror rows callable"
+    )
+  );
+
   out.push(
     check(
       "catalog",
-      QA_SELF_TEST_SCENARIOS.length >= 10,
+      QA_SELF_TEST_SCENARIOS.length >= 20,
       `${QA_SELF_TEST_SCENARIOS.length} scenarios`
     )
   );
 
   resetQaSessionForTests();
+  resetFailHandoffForTests();
+  clearQaProgressFreeze();
+  resetQaMessageRttForTests();
+  clearQaAgentPresence();
+  clearAgentTestingFinaleSeal();
+  resetOriginProbeForTests();
+  resetStaleGreenForTests();
   return out;
 }
 
@@ -119,16 +342,20 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       __studioForceClearAgentTestingOverlay?: () => void;
       __studioOpenQaLogger?: (opts?: { kind?: string }) => void;
       __studioQaSessionKind?: () => string;
-      __studioMcpConnectionStatus?: () => { phase?: string };
+      __studioMcpConnectionStatus?: () => { phase?: string; label?: string };
       __studioAgentTestingOverlay?: {
         ringAlarm?: (n?: string) => void;
         unlockObserve?: () => boolean;
-        appendFinale?: (result: "pass" | "fail", summary?: string) => void;
+        appendFinale?: (result: "pass" | "fail", summary?: string) => boolean;
+        isCapturePaused?: () => boolean;
       };
-      __studioPeekPoSignal?: () => { code?: string } | null;
+      __studioPeekPoSignal?: () => { code?: string; type?: string } | null;
       __studioConsumePoSignal?: () => { code?: string } | null;
       __studioAppendPoNote?: (t: string) => boolean;
       __studioToggleQaLogger?: () => void;
+      __studioBeginQaFailHandoff?: (r: string) => void;
+      __studioConfirmFailTakeover?: () => boolean;
+      __studioIsQaProgressFrozen?: () => boolean;
     };
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -162,8 +389,75 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
           latch?.code
         )
       );
+
+      // Fail-handoff freeze still active after alarm path — confirm lifts it.
+      const frozenDuring =
+        w.__studioIsQaProgressFrozen?.() === true ||
+        /Handing off/i.test(
+          document.querySelector(".studio-agent-testing-overlay__log")
+            ?.innerText || ""
+        );
+      const confirmed = w.__studioConfirmFailTakeover?.();
+      await sleep(pace.step);
+      const frozenAfter = w.__studioIsQaProgressFrozen?.() === true;
+      checks.push(
+        check(
+          "dom-fail-handoff-freeze",
+          frozenDuring === true &&
+            confirmed === true &&
+            frozenAfter === false,
+          `during=${frozenDuring} confirmed=${confirmed} after=${frozenAfter}`
+        )
+      );
+
+      const mcpLabel = w.__studioMcpConnectionStatus?.()?.label || "";
+      checks.push(
+        check(
+          "dom-presence-online",
+          /ONLINE/i.test(mcpLabel) || /CONTROL/i.test(mcpLabel),
+          mcpLabel.slice(0, 80)
+        )
+      );
+
       w.__studioConsumePoSignal?.();
       await sleep(pace.step);
+
+      // Message latch withholds RESULT
+      w.__studioAppendPoNote?.("self-test withhold result");
+      await sleep(pace.step);
+      const withheld = w.__studioAgentTestingOverlay?.appendFinale?.(
+        "pass",
+        "should withhold"
+      );
+      checks.push(
+        check(
+          "dom-message-withholds-result",
+          withheld === false,
+          `appendFinale=${withheld}`
+        )
+      );
+      w.__studioConsumePoSignal?.();
+      await sleep(pace.step);
+
+      const sessionLine =
+        document.querySelector(".studio-agent-testing-overlay__session-line")
+          ?.textContent || "";
+      checks.push(
+        check(
+          "dom-session-origin",
+          /Session:\s*Localhost:\d+\s*-\s*(Active|Checking|Offline)/i.test(
+            sessionLine
+          ),
+          sessionLine.slice(0, 60)
+        )
+      );
+
+      const mirror = document.querySelector(
+        ".studio-agent-testing-overlay__diag-mirror"
+      );
+      checks.push(
+        check("dom-diag-mirror", !!mirror, mirror ? "present" : "missing")
+      );
 
       const unlocked = w.__studioAgentTestingOverlay?.unlockObserve?.();
       await sleep(pace.step);

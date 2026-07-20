@@ -52,7 +52,18 @@ window.__studioForceClearAgentTestingOverlay?.()
 | observe-unlock | Y | unlockObserve → observe |
 | ask-pending-reply | Y | Ask → PENDING; Message/Send → Reply + not PENDING; **stays paused** + latch `USER_MESSAGE_RECEIVED` (consume before Resume) |
 | pause-halts-play | Y | Play on → QA Pause → `isPlaying` false immediately (manual/agent/observe); further Play ignored until Resume |
+| pause-stops-capture | Y | Manual Pause → **no** Control Room / product click lines until Resume |
+| control-room-interactive-only | Y | Empty-space nav ignored; buttons/toggles/tabs → `Control room: …` |
+| session-origin-active | Y | Session line `Session: Localhost:5173 - Active` (origin probe) |
+| fail-handoff-freeze | Y | Handing off → `__studioIsQaProgressFrozen` + block Play until confirm |
+| presence-online-linked | Y | CONTROL label includes `ONLINE · linked` |
+| message-rtt-helpers | Y | Send→consume RTT; PENDING floor uses measured latency |
+| control-kind-stepped-vs-playback | Y | Agent+CJM+Play → PLAYBACK; parked → STEPPED PLAYBACK |
 | message-midplay-latch | Y | Play on → Send Message → halt + latch; `__studioConsumePoSignal().code === 'USER_MESSAGE_RECEIVED'` |
+| message-withholds-result | Y | Open USER_MESSAGE latch → `appendFinale` returns false / RESULT withheld |
+| result-finale-seal | Y | After RESULT, playback-diag housekeeping sealed out of chat |
+| stale-green-detect | Y | Snap≠URL → amber session + one `stale-green · …` line |
+| diag-mirror-rows | Y | Gate open → in-panel PLAYBACK_DIAG last-N with severity colors |
 | pending-typing-extends | Y | AskUser → focus/type Message → log `user-typing` + pending deadline extends |
 | message-draft-focus | Y | Open QA → Message focused; type draft → refresh → draft restored + focus |
 | diag-blocks-play | Y | Diagnostic open → QA pause + Play ignored + latch `PLAYBACK_DIAGNOSTIC_OPEN` |

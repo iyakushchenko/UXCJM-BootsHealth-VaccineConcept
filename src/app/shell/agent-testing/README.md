@@ -111,6 +111,10 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Session line:** `Session: Localhost:5173 - Active` (live origin probe; Offline when unreachable).
 
+**Stale-green (PP-07):** snap≠URL (screen/cjm/experience) → amber Session + one `stale-green · …` sitrep line (no spam).
+
+**PLAYBACK_DIAG mirror (PP-15):** when gate open, lean last-N events under Session (severity colors).
+
 **Agent intervene:** takeover confirm / wipe handoff / observe escalate → **fresh AGENT SESSION** (elapsed reset + boundary log). Old manual elapsed does not continue.
 
 **FAIL handoff freeze:** while `Caught error. Handing off to agent….` is open, Play/SF/jump/camera are hard-frozen (`__studioIsQaProgressFrozen()`). Confirm takeover starts a new session **and lifts freeze** so agent can drive; Resume also clears any leftover freeze.

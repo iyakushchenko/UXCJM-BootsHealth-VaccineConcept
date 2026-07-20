@@ -13,7 +13,7 @@ Living contract for **product testing campaigns**: QA tool × page × nav × CJM
 
 | # | Gate | How |
 |---|------|-----|
-| 1 | QA self-test | `await __studioRunQaSelfTestSmoke()` → `ok: true` |
+| 1 | QA self-test | `await __studioRunQaSelfTestSmoke()` → `ok: true` (catalog ≥20; includes pause/capture, freeze, Session origin, RESULT seal) |
 | 2 | Chat bubble SF | `await __studioRunChatBubbleMotionSelfTest()` → jumps≈0 |
 | 3 | No leftover diagnostic modal | after each wave: `__studioIsPlaybackDiagnosticOpen() === false` |
 | 4 | QA action sitrep | Save Log / Pause / Close / Reset appear as `QA ·` / `Save Log ·` rows |
@@ -75,6 +75,13 @@ Gate: QA self-test PASS (12/12) | bubble PASS | leftover modal PASS | MCP lean f
 Matrix: M1–M8 ALL PASS (observe/agent/manual · agentic/trad · CJM on/off · SF/Play · REC XOR · book-step-1)
 PP: PP-17…20,23…28 COMPLETE; PP-13/15/16/21/22 WATCH with retest evidence
 Blockers: none
+```
+
+```
+Date: 2026-07-20
+Tip: v0.0.100 PP-13 expand wave
+Gate: QaSelfTestSmoke 28/28 PASS on :5173 (catalog 24; pause/freeze/Session/RTT/seal/stale-green/diag-mirror)
+PP: PP-13 catalog expand; PP-07 stale-green detector; PP-15 live PLAYBACK_DIAG mirror
 ```
 
 ---

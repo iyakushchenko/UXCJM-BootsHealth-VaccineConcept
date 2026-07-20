@@ -152,6 +152,12 @@ import {
   armOriginProbe,
   disarmOriginProbe,
 } from "@/app/shell/agent-testing/agentTestingOriginProbe";
+import { renderDiagMirrorDom } from "@/app/shell/agent-testing/agentTestingDiagMirror";
+import {
+  isStaleGreenActive,
+  noteStaleGreenIfChanged,
+} from "@/app/shell/agent-testing/agentTestingStaleGreen";
+import { isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 import {
   deriveAgentControlKind,
   isCjmCassetteOn,
@@ -523,12 +529,54 @@ function refreshSitrepDom(): void {
   const sessionEl = document.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__session-line"
   );
-  if (sessionEl) sessionEl.textContent = sitrep.sessionLine;
+  if (sessionEl) {
+    sessionEl.textContent = sitrep.sessionLine;
+    sessionEl.dataset.staleGreen = isStaleGreenActive() ? "true" : "false";
+  }
   // Compat: legacy sitrep node if present
   const legacy = document.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__sitrep"
   );
   if (legacy && !sessionEl) legacy.textContent = sitrep.sessionLine;
+  refreshStaleGreenAndDiagMirror();
+}
+
+function refreshStaleGreenAndDiagMirror(): void {
+  if (!active && !settling) return;
+  try {
+    const noted = noteStaleGreenIfChanged();
+    if (noted.logLabel) {
+      pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label: noted.logLabel,
+        outcome: "soft-fail",
+        kind: "system",
+      });
+    }
+    const root = document.getElementById(ROOT_ID);
+    const session = root?.querySelector<HTMLElement>(
+      ".studio-agent-testing-overlay__session"
+    );
+    if (session) {
+      session.dataset.staleGreen = noted.amber ? "true" : "false";
+    }
+  } catch {
+    /* hang-safe */
+  }
+  try {
+    const wrap = document.querySelector<HTMLElement>(
+      ".studio-agent-testing-overlay__diag-mirror-wrap"
+    );
+    const list = document.querySelector<HTMLElement>(
+      ".studio-agent-testing-overlay__diag-mirror"
+    );
+    const gateOpen = isQaDiagGateOpen();
+    if (wrap) wrap.hidden = !gateOpen;
+    if (gateOpen && list) renderDiagMirrorDom(list);
+  } catch {
+    /* hang-safe */
+  }
 }
 
 function armSessionOriginProbe(): void {
@@ -2127,6 +2175,24 @@ function ensureOverlayChrome(root: HTMLElement): void {
     wrap.appendChild(title);
     wrap.appendChild(timeline);
   }
+
+  if (!panel.querySelector(".studio-agent-testing-overlay__diag-mirror-wrap")) {
+    const diagWrap = document.createElement("div");
+    diagWrap.className = "studio-agent-testing-overlay__diag-mirror-wrap";
+    diagWrap.hidden = true;
+    diagWrap.innerHTML =
+      '<p class="studio-agent-testing-overlay__bar-title">PLAYBACK_DIAG</p>' +
+      '<ol class="studio-agent-testing-overlay__diag-mirror" data-empty="true" aria-label="Recent playback diagnostics"></ol>';
+    const after = wrap || panel.querySelector(".studio-agent-testing-overlay__session");
+    if (after?.nextSibling) panel.insertBefore(diagWrap, after.nextSibling);
+    else {
+      const actions = panel.querySelector(
+        ".studio-agent-testing-overlay__actions"
+      );
+      if (actions) panel.insertBefore(diagWrap, actions);
+      else panel.appendChild(diagWrap);
+    }
+  }
 }
 
 /**
@@ -2253,6 +2319,10 @@ function ensureRoot(): HTMLElement | null {
       <div class="studio-agent-testing-overlay__timeline-wrap" hidden>
         <p class="studio-agent-testing-overlay__bar-title">Touchpoints</p>
         <div class="studio-agent-testing-overlay__timeline" aria-label="Touchpoint progress"></div>
+      </div>
+      <div class="studio-agent-testing-overlay__diag-mirror-wrap" hidden>
+        <p class="studio-agent-testing-overlay__bar-title">PLAYBACK_DIAG</p>
+        <ol class="studio-agent-testing-overlay__diag-mirror" data-empty="true" aria-label="Recent playback diagnostics"></ol>
       </div>
       <div class="studio-agent-testing-overlay__actions">
         <button type="button" class="studio-agent-testing-overlay__alarm" hidden title="Alarm — observe or agent">Alarm</button>

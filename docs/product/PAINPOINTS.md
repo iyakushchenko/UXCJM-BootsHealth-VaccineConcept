@@ -32,13 +32,13 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-12 | PO-signal process | Alarm/Cursor/Scroll click must **stop → (understand OR ask PO) → fix → reprove that issue** — not soft-log, not invent. | COMPLETE | R15 docs: TEAM / PLAYBACK_DIAG / COMMAND_DOCTRINE / AGENTS / STUDIO_AUTO_RULES / agent-testing README · Arch |
 | PP-05 | Fuchsia invent / Step2 / retreat scroll | No invented fuchsia hover; book-step-2 dwell cursor law; retreat must scrollIntoView correctly. | WATCH | Uma no-invent · cursor QA · scroll host LESSONS |
 | PP-06 | Agentic full chat | Agentic path must click progressive chat CTAs (no off-by-one / skipped frames). | WATCH | 2026-07-20 agentic Play→end: click ok=17 fail=0 · did **not** block Play honesty — keep eyes, no invent CTA path rewrite this wave |
-| PP-07 | Control-panel stale green | Transport / mode chrome can look “ok” while state is stale or wrong — PO distrusts green without fresh sitrep. | WATCH | STEPS holds during type-in while onAir (honest). Retreat smoke no longer false-FAIL on 9/21 chat. Prefer PLAYBACK_DIAG + onAir over STEPS alone |
+| PP-07 | Control-panel stale green | Transport / mode chrome can look “ok” while state is stale or wrong — PO distrusts green without fresh sitrep. | WATCH | **2026-07-20:** in-QA stale-green detector (snap≠URL screen/cjm/experience → amber + one lean sitrep line). STEPS holds during type-in while onAir. Prefer PLAYBACK_DIAG + onAir |
 | PP-08 | Insufficient logging | Not enough mid-flight signal; identical helper spam ≠ useful log. | WATCH | v0.0.91 action sitrep + v0.0.92 lean MCP filter (no CONNECTING spam) |
 | PP-09 | Team listening | Team must **use** TEAM_KNOWLEDGE / LESSONS (Knowledge used), not only append. Write-only = FAIL. | WATCH | TEAM.md · Arch gate on team check |
 | PP-10 | Agent testing overlay vision | Overlay must be a **mid-flight QA shell** (named steps, colors, timer, sitrep, alarm, cursor flag, timeline strip, console START/END, dump on FAIL/alarm) — not a monotonous `helper: __studioTriggerTransport` list. | COMPLETE | R11 `:5173` mid-flight prove 2026-07-20 — coalesced transport×2, ok/amber/red rows, sitrep, timeline chips, Alarm/Cursor, console END, dumps=3 · Uma/Finn/Quinn |
-| PP-13 | QA-tool trust (dual-role self-test) | Overlay is **load-bearing** for agent mid-flight work. Observe↔agent handoff, Alarm escalate, ask/PENDING, refresh hydrate, and REC XOR must stay trustworthy — agents **must** re-run self-test after overlay changes. | WATCH | Retest 2026-07-20: QaSelfTestSmoke 12/12 PASS · matrix M1–M8 PASS · tip pending |
+| PP-13 | QA-tool trust (dual-role self-test) | Overlay is **load-bearing** for agent mid-flight work. Observe↔agent handoff, Alarm escalate, ask/PENDING, refresh hydrate, and REC XOR must stay trustworthy — agents **must** re-run self-test after overlay changes. | WATCH | **2026-07-20 wave:** expanded catalog ≥20 (pause/capture, interactive-only, Session origin, fail-freeze, presence, RTT, STEPPED/PLAYBACK, RESULT seal, Message withhold, stale-green, diag mirror) · `__studioRunQaSelfTestSmoke` · tip pending |
 | PP-14 | Chat bubble motion polish | Progressive / thinking→reply pull-up must be continuous ease (face of product) — agents need dump forensics, not DevTools-only. | WATCH | Bubble self-test jumps=0 on retest wave |
-| PP-15 | Diag popup vs QA dump | PO does not need the diagnostic modal if agents get the data. Prefer dump/ring ingest; keep Alarm; optional consume dismiss. | WATCH | leftover modal=false after self-test/bubble/matrix wipe |
+| PP-15 | Diag popup vs QA dump | PO does not need the diagnostic modal if agents get the data. Prefer dump/ring ingest; keep Alarm; optional consume dismiss. | WATCH | **Live PLAYBACK_DIAG mirror** in-panel (last-N, severity colors) when gate open · leftover modal=false after self-test wipe |
 | PP-16 | QA does not listen | PO furious — tool ignores Pause / Message / PENDING / diag / diode; agents keep acting as if nothing happened. | WATCH | Retest: Pause+Message halt PASS; MCP lean log PASS |
 | PP-17 | Pause must halt Play | Pause in QA (manual/agent/observe) must stop playback/progress immediately — was no-op for non-agent. | COMPLETE | M3 retest: Play→Pause → `isPlaying` false |
 | PP-18 | Message must be honored | Send (esp. PENDING / mid-Play) must pause progress, latch user message, require agent read→investigate→fix→reply before proceed. | COMPLETE | Retest: Play→Message → halt + `USER_MESSAGE_RECEIVED`; halt uses `__studioStopAllPlayback` (not MCP play-toggle) |
@@ -109,9 +109,9 @@ Prefer **existing** `framer-motion` / `@/uxds/motion` + PLAYBACK_DIAG + control-
 ## Residual wishlist (post-MVP)
 
 - Richer timeline scrub / jump-to-beat from strip
-- Live mirror of full `[PLAYBACK_DIAG]` event table in-panel
+- ~~Live mirror of full `[PLAYBACK_DIAG]` event table in-panel~~ → **shipped lean last-N mirror** (PP-15) — expand if PO wants full table
 - Alarm → optional screenshot hook (PO asset later)
-- Stale-green detector that forces amber when snapshot vs DOM diverge (PP-07)
+- ~~Stale-green detector that forces amber when snapshot vs DOM diverge (PP-07)~~ → **shipped** snap≠URL amber + sitrep line
 - Persist dumps across reload only behind explicit continue flag
 
 ---

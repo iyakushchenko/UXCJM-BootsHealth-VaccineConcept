@@ -16,7 +16,18 @@ export type QaSelfTestScenarioId =
   | "control-border-under-modal"
   | "rec-xor-keeps-overlay"
   | "empty-message-noop"
-  | "bug-toggle-observe-noop";
+  | "bug-toggle-observe-noop"
+  | "pause-stops-capture"
+  | "control-room-interactive-only"
+  | "session-origin-active"
+  | "fail-handoff-freeze"
+  | "presence-online-linked"
+  | "message-rtt-helpers"
+  | "control-kind-stepped-vs-playback"
+  | "result-finale-seal"
+  | "message-withholds-result"
+  | "stale-green-detect"
+  | "diag-mirror-rows";
 
 export type QaSelfTestScenario = {
   id: QaSelfTestScenarioId;
@@ -119,6 +130,83 @@ export const QA_SELF_TEST_SCENARIOS: QaSelfTestScenario[] = [
     trust: true,
     summary: "Bug icon does not close observe (Close × does).",
     helpers: ["__studioToggleQaLogger"],
+  },
+  {
+    id: "pause-stops-capture",
+    dualRole: "both",
+    trust: true,
+    summary: "Manual Pause → no Control Room / product click lines until Resume.",
+    helpers: ["CAPTURE/Pause toggle", "bindAgentTestingCaptureWatch isCapturing"],
+  },
+  {
+    id: "control-room-interactive-only",
+    dualRole: "both",
+    trust: true,
+    summary: "Empty-space nav clicks ignored; buttons/toggles/tabs log Control room: …",
+    helpers: ["buildClickDetail", "resolveClickElement"],
+  },
+  {
+    id: "session-origin-active",
+    dualRole: "both",
+    trust: true,
+    summary: "Session line = Session: Localhost:5173 - Active (live origin probe).",
+    helpers: ["formatOriginSessionLine", "probeStudioOrigin"],
+  },
+  {
+    id: "fail-handoff-freeze",
+    dualRole: "agent",
+    trust: true,
+    summary: "Handing off → IsQaProgressFrozen + shouldBlockPlay until confirm.",
+    helpers: ["__studioBeginQaFailHandoff", "__studioIsQaProgressFrozen", "__studioConfirmFailTakeover"],
+  },
+  {
+    id: "presence-online-linked",
+    dualRole: "agent",
+    trust: true,
+    summary: "Agent CONTROL shows ONLINE · linked presence suffix.",
+    helpers: ["peekQaAgentPresence", "formatMcpStatusLabel"],
+  },
+  {
+    id: "message-rtt-helpers",
+    dualRole: "agent",
+    trust: true,
+    summary: "Message send→consume records RTT; PENDING floor uses measured latency.",
+    helpers: ["noteQaMessageSent", "noteQaMessageConsumed", "messageAwarePendingFloorMs"],
+  },
+  {
+    id: "control-kind-stepped-vs-playback",
+    dualRole: "agent",
+    trust: true,
+    summary: "Agent+CJM+Play → PLAYBACK; agent+CJM+parked → STEPPED PLAYBACK.",
+    helpers: ["deriveAgentControlKind", "formatAgentControlKindSuffix"],
+  },
+  {
+    id: "result-finale-seal",
+    dualRole: "agent",
+    trust: true,
+    summary: "After RESULT seal, playback-diag housekeeping cannot land in chat.",
+    helpers: ["sealAgentTestingFinale", "isAgentTestingFinaleSealed"],
+  },
+  {
+    id: "message-withholds-result",
+    dualRole: "agent",
+    trust: true,
+    summary: "Open USER_MESSAGE latch withholds appendFinale RESULT.",
+    helpers: ["appendFinale", "peekPoSignal USER_MESSAGE_RECEIVED"],
+  },
+  {
+    id: "stale-green-detect",
+    dualRole: "both",
+    trust: true,
+    summary: "Snap vs URL diverge → amber + one lean stale-green sitrep line.",
+    helpers: ["detectStaleGreenMismatches", "noteStaleGreenIfChanged"],
+  },
+  {
+    id: "diag-mirror-rows",
+    dualRole: "both",
+    trust: true,
+    summary: "In-panel PLAYBACK_DIAG mirror shows last-N events with severity.",
+    helpers: ["getDiagMirrorRows", ".studio-agent-testing-overlay__diag-mirror"],
   },
 ];
 
