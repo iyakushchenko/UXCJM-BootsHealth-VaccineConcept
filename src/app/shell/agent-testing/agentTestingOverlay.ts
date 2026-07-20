@@ -67,6 +67,7 @@ import {
   bindAgentTestingNavClearance,
   syncAgentTestingNavClearance,
 } from "@/app/shell/agent-testing/agentTestingNavClearance";
+import { bindAgentTestingCaptureWatch } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
 import type {
   AgentTestingLogEntry,
   AgentTestingOverlayResult,
@@ -141,6 +142,10 @@ type OverlayApi = {
   openLogger: () => void;
   /** Soft-close logger (keep DOM, close gate). */
   softClose: () => void;
+  /** Bug-icon toggle — open or close+stop manual capture. */
+  toggleLogger: () => void;
+  /** Clear log/ring/timer for a fresh manual session. */
+  resetSession: () => void;
   /** Append PO free-text note into log + dump ring. */
   appendPoNote: (text: string) => boolean;
   log: (line: string) => void;
@@ -193,6 +198,8 @@ let lastStepAt = 0;
 let elapsedAccumMs = 0;
 /** Wall clock when current run segment started; 0 while paused / stopped. */
 let elapsedRunStartedAt = 0;
+/** Unbind for page click + screen watch. */
+let captureWatchUnbind: (() => void) | null = null;
 let beforeUnloadBound = false;
 let visibilityBound = false;
 let reloadPending = false;
@@ -847,6 +854,75 @@ function isCaptureInProgress(): boolean {
   );
 }
 
+function unbindCaptureWatch(): void {
+  if (captureWatchUnbind) {
+    try {
+      captureWatchUnbind();
+    } catch {
+      /* hang-safe */
+    }
+    captureWatchUnbind = null;
+  }
+}
+
+/** Page clicks + screen nav → short visible log lines while capturing. */
+function syncCaptureWatch(): void {
+  unbindCaptureWatch();
+  if (!active || settling) return;
+  captureWatchUnbind = bindAgentTestingCaptureWatch({
+    isCapturing: () => isCaptureInProgress(),
+    onClick: (label) => {
+      pushLogEntry({
+        atMs: performance.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label,
+        outcome: "ok",
+        kind: "click",
+      });
+    },
+    onScreen: (label) => {
+      pushLogEntry({
+        atMs: performance.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label,
+        outcome: "ok",
+        kind: "nav",
+      });
+    },
+  });
+}
+
+function closeManualSession(reason: string): void {
+  if (sessionOwner === "agent" && (active || settling)) return;
+  softCloseAgentTestingLogger(reason);
+}
+
+/** Instant clear of log / ring / timer — fresh manual session, one system line. */
+function resetManualSession(): void {
+  if (sessionOwner === "agent" && (active || settling)) return;
+  if (!active) return;
+  logEntries = [];
+  timelineKeys = [];
+  lastStepAt = 0;
+  try {
+    replaceQaDiagRing([]);
+  } catch {
+    /* ignore */
+  }
+  resetElapsedClock(!capturePaused);
+  armElapsedTimer();
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: "Session reset",
+    outcome: "ok",
+    kind: "system",
+  });
+  renderTimeline();
+  refreshSitrepDom();
+  syncSessionChrome();
+}
+
 function softShowOverlayPanel(root: HTMLElement | null): void {
   if (!root || typeof window === "undefined") return;
   const panel = root.querySelector<HTMLElement>(
@@ -1029,7 +1105,7 @@ function setQaSessionLock(mode: AgentTestingSessionOwner | null): void {
   }
 }
 
-/** Sync dismiss / capture / Save Log / owner chrome after mode changes. */
+/** Sync close / reset / capture / Save Log / owner chrome after mode changes. */
 function syncSessionChrome(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
@@ -1038,16 +1114,26 @@ function syncSessionChrome(): void {
   root.dataset.capture = capturePaused ? "paused" : "on";
   setQaSessionLock(active || settling ? sessionOwner : null);
 
-  const dismiss = root.querySelector<HTMLButtonElement>(
-    ".studio-agent-testing-overlay__dismiss"
+  const locked = sessionOwner === "agent" && (active || settling);
+  const closeBtn = root.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__close"
   );
-  if (dismiss) {
-    const locked = sessionOwner === "agent" && (active || settling);
-    dismiss.hidden = locked;
-    dismiss.disabled = locked;
-    dismiss.title = locked
-      ? "Agent session locked — cannot dismiss"
-      : "Dismiss";
+  if (closeBtn) {
+    closeBtn.hidden = locked;
+    closeBtn.disabled = locked;
+    closeBtn.title = locked
+      ? "Agent session locked — cannot close"
+      : "Close — stop capture";
+  }
+  const resetBtn = root.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__reset"
+  );
+  if (resetBtn) {
+    resetBtn.hidden = locked;
+    resetBtn.disabled = locked || !active || settling;
+    resetBtn.title = locked
+      ? "Agent session locked"
+      : "Reset session — clear log, ring, and timer";
   }
 
   const captureBtn = root.querySelector<HTMLButtonElement>(
@@ -1139,6 +1225,39 @@ function ensureOverlayChrome(root: HTMLElement): void {
     clock.appendChild(pauseBtn);
   }
 
+  // Migrate Dismiss → Close (X) + Reset
+  const legacyDismiss = header.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__dismiss"
+  );
+  legacyDismiss?.remove();
+  let headerActions = header.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__header-actions"
+  );
+  if (!headerActions) {
+    headerActions = document.createElement("div");
+    headerActions.className = "studio-agent-testing-overlay__header-actions";
+    header.appendChild(headerActions);
+  }
+  if (!headerActions.querySelector(".studio-agent-testing-overlay__reset")) {
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "studio-agent-testing-overlay__reset";
+    reset.textContent = "Reset";
+    reset.title = "Reset session — clear log, ring, and timer";
+    reset.addEventListener("click", () => resetManualSession());
+    headerActions.appendChild(reset);
+  }
+  if (!headerActions.querySelector(".studio-agent-testing-overlay__close")) {
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "studio-agent-testing-overlay__close";
+    close.setAttribute("aria-label", "Close");
+    close.title = "Close — stop capture";
+    close.textContent = "×";
+    close.addEventListener("click", () => closeManualSession("close-x"));
+    headerActions.appendChild(close);
+  }
+
   if (!panel.querySelector(".studio-agent-testing-overlay__session")) {
     const session = document.createElement("div");
     session.className = "studio-agent-testing-overlay__session";
@@ -1195,8 +1314,8 @@ function toggleCapturePause(): void {
   const label =
     sessionOwner === "agent"
       ? next
-        ? "PO Pause — agent work halted"
-        : "PO Resume — capture on (Play not auto-started)"
+        ? "Agent paused (Play halted)"
+        : "Agent resumed (capture on)"
       : next
         ? "Capture paused"
         : "Capture resumed";
@@ -1208,7 +1327,7 @@ function toggleCapturePause(): void {
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label,
       outcome: "ok",
-      kind: "info",
+      kind: "system",
     });
     capturePaused = true;
   } else {
@@ -1219,23 +1338,12 @@ function toggleCapturePause(): void {
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label,
       outcome: "ok",
-      kind: "info",
+      kind: "system",
     });
   }
   armElapsedTimer();
   setActivityPhase(capturePaused ? "paused" : "running");
-  appendQaDiagRing({
-    kind: capturePaused ? "capture-pause" : "capture-start",
-    text: capturePaused ? "paused" : "resumed",
-    label:
-      sessionOwner === "agent"
-        ? capturePaused
-          ? "Agent paused (Play halted)"
-          : "Agent resumed (capture on — Play not auto-started)"
-        : capturePaused
-          ? "Capture paused"
-          : "Capture resumed",
-  });
+  syncCaptureWatch();
 }
 
 function ensureRoot(): HTMLElement | null {
@@ -1262,7 +1370,10 @@ function ensureRoot(): HTMLElement | null {
           <span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span>
           <button type="button" class="studio-agent-testing-overlay__capture-toggle" hidden title="Pause or resume">Pause</button>
         </div>
-        <button type="button" class="studio-agent-testing-overlay__dismiss">Dismiss</button>
+        <div class="studio-agent-testing-overlay__header-actions">
+          <button type="button" class="studio-agent-testing-overlay__reset" title="Reset session — clear log, ring, and timer">Reset</button>
+          <button type="button" class="studio-agent-testing-overlay__close" title="Close — stop capture" aria-label="Close">×</button>
+        </div>
       </div>
       <p class="studio-agent-testing-overlay__hint">Page visible — mid-flight QA below.</p>
       <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
@@ -1287,24 +1398,13 @@ function ensureRoot(): HTMLElement | null {
       </form>
     </div>
   `;
-  const dismiss = root.querySelector<HTMLButtonElement>(
-    ".studio-agent-testing-overlay__dismiss"
+  const closeBtn = root.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__close"
   );
-  dismiss?.addEventListener("click", () => {
-    if (sessionOwner === "agent") return; // agent lock
-    const api = window.__studioAgentTestingOverlay;
-    if (loggerSession || isQaDiagLoggerMode() || api?.isActive?.()) {
-      if (typeof api?.softClose === "function") {
-        api.softClose();
-      } else {
-        softCloseAgentTestingLogger("dismiss");
-      }
-    } else if (typeof api?.forceClear === "function") {
-      api.forceClear();
-    } else {
-      forceClearAgentTestingOverlay();
-    }
-  });
+  closeBtn?.addEventListener("click", () => closeManualSession("close-x"));
+  root
+    .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__reset")
+    ?.addEventListener("click", () => resetManualSession());
   root
     .querySelector<HTMLButtonElement>(
       ".studio-agent-testing-overlay__capture-toggle"
@@ -1359,47 +1459,81 @@ function ensureRoot(): HTMLElement | null {
 
 function pushLogEntry(entry: AgentTestingLogEntry): void {
   if (!active && !settling) return;
-  // Manual pause: skip auto events; user-message still lands.
+  // Manual pause: skip auto events; user-message + system control still land.
   if (
     capturePaused &&
     entry.kind !== "user-message" &&
-    entry.kind !== "po-note"
+    entry.kind !== "po-note" &&
+    entry.kind !== "system"
   ) {
     return;
   }
-  const coalesced = coalesceLogEntry(logEntries[logEntries.length - 1], entry);
+
+  // Full detail always rings; warm-up spam collapses to one visible "Initializing…"
+  const warmNoise =
+    entry.kind === "init" ||
+    (activityPhase === "preparing" &&
+      entry.kind !== "alarm" &&
+      entry.kind !== "user-message" &&
+      entry.kind !== "system") ||
+    /^pre-arm:/i.test(entry.label);
+  const ringEntry = entry;
+  appendQaDiagRing({
+    kind: ringEntry.kind,
+    text: ringEntry.label,
+    label: ringEntry.label,
+    atMs: ringEntry.atMs,
+    beatId: ringEntry.beatId,
+    detail: ringEntry.action,
+  });
+
+  let visible = entry;
+  if (warmNoise) {
+    const existingInit = logEntries.find((e) => e.kind === "init");
+    if (existingInit) {
+      existingInit.count = (existingInit.count ?? 1) + 1;
+      existingInit.atMs = entry.atMs;
+      existingInit.timeLabel = entry.timeLabel;
+      existingInit.label = "Initializing…";
+      renderLog();
+      refreshSitrepDom();
+      if (active) noteActivity();
+      return;
+    }
+    visible = {
+      ...entry,
+      kind: "init",
+      label: "Initializing…",
+      outcome: "ok",
+      count: 1,
+    };
+  }
+
+  const coalesced = coalesceLogEntry(logEntries[logEntries.length - 1], visible);
   if (coalesced) {
     logEntries[logEntries.length - 1] = coalesced;
   } else {
     const withDuration =
-      entry.durationMs == null && lastStepAt > 0
-        ? { ...entry, durationMs: Math.max(0, entry.atMs - lastStepAt) }
-        : entry;
+      visible.durationMs == null && lastStepAt > 0
+        ? { ...visible, durationMs: Math.max(0, visible.atMs - lastStepAt) }
+        : visible;
     logEntries.push(withDuration);
-    lastStepAt = entry.atMs;
+    lastStepAt = visible.atMs;
   }
   if (logEntries.length > LOG_LIMIT) {
     logEntries = logEntries.slice(-LOG_LIMIT);
   }
-  if (entry.touchpointKey) {
-    markAgentTestingTimeline(entry.touchpointKey, entry.outcome);
+  if (visible.touchpointKey) {
+    markAgentTestingTimeline(visible.touchpointKey, visible.outcome);
   }
   if (active && !settling) {
-    const snippet = (entry.label || entry.kind || "").trim().slice(0, 48);
+    const snippet = (visible.label || visible.kind || "").trim().slice(0, 48);
     if (capturePaused) {
       setActivityPhase("paused", snippet || "paused");
-    } else {
+    } else if (activityPhase !== "preparing") {
       setActivityPhase("running", snippet || undefined);
     }
   }
-  appendQaDiagRing({
-    kind: entry.kind,
-    text: entry.label,
-    label: entry.label,
-    atMs: entry.atMs,
-    beatId: entry.beatId,
-    detail: entry.action,
-  });
   renderLog();
   refreshSitrepDom();
   if (active) noteActivity();
@@ -1653,6 +1787,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
       ? options.result
       : "neutral";
   settling = true;
+  unbindCaptureWatch();
   syncSessionChrome();
   active = false;
   clearSafetyTimer();
@@ -1761,6 +1896,7 @@ export function startAgentTestingOverlay(title?: string): void {
   // DOM visibility gate - re-stamp if ensureRoot raced / orphan teardown.
   ensureAgentTestingOverlayDomArmed(resolved);
   syncSessionChrome();
+  syncCaptureWatch();
   softShowOverlayPanel(root);
 }
 
@@ -1784,7 +1920,13 @@ export async function preArmAgentTestingOverlay(options?: {
   }
   ensureAgentTestingOverlayDomArmed(title);
   setResultBadge("neutral");
-  logAgentTestingOverlay("pre-arm: preparing...");
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: "Initializing…",
+    outcome: "ok",
+    kind: "init",
+  });
   const endsAt = Date.now() + preArmMs;
   while (Date.now() < endsAt) {
     if (!active || settling) return;
@@ -1801,7 +1943,7 @@ export async function preArmAgentTestingOverlay(options?: {
   if (!active || settling) return;
   setHint("Page visible - clicks blocked. Mid-flight QA below.");
   setActivityPhase("running", "ready");
-  logAgentTestingOverlay("pre-arm: ready");
+  appendQaDiagRing({ kind: "pre-arm-ready", text: "ready" });
 }
 
 /**
@@ -1999,15 +2141,17 @@ export function openAgentTestingLogger(title?: string): void {
   refreshSitrepDom();
   refreshActivityDom();
   renderLog();
+  syncCaptureWatch();
   softShowOverlayPanel(root);
 }
 
-/** Soft dismiss — close gate, hide panel, keep DOM (no remount flash next open). */
+/** Soft dismiss — close gate, stop capture, hide panel, keep DOM (no remount flash). */
 export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   if (sessionOwner === "agent" && (active || settling)) {
     // Agent lock — user cannot soft-dismiss.
     return;
   }
+  unbindCaptureWatch();
   closeQaDiagGate({ reason });
   loggerSession = false;
   sessionOwner = "manual";
@@ -2017,6 +2161,8 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   active = false;
   settling = false;
   settleResult = "neutral";
+  logEntries = [];
+  timelineKeys = [];
   clearSafetyTimer();
   clearIdleTimer();
   clearSettleTimer();
@@ -2038,6 +2184,21 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
 }
 
 /**
+ * Bug-icon toggle: open MANUAL TEST, or close + stop capture when already open.
+ * Agent lock unchanged (no-op while agent owns the session).
+ */
+export function toggleAgentTestingLogger(): void {
+  if (sessionOwner === "agent" && (active || settling)) {
+    return;
+  }
+  if (active && sessionOwner === "manual") {
+    softCloseAgentTestingLogger("bug-icon");
+    return;
+  }
+  openAgentTestingLogger();
+}
+
+/**
  * User free-text message → log + timeline + ring.
  * Kind `user-message` — treat with grain of salt (manual note).
  */
@@ -2051,7 +2212,7 @@ export function appendAgentTestingUserMessage(text: string): boolean {
   }
   const body =
     trimmed.length > 120 ? `${trimmed.slice(0, 118)}…` : trimmed;
-  const label = `User message (manual note — treat with grain of salt): ${body}`;
+  const label = `Message: ${body}`;
   pushLogEntry({
     atMs: performance.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -2128,6 +2289,7 @@ export function forceClearAgentTestingOverlay(): void {
     capturePaused = false;
     elapsedAccumMs = 0;
     elapsedRunStartedAt = 0;
+    unbindCaptureWatch();
     closeQaDiagGate({ reason: "force-clear" });
     setQaDiagLoggerMode(false);
     setQaSessionLock(null);
@@ -2232,6 +2394,8 @@ export function installAgentTestingOverlayApi(): void {
     forceClear: forceClearAgentTestingOverlay,
     openLogger: openAgentTestingLogger,
     softClose: softCloseAgentTestingLogger,
+    toggleLogger: toggleAgentTestingLogger,
+    resetSession: resetManualSession,
     appendPoNote: appendAgentTestingUserMessage,
     log: logAgentTestingOverlay,
     logStep: logAgentTestingStep,
@@ -2253,6 +2417,7 @@ export function installAgentTestingOverlayApi(): void {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__studioOpenQaLogger = () => openAgentTestingLogger();
+    window.__studioToggleQaLogger = () => toggleAgentTestingLogger();
     window.__studioAppendPoNote = (text: string) =>
       appendAgentTestingUserMessage(String(text ?? ""));
     window.__studioQaDiagGateOpen = () => isQaDiagGateOpen();
@@ -2278,10 +2443,14 @@ function restoreLoggerFromRing(events: QaDiagRingEvent[]): void {
       kind:
         e.kind === "user-message" || e.kind === "po-note"
           ? "user-message"
-          : e.kind === "capture-pause" || e.kind === "capture-start"
-            ? "info"
-            : e.kind === "po-note"
-              ? "user-message"
+          : e.kind === "click" ||
+              e.kind === "nav" ||
+              e.kind === "system" ||
+              e.kind === "init" ||
+              e.kind === "alarm"
+            ? (e.kind as AgentTestingLogEntry["kind"])
+            : e.kind === "capture-pause" || e.kind === "capture-start"
+              ? "system"
               : "info",
     });
   }
@@ -2297,6 +2466,7 @@ export function uninstallAgentTestingOverlayApi(): void {
   settleResult = "neutral";
   logEntries = [];
   timelineKeys = [];
+  unbindCaptureWatch();
   cancelPendingReload();
   clearSafetyTimer();
   clearIdleTimer();
@@ -2321,6 +2491,7 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioDownloadAgentTestingDump;
     delete window.__protoDownloadAgentTestingDump;
     delete window.__studioOpenQaLogger;
+    delete window.__studioToggleQaLogger;
     delete window.__studioAppendPoNote;
     delete window.__studioQaDiagGateOpen;
   }
@@ -2333,6 +2504,7 @@ declare global {
     __studioDownloadAgentTestingDump?: () => boolean;
     __protoDownloadAgentTestingDump?: () => boolean;
     __studioOpenQaLogger?: () => void;
+    __studioToggleQaLogger?: () => void;
     __studioAppendPoNote?: (text: string) => boolean;
     __studioQaDiagGateOpen?: () => boolean;
   }

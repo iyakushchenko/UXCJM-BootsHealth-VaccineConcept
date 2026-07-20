@@ -149,7 +149,14 @@ export function coalesceLogEntry(
   if (prev.kind !== next.kind) return null;
   if (prev.label !== next.label) return null;
   if (prev.outcome !== next.outcome) return null;
-  if (prev.kind !== "helper" && prev.kind !== "info") return null;
+  if (
+    prev.kind !== "helper" &&
+    prev.kind !== "info" &&
+    prev.kind !== "click" &&
+    prev.kind !== "init"
+  ) {
+    return null;
+  }
   const durationMs =
     prev.durationMs != null || next.durationMs != null
       ? (prev.durationMs ?? 0) + (next.durationMs ?? Math.max(0, next.atMs - prev.atMs))

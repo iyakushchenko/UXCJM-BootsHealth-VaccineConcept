@@ -40,6 +40,7 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   // QA diag gate / free-form logger — read/status + open-logger; must NOT re-arm.
   "QaDiagGateOpen",
   "OpenQaLogger",
+  "ToggleQaLogger",
   "AppendPoNote",
   "DownloadAgentTestingDump",
   // Cleanup / abort manage overlay themselves — do not re-arm mid-reset.

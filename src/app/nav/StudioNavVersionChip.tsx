@@ -1,9 +1,9 @@
 import { getStudioRelease } from "@/app/shell/studioRelease";
-import { openAgentTestingLogger } from "@/app/shell/agent-testing/agentTestingOverlay";
+import { toggleAgentTestingLogger } from "@/app/shell/agent-testing/agentTestingOverlay";
 
 /**
  * Sticky right chip on the page-tabs row — version + channel.
- * Amber BUG icon (Summarizer Cleaner glyph) opens MANUAL TEST logger.
+ * Amber BUG icon toggles MANUAL TEST logger (open / close+stop capture).
  * Disabled while an agent-locked mid-flight session owns the overlay.
  */
 export function StudioNavVersionChip() {
@@ -20,17 +20,17 @@ export function StudioNavVersionChip() {
       <button
         type="button"
         className="studio-nav-version__qa"
-        title="Open MANUAL TEST logger (PLAYBACK_DIAG gate)"
-        aria-label="Open MANUAL TEST logger"
+        title="Toggle MANUAL TEST logger (close stops capture)"
+        aria-label="Toggle MANUAL TEST logger"
         data-studio-qa-logger="true"
         onClick={() => {
           if (document.documentElement.dataset.studioQaLock === "agent") {
             return;
           }
-          if (typeof window.__studioOpenQaLogger === "function") {
-            window.__studioOpenQaLogger();
+          if (typeof window.__studioToggleQaLogger === "function") {
+            window.__studioToggleQaLogger();
           } else {
-            openAgentTestingLogger();
+            toggleAgentTestingLogger();
           }
         }}
       >

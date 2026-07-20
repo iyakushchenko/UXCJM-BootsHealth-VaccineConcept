@@ -14,7 +14,11 @@ export type AgentTestingLogKind =
   | "scroll"
   | "sequence"
   | "po-note"
-  | "user-message";
+  | "user-message"
+  | "click"
+  | "nav"
+  | "system"
+  | "init";
 
 export type AgentTestingLogEntry = {
   atMs: number;

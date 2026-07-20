@@ -60,22 +60,27 @@ Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only 
 
 | Action | Gate / UX |
 |--------|-----------|
-| Version-chip **BUG** / `__studioOpenQaLogger()` | **Opens** gate as **MANUAL TEST** (muted chip → active amber while open) |
-| Agent overlay `touch` / `start` | **Opens** gate as **AGENT TESTING** — **locked** (no dismiss; header bug disabled) |
+| Version-chip **BUG** / `__studioToggleQaLogger()` | **Toggles** MANUAL TEST — open, or **close + stop capture** |
+| Agent overlay `touch` / `start` | **Opens** gate as **AGENT TESTING** — **locked** (no close/reset; header bug disabled) |
 | **Pause / Resume** (clock row) | Freezes elapsed + capture. Agent → `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Manual opens **paused** at 0:00. |
+| While capturing | Visible log: `Click: …` + `Screen → …` (full detail in ring/dump) |
+| Log colors | Capture muted · system/control blue · user message amber · alarms warn · init muted |
+| Warm-up | One visible **Initializing…** row (verbose stays in ring) |
 | **Session** bar | Mode · Project · Persona · CJM (separate from touchpoints) |
 | **Touchpoints** bar | Journey/touchpoint progress chips only |
 | **Save Log** | Enabled when paused / idle / settled; **disabled** while capturing |
-| Manual **Dismiss** / soft-close | **Closes** gate |
+| **Close (×)** / bug-icon close | **Stops capture** + closes gate (manual) |
+| **Reset** | Clears log / ring / timer — one `Session reset` line |
 | Agent `forceClear` / settle teardown | **Closes** gate + unlocks header |
 | Refresh | Gate + capped ring (~300) restored as MANUAL TEST if gate was open |
 
-Messages: `__studioAppendPoNote("…")` → `user-message` rows (manual note — treat with grain of salt).
+Messages: `__studioAppendPoNote("…")` → `user-message` rows (`Message: …`).
 
 Dump / Save Log: compact JSON with `gateMode`, mode/screen/beat, capped diag/ring/control-panel — no pretty megabyte spam.
 
 ```js
 window.__studioQaDiagGateOpen?.() // boolean
+window.__studioToggleQaLogger?.()
 window.__studioOpenQaLogger?.()
 window.__studioAppendPoNote?.("pixel drift on PDP Book")
 ```
