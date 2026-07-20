@@ -116,7 +116,8 @@ After fix: full Play **PASS 21/21**. Do not invent green past real timeouts.
 **Full agentic continuous Play prove (HARD — one entrypoint):** agents MUST call only:
 
 ```js
-await window.__studioRunAgenticFullPlayProve?.({ timeoutMs: 600_000 })
+await window.__studioRunAgenticFullPlayProve?.() // default timeoutMs 300_000
+// or: await window.__studioRunAgenticFullPlayProve?.({ timeoutMs: 600_000 })
 // alias: window.__protoRunAgenticFullPlayProve
 // → { pass, peak, end, errors } — forceClear + fresh arm + Play + assert peak 21/21
 //   + play-end at start + pauseForAgentLeave; overlay STAYS open for Save Log.

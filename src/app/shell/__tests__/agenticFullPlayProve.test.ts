@@ -19,6 +19,7 @@ vi.mock("@/app/shell/playJourneySmoke", () => ({
 import { runPlayJourneyToStartSmoke } from "@/app/shell/playJourneySmoke";
 import {
   AGENTIC_FULL_PLAY_EXPECTED_PEAK,
+  AGENTIC_FULL_PLAY_PROVE_DEFAULT_TIMEOUT_MS,
   runAgenticFullPlayProve,
 } from "@/app/shell/agenticFullPlayProve";
 import {
@@ -89,6 +90,29 @@ describe("runAgenticFullPlayProve", () => {
     expect(isAgentTestingOverlayActive()).toBe(true);
     expect(isAgentTestingOverlayDomPresent()).toBe(true);
     expect(AGENTIC_FULL_PLAY_EXPECTED_PEAK).toBe(21);
+    expect(AGENTIC_FULL_PLAY_PROVE_DEFAULT_TIMEOUT_MS).toBe(300_000);
+  });
+
+  it("passes default timeoutMs 300_000 into play smoke when omitted", async () => {
+    vi.mocked(runPlayJourneyToStartSmoke).mockResolvedValue({
+      pass: true,
+      peakVisible: 21,
+      peakCounter: "STEPS: 21 / 21",
+      assert: {
+        pass: true,
+        beatId: "agentic-home",
+        screenId: "site-pilot",
+      },
+    });
+
+    await runAgenticFullPlayProve({
+      delay: async () => undefined,
+      preArmMs: 0,
+    });
+
+    expect(vi.mocked(runPlayJourneyToStartSmoke).mock.calls[0]?.[0]).toMatchObject({
+      timeoutMs: 300_000,
+    });
   });
 
   it("FAIL honestly when peak short of 21/21 — no invent green", async () => {

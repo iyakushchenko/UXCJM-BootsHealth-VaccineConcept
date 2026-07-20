@@ -35,6 +35,14 @@ import {
 /** Agentic CJM playlist length (STEPS peak must reach this). */
 export const AGENTIC_FULL_PLAY_EXPECTED_PEAK = 21;
 
+/**
+ * Default Play poll budget for full agentic prove.
+ * Full 21-beat agentic Play commonly needs ~75–120s+ (type-in, thinking, settles);
+ * 180s was borderline and short MCP/agent budgets caused false FAIL mid-playlist.
+ * Agents may still pass a higher `timeoutMs` (e.g. 600_000).
+ */
+export const AGENTIC_FULL_PLAY_PROVE_DEFAULT_TIMEOUT_MS = 300_000;
+
 export type AgenticFullPlayProvePeak = {
   visible: number;
   total: number;
@@ -53,6 +61,7 @@ export type AgenticFullPlayProveResult = {
 };
 
 export type AgenticFullPlayProveOptions = {
+  /** Play poll budget — default {@link AGENTIC_FULL_PLAY_PROVE_DEFAULT_TIMEOUT_MS}. */
   timeoutMs?: number;
   softFailPoAlarm?: boolean;
   /** Default {@link AGENTIC_FULL_PLAY_EXPECTED_PEAK} (21). */
@@ -96,6 +105,8 @@ export async function runAgenticFullPlayProve(
 ): Promise<AgenticFullPlayProveResult> {
   const expectedPeak =
     options?.expectedPeak ?? AGENTIC_FULL_PLAY_EXPECTED_PEAK;
+  const timeoutMs =
+    options?.timeoutMs ?? AGENTIC_FULL_PLAY_PROVE_DEFAULT_TIMEOUT_MS;
   const delay = options?.delay ?? delayMs;
   const errors: string[] = [];
 
@@ -134,7 +145,7 @@ export async function runAgenticFullPlayProve(
       orchestraMode: "agentic-cjm",
       startBeatId: "agentic-home",
       startScreenId: "site-pilot",
-      timeoutMs: options?.timeoutMs,
+      timeoutMs,
       softFailPoAlarm: options?.softFailPoAlarm,
       delay,
       ensureClean: () => {

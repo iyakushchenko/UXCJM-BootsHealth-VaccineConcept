@@ -64,7 +64,7 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 
 **Reset QA before every test (ALWAYS CLEAR):** `__studioForceClearAgentTestingOverlay()` / overlay `forceClear`, then fresh `start` — never reuse a dirty AGENT TESTING session. Smokes (`withMcpTestSession`) force-clear before arm. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
 
-**Full agentic continuous Play prove (HARD):** call only `await window.__studioRunAgenticFullPlayProve?.()` (alias `__protoRunAgenticFullPlayProve`) — not ad-hoc Play / not `__protoRunAgenticPlaySmoke` (tears down overlay). Returns `{ pass, peak, end, errors }`; keeps QA open for Save Log. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
+**Full agentic continuous Play prove (HARD):** call only `await window.__studioRunAgenticFullPlayProve?.()` (alias `__protoRunAgenticFullPlayProve`; default `timeoutMs` **300_000**, override e.g. `{ timeoutMs: 600_000 }`) — not ad-hoc Play / not `__protoRunAgenticPlaySmoke` (tears down overlay). Returns `{ pass, peak, end, errors }`; keeps QA open for Save Log. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
 
 **Studio URL params:** `project` · `screen` · `persona` · `cjm=on|off` · `experience=agentic|traditional` · `modal` — **not** `mode=agentic-cjm` (legacy alias only). Example: `http://localhost:5173/?project=boots-pharmacy&screen=chat&persona=sarah-jenkins&cjm=on&experience=agentic`. → [docs/shell/URL.md](docs/shell/URL.md)
 

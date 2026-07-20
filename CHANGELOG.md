@@ -28,6 +28,7 @@
 - **shell:** QA overlay: industry log colors (neutral milestones, amber soft-fail, red hard-fail, green PASS only); timestamps without list numbers; presence ONLINE XOR Last seen + green diode only when present
 - **shell:** CJM-on Play: CHAT_LOADING_DUMP_ALL watch is CJM-off-only (false positive vs progressive reveal); rails+QA recipe updated
 - **shell:** QA auto-pause on presence TTL (8s) as leave guard rail; avail after chat FPS: freeze chat underlay + drop scrim backdrop-filter
+- **shell:** Agentic full Play prove default timeoutMs 300_000 (was inherited 180s smoke; short budgets false-FAIL mid-playlist)
 
 ## v0.0.100 - 200726
 - **shell:** PP-13 self-test expand + stale-green detector + PLAYBACK_DIAG mirror
