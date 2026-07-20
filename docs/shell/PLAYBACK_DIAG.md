@@ -60,16 +60,17 @@ Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only 
 
 | Action | Gate / UX |
 |--------|-----------|
-| Version-chip **amber BUG** / `__studioOpenQaLogger()` | **Opens** gate as **MANUAL TEST** (page clicks allowed; Pause/Start; Message/Send) |
+| Version-chip **BUG** / `__studioOpenQaLogger()` | **Opens** gate as **MANUAL TEST** (muted chip → active amber while open) |
 | Agent overlay `touch` / `start` | **Opens** gate as **AGENT TESTING** — **locked** (no dismiss; header bug disabled) |
+| **Pause / Resume** (manual or agent) | Gate stays open; ring appends stop. Agent Pause → `haltPlaybackForPoSignal("po-pause")`. Explicit Resume (no auto-Play). Pause → Message → Resume. |
+| **Save Log** | Enabled when paused / idle / settled; **disabled** while capture is in progress |
 | Manual **Dismiss** / soft-close | **Closes** gate |
-| Manual **Pause** | Gate stays open; ring/log appends stop (except `user-message`) |
 | Agent `forceClear` / settle teardown | **Closes** gate + unlocks header |
 | Refresh | Gate + capped ring (~300) restored as MANUAL TEST if gate was open |
 
 Messages: `__studioAppendPoNote("…")` → `user-message` rows (manual note — treat with grain of salt).
 
-Dump: compact JSON with `gateMode`, mode/screen/beat, capped diag/ring/control-panel — no pretty megabyte spam.
+Dump / Save Log: compact JSON with `gateMode`, mode/screen/beat, capped diag/ring/control-panel — no pretty megabyte spam.
 
 ```js
 window.__studioQaDiagGateOpen?.() // boolean

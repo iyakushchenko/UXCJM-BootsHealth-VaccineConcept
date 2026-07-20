@@ -34,6 +34,10 @@ import {
   formatLogRowText,
 } from "@/app/shell/agent-testing/agentTestingFormat";
 import {
+  animate,
+  motionEaseInOutTransition,
+} from "@/uxds/motion";
+import {
   formatActivityStatus,
   type AgentTestingActivityPhase,
   type AgentTestingSessionOwner,
@@ -785,6 +789,35 @@ function setActivityPhase(
   activityPhase = phase;
   activityDetail = detail?.trim() ?? "";
   refreshActivityDom();
+  syncSessionChrome();
+}
+
+/** Capture is “in progress” when the session is actively appending (not paused/settling). */
+function isCaptureInProgress(): boolean {
+  if (!active || settling) return false;
+  if (capturePaused) return false;
+  return (
+    activityPhase === "running" ||
+    activityPhase === "preparing" ||
+    activityPhase === "waiting"
+  );
+}
+
+function softShowOverlayPanel(root: HTMLElement | null): void {
+  if (!root || typeof window === "undefined") return;
+  const panel = root.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__panel"
+  );
+  if (!panel) return;
+  try {
+    animate(
+      panel,
+      { opacity: [0.88, 1], y: [8, 0] },
+      { duration: 0.22, ...motionEaseInOutTransition }
+    );
+  } catch {
+    /* hang-safe — CSS fallback still shows panel */
+  }
 }
 
 function armSafetyTimer(): void {
@@ -952,7 +985,7 @@ function setQaSessionLock(mode: AgentTestingSessionOwner | null): void {
   }
 }
 
-/** Sync dismiss / capture / owner chrome after mode changes. */
+/** Sync dismiss / capture / Save Log / owner chrome after mode changes. */
 function syncSessionChrome(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
@@ -977,13 +1010,30 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__capture-toggle"
   );
   if (captureBtn) {
-    const show = sessionOwner === "manual" && active;
+    const show = (active || settling) && !settling;
     captureBtn.hidden = !show;
     captureBtn.disabled = !show;
-    captureBtn.textContent = capturePaused ? "Start" : "Pause";
-    captureBtn.title = capturePaused
-      ? "Resume capture (append to log/ring)"
-      : "Pause capture (gate stays open; ring appends stop)";
+    captureBtn.textContent = capturePaused ? "Resume" : "Pause";
+    captureBtn.title =
+      sessionOwner === "agent"
+        ? capturePaused
+          ? "Resume agent capture (does not auto-Play — transport stays stopped)"
+          : "Pause agent work — halt Play; type Message, then Resume"
+        : capturePaused
+          ? "Resume capture (append to log/ring)"
+          : "Pause capture (gate stays open; ring appends stop)";
+  }
+
+  const saveBtn = root.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__dump"
+  );
+  if (saveBtn) {
+    const enabled = !isCaptureInProgress();
+    saveBtn.disabled = !enabled;
+    saveBtn.textContent = "Save Log";
+    saveBtn.title = enabled
+      ? "Download lean dump JSON (secondary — prefer __studioConsumePoSignal)"
+      : "Pause capture or wait until idle to save log";
   }
 
   ensureMessageUnderLog(root);
@@ -1004,25 +1054,71 @@ function ensureMessageUnderLog(root: HTMLElement): void {
     ".studio-agent-testing-overlay__note-submit"
   );
   if (input) {
-    input.placeholder = "Message — Enter to send";
+    input.placeholder = "Message";
     input.setAttribute("aria-label", "Message");
     input.name = "user-message";
   }
   if (submit) submit.textContent = "Send";
 }
 
-function toggleManualCapture(): void {
-  if (sessionOwner !== "manual" || !active) return;
-  capturePaused = !capturePaused;
+/**
+ * Pause / Resume capture.
+ * Manual: stops ring appends (gate stays open).
+ * Agent: also hard-halts Play via haltPlaybackForPoSignal — explicit Resume required (no auto-Play).
+ */
+function toggleCapturePause(): void {
+  if (!active || settling) return;
+  const next = !capturePaused;
+  if (next && sessionOwner === "agent") {
+    try {
+      haltPlaybackForPoSignal("po-pause");
+    } catch {
+      /* hang-safe */
+    }
+  }
+  const label =
+    sessionOwner === "agent"
+      ? next
+        ? "PO Pause — agent work halted"
+        : "PO Resume — capture on (Play not auto-started)"
+      : next
+        ? "Capture paused"
+        : "Capture resumed";
+  // Status row must land even when pausing (gate would otherwise drop it).
+  if (next) {
+    pushLogEntry({
+      atMs: performance.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label,
+      outcome: "ok",
+      kind: "info",
+    });
+    capturePaused = true;
+  } else {
+    capturePaused = false;
+    pushLogEntry({
+      atMs: performance.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label,
+      outcome: "ok",
+      kind: "info",
+    });
+  }
   setActivityPhase(
     capturePaused ? "paused" : "running",
-    capturePaused ? "capture off" : "capture on"
+    capturePaused ? "paused" : "resumed"
   );
-  syncSessionChrome();
   appendQaDiagRing({
     kind: capturePaused ? "capture-pause" : "capture-start",
     text: capturePaused ? "paused" : "resumed",
-    label: capturePaused ? "Capture paused" : "Capture resumed",
+    label:
+      sessionOwner === "agent"
+        ? capturePaused
+          ? "Agent paused (Play halted)"
+          : "Agent resumed (capture on — Play not auto-started)"
+        : capturePaused
+          ? "Capture paused"
+          : "Capture resumed",
   });
 }
 
@@ -1057,7 +1153,7 @@ function ensureRoot(): HTMLElement | null {
         <button type="button" class="studio-agent-testing-overlay__alarm" title="Sequence / expected-steps mismatch — latches live PO signal for the running agent">Alarm</button>
         <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird — latches live PO signal">Cursor</button>
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
-        <button type="button" class="studio-agent-testing-overlay__dump" title="Download last dump JSON (secondary — prefer __studioConsumePoSignal)">Dump</button>
+        <button type="button" class="studio-agent-testing-overlay__dump" title="Download lean dump JSON">Save Log</button>
       </div>
       <ol class="studio-agent-testing-overlay__log"></ol>
       <form class="studio-agent-testing-overlay__note" autocomplete="off">
@@ -1089,7 +1185,7 @@ function ensureRoot(): HTMLElement | null {
       ".studio-agent-testing-overlay__capture-toggle"
     )
     ?.addEventListener("click", () => {
-      toggleManualCapture();
+      toggleCapturePause();
     });
   const noteForm = root.querySelector<HTMLFormElement>(
     ".studio-agent-testing-overlay__note"
@@ -1126,6 +1222,7 @@ function ensureRoot(): HTMLElement | null {
   root
     .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dump")
     ?.addEventListener("click", () => {
+      if (isCaptureInProgress()) return;
       downloadAgentTestingDump();
     });
   // Last child of body - paint above #root concept lightboxes.
@@ -1164,7 +1261,11 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
   }
   if (active && !settling) {
     const snippet = (entry.label || entry.kind || "").trim().slice(0, 48);
-    setActivityPhase("running", snippet || undefined);
+    if (capturePaused) {
+      setActivityPhase("paused", snippet || "paused");
+    } else {
+      setActivityPhase("running", snippet || undefined);
+    }
   }
   appendQaDiagRing({
     kind: entry.kind,
@@ -1181,7 +1282,8 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
 
 function renderLog(): void {
   if (!hasDomQuery()) return;
-  const root = document.getElementById(ROOT_ID);  const list = root?.querySelector<HTMLOListElement>(
+  const root = document.getElementById(ROOT_ID);
+  const list = root?.querySelector<HTMLOListElement>(
     ".studio-agent-testing-overlay__log"
   );
   if (!list) return;
@@ -1190,7 +1292,23 @@ function renderLog(): void {
     const li = document.createElement("li");
     li.dataset.outcome = entry.outcome;
     li.dataset.kind = entry.kind;
-    li.textContent = formatLogRowText(entry);
+    const time = document.createElement("span");
+    time.className = "studio-agent-testing-overlay__log-time";
+    time.textContent = entry.timeLabel;
+    const body = document.createElement("span");
+    body.className = "studio-agent-testing-overlay__log-body";
+    const count =
+      entry.count && entry.count > 1 ? ` ×${entry.count}` : "";
+    const dur = entry.durationMs != null && entry.durationMs > 0
+      ? ` (${Math.round(entry.durationMs)}ms)`
+      : "";
+    // Prefer formatLogRowText body without duplicating time
+    const full = formatLogRowText(entry);
+    const withoutTime = full.startsWith(entry.timeLabel)
+      ? full.slice(entry.timeLabel.length).trimStart()
+      : `${entry.label}${count}${dur}`;
+    body.textContent = withoutTime;
+    li.append(time, document.createTextNode(" "), body);
     list.appendChild(li);
   }
   list.scrollTop = list.scrollHeight; // PRODUCT UI chrome — overlay sitrep list (not journey camera SSoT)
@@ -1479,7 +1597,7 @@ export function startAgentTestingOverlay(title?: string): void {
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(
-    "AGENT TESTING — page clicks blocked. Alarm/Cursor/Scroll/Dump only."
+    "AGENT TESTING — page clicks blocked. Pause to message; Save Log when idle/paused."
   );
   setActivityPhase("running");
   openQaDiagGate({ logger: false, reason: "overlay-start" });
@@ -1505,6 +1623,7 @@ export function startAgentTestingOverlay(title?: string): void {
   // DOM visibility gate - re-stamp if ensureRoot raced / orphan teardown.
   ensureAgentTestingOverlayDomArmed(resolved);
   syncSessionChrome();
+  softShowOverlayPanel(root);
 }
 
 /**
@@ -1664,7 +1783,7 @@ export function touchAgentTestingOverlay(title?: string): void {
     capturePaused = false;
     setAgentTestingHtmlFlag(true);
     setHint(
-      "AGENT TESTING — page clicks blocked. Alarm/Cursor/Scroll/Dump only."
+      "AGENT TESTING — page clicks blocked. Pause to message; Save Log when idle/paused."
     );
     const agentTitle = resolveAgentTestingOverlayTitle(title ?? DEFAULT_TITLE);
     sessionTitle = agentTitle;
@@ -1725,7 +1844,7 @@ export function openAgentTestingLogger(title?: string): void {
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(
-    "MANUAL TEST — page clicks allowed. Pause capture or Send a message below."
+    "MANUAL TEST — page clicks allowed. Pause capture; Message + Save Log when paused."
   );
   setActivityPhase("running", "logger");
   syncSessionChrome();
@@ -1739,6 +1858,7 @@ export function openAgentTestingLogger(title?: string): void {
   refreshSitrepDom();
   refreshActivityDom();
   renderLog();
+  softShowOverlayPanel(root);
 }
 
 /** Soft dismiss — close gate, hide panel, keep DOM (no remount flash next open). */
