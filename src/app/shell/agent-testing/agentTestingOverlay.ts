@@ -43,6 +43,10 @@ import {
   uninstallPoSignalPlaybackHaltWindowApis,
 } from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
+import {
+  bindAgentTestingNavClearance,
+  syncAgentTestingNavClearance,
+} from "@/app/shell/agent-testing/agentTestingNavClearance";
 import type {
   AgentTestingLogEntry,
   AgentTestingOverlayResult,
@@ -58,9 +62,6 @@ export type {
 } from "@/app/shell/agent-testing/agentTestingTypes";
 
 const ROOT_ID = "agent-testing-overlay";
-/** CSS var on overlay root — capture top clears Studio nav chrome (PO transport). */
-const NAV_CLEARANCE_VAR = "--studio-agent-testing-nav-clearance";
-let navClearanceBound = false;
 const LOG_LIMIT = 80;
 /** Safety: never leave the overlay up longer than this (force clear). */
 const MAX_MS = 3 * 60 * 1000;
@@ -855,35 +856,12 @@ function renderHistory(entries: HistoryEntry[]): void {
   box.appendChild(list);
 }
 
-/**
- * Leave Studio nav chrome above the click-guard so PO can Step/Play/REC
- * while the concept page stays blocked. Agent overlay is on document.body
- * (z 2147483646) and would otherwise cover in-tree nav.
- */
-function syncAgentTestingNavClearance(root?: HTMLElement | null): void {
-  if (typeof document === "undefined") return;
-  const overlay = root ?? document.getElementById(ROOT_ID);
-  if (!overlay) return;
-  const nav = document.querySelector<HTMLElement>(".studio-nav-panel-host");
-  const bottom = nav ? Math.ceil(nav.getBoundingClientRect().bottom) : 0;
-  const px = `${Math.max(0, bottom)}px`;
-  overlay.style.setProperty(NAV_CLEARANCE_VAR, px);
-}
-
-function bindAgentTestingNavClearance(): void {
-  if (navClearanceBound || typeof window === "undefined") return;
-  navClearanceBound = true;
-  const sync = () => syncAgentTestingNavClearance();
-  window.addEventListener("resize", sync, { passive: true });
-  window.visualViewport?.addEventListener("resize", sync, { passive: true });
-}
-
 function ensureRoot(): HTMLElement | null {
   if (typeof document === "undefined") return null;
   if (typeof document.getElementById !== "function") return null;
   let root = document.getElementById(ROOT_ID);
   if (root) {
-    syncAgentTestingNavClearance(root);
+    syncAgentTestingNavClearance(ROOT_ID, root);
     return root;
   }
   root = document.createElement("div");
@@ -943,8 +921,8 @@ function ensureRoot(): HTMLElement | null {
     });
   // Last child of body - paint above #root concept lightboxes.
   (document.body ?? document.documentElement).appendChild(root);
-  bindAgentTestingNavClearance();
-  syncAgentTestingNavClearance(root);
+  bindAgentTestingNavClearance(ROOT_ID);
+  syncAgentTestingNavClearance(ROOT_ID, root);
   return root;
 }
 
@@ -1254,7 +1232,7 @@ export function startAgentTestingOverlay(title?: string): void {
     root.dataset.settling = "false";
     delete root.dataset.result;
     root.querySelector(".studio-agent-testing-overlay__history")?.remove();
-    syncAgentTestingNavClearance(root);
+    syncAgentTestingNavClearance(ROOT_ID, root);
   }
   setAgentTestingHtmlFlag(true);
   setTitle(resolved);
@@ -1340,7 +1318,7 @@ export function ensureAgentTestingOverlayDomArmed(title?: string): boolean {
   root.dataset.settling = "false";
   setAgentTestingHtmlFlag(true);
   setTitle(resolved);
-  syncAgentTestingNavClearance(root);
+  syncAgentTestingNavClearance(ROOT_ID, root);
   if (!root.querySelector(".studio-agent-testing-overlay__panel")) {
     // Corrupt orphan - rebuild.
     root.remove();
@@ -1350,7 +1328,7 @@ export function ensureAgentTestingOverlayDomArmed(title?: string): boolean {
     rebuilt.dataset.settling = "false";
     setAgentTestingHtmlFlag(true);
     setTitle(resolved);
-    syncAgentTestingNavClearance(rebuilt);
+    syncAgentTestingNavClearance(ROOT_ID, rebuilt);
   }
   return isAgentTestingOverlayDomVisible();
 }

@@ -1248,6 +1248,7 @@ export default function App() {
       journeyMode: studioJourneyMode,
       isOnAir: transport.isOnAir,
       isScripting: transport.isScripting,
+      retreatSyncing: transport.retreatSyncing,
       journeyId: activeJourney?.id,
       beatId: currentBeat?.id,
       beatLabel: currentBeat?.label,

@@ -141,6 +141,9 @@ export async function syncBeatRetreatState(
   };
 
   if (channel === "home" && beat.homeScript) {
+    // Home never owns Availability — clear sticky choose-pharmacy after SB/jump.
+    runtime.closeAvailability();
+    runtime.closeAllPopups();
     await playback.runHomeScript(beat.homeScript, syncOptions);
     finishRetreatCamera();
     dispatchRetreatSync({

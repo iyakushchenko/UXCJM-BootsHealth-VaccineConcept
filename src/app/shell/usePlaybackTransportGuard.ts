@@ -21,6 +21,8 @@ export type TransportGuardSnapshot = {
   journeyMode: boolean;
   isOnAir: boolean;
   isScripting: boolean;
+  /** CJM step-back DOM sync in flight — beat/UI may disagree for a tick. */
+  retreatSyncing?: boolean;
   journeyId?: string;
   beatId?: string;
   beatLabel?: string;
@@ -116,14 +118,18 @@ export function usePlaybackTransportGuard({
     }
 
     if (touchpointIndex >= 0) {
-      const ahead = detectTouchpointAheadOfBeat({
-        beatPlaylistIndex: beatIndex,
-        touchpointPlaylistIndex: touchpointIndex,
-        beatId: currentBeat?.id,
-        touchpointKey,
-      });
-      if (ahead) {
-        report(ahead.kind, ahead.message, ahead.detail);
+      // Retreat/director sync: closeAvailability + beat index can land before
+      // wire/URL catch up — do not Alarm on that one-tick paint.
+      if (!snapshot.isScripting && !snapshot.retreatSyncing) {
+        const ahead = detectTouchpointAheadOfBeat({
+          beatPlaylistIndex: beatIndex,
+          touchpointPlaylistIndex: touchpointIndex,
+          beatId: currentBeat?.id,
+          touchpointKey,
+        });
+        if (ahead) {
+          report(ahead.kind, ahead.message, ahead.detail);
+        }
       }
 
       prevTouchpointIndexRef.current = touchpointIndex;

@@ -1,4 +1,5 @@
 import {
+  isPopupSubstepOfBeat,
   isPopupTouchpoint,
   resolvePlaylistTouchpointIndex,
   type StudioTouchpointEntry,
@@ -45,6 +46,27 @@ export function resolveJourneyRetreatTarget(options: {
 
   const prevEntry = playlist[currentIndex - 1];
   const prevBeatId = parseBeatIdFromTouchpointKey(prevEntry.key);
+
+  // Location-list overlays: close before changing beat. Agentic list aliases to
+  // `beat:avail-location` whose previous playlist slot is a chat frame, so the
+  // old `prevBeatId === currentBeatId` check skipped close-popups and jumped to
+  // chat/home while Choose Pharmacy stayed painted (PO Alarm home+list).
+  // Date/time popups keep AVAIL_POPUP_BEAT_IDS retreat (stay in avail tool).
+  const closePopupKeys = new Set([
+    "popup:availability:list",
+    "popup:availability:start",
+    "popup:availability:map",
+    "popup:availability:noSlots",
+    "popup:login",
+  ]);
+  if (
+    closePopupKeys.has(currentTouchpointKey) &&
+    (isPopupSubstepOfBeat(currentBeatId, currentTouchpointKey) ||
+      // Sticky Choose Pharmacy after beat retreated to home — close first.
+      currentBeatId === "agentic-home")
+  ) {
+    return { kind: "close-popups" };
+  }
 
   if (
     isPopupTouchpoint(currentTouchpointKey) &&

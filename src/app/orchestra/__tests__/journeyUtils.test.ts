@@ -170,6 +170,30 @@ describe("resolveJourneyRetreatTarget", () => {
     expect(target).toEqual({ kind: "close-popups" });
   });
 
+  it("closes popups for agentic avail-location list (does not jump to chat/home)", () => {
+    const agenticPlaylist = buildStudioTouchpointPlaylist(AGENTIC_CJM_JOURNEY, 9);
+    const target = resolveJourneyRetreatTarget({
+      playlist: agenticPlaylist,
+      currentTouchpointKey: "popup:availability:list",
+      currentBeatId: "avail-location",
+      beats: AGENTIC_CJM_JOURNEY.beats,
+      shouldSkipBeat: () => false,
+    });
+    expect(target).toEqual({ kind: "close-popups" });
+  });
+
+  it("closes sticky avail list when beat already retreated to agentic-home", () => {
+    const agenticPlaylist = buildStudioTouchpointPlaylist(AGENTIC_CJM_JOURNEY, 9);
+    const target = resolveJourneyRetreatTarget({
+      playlist: agenticPlaylist,
+      currentTouchpointKey: "popup:availability:list",
+      currentBeatId: "agentic-home",
+      beats: AGENTIC_CJM_JOURNEY.beats,
+      shouldSkipBeat: () => false,
+    });
+    expect(target).toEqual({ kind: "close-popups" });
+  });
+
   it("maps agentic avail-book retreat to avail-time beat (not avail-location)", () => {
     const playlist = buildStudioTouchpointPlaylist(AGENTIC_CJM_JOURNEY, 9);
     const target = resolveJourneyRetreatTarget({

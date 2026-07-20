@@ -32,7 +32,7 @@ const ALLOWLIST = {
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 1870, // + retreat-sync SF queue / transport no-op retry; extract advance/retreat next
   "src/app/App.tsx": 1850, // + PO halt register / diagnostic ack dismiss; extract transport next
-  "src/app/shell/agent-testing/agentTestingOverlay.ts": 1620, // sitrep + journey-start teardown flags
+  "src/app/shell/agent-testing/agentTestingOverlay.ts": 1640, // sitrep + nav-clearance calls; helpers in agentTestingNavClearance.ts
   "src/app/nav/studioNavPanel.css": 1600, // PANEL chrome + version chip; keep one stylesheet
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth
   "src/app/scenario/demoCursor.ts": 1680, // on-target click gate; hit-test in demoCursorOnTarget.ts

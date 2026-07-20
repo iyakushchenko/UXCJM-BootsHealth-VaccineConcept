@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.48 - 200726
+- **shell:** CJM retreat: agentic avail list closes overlay before beat change; suppress touchpoint-ahead Alarm during retreatSync; home sync clears sticky avail
+
 ## v0.0.47 - 200726
 - **shell:** Studio nav chrome z-index above avail/diagnostic lightboxes; agent-testing capture clears nav band so Step/Play/REC stay clickable
 
