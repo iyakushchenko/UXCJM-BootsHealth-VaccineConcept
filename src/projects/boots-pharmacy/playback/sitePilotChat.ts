@@ -10,7 +10,6 @@ import {
   pinScenarioScrollToBottomDuring,
   scrollPrototypeScrollToBottom,
 } from "@/app/scenario/scenarioEngine";
-import { animateScrollElementIntoView } from "@/app/scenario/playbackScroll";
 import {
   playbackDiagClick,
   playbackDiagLog,
@@ -370,31 +369,15 @@ export async function runSitePilotChatBeforeReveal(
     await delay(SITE_PILOT_CHAT_PLAYBACK_THINK_MS);
     if (!preludeAborted) {
       await fadeOutSitePilotChatThinking();
+      // Instant bottom snaps only (no eased scrollIntoView) — competing eases
+      // caused scroll-reversal diagnostic on r3 during agentic SF.
       scrollChatToBottom(true);
-      // Reply mounts after beforeReveal returns — schedule clearance then.
-      const clearAboveComposer = () => {
-        if (preludeAborted) return;
-        const col = getChatScrollEl();
-        const last = col?.querySelector<HTMLElement>(
-          `[data-studio-chat-frame="${anchorId}"]`
-        );
-        if (col && last) {
-          void animateScrollElementIntoView(last, {
-            scrollEl: col,
-            align: "end",
-          }).then(() => {
-            col.scrollTop = Math.max(
-              0,
-              col.scrollHeight - col.clientHeight
-            );
-          });
-        } else {
-          scrollChatToBottom(true);
-        }
-      };
-      window.setTimeout(clearAboveComposer, 80);
-      window.setTimeout(clearAboveComposer, CHAT_PULL_UP_MS + 40);
-      window.setTimeout(() => scrollChatToBottom(true), CHAT_PULL_UP_MS + 120);
+      window.setTimeout(() => {
+        if (!preludeAborted) scrollChatToBottom(true);
+      }, 80);
+      window.setTimeout(() => {
+        if (!preludeAborted) scrollChatToBottom(true);
+      }, CHAT_PULL_UP_MS + 40);
       logChatReveal({
         kind: "agent",
         index: zeroIndex,

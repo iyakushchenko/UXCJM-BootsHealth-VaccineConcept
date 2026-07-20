@@ -22,7 +22,6 @@ import {
   STUDIO_SCROLL_OVERFLOW_CLASS,
   syncStudioScrollOverflowGutter,
 } from "@/app/scenario/studioScrollOverflow";
-import { animateScrollElementIntoView } from "@/app/scenario/playbackScroll";
 import { CHAT_REACT_SCREEN_ID } from "./chatContract";
 import { ChatSitePilotBar } from "./ChatSitePilotBar";
 import {
@@ -448,45 +447,24 @@ export function ChatScreen({
   /**
    * Pull chat up on every progressive reveal / thinking paint so the newest
    * bubble clears above the sticky composer (CSS scroll-padding-bottom pad).
-   * Re-run after Motion pull-up (~480ms) — early scroll races layout height.
+   * Instant snap only — eased scrollIntoView raced pin/snap and tripped
+   * scroll-reversal (3× in 700ms) mid agentic SF on r3.
    */
   useEffect(() => {
     const column = columnRef.current;
     if (!column || !scenarioReveal.active) return;
     const snapBottom = () => {
-      column.scrollTop = Math.max(
-        0,
-        column.scrollHeight - column.clientHeight
-      );
+      const max = Math.max(0, column.scrollHeight - column.clientHeight);
+      // Monotonic toward bottom — never ease/fight other cameras.
+      if (column.scrollTop < max) column.scrollTop = max;
     };
-    const run = () => {
-      const anchor =
-        column.querySelector<HTMLElement>("[data-studio-chat-thinking]") ??
-        [
-          ...column.querySelectorAll<HTMLElement>(
-            '[data-studio-chat-revealed="true"]'
-          ),
-        ].at(-1) ??
-        null;
-      if (!anchor) {
-        snapBottom();
-        return;
-      }
-      void animateScrollElementIntoView(anchor, {
-        scrollEl: column,
-        align: "end",
-      }).then(snapBottom);
-    };
-    run();
+    snapBottom();
     const pullUpMs = Math.round(CHAT_PULL_UP.transition.duration * 1000);
-    const tEarly = window.setTimeout(run, 160);
-    const tLate = window.setTimeout(run, pullUpMs + 40);
-    // Hard bottom after Motion + helpful-strip height settle (r1/r2 were ~30px short).
-    const tSnap = window.setTimeout(snapBottom, pullUpMs + 120);
+    const tEarly = window.setTimeout(snapBottom, 160);
+    const tLate = window.setTimeout(snapBottom, pullUpMs + 40);
     return () => {
       window.clearTimeout(tEarly);
       window.clearTimeout(tLate);
-      window.clearTimeout(tSnap);
     };
   }, [
     scenarioReveal.active,
