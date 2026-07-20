@@ -5,6 +5,7 @@ import { StudioPlaybackRecSwitch } from "@/app/nav/StudioPlaybackRecSwitch";
 import { studioPanelTransition } from "@/app/nav/studioMotion";
 import { saveRecordingAsJourney } from "@/app/recording/recordingCompile";
 import {
+  clearStagedRecordingSession,
   countRecordingSteps,
   getActiveRecordingSession,
   getLastRecordingSession,
@@ -43,6 +44,8 @@ type RecordingUiSnapshot = {
   eventCount: number;
   canExport: boolean;
   canReplay: boolean;
+  /** Stopped / imported session can be discarded with X. */
+  canPurge: boolean;
 };
 
 let cachedRecordingUiSnapshot: RecordingUiSnapshot = {
@@ -52,6 +55,7 @@ let cachedRecordingUiSnapshot: RecordingUiSnapshot = {
   eventCount: 0,
   canExport: false,
   canReplay: false,
+  canPurge: false,
 };
 
 export { countRecordingSteps } from "@/app/recording/recordingSession";
@@ -67,6 +71,7 @@ function readRecordingUiSnapshot(): RecordingUiSnapshot {
     eventCount: countRecordingSteps(exportTarget?.events),
     canExport: exportTarget != null,
     canReplay: last != null && live == null,
+    canPurge: last != null && live == null,
   };
   const prev = cachedRecordingUiSnapshot;
   if (
@@ -75,7 +80,8 @@ function readRecordingUiSnapshot(): RecordingUiSnapshot {
     prev.isPaused === next.isPaused &&
     prev.eventCount === next.eventCount &&
     prev.canExport === next.canExport &&
-    prev.canReplay === next.canReplay
+    prev.canReplay === next.canReplay &&
+    prev.canPurge === next.canPurge
   ) {
     return prev;
   }
@@ -158,6 +164,19 @@ function StopIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
       <rect x="1.5" y="1.5" width="7" height="7" rx="0.35" />
+    </svg>
+  );
+}
+
+function PurgeXIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+      <path
+        d="M2.25 2.25l5.5 5.5M7.75 2.25l-5.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -411,6 +430,18 @@ export function StudioNavRecordingControls({
     setStatusNote(finished ? `STOP · ${finished.events.length}` : null);
   };
 
+  const handlePurge = (event: React.MouseEvent<HTMLButtonElement>) => {
+    logControlPanel("recording:purge", {
+      blocked: !ui.canPurge || replaying,
+      eventCount: ui.eventCount,
+    });
+    flashTap(event.currentTarget);
+    if (!ui.canPurge || replaying) return;
+    const cleared = clearStagedRecordingSession();
+    setAddCjmOpen(false);
+    setStatusNote(cleared ? "PURGE" : null);
+  };
+
   const handleDownload = (event: React.MouseEvent<HTMLButtonElement>) => {
     const target = getActiveRecordingSession() ?? getLastRecordingSession();
     logControlPanel("recording:download", {
@@ -555,6 +586,17 @@ export function StudioNavRecordingControls({
         onClick={handleStop}
       >
         <StopIcon />
+      </button>
+      <button
+        type="button"
+        className="studio-nav-step-btn studio-nav-scenario__btn"
+        aria-label="Discard recording"
+        title="Discard stopped recording (clears STEPS)"
+        disabled={!ui.canPurge || replaying}
+        onClick={handlePurge}
+        data-studio-recording-purge=""
+      >
+        <PurgeXIcon />
       </button>
       <button
         type="button"

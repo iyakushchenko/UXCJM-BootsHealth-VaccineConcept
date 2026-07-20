@@ -1,4 +1,5 @@
 import {
+  clearStagedRecordingSession,
   deserializeRecordingSession,
   getActiveRecordingSession,
   getLastRecordingSession,
@@ -36,6 +37,7 @@ declare global {
       options?: StartRecordingOptions
     ) => RecordingSession;
     __protoStopRecording?: () => RecordingSession | null;
+    __protoClearRecording?: () => boolean;
     __protoPauseRecording?: () => boolean;
     __protoResumeRecording?: () => boolean;
     __protoIsRecording?: () => boolean;
@@ -79,6 +81,8 @@ export function registerRecordingMcpHelpers(options?: {
   };
 
   window.__protoStopRecording = () => stopRecording();
+
+  window.__protoClearRecording = () => clearStagedRecordingSession();
 
   window.__protoPauseRecording = () => pauseRecording();
 
@@ -168,6 +172,7 @@ export function registerRecordingMcpHelpers(options?: {
   return () => {
     delete window.__protoStartRecording;
     delete window.__protoStopRecording;
+    delete window.__protoClearRecording;
     delete window.__protoPauseRecording;
     delete window.__protoResumeRecording;
     delete window.__protoIsRecording;

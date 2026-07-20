@@ -195,6 +195,7 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ● | Start recording (current project / persona / journey) |
 | ❚❚ / ► | Pause / resume |
 | ■ | Stop — keeps session for export / replay |
+| ✕ | Discard stopped session — clears STEPS / Download / + / NEW CJM (not a saved CJM) |
 | ↓ | **Download JSON** — export `.recording.json` only (recording file; not journey compile) |
 | ↑ | Import a saved `.recording.json` |
 | ↺ | Replay last stopped or imported session (v3: transport + screen + demo/human-click + wire-intent + director-script + beat-enter + scroll + typed-text) |

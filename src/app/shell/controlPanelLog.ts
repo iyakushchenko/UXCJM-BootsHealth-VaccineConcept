@@ -26,6 +26,7 @@ export type ControlPanelAction =
   | "recording:pause"
   | "recording:resume"
   | "recording:stop"
+  | "recording:purge"
   | "recording:download"
   | "recording:import"
   | "recording:replay"

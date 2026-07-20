@@ -170,6 +170,18 @@ export function stopRecording(): RecordingSession | null {
   return finished;
 }
 
+/**
+ * Discard the stopped / staged recording (not a saved CJM).
+ * Refuses while a live session is armed — Stop first.
+ */
+export function clearStagedRecordingSession(): boolean {
+  if (activeSession != null) return false;
+  if (lastSession == null) return false;
+  lastSession = null;
+  notifyRecordingListeners();
+  return true;
+}
+
 export function appendRecordingEvent(
   event: RecordedEvent,
   options?: { force?: boolean }
