@@ -97,15 +97,23 @@ __studioReportMcpConnectionError("latch fail")
 
 **Toolbar:** clock + CAPTURE|Pause|Resume + Reset + × + Save Log (same height). CAPTURE after reset/start; Resume only with paused progress. Reset disabled until log dirty.
 
-**Alarm:** agent mode only — halt Play + pause + latch investigate prompt (`agentPrompt` in dump).
+**Alarm:** observe or agent — from observe, escalates then latches investigate prompt (`agentPrompt` in dump); agent-only path halts Play + pause.
 
 **Recent:** deleted (low-value clutter).
+
+## Dual-role self-test (required after overlay changes)
+
+Overlay is **load-bearing** ([PP-13](../../../../docs/product/PAINPOINTS.md)). After any QA-tool ship:
+
+1. Open [`SELF_TEST.md`](./SELF_TEST.md) checklist (USER observe ↔ AGENT intervene).
+2. Lean smoke: `await window.__studioRunQaSelfTestSmoke?.()` — expect `ok: true`.
+3. Scenario catalog: `agentTestingSelfTest.scenarios.ts` (Vitest covers pure state).
 
 ## Overlay CTAs (PO mid-flight)
 
 | CTA | Meaning | Latch code |
 |-----|---------|------------|
-| **Alarm** | AGENT only — stop progress + investigate latch | `ALARM_SEQUENCE_MISMATCH` + `agentPrompt` |
+| **Alarm** | Observe → escalate+latch; Agent → stop + investigate latch | `ALARM_SEQUENCE_MISMATCH` + `agentPrompt` |
 | **Cursor** | Cursor weird / invisible / wrong | `CURSOR_WEIRD_FLAG` (manual) · `CURSOR_HIDDEN_DURING_TYPEIN` (auto) |
 | **Scroll** | Scroll path / intoView issue | `SCROLL_ISSUE_REPORTED` (+ auto soft-logs) |
 

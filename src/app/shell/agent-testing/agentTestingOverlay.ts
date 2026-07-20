@@ -535,11 +535,16 @@ function saveDump(
 }
 
 /**
- * PO Alarm = sequence / expected-steps mismatch (AGENT mode only).
- * Stops progress (halt Play + pause capture) and latches investigate prompt for agents.
+ * PO Alarm = sequence / expected-steps mismatch.
+ * Observe → escalate to agent lock first (dual-role QA), then latch investigate prompt.
+ * Stops progress (halt Play + pause capture).
  */
 export function ringAgentTestingAlarm(note?: string): void {
-  if (getSessionKind() !== "agent" || !active || settling) return;
+  if (!active || settling) return;
+  if (getSessionKind() === "observe") {
+    escalateObserveToAgentSession("alarm");
+  }
+  if (getSessionKind() !== "agent") return;
   // HARD: stop Play in the same turn as the click — do not wait for smoke poll.
   haltPlaybackForPoSignal("po-alarm");
   if (!capturePaused) {
@@ -1221,12 +1226,16 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__alarm"
   );
   if (alarmBtn) {
-    const alarmOk = kind === "agent" && active && !settling;
+    // Observe: escalate + latch; agent: latch only. Manual: hidden.
+    const alarmOk =
+      (kind === "agent" || kind === "observe") && active && !settling;
     alarmBtn.hidden = !alarmOk;
     alarmBtn.disabled = !alarmOk;
     alarmBtn.title = alarmOk
-      ? "Stop progress + latch investigate prompt for the agent"
-      : "Alarm — agent mode only";
+      ? kind === "observe"
+        ? "Escalate to agent + latch investigate prompt"
+        : "Stop progress + latch investigate prompt for the agent"
+      : "Alarm — observe or agent mode";
   }
 
   ensureMessageUnderLog(root);
@@ -1662,7 +1671,7 @@ function ensureRoot(): HTMLElement | null {
         <div class="studio-agent-testing-overlay__timeline" aria-label="Touchpoint progress"></div>
       </div>
       <div class="studio-agent-testing-overlay__actions">
-        <button type="button" class="studio-agent-testing-overlay__alarm" hidden title="Alarm — agent mode only">Alarm</button>
+        <button type="button" class="studio-agent-testing-overlay__alarm" hidden title="Alarm — observe or agent">Alarm</button>
         <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird — latches live PO signal">Cursor</button>
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
       </div>
@@ -3006,6 +3015,12 @@ export function installAgentTestingOverlayApi(): void {
       reportMcpConnectionError(String(detail ?? ""));
       refreshMcpStatusDom();
     };
+    window.__studioRunQaSelfTestSmoke = async () => {
+      const { runQaSelfTestSmoke } = await import(
+        "@/app/shell/agent-testing/agentTestingSelfTest"
+      );
+      return runQaSelfTestSmoke();
+    };
   }
   // Quiet restore — no remount thrash; reopen with persisted sessionKind (CONTROL).
   if (hydrated.open) {
@@ -3103,6 +3118,7 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioQaSessionKind;
     delete window.__studioMcpConnectionStatus;
     delete window.__studioReportMcpConnectionError;
+    delete window.__studioRunQaSelfTestSmoke;
   }
 }
 
@@ -3124,6 +3140,12 @@ declare global {
     __studioQaSessionKind?: () => AgentTestingSessionKind;
     __studioMcpConnectionStatus?: () => McpConnectionStatus;
     __studioReportMcpConnectionError?: (detail: string) => void;
+    __studioRunQaSelfTestSmoke?: () => Promise<{
+      ok: boolean;
+      atIso: string;
+      scenarioCount: number;
+      checks: Array<{ id: string; ok: boolean; detail?: string }>;
+    }>;
     __studioQaPendingTimeoutMs?: number;
   }
 }

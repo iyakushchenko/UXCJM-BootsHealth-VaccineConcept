@@ -114,3 +114,16 @@ export {
   type McpConnectionPhase,
   type McpConnectionStatus,
 } from "@/app/shell/agent-testing/agentTestingMcpStatus";
+
+export {
+  QA_SELF_TEST_SCENARIOS,
+  listQaSelfTestTrustScenarios,
+  type QaSelfTestScenario,
+  type QaSelfTestScenarioId,
+} from "@/app/shell/agent-testing/agentTestingSelfTest.scenarios";
+
+export {
+  runQaSelfTestSmoke,
+  runQaSelfTestPureChecks,
+  type QaSelfTestSmokeResult,
+} from "@/app/shell/agent-testing/agentTestingSelfTest";

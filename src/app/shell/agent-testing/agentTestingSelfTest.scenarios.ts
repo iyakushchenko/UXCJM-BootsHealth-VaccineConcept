@@ -1,0 +1,127 @@
+/**
+ * Restartable QA overlay self-test scenario catalog (no framework soup).
+ * Agents re-run via SELF_TEST.md + `__studioRunQaSelfTestSmoke()` on :5173.
+ */
+
+export type QaSelfTestScenarioId =
+  | "observe-open-capture"
+  | "observe-page-click-log"
+  | "observe-alarm-escalate"
+  | "observe-unlock"
+  | "ask-pending-reply"
+  | "handoff-oversee-keeps-note"
+  | "handoff-wipe-clears-note"
+  | "refresh-mid-control"
+  | "refresh-mid-observe"
+  | "control-border-under-modal"
+  | "rec-xor-keeps-overlay"
+  | "empty-message-noop"
+  | "bug-toggle-observe-noop";
+
+export type QaSelfTestScenario = {
+  id: QaSelfTestScenarioId;
+  dualRole: "user-observe" | "agent" | "both";
+  /** Trust-breaker if fail — blocks “ready for real tasks”. */
+  trust: boolean;
+  summary: string;
+  helpers: string[];
+};
+
+/** Durable checklist — keep in sync with SELF_TEST.md. */
+export const QA_SELF_TEST_SCENARIOS: QaSelfTestScenario[] = [
+  {
+    id: "observe-open-capture",
+    dualRole: "user-observe",
+    trust: true,
+    summary: "Open observe → capturing on + MCP OBSERVE (after connect flash).",
+    helpers: ["__studioOpenQaLogger({ kind:'observe' })", "__studioMcpConnectionStatus()"],
+  },
+  {
+    id: "observe-page-click-log",
+    dualRole: "user-observe",
+    trust: true,
+    summary: "Page Click: rows appear while capturing (Studio nav chrome ignored by design).",
+    helpers: ["Quick View / Book now on concept page"],
+  },
+  {
+    id: "observe-alarm-escalate",
+    dualRole: "both",
+    trust: true,
+    summary: "Alarm in observe escalates → agent + ALARM_SEQUENCE_MISMATCH latch.",
+    helpers: ["Alarm CTA", "__studioPeekPoSignal / __studioConsumePoSignal"],
+  },
+  {
+    id: "observe-unlock",
+    dualRole: "agent",
+    trust: true,
+    summary: "After observe→agent escalate, unlockObserve returns to observe.",
+    helpers: ["__studioAgentTestingOverlay.unlockObserve()"],
+  },
+  {
+    id: "ask-pending-reply",
+    dualRole: "agent",
+    trust: true,
+    summary: "Ask → PENDING; Message reply clears PENDING (no timeout race).",
+    helpers: ["__studioAskUserInQa", "Message/Send"],
+  },
+  {
+    id: "handoff-oversee-keeps-note",
+    dualRole: "agent",
+    trust: true,
+    summary: "oversee:true keeps user-message in ring; kind agent|observe.",
+    helpers: ["__studioQaHandoff({ oversee:true })"],
+  },
+  {
+    id: "handoff-wipe-clears-note",
+    dualRole: "agent",
+    trust: true,
+    summary: "oversee:false wipe → agent; prior user notes gone from ring.",
+    helpers: ["__studioQaHandoff({ oversee:false })"],
+  },
+  {
+    id: "refresh-mid-control",
+    dualRole: "agent",
+    trust: true,
+    summary: "Reload mid-CONTROL restores agent (+ PENDING if awaiting).",
+    helpers: ["sessionStorage studioQaDiagGate", "location.reload()"],
+  },
+  {
+    id: "refresh-mid-observe",
+    dualRole: "user-observe",
+    trust: true,
+    summary: "Reload mid-observe restores OBSERVE capturing session.",
+    helpers: ["sessionStorage studioQaDiagGate.sessionKind=observe"],
+  },
+  {
+    id: "control-border-under-modal",
+    dualRole: "agent",
+    trust: true,
+    summary: "CONTROL gold inset remains with Quick View / Availability open under overlay.",
+    helpers: ["data-mcp=control box-shadow"],
+  },
+  {
+    id: "rec-xor-keeps-overlay",
+    dualRole: "both",
+    trust: true,
+    summary: "Toggling Studio REC does not force-clear active QA overlay.",
+    helpers: ["REC switch", "overlay dataset.active"],
+  },
+  {
+    id: "empty-message-noop",
+    dualRole: "both",
+    trust: false,
+    summary: "Empty/whitespace Message does not append.",
+    helpers: ["__studioAppendPoNote('  ') === false"],
+  },
+  {
+    id: "bug-toggle-observe-noop",
+    dualRole: "user-observe",
+    trust: true,
+    summary: "Bug icon does not close observe (Close × does).",
+    helpers: ["__studioToggleQaLogger"],
+  },
+];
+
+export function listQaSelfTestTrustScenarios(): QaSelfTestScenario[] {
+  return QA_SELF_TEST_SCENARIOS.filter((s) => s.trust);
+}
