@@ -90,7 +90,8 @@ export function registerRecordingMcpHelpers(options?: {
 
   window.__protoIsRecording = () => isRecordingActive();
 
-  window.__protoGetRecording = () => getActiveRecordingSession();
+  window.__protoGetRecording = () =>
+    getActiveRecordingSession() ?? getLastRecordingSession();
 
   window.__protoExportRecording = (session) => {
     const target = resolveRecordingSession(session);

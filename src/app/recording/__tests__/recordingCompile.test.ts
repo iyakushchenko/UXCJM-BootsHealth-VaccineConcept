@@ -305,6 +305,7 @@ describe("compileRecordingToJourney", () => {
     expect(clickBeats[1]?.recordedClick?.selectorChain).toEqual([
       '[data-studio-action="avail-choose-location"]',
     ]);
+    expect(clickBeats.every((b) => (b.dwellMs ?? 0) >= 4000)).toBe(true);
     expect(journey.beats.some((b) => b.id === "chat-2")).toBe(false);
     expect(gaps).toContain("demo-click:unusable-selector");
   });

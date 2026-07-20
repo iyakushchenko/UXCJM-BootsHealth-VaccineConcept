@@ -203,14 +203,28 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 
 CJM picker: first option **CREATE NEW CJM**, separator, then built-ins + recorded. Idle default stays saved journey. Picker **disabled while REC live**. Saved CJM → panel shows **Download only** (enabled journey export); no Start…+/Import/Replay; REC **STEPS** counter hidden until CREATE NEW / live.
 
-**Future agent playbook:** [AGENTIC_RECORDING.md](./AGENTIC_RECORDING.md) — derive CJM from persona artifact links, record on available screens, name missing **UX CONCEPT(s)** (not shipped as full automation today).
 | 🗑 | **Delete recorded CJM** (REC mode only) — trash glyph (PLP reset filters); confirm popup DELETE/CANCEL. Built-in Agentic/Traditional hidden. Falls back to matching built-in path after delete. |
 | LED | Same playback diode chrome — **blinks red** while recording live; dim solid red when paused; idle graphite when REC ready / REC off restores green on-air |
+
+**Illegal / unallowed combinations (control-panel state machine):**
+
+| State | Rule |
+|-------|------|
+| CJM on + REC on | **Forbidden** — XOR (`studioModeXor`); REC switch disabled when CJM on; CJM switch hidden/disabled when REC on |
+| REC live + editable CJM picker | **Forbidden** — picker locked (“CJM picker locked while recording”) |
+| REC live + Download / + / Import | **Forbidden** — Download & + disabled; Import **hidden** while live |
+| Saved CJM + Start/Pause/Stop/X/+/Import/Replay | **Forbidden** — deck hidden; Download only |
+| Saved built-in + trash | **Forbidden** — trash only for `rec-*` / imported recorded |
+| CREATE NEW idle + Replay with no session | Replay disabled (not hidden) |
+| REC STEPS while saved CJM selected | **Hidden** — STEPS counter only on CREATE NEW / live |
+| Playback transport while REC mode | **Hidden** — panel XOR (cassette vs journey STEPS/Play) |
+
+**Future agent playbook:** [AGENTIC_RECORDING.md](./AGENTIC_RECORDING.md) — derive CJM from persona artifact links, record on available screens, name missing **UX CONCEPT(s)** (not shipped as full automation today).
 
 ### Product model — REC start + steps
 
 1. **● Start** seeds the **current tab/screen** as event 1 (`kind: "screen"`) — journey starting point. CJM picker selects **CREATE NEW CJM** (gold) while the session is live/paused — picker locked; prior selection restored on Stop/purge. Idle default stays Agentic/Traditional/last saved; **CREATE NEW CJM** is the first dropdown option (separator below), not the default.
-2. Later on-page interactions (human clicks → `demo-click`, typed-text, navigations → `screen`) append as further events. Scroll is stored as a **replay target** only. Each carries `atMs`; Play holds **≥4s** per major step (see pacing below).
+2. Later on-page interactions (human clicks → `demo-click`, typed-text, navigations → `screen`) append as further events. Scroll is stored as a **replay target** only. Each carries `atMs`; Play holds **≥4s** per major step (see pacing below). Compile v2 stamps `dwellMs: 4000` on `recordedClick` beats so CJM Play matches that floor.
 3. REC **STEPS** counter = counted events **excluding `scroll`** (clicks/screens/… only) — UI re-renders on every append.
 
 ### Auto-play pacing (REC ↺)
@@ -306,7 +320,7 @@ Import a saved session:
 window.__studioImportRecording?.(jsonString)
 ```
 
-Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall back to the **last stopped or imported** session when nothing is live.
+Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall back to the **last stopped or imported** session when nothing is live. **`__studioGetRecording()`** returns the **active** session while live, otherwise the **last staged** session (Stop / Import) — same resolve as Export/Replay.
 
 ### Compile → journeys (PO path) — **Add as CJM**
 

@@ -376,6 +376,7 @@ function compileSegmentToBeat(
 
   const dwellMs = readDwellMs(segment.events);
   if (dwellMs != null) beat.dwellMs = dwellMs;
+  else if (beat.recordedClick && beat.dwellMs == null) beat.dwellMs = 4000;
 
   const scenarioKey = baseId.replace(/-\d+$/, "");
   const scenario =
@@ -506,6 +507,8 @@ function compileFallbackBeats(
         protoTab: contextProtoTab(),
       };
       beat.kind = inferKind(beat);
+      // Match REC replay ≥4s floor between major steps when CJM Play advances.
+      if (beat.dwellMs == null) beat.dwellMs = 4000;
       beats.push(beat);
       if (typeof event.atMs === "number") lastClickAtMs = event.atMs;
       continue;
