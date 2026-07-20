@@ -37,8 +37,18 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-09 | Team listening | Team must **use** TEAM_KNOWLEDGE / LESSONS (Knowledge used), not only append. Write-only = FAIL. | WATCH | TEAM.md · Arch gate on team check |
 | PP-10 | Agent testing overlay vision | Overlay must be a **mid-flight QA shell** (named steps, colors, timer, sitrep, alarm, cursor flag, timeline strip, console START/END, dump on FAIL/alarm) — not a monotonous `helper: __studioTriggerTransport` list. | COMPLETE | R11 `:5173` mid-flight prove 2026-07-20 — coalesced transport×2, ok/amber/red rows, sitrep, timeline chips, Alarm/Cursor, console END, dumps=3 · Uma/Finn/Quinn |
 | PP-13 | QA-tool trust (dual-role self-test) | Overlay is **load-bearing** for agent mid-flight work. Observe↔agent handoff, Alarm escalate, ask/PENDING, refresh hydrate, and REC XOR must stay trustworthy — agents **must** re-run self-test after overlay changes. | IN PROGRESS | v0.0.88: playback-diag QA bridge + color coding; console↔QA sanity; refresh elapsed + page-refresh log; wipe on new agent; `__studioConsumePlaybackDiagnostic` · Quinn/Finn |
-| PP-14 | Chat bubble motion polish | Progressive / thinking→reply pull-up must be continuous ease (face of product) — agents need dump forensics, not DevTools-only. | WATCH | v0.0.89: settle camera aborts on pull-up lock (r1/r2 layoutY jumps=0); 3× self-test 8/8 · tip pending |
+| PP-14 | Chat bubble motion polish | Progressive / thinking→reply pull-up must be continuous ease (face of product) — agents need dump forensics, not DevTools-only. | WATCH | v0.0.89: settle camera aborts on pull-up lock (r1/r2 layoutY jumps=0); 3× self-test 8/8 · tip `1a61cbd` |
 | PP-15 | Diag popup vs QA dump | PO does not need the diagnostic modal if agents get the data. Prefer dump/ring ingest; keep Alarm; optional consume dismiss. | IN PROGRESS | Arch: lean bridge shipped v0.0.88 — popup stays for PO eyes; agents use Save Log + consume helper |
+| PP-16 | QA does not listen | PO furious — tool ignores Pause / Message / PENDING / diag / diode; agents keep acting as if nothing happened. | IN PROGRESS | v0.0.90 trust-breakers: Pause halt all kinds · Message latch · typing wait · diag block Play · MCP phase log · draft+focus |
+| PP-17 | Pause must halt Play | Pause in QA (manual/agent/observe) must stop playback/progress immediately — was no-op for non-agent. | IN PROGRESS | Pause → `haltPlaybackForPoSignal` + `QA_PAUSE_HALT` latch · block further Play until Resume |
+| PP-18 | Message must be honored | Send (esp. PENDING / mid-Play) must pause progress, latch user message, require agent read→investigate→fix→reply before proceed. | IN PROGRESS | `USER_MESSAGE_RECEIVED` + `__studioConsumePoSignal` · stays paused after Reply |
+| PP-19 | PENDING + typing race | Focusing/typing Message while PENDING must signal wait (extend timeout); draft must survive refresh. | IN PROGRESS | `user-typing` log + `bumpMcpPendingForUserTyping` · `sessionStorage` draft |
+| PP-20 | Message autofocus + draft | Message field must autofocus on QA open + after refresh restore; draft in sessionStorage. | IN PROGRESS | focus on open/hydrate · `studioQaMessageDraft` |
+| PP-21 | QA unaware of playback diag | When diagnostic modal open, stop/ignore Play; ingest to dump; color-coded log; halt until Ack/consume. | IN PROGRESS | `PLAYBACK_DIAGNOSTIC_OPEN` latch · `shouldBlockPlay` · control-room red sitrep |
+| PP-22 | Control-room diode / Alarm red ignored | QA must notice + log sitrep; not act like nothing happening. | IN PROGRESS | diagnostic-open → control-room Alarm-red log + latch |
+| PP-23 | MCP phase changes invisible | CONNECTING→CONTROL→OBSERVE→PENDING→ERROR must appear in QA timeline for sitrep. | IN PROGRESS | `MCP · prev → PHASE` system rows (+ ERROR latch) |
+| PP-24 | Timing / priority / event DDOS | Timestamps+durations must be trustworthy; agents need `priorityHints[]` (cause before symptom); poll/consume latches — don’t flood-read chat. | IN PROGRESS | dump `priorityHints[]` · docs: consume helpers · Vite HMR pause when feasible |
+| PP-25 | Vite HMR mid-flight | Hot invalidate should pause capture/play + log `vite-hmr` (lean) so agents don’t race HMR. | IN PROGRESS | `import.meta.hot` `vite:beforeUpdate` → pause+log |
 
 ---
 
@@ -64,8 +74,11 @@ Lean ship (this stream). Residuals stay OPEN until proven on `:5173`.
 ### Live PO signal (Arch — primary mid-flight path)
 
 - **Alarm meaning:** sequence / expected-steps mismatch (e.g. progressive bubbles disclosure broken) — **not** vague “something weird.”
-- **Primary:** Alarm / Cursor / Scroll latch `window.__studioAgentTestingTakeover` + `CustomEvent("studio-agent-testing-po-signal")`. MCP agents **MUST poll/consume each beat** via `__studioConsumePoSignal()` / `__studioPeekPoSignal()` and branch (pause / investigate) — do **not** wait for dump download.
-- **Shape:** `{ type:'alarm'|'cursor'|'scroll', code, at, beat, screen, counter, sitrepLine, timeline, diagSnapshot }`. Alarm code = `ALARM_SEQUENCE_MISMATCH`.
+- **Primary:** Alarm / Cursor / Scroll / **Pause** / **Message** / **diagnostic** latch `window.__studioAgentTestingTakeover` + `CustomEvent("studio-agent-testing-po-signal")`. MCP agents **MUST poll/consume each beat** via `__studioConsumePoSignal()` / `__studioPeekPoSignal()` and branch (pause / investigate) — do **not** wait for dump download · do **not** flood-read chat only.
+- **Shape:** `{ type:'alarm'|'cursor'|'scroll'|'user-message'|'pause'|'diagnostic'|'mcp', code, at, beat, screen, counter, sitrepLine, timeline, diagSnapshot }`.
+- **User Message procedure (HARD):** latch `USER_MESSAGE_RECEIVED` → **STOP** → read note → investigate → fix → reply in QA → `__studioConsumePoSignal` → Resume/proceed. Dump `priorityHints[]` lists cause before symptom.
+- **PENDING typing:** focus/type Message while PENDING → `user-typing` extends timeout; draft in `sessionStorage` (`studioQaMessageDraft`).
+- **Alarm code** = `ALARM_SEQUENCE_MISMATCH`. Pause = `QA_PAUSE_HALT`. Diag open = `PLAYBACK_DIAGNOSTIC_OPEN`.
 
 ### Dump policy (Arch — secondary / postmortem)
 

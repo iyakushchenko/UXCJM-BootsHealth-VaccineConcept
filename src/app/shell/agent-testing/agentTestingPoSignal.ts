@@ -16,11 +16,23 @@ import type { AgentTestingTimelineKey } from "@/app/shell/agent-testing/agentTes
 
 export const PO_SIGNAL_EVENT = "studio-agent-testing-po-signal";
 
-export type AgentTestingPoSignalType = "alarm" | "cursor" | "scroll";
+export type AgentTestingPoSignalType =
+  | "alarm"
+  | "cursor"
+  | "scroll"
+  | "user-message"
+  | "pause"
+  | "diagnostic"
+  | "mcp";
 
 export type AgentTestingPoSignalCode =
   | "ALARM_SEQUENCE_MISMATCH"
   | "DIAGNOSTIC_ACK_STOP"
+  | "PLAYBACK_DIAGNOSTIC_OPEN"
+  | "USER_MESSAGE_RECEIVED"
+  | "QA_PAUSE_HALT"
+  | "MCP_PHASE_CHANGE"
+  | "CONTROL_ROOM_ALARM_RED"
   | "CURSOR_WEIRD_FLAG"
   | "CURSOR_UNEXPECTED_DWELL"
   | "CURSOR_HIDDEN_DURING_TYPEIN"

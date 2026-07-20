@@ -21,34 +21,41 @@ export function registerPoSignalPlaybackHalt(fn: HaltFn | null): void {
  * Safe to call from overlay click handlers (sync, hang-safe).
  */
 export function haltPlaybackForPoSignal(reason = "po-signal"): void {
+  let halted = false;
   try {
-    registeredHalt?.();
+    if (registeredHalt) {
+      registeredHalt();
+      halted = true;
+    }
   } catch {
     /* hang-safe */
   }
 
   // Fallback if App has not registered yet (early click / tests).
-  try {
-    if (typeof window !== "undefined") {
-      const w = window as Window & {
-        __protoStudioState?: () => {
-          isPlaying?: boolean;
-          isOnAir?: boolean;
+  // Prefer stop semantics: only toggle "play" when already playing (play toggles pause).
+  if (!halted) {
+    try {
+      if (typeof window !== "undefined") {
+        const w = window as Window & {
+          __protoStudioState?: () => {
+            isPlaying?: boolean;
+            isOnAir?: boolean;
+          };
+          __studioStudioState?: () => {
+            isPlaying?: boolean;
+            isOnAir?: boolean;
+          };
+          __protoTriggerTransport?: (action: "play") => boolean;
+          __studioTriggerTransport?: (action: "play") => boolean;
         };
-        __studioStudioState?: () => {
-          isPlaying?: boolean;
-          isOnAir?: boolean;
-        };
-        __protoTriggerTransport?: (action: "play") => boolean;
-        __studioTriggerTransport?: (action: "play") => boolean;
-      };
-      const state = w.__studioStudioState?.() ?? w.__protoStudioState?.();
-      if (state?.isPlaying || state?.isOnAir) {
-        (w.__studioTriggerTransport ?? w.__protoTriggerTransport)?.("play");
+        const state = w.__studioStudioState?.() ?? w.__protoStudioState?.();
+        if (state?.isPlaying) {
+          (w.__studioTriggerTransport ?? w.__protoTriggerTransport)?.("play");
+        }
       }
+    } catch {
+      /* hang-safe */
     }
-  } catch {
-    /* hang-safe */
   }
 
   try {

@@ -43,9 +43,19 @@ let lastDiagnostic: {
 type DismissFn = (source: string) => void;
 let registeredDismiss: DismissFn | null = null;
 
+type DiagnosticOpenFn = (error: PlaybackDiagnosticError) => void;
+let registeredDiagnosticOpen: DiagnosticOpenFn | null = null;
+
 /** App registers modal clear (setPlaybackDiagnostic(null) + flash dismiss). */
 export function registerPlaybackDiagnosticDismiss(fn: DismissFn | null): void {
   registeredDismiss = fn;
+}
+
+/** QA overlay: pause + latch when diagnostic popup opens. */
+export function registerQaDiagnosticOpenHandler(
+  fn: DiagnosticOpenFn | null
+): void {
+  registeredDiagnosticOpen = fn;
 }
 
 function overlayApi(): OverlayLogApi | undefined {
@@ -245,13 +255,20 @@ export function ingestPlaybackDiagnosticToQa(
   } catch {
     /* hang-safe */
   }
-  if (!isQaDiagGateOpen()) return;
+  if (isQaDiagGateOpen()) {
+    try {
+      overlayApi()?.logStep?.({
+        kind: "playback-diag",
+        label,
+        outcome: "fail",
+      });
+    } catch {
+      /* hang-safe */
+    }
+  }
+  // Always notify QA listen handler (pause/latch) when registered.
   try {
-    overlayApi()?.logStep?.({
-      kind: "playback-diag",
-      label,
-      outcome: "fail",
-    });
+    registeredDiagnosticOpen?.(error);
   } catch {
     /* hang-safe */
   }

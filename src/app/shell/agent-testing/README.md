@@ -60,15 +60,39 @@ window.__studioQaHandoff?.({ oversee: true, kind: "agent" }) // or "observe"
 window.__studioAskUserInQa?.("Does Book now look right?")
 
 // 4) Poll mid-flight (primary). Dump / Save Log is secondary.
+//    Do NOT only flood-read chat — consume latches each beat.
 window.__studioAgentTestingTakeover
 window.__studioConsumePoSignal?.()
+window.__studioPeekPoSignal?.()
 window.__studioMcpConnectionStatus?.() // CONTROL | OBSERVE | PENDING | …
+window.__studioConsumePlaybackDiagnostic?.() // if diag modal / ingest
 
 // 5) Cleanup
 window.__studioForceClearAgentTestingOverlay?.()
 ```
 
-**Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12).
+### User Message → agent procedure (HARD)
+
+When PO **Send**s a Message (or Reply) mid-flight:
+
+1. **STOP** — Play/progress already halted; latch `USER_MESSAGE_RECEIVED` (`type: user-message`).
+2. **`__studioConsumePoSignal()`** — read `note` (full text).
+3. **Investigate** (diagSnapshot / PLAYBACK_DIAG / dump `priorityHints[]` — cause before symptom).
+4. **FIX** the issue named (do not invent).
+5. **Reply** in QA (agent log / AskUser follow-up) so PO sees acknowledgment.
+6. **Proceed** — Resume capture only when safe; do not ignore Pause/Message.
+
+**Pause (all kinds):** hard-halts Play + latches `QA_PAUSE_HALT`. Further Play clicks are ignored until Resume (+ latch cleared).
+
+**PENDING + typing:** while awaiting reply, focus/type in Message → `user-typing` extends pending timeout; draft persists across refresh (`studioQaMessageDraft`); Message autofocuses on open/restore.
+
+**Playback diagnostic open:** QA pauses, latches `PLAYBACK_DIAGNOSTIC_OPEN`, logs control-room Alarm-red sitrep, blocks Play until Ack/`__studioConsumePlaybackDiagnostic`.
+
+**MCP phase changes:** logged as `MCP · prev → PHASE` in the timeline (CONNECTING/CONTROL/OBSERVE/PENDING/ERROR).
+
+**Vite HMR:** on `vite:beforeUpdate`, QA pauses capture/play and logs `vite-hmr` (lean).
+
+**Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12); DDOS yourself by re-reading the whole chat instead of consuming latches.
 
 **Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`). On chat SF with gate open, dump also includes **`chatBubbleMotion.samples`** (pull-up / thinking→reply y·opacity·deltaY frames + jump flags) — see [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § Chat bubble motion.
 

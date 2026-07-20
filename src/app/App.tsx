@@ -75,6 +75,7 @@ import {
   type PlaybackStudioSnapshot,
 } from "@/app/shell/playbackStudioSnapshot";
 import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
+import { refusePlayIfQaBlocks } from "@/app/shell/agent-testing/agentTestingListen";
 import { playbackDiagHubNav } from "@/app/shell/playbackDiag";
 import {
   disableCursorQaEyes,
@@ -1751,6 +1752,7 @@ export default function App() {
       setJourneyMode: (enabled) =>
         handleStudioJourneyModeChangeRef.current(enabled),
       triggerTransport: (action) => {
+        if (action === "play" && refusePlayIfQaBlocks()) return;
         switch (action) {
           case "play":
             notePlaybackTransport("play");
@@ -1991,6 +1993,7 @@ export default function App() {
                 transport.stepBack();
               }}
               onPlay={() => {
+                if (refusePlayIfQaBlocks()) return;
                 notePlaybackTransport("play");
                 playbackCursorMonitor.noteManualTransport("play");
                 playbackViewportMonitor.noteManualTransport("play");

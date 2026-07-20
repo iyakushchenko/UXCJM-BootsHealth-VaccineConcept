@@ -50,7 +50,14 @@ window.__studioForceClearAgentTestingOverlay?.()
 | observe-pointer-follow | Y | Demo cursor tracks mousemove while observe+capturing |
 | observe-alarm-escalate | Y | Alarm → agent + latch |
 | observe-unlock | Y | unlockObserve → observe |
-| ask-pending-reply | Y | Ask → PENDING; Message/Send → Reply + not PENDING |
+| ask-pending-reply | Y | Ask → PENDING; Message/Send → Reply + not PENDING; **stays paused** + latch `USER_MESSAGE_RECEIVED` (consume before Resume) |
+| pause-halts-play | Y | Play on → QA Pause → `isPlaying` false immediately (manual/agent/observe); further Play ignored until Resume |
+| message-midplay-latch | Y | Play on → Send Message → halt + latch; `__studioConsumePoSignal().code === 'USER_MESSAGE_RECEIVED'` |
+| pending-typing-extends | Y | AskUser → focus/type Message → log `user-typing` + pending deadline extends |
+| message-draft-focus | Y | Open QA → Message focused; type draft → refresh → draft restored + focus |
+| diag-blocks-play | Y | Diagnostic open → QA pause + Play ignored + latch `PLAYBACK_DIAGNOSTIC_OPEN` |
+| mcp-phase-timeline | Y | Agent open → log `MCP · … → CONTROL` (or CONNECTING→…); AskUser → PENDING row |
+| priority-hints-dump | Y | Save Log after Pause/Message → `priorityHints[]` cause-before-symptom |
 | handoff-oversee-keeps-note | Y | oversee keeps note |
 | handoff-wipe-clears-note | Y | wipe clears note |
 | refresh-mid-control | Y | Reload restores agent (+ PENDING) |

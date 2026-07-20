@@ -83,6 +83,22 @@ import {
   type McpConnectionStatus,
 } from "@/app/shell/agent-testing/agentTestingMcpStatus";
 import {
+  clearQaMessageDraft,
+} from "@/app/shell/agent-testing/agentTestingListen";
+import {
+  bindMessageListen,
+  focusMessageInput,
+  installViteHmrListen,
+  isDiagnosticOpenNow,
+  maybeLogMcpPhaseChange,
+  noteBlockedPlayAttempt,
+  onPlaybackDiagnosticOpened,
+  pauseCaptureAndHalt,
+  shouldBlockPlayNow,
+  type QaListenDeps,
+} from "@/app/shell/agent-testing/agentTestingQaListenBridge";
+import { registerQaDiagnosticOpenHandler } from "@/app/shell/playbackDiagQaBridge";
+import {
   buildAgentTestingDump,
   consoleSeparator,
   downloadAgentTestingDump,
@@ -222,6 +238,10 @@ type OverlayApi = {
   markTimeline: (key: string, outcome: AgentTestingStepOutcome) => void;
   downloadDump: () => boolean;
   isActive: () => boolean;
+  /** True when QA Pause or open diagnostic should refuse Play. */
+  shouldBlockPlay: () => boolean;
+  isCapturePaused: () => boolean;
+  isDiagnosticBlocking: () => boolean;
 };
 
 let active = false;
@@ -265,6 +285,14 @@ let lastUnexpectedDwellCount = 0;
 /** Latch auto scroll soft-fails so we do not spam amber rows. */
 let lastAutoScrollFlagKey = "";
 let lastSitrepLine = "";
+/** Last MCP phase logged to QA timeline (avoid spam). */
+let lastLoggedMcpPhase = "";
+/** Coalesce user-typing soft rows while PENDING. */
+let lastUserTypingLogAt = 0;
+/** Coalesce ignored-Play soft rows. */
+let lastBlockedPlayLogAt = 0;
+/** Diode/diagnostic blocking latch for Play ignore. */
+let diagnosticBlocking = false;
 
 /**
  * Never show raw `__studio*` / `__proto*` helper names in the title
@@ -1365,7 +1393,51 @@ function clearNavMcpHint(): void {
 function refreshMcpStatusDom(): void {
   if (!hasDomQuery()) return;
   const input = mcpChromeInput();
-  paintMcpChromeDom(input, deriveLiveMcpStatus(input));
+  const status = deriveLiveMcpStatus(input);
+  paintMcpChromeDom(input, status);
+  maybeLogMcpPhaseChange(qaListenDeps(), {
+    phase: status.phase ?? "",
+    label: status.label,
+    lastLoggedPhase: lastLoggedMcpPhase,
+    setLastLoggedPhase: (p) => {
+      lastLoggedMcpPhase = p;
+    },
+  });
+}
+
+function qaListenDeps(): QaListenDeps {
+  return {
+    rootId: ROOT_ID,
+    isActive: () => active,
+    isSettling: () => settling,
+    getCapturePaused: () => capturePaused,
+    setCapturePaused: (v) => {
+      capturePaused = v;
+    },
+    setSessionHadProgress: (v) => {
+      sessionHadProgress = v;
+    },
+    getDiagnosticBlocking: () => diagnosticBlocking,
+    setDiagnosticBlocking: (v) => {
+      diagnosticBlocking = v;
+    },
+    getLastSitrepLine: () => lastSitrepLine,
+    getTimelineKeys: () => timelineKeys,
+    pushLogEntry: (e) => pushLogEntry(e as AgentTestingLogEntry),
+    pauseElapsedClock,
+    armElapsedTimer,
+    setActivityPhase: (phase, detail) => setActivityPhase(phase, detail),
+    syncCaptureWatch,
+    syncSessionChrome,
+    getLastUserTypingLogAt: () => lastUserTypingLogAt,
+    setLastUserTypingLogAt: (v) => {
+      lastUserTypingLogAt = v;
+    },
+    getLastBlockedPlayLogAt: () => lastBlockedPlayLogAt,
+    setLastBlockedPlayLogAt: (v) => {
+      lastBlockedPlayLogAt = v;
+    },
+  };
 }
 
 /** PENDING timeout: auto-pause + log (user can Resume). */
@@ -1433,6 +1505,7 @@ function ensureMessageUnderLog(root: HTMLElement): void {
     input.name = "user-message";
   }
   if (submit) submit.textContent = "Send";
+  bindMessageListen(qaListenDeps(), root);
 }
 
 /** Migrate older overlay DOM: Pause beside clock; Session + Touchpoints bars. */
@@ -1614,15 +1687,26 @@ function ensureOverlayChrome(root: HTMLElement): void {
 
 /**
  * Pause / Resume capture.
- * Manual: stops ring appends (gate stays open).
- * Agent: also hard-halts Play via haltPlaybackForPoSignal — explicit Resume required (no auto-Play).
+ * ALL kinds: Pause hard-halts Play immediately + latches QA_PAUSE_HALT.
+ * Resume re-enables capture only (does not auto-Play).
  */
 function toggleCapturePause(): void {
   if (!active || settling) return;
   const next = !capturePaused;
-  if (next && getSessionKind() === "agent") {
+  if (next) {
     try {
       haltPlaybackForPoSignal("po-pause");
+    } catch {
+      /* hang-safe */
+    }
+    try {
+      latchPoSignal({
+        type: "pause",
+        code: "QA_PAUSE_HALT",
+        note: "QA Pause — progress halted; consume before proceed",
+        sitrepLine: lastSitrepLine,
+        timeline: timelineKeys,
+      });
     } catch {
       /* hang-safe */
     }
@@ -1633,9 +1717,13 @@ function toggleCapturePause(): void {
       ? next
         ? "Agent paused (Play halted)"
         : "Agent resumed (capture on)"
-      : next
-        ? "Capture paused"
-        : "Capture resumed";
+      : kind === "observe"
+        ? next
+          ? "Observe paused (Play halted)"
+          : "Observe resumed (capture on)"
+        : next
+          ? "Capture paused (Play halted)"
+          : "Capture resumed";
   // Status row must land even when pausing (gate would otherwise drop it).
   if (next) {
     pauseElapsedClock();
@@ -2740,6 +2828,10 @@ export function openAgentTestingLogger(
   renderLog();
   syncCaptureWatch();
   softShowOverlayPanel(root);
+  if (root) {
+    bindMessageListen(qaListenDeps(), root);
+    focusMessageInput(ROOT_ID, root);
+  }
 }
 
 /** Soft dismiss — close gate, stop capture, hide panel, keep DOM (no remount flash). */
@@ -2815,8 +2907,9 @@ export function toggleAgentTestingLogger(): void {
 }
 
 /**
- * User free-text message → log + timeline + ring.
- * Manual = note only; agent awaiting reply = PO answer to agent-prompt.
+ * User free-text message → halt + latch + log.
+ * Mid-flight Send pauses progress; agent must consume latch, investigate, reply, then proceed.
+ * Reply to AskUser also clears PENDING (awaiting) but stays paused until Resume.
  */
 export function appendAgentTestingUserMessage(text: string): boolean {
   const trimmed = text.trim();
@@ -2832,6 +2925,27 @@ export function appendAgentTestingUserMessage(text: string): boolean {
   const body =
     trimmed.length > 120 ? `${trimmed.slice(0, 118)}…` : trimmed;
   const awaiting = isAwaitingUserReply();
+
+  // HARD: Message is a mid-flight stop — never ignore while Play/capture runs.
+  pauseCaptureAndHalt(
+    qaListenDeps(),
+    "po-user-message",
+    awaiting
+      ? `Reply received — progress paused · consume latch before proceed`
+      : `Message received — progress paused · consume latch before proceed`
+  );
+  try {
+    latchPoSignal({
+      type: "user-message",
+      code: "USER_MESSAGE_RECEIVED",
+      note: trimmed,
+      sitrepLine: lastSitrepLine,
+      timeline: timelineKeys,
+    });
+  } catch {
+    /* hang-safe */
+  }
+
   const label = awaiting ? `Reply: ${body}` : `Message: ${body}`;
   pushLogEntry({
     atMs: Date.now(),
@@ -2841,14 +2955,22 @@ export function appendAgentTestingUserMessage(text: string): boolean {
     kind: "user-message",
   });
   markAgentTestingTimeline(`user-message:${Date.now()}`, "ok");
+  clearQaMessageDraft();
+  try {
+    const root = document.getElementById(ROOT_ID);
+    const input = root?.querySelector<HTMLInputElement>(
+      ".studio-agent-testing-overlay__note-input"
+    );
+    if (input) input.value = "";
+  } catch {
+    /* ignore */
+  }
   if (awaiting) {
     setAwaitingUserReply(false);
     clearMcpPending();
     setQaDiagSessionMeta({ awaitingReply: false });
-    setActivityPhase("running", "reply");
-  } else if (!capturePaused) {
-    setActivityPhase("running", "user-message");
   }
+  setActivityPhase("paused", "user-message");
   syncSessionChrome();
   return true;
 }
@@ -3064,11 +3186,18 @@ export function installAgentTestingOverlayApi(): void {
     markTimeline: markAgentTestingTimeline,
     downloadDump: () => downloadCurrentAgentTestingLog(),
     isActive: isAgentTestingOverlayActive,
+    shouldBlockPlay: () => shouldBlockPlayNow(qaListenDeps()),
+    isCapturePaused: () => capturePaused,
+    isDiagnosticBlocking: () => isDiagnosticOpenNow(qaListenDeps()),
   };
   bindOverlayApi(api);
   installPoSignalWindowApis();
   installPoSignalPlaybackHaltWindowApis();
   ensureMcpPendingHandler();
+  registerQaDiagnosticOpenHandler((error) =>
+    onPlaybackDiagnosticOpened(qaListenDeps(), error)
+  );
+  installViteHmrListen(qaListenDeps());
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () =>
       downloadCurrentAgentTestingLog();
@@ -3107,6 +3236,8 @@ export function installAgentTestingOverlayApi(): void {
       );
       return runChatBubbleMotionSelfTest(opts);
     };
+    window.__studioNoteBlockedQaPlay = () =>
+      noteBlockedPlayAttempt(qaListenDeps());
   }
   // Quiet restore — no remount thrash; reopen with persisted sessionKind (CONTROL).
   if (hydrated.open) {
@@ -3137,6 +3268,7 @@ export function installAgentTestingOverlayApi(): void {
       setActivityPhase("waiting", "reply");
       syncSessionChrome();
     }
+    focusMessageInput(ROOT_ID);
   }
 }
 
@@ -3211,6 +3343,7 @@ export function uninstallAgentTestingOverlayApi(): void {
   clearPoSignal();
   uninstallPoSignalWindowApis();
   uninstallPoSignalPlaybackHaltWindowApis();
+  registerQaDiagnosticOpenHandler(null);
   if (typeof window !== "undefined") {
     delete window.__protoAgentTestingOverlay;
     delete window.__studioAgentTestingOverlay;
@@ -3230,6 +3363,7 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioReportMcpConnectionError;
     delete window.__studioRunQaSelfTestSmoke;
     delete window.__studioRunChatBubbleMotionSelfTest;
+    delete window.__studioNoteBlockedQaPlay;
   }
 }
 
@@ -3261,6 +3395,8 @@ declare global {
       assertOnly?: boolean;
       expectedIds?: readonly string[];
     }) => Promise<import("@/app/shell/agent-testing/chatBubbleMotionSelfTest").ChatBubbleMotionSelfTestResult>;
+    __studioNoteBlockedQaPlay?: () => void;
+    __studioAgentTestingUserTyping?: { at: number; pending: true } | null;
     __studioQaPendingTimeoutMs?: number;
     __studioChatBubbleMotionPaceMs?: {
       step?: number;

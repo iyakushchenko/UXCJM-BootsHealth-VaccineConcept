@@ -1,0 +1,111 @@
+/**
+ * QA “listen” helpers — draft, typing wait, transport block, priority hints.
+ * Overlay owns pause/latch; this module stays hang-safe + lean.
+ */
+
+export const QA_MESSAGE_DRAFT_KEY = "studioQaMessageDraft";
+
+/** Prefer cause-before-symptom; cap spam. */
+export function buildQaPriorityHints(input: {
+  capturePaused?: boolean;
+  awaitingReply?: boolean;
+  poSignalCode?: string | null;
+  diagnosticOpen?: boolean;
+  diagnosticMessage?: string | null;
+  mcpPhase?: string | null;
+  userTyping?: boolean;
+}): string[] {
+  const hints: string[] = [];
+  if (input.poSignalCode) {
+    hints.push(
+      `CAUSE: consume latch ${input.poSignalCode} via __studioConsumePoSignal before proceed`
+    );
+  }
+  if (input.diagnosticOpen) {
+    hints.push(
+      `CAUSE: playback diagnostic open — Ack/consume; do not click Play under modal${
+        input.diagnosticMessage
+          ? ` (${clip(input.diagnosticMessage, 72)})`
+          : ""
+      }`
+    );
+  }
+  if (input.awaitingReply) {
+    hints.push("CAUSE: PENDING — wait for PO Message/Send (or typing extends timeout)");
+  }
+  if (input.userTyping) {
+    hints.push("STATE: PO typing in Message — do not refresh/continue");
+  }
+  if (input.capturePaused) {
+    hints.push("STATE: QA Pause — Play/progress halted until Resume + latch cleared");
+  }
+  if (input.mcpPhase === "error") {
+    hints.push("CAUSE: MCP ERROR diode — sitrep before acting");
+  }
+  return hints.slice(0, 6);
+}
+
+function clip(s: string, n: number): string {
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+}
+
+export function readQaMessageDraft(): string {
+  try {
+    if (typeof sessionStorage === "undefined") return "";
+    return sessionStorage.getItem(QA_MESSAGE_DRAFT_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function writeQaMessageDraft(text: string): void {
+  try {
+    if (typeof sessionStorage === "undefined") return;
+    const t = text ?? "";
+    if (!t) {
+      sessionStorage.removeItem(QA_MESSAGE_DRAFT_KEY);
+      return;
+    }
+    sessionStorage.setItem(QA_MESSAGE_DRAFT_KEY, t.slice(0, 280));
+  } catch {
+    /* private mode */
+  }
+}
+
+export function clearQaMessageDraft(): void {
+  try {
+    if (typeof sessionStorage === "undefined") return;
+    sessionStorage.removeItem(QA_MESSAGE_DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** True when QA should refuse further Play (paused capture or open diagnostic). */
+export function shouldBlockQaPlay(input: {
+  overlayActive: boolean;
+  capturePaused: boolean;
+  diagnosticOpen: boolean;
+}): boolean {
+  if (!input.overlayActive) return false;
+  return input.capturePaused || input.diagnosticOpen;
+}
+
+/**
+ * App / MCP transport gate — refuse Play while QA Pause or diagnostic open.
+ * Returns true when Play was blocked (caller must return early).
+ */
+export function refusePlayIfQaBlocks(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const w = window as Window & {
+      __studioAgentTestingOverlay?: { shouldBlockPlay?: () => boolean };
+      __studioNoteBlockedQaPlay?: () => void;
+    };
+    if (!w.__studioAgentTestingOverlay?.shouldBlockPlay?.()) return false;
+    w.__studioNoteBlockedQaPlay?.();
+    return true;
+  } catch {
+    return false;
+  }
+}

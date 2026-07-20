@@ -130,6 +130,17 @@ export function armMcpPendingTimeout(): void {
   }, ms);
 }
 
+/**
+ * PO typing while PENDING — restart full timeout so agent/timeout waits.
+ * No-op when not pending.
+ */
+export function bumpMcpPendingForUserTyping(): boolean {
+  const m = memory();
+  if (m.pendingDeadlineAt == null) return false;
+  armMcpPendingTimeout();
+  return true;
+}
+
 /** Agent/MCP latch starting → CONNECTING flash. */
 export function beginMcpConnecting(): void {
   const m = memory();

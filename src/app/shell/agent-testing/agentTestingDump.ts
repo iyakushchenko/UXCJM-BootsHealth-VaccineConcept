@@ -13,10 +13,11 @@ import type { AgentTestingLogEntry } from "@/app/shell/agent-testing/agentTestin
 import type { AgentTestingPoSignal } from "@/app/shell/agent-testing/agentTestingPoSignal";
 import { getControlPanelLogEntries } from "@/app/shell/controlPanelLog";
 import { getPlaybackDiagBundle } from "@/app/shell/playbackDiag";
-import { getRecentDiagnosticFlashes } from "@/app/shell/playbackDiagnosticFlash";
+import { getRecentDiagnosticFlashes, getOpenDiagnosticFlash } from "@/app/shell/playbackDiagnosticFlash";
 import { peekPlaybackDiagnostic } from "@/app/shell/playbackDiagQaBridge";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 import { getQaDiagRing } from "@/app/shell/qaDiagGate";
+import { buildQaPriorityHints } from "@/app/shell/agent-testing/agentTestingListen";
 
 export const AGENT_TESTING_DUMP_KEY = "studioAgentTestingDumps";
 export const AGENT_TESTING_DUMP_MAX = 5;
@@ -68,6 +69,8 @@ export type AgentTestingDump = {
   diagnosticFlashes?: Array<Record<string, unknown>>;
   /** Last ingested diagnostic (peek) — consume via `__studioConsumePlaybackDiagnostic`. */
   lastPlaybackDiagnostic?: Record<string, unknown> | null;
+  /** Lean cause-before-symptom hints for agents (not spam). */
+  priorityHints?: string[];
   /** Full chat-bubble-motion frame series (gate-open) + jump summary. */
   chatBubbleMotion?: {
     samples: Array<Record<string, unknown>>;
@@ -333,6 +336,18 @@ export function buildAgentTestingDump(options: {
   const sitrep = readAgentTestingSitrep();
 
   const gateMode = options.gateMode ?? "agent";
+  const diagOpen =
+    Boolean(getOpenDiagnosticFlash()) || Boolean(lastPlaybackDiagnostic);
+  const priorityHints = buildQaPriorityHints({
+    capturePaused: options.capturePaused,
+    awaitingReply: options.mcp?.phase === "pending",
+    poSignalCode: options.poSignal?.code ?? options.code ?? null,
+    diagnosticOpen: diagOpen,
+    diagnosticMessage:
+      (lastPlaybackDiagnostic as { message?: string } | null | undefined)
+        ?.message ?? null,
+    mcpPhase: options.mcp?.phase ?? null,
+  });
 
   return {
     atIso: new Date().toISOString(),
@@ -358,6 +373,7 @@ export function buildAgentTestingDump(options: {
     recentPlaybackDiagEvents,
     diagnosticFlashes,
     lastPlaybackDiagnostic,
+    priorityHints,
     chatBubbleMotion,
     summaries,
     poSignal: options.poSignal ?? null,
