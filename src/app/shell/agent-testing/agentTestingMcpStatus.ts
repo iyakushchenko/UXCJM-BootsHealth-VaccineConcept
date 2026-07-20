@@ -13,6 +13,8 @@ export const AGENT_LATCH_STATUS_TITLE =
 
 
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
+import type { AgentControlKind } from "@/app/shell/agent-testing/agentTestingControlKind";
+import { formatAgentControlKindSuffix } from "@/app/shell/agent-testing/agentTestingControlKind";
 
 export type McpConnectionPhase =
   | "idle"
@@ -187,19 +189,21 @@ export function resetMcpStatusLatches(): void {
 
 export function formatMcpStatusLabel(
   phase: McpConnectionPhase,
-  error?: string | null
+  error?: string | null,
+  controlKind?: AgentControlKind | null
 ): string {
+  const kindSuffix = formatAgentControlKindSuffix(controlKind);
   switch (phase) {
     case "connecting":
       return "AGENT — STARTING";
     case "connected":
       return "AGENT — READY";
     case "control":
-      return "AGENT — CONTROL";
+      return `AGENT — CONTROL${kindSuffix}`;
     case "observe":
       return "AGENT — OBSERVE";
     case "pending":
-      return "AGENT — CONTROL · PENDING";
+      return `AGENT — CONTROL · PENDING${kindSuffix}`;
     case "error":
       return `AGENT — ERROR: ${error?.trim() || "unknown"}`;
     default:
@@ -211,6 +215,8 @@ export type DeriveMcpStatusInput = {
   overlayActive: boolean;
   sessionKind: AgentTestingSessionKind;
   awaitingReply: boolean;
+  /** Agent CONTROL qualifier — playback (CJM) vs manual (no cassette). */
+  agentControlKind?: AgentControlKind | null;
   now?: number;
 };
 
@@ -220,6 +226,8 @@ export function deriveMcpConnectionStatus(
 ): McpConnectionStatus {
   const m = memory();
   const now = input.now ?? Date.now();
+  const kind =
+    input.sessionKind === "agent" ? input.agentControlKind ?? null : null;
 
   if (m.error) {
     return {
@@ -286,7 +294,7 @@ export function deriveMcpConnectionStatus(
       : null;
     return {
       phase: "pending",
-      label: formatMcpStatusLabel("pending"),
+      label: formatMcpStatusLabel("pending", null, kind),
       pendingDeadlineAt: m.pendingDeadlineAt,
       pendingMsLeft,
     };
@@ -304,7 +312,7 @@ export function deriveMcpConnectionStatus(
   if (input.sessionKind === "agent") {
     return {
       phase: "control",
-      label: formatMcpStatusLabel("control"),
+      label: formatMcpStatusLabel("control", null, kind),
       pendingDeadlineAt: null,
       pendingMsLeft: null,
     };

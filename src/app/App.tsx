@@ -86,6 +86,7 @@ import {
   recordPlaybackDiagnosticOpen,
 } from "@/app/shell/playbackDiagnosticFlash";
 import { registerPlaybackDiagnosticDismiss, registerPlaybackDiagnosticForceClear, isPlaybackDiagnosticSuppressed } from "@/app/shell/playbackDiagQaBridge";
+import { isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 import {
   logControlPanel,
   registerControlPanelSnapshotProvider,
@@ -243,14 +244,19 @@ export default function App() {
   const handlePlaybackDiagnostic = useCallback((error: PlaybackDiagnosticError) => {
     if (isPlaybackDiagnosticSuppressed()) return;
     stopAllPlaybackRef.current();
-    setPlaybackDiagnostic((prev) => {
-      if (prev) return prev;
-      const enriched = attachPlaybackInteractionToDiagnostic(
-        enrichPlaybackDiagnosticSnapshot(error, playbackSnapshotRef.current)
-      );
-      recordPlaybackDiagnosticOpen(enriched, "playback-guard");
-      return enriched;
-    });
+    const enriched = attachPlaybackInteractionToDiagnostic(
+      enrichPlaybackDiagnosticSnapshot(error, playbackSnapshotRef.current)
+    );
+    // Always ingest to QA ring/log/flash (agent-facing SSoT).
+    recordPlaybackDiagnosticOpen(enriched, "playback-guard");
+    // While QA gate/agent session is open: suppress blocking modal —
+    // PO/agent use QA log + Ack diag (not a separate popup).
+    try {
+      if (isQaDiagGateOpen()) return;
+    } catch {
+      /* fall through to modal */
+    }
+    setPlaybackDiagnostic((prev) => prev ?? enriched);
   }, []);
 
   const hubScrollElRef = useRef<HTMLDivElement>(null);

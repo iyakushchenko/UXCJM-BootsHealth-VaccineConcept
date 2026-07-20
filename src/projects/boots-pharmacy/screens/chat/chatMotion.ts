@@ -1,5 +1,6 @@
 import { MOTION_EASE_IN_OUT } from "@/uxds/motion";
 import { playbackDiagChatBubbleMotion } from "@/app/shell/playbackDiag";
+import { cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
 
 /**
  * Make / sitePilotChat pull-up for progressive bubbles.
@@ -60,6 +61,8 @@ export type ChatBubbleMotionPayload = {
   opacity?: number | null;
   layoutY?: number | null;
   deltaY?: number | null;
+  /** Host scrollTop during sample (stutter forensics). */
+  scrollTop?: number | null;
   shouldAnimate: boolean;
   visibleCount?: number | null;
   note?: string;
@@ -78,6 +81,7 @@ export function logChatBubbleMotion(payload: ChatBubbleMotionPayload): void {
     opacity: payload.opacity ?? null,
     layoutY: payload.layoutY ?? null,
     deltaY: payload.deltaY ?? null,
+    scrollTop: payload.scrollTop ?? null,
     shouldAnimate: payload.shouldAnimate,
     visibleCount: payload.visibleCount ?? null,
     note: payload.note ?? null,
@@ -113,6 +117,12 @@ export function startChatBubbleMotionSample(options: {
 }): () => void {
   if (!options.el || !options.shouldAnimate) return () => {};
   const releaseScroll = acquireChatPullUpScrollLock();
+  // Kill any prior settle ease — competing camera = layoutY JUMP mid sample.
+  try {
+    cancelPlaybackScroll("replace");
+  } catch {
+    /* hang-safe */
+  }
   const start = performance.now();
   const durationMs = options.durationMs ?? CHAT_PULL_UP_MS + 80;
   let prevLayoutY: number | null = null;
@@ -132,6 +142,13 @@ export function startChatBubbleMotionSample(options: {
         ? 0
         : Math.round((layoutY - prevLayoutY) * 100) / 100;
     prevLayoutY = layoutY;
+    let scrollTop: number | null = null;
+    try {
+      const host = options.el.closest(".chat__column, [data-studio-react-screen]");
+      if (host instanceof HTMLElement) scrollTop = host.scrollTop;
+    } catch {
+      scrollTop = null;
+    }
 
     logChatBubbleMotion({
       id: options.id,
@@ -140,6 +157,7 @@ export function startChatBubbleMotionSample(options: {
       opacity: Number.isFinite(opacity) ? Math.round(opacity * 100) / 100 : null,
       layoutY,
       deltaY,
+      scrollTop,
       shouldAnimate: options.shouldAnimate,
       visibleCount: options.visibleCount ?? null,
     });

@@ -113,10 +113,17 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     ) {
       return true; // unexpected upward / reversal
     }
-    if (/SCROLL_ISSUE|reversal|stutter|unexpected/i.test(event.detail ?? "")) {
+    if (
+      /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted/i.test(
+        event.detail ?? ""
+      )
+    ) {
       return true;
     }
     return false;
+  }
+  if (kind === "info" || kind === "chat-reveal" || kind === "chat-bubble-motion") {
+    return /JUMP|stutter|competing|layoutY|fight/i.test(event.detail ?? "");
   }
   if (
     kind === "transport" ||

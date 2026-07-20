@@ -55,6 +55,11 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-29 | MCP label ≠ Cursor | Status said `MCP — CONTROL/CONNECTED` → PO thought Cursor MCP was linked. | COMPLETE | Labels `AGENT — …` + tooltip “not Cursor MCP” |
 | PP-30 | Ghost AGENT CONTROL | Close × hidden on agent lock; overlay stayed CONTROL after prove/pause with no mid-flight agent. | COMPLETE | Close/softClose → forceClear wipe |
 | PP-31 | Chat pull-up scroll false FAIL | Chat bubble pull-up called `cancelPlaybackScroll("abort")` → PlaybackDiagnostic SCROLL_ANOMALY mid agentic. | COMPLETE | intentional cancels use `"replace"` |
+| PP-32 | Sitrep auto-close loses context | DONE sitrep Auto-closes with no Keep open. | COMPLETE | Keep open cancels countdown |
+| PP-33 | Diag popup vs QA half-integrated | Agents still needed leftover modal; PO asked repeatedly for QA-first. | COMPLETE | gate open → QA log only + Ack diag; modal when QA closed |
+| PP-34 | Chat bubble arrive stutter | Instant reveal-snap + eased settle + eased composer top-up fought Motion. | COMPLETE | settle owns camera; top-up instant |
+| PP-35 | Dual cursor manual+CJM | Observe/manual pointer-follow + parked CJM robo = two cursors. | COMPLETE | hide robo on manual/observe; Play keeps robo |
+| PP-36 | FAIL without agent handshake | Errors paused but no explicit handoff→confirm→wait sequence. | COMPLETE | `agentTestingFailHandoff` + touch/consume confirm |
 
 ---
 

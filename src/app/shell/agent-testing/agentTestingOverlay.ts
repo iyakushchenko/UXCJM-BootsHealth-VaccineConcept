@@ -95,10 +95,21 @@ import {
   onPlaybackDiagnosticOpened,
   pauseCaptureAndHalt,
   shouldBlockPlayNow,
+  confirmFailHandoffFromAgent,
+  clearFailHandoffFromSession,
   type QaListenDeps,
 } from "@/app/shell/agent-testing/agentTestingQaListenBridge";
+import {
+  beginFailHandoff,
+  clearFailHandoff,
+} from "@/app/shell/agent-testing/agentTestingFailHandoff";
 import { registerQaDiagnosticOpenHandler } from "@/app/shell/playbackDiagQaBridge";
-import { clearStalePlaybackDiagnostic } from "@/app/shell/playbackDiagQaBridge";
+import {
+  clearStalePlaybackDiagnostic,
+  consumePlaybackDiagnostic,
+  peekPlaybackDiagnostic,
+} from "@/app/shell/playbackDiagQaBridge";
+import { getOpenDiagnosticFlash } from "@/app/shell/playbackDiagnosticFlash";
 import {
   buildAgentTestingDump,
   consoleSeparator,
@@ -121,6 +132,11 @@ import {
   uninstallPoSignalPlaybackHaltWindowApis,
 } from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
+import {
+  deriveAgentControlKind,
+  isCjmCassetteOn,
+  type AgentControlKind,
+} from "@/app/shell/agent-testing/agentTestingControlKind";
 import {
   bindAgentTestingNavClearance,
   syncAgentTestingNavClearance,
@@ -203,6 +219,12 @@ type OverlayApi = {
   openLogger: (options?: OpenQaLoggerOptions | string) => void;
   /** Soft-close logger (keep DOM, close gate). */
   softClose: () => void;
+  /** Hold DONE sitrep open — cancel Auto-closes. */
+  keepOpen: () => boolean;
+  /** Ack playback diagnostic from QA (consume + clear). */
+  ackDiagnostic: () => boolean;
+  /** Confirm FAIL handoff after agent latch (handshake). */
+  confirmFailTakeover: () => boolean;
   /** Bug-icon toggle — open or close+stop manual capture. */
   toggleLogger: () => void;
   /** Agent/MCP handoff — wipe or oversee. */
@@ -281,6 +303,8 @@ let settleResetToHub = false;
 /** Journey smoke teardown → key 1 (preferred; never hub). */
 let settleResetToJourneyStart = false;
 let settleResult: AgentTestingOverlayResult = "neutral";
+/** PO held sitrep open — cancel Auto-closes countdown. */
+let settleHeld = false;
 let timelineKeys: AgentTestingTimelineKey[] = [];
 let lastUnexpectedDwellCount = 0;
 /** Latch auto scroll soft-fails so we do not spam amber rows. */
@@ -687,6 +711,61 @@ function dismissStaleDiagForSession(source: string): void {
   }
 }
 
+function beginFailHandoffFromOverlay(reason: string): void {
+  beginFailHandoff({
+    reason,
+    pause: (r) => {
+      try {
+        haltPlaybackForPoSignal(r);
+      } catch {
+        /* hang-safe */
+      }
+      if (!active || settling) return;
+      if (!capturePaused) {
+        pauseElapsedClock();
+        capturePaused = true;
+        sessionHadProgress = true;
+      }
+      setActivityPhase("paused", r);
+      syncCaptureWatch();
+      syncSessionChrome();
+    },
+    log: (label, outcome) => {
+      pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label,
+        outcome: outcome ?? "fail",
+        kind: "fail-handoff",
+      });
+    },
+  });
+}
+
+function confirmAgentHandshake(source: string): boolean {
+  return confirmFailHandoffFromAgent(qaListenDeps(), source);
+}
+
+/** JUMP / diag paths outside overlay may call this. */
+export function beginQaFailHandoff(reason: string): void {
+  if (!active || settling) {
+    beginFailHandoff({
+      reason,
+      pause: (r) => {
+        try {
+          haltPlaybackForPoSignal(r);
+        } catch {
+          /* hang-safe */
+        }
+      },
+      log: () => undefined,
+    });
+    return;
+  }
+  beginFailHandoffFromOverlay(reason);
+}
+
+
 /**
  * Clear final RESULT line for agents closing a session / self-test.
  * Lands even while paused. Call while overlay still active (before forceClear).
@@ -729,13 +808,8 @@ export function ringAgentTestingAlarm(note?: string): void {
     escalateObserveToAgentSession("alarm");
   }
   if (getSessionKind() !== "agent") return;
-  // HARD: stop Play in the same turn as the click — do not wait for smoke poll.
-  haltPlaybackForPoSignal("po-alarm");
-  if (!capturePaused) {
-    pauseElapsedClock();
-    capturePaused = true;
-    sessionHadProgress = true;
-  }
+  beginFailHandoffFromOverlay("po-alarm");
+  // beginFailHandoff already halted Play + paused capture.
   const detail = note?.trim() ? ` — ${note.trim()}` : "";
   const signal = latchPoSignal({
     type: "alarm",
@@ -1005,6 +1079,29 @@ export function formatSitrepHint(
   return reload
     ? `${flag}Auto-closes in ${s}s (then reload)`
     : `${flag}Auto-closes in ${s}s`;
+}
+
+export function formatSitrepHeldHint(
+  result: AgentTestingOverlayResult = "neutral"
+): string {
+  const flag =
+    result === "pass" ? "PASS - " : result === "fail" ? "FAIL - " : "";
+  return `${flag}Held open — Close when done`;
+}
+
+function readLiveAgentControlKind(): AgentControlKind | null {
+  try {
+    const sitrep = readAgentTestingSitrep();
+    return deriveAgentControlKind({
+      sessionKind: getSessionKind(),
+      cjmOn: isCjmCassetteOn(sitrep.cjm),
+    });
+  } catch {
+    return deriveAgentControlKind({
+      sessionKind: getSessionKind(),
+      cjmOn: false,
+    });
+  }
 }
 
 /** Exported for unit tests - sitrep title with PASS/FAIL flag. */
@@ -1284,9 +1381,44 @@ function hasDomQuery(): boolean {
 function setHint(text: string): void {
   if (!hasDomQuery()) return;
   const el = document.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__hint-text"
+  );
+  if (el) {
+    el.textContent = text;
+    return;
+  }
+  const legacy = document.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__hint"
   );
-  if (el) el.textContent = text;
+  if (legacy) legacy.textContent = text;
+}
+
+function setKeepOpenVisible(show: boolean): void {
+  if (!hasDomQuery()) return;
+  const btn = document.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__keep-open"
+  );
+  if (!btn) return;
+  btn.hidden = !show;
+}
+
+/** Cancel Auto-closes countdown — PO keeps sitrep/log context. */
+export function holdSettleOpen(reason = "keep-open"): boolean {
+  if (!settling || settleHeld) return settleHeld;
+  settleHeld = true;
+  settleReload = false;
+  clearSettleTimer();
+  clearEnsureClearTimer();
+  setHint(formatSitrepHeldHint(settleResult));
+  setKeepOpenVisible(false);
+  try {
+    logQaToolbarAction(`Keep open · ${reason}`);
+  } catch {
+    /* hang-safe */
+  }
+  const root = document.getElementById(ROOT_ID);
+  if (root) root.dataset.settleHeld = "true";
+  return true;
 }
 
 function renderHistory(): void {
@@ -1296,6 +1428,55 @@ function renderHistory(): void {
     ?.querySelector(".studio-agent-testing-overlay__history")
     ?.remove();
   clearHistoryPersist();
+}
+
+function syncDiagAckChrome(): void {
+  if (!hasDomQuery()) return;
+  const root = document.getElementById(ROOT_ID);
+  const ack = root?.querySelector<HTMLButtonElement>(
+    ".studio-agent-testing-overlay__diag-ack"
+  );
+  if (!ack) return;
+  const pending =
+    diagnosticBlocking ||
+    peekPlaybackDiagnostic() != null ||
+    getOpenDiagnosticFlash() != null;
+  ack.hidden = !pending;
+}
+
+/** Ack from QA overlay — consume diagnostic latch + clear modal if any. */
+export function acknowledgeQaPlaybackDiagnostic(): boolean {
+  try {
+    logQaToolbarAction("Ack diag · consume playback diagnostic");
+  } catch {
+    /* hang-safe */
+  }
+  let consumed = false;
+  try {
+    const result = consumePlaybackDiagnostic({
+      dismiss: true,
+      source: "qa-ack",
+    });
+    consumed = result.consumed;
+  } catch {
+    /* hang-safe */
+  }
+  diagnosticBlocking = false;
+  try {
+    clearStalePlaybackDiagnostic("qa-ack");
+  } catch {
+    /* hang-safe */
+  }
+  pushLogEntry(
+    buildLogEntryFromStep({
+      kind: "playback-diag",
+      outcome: "ok",
+      label: "playback-diag · Ack — diagnostic consumed",
+    })
+  );
+  syncDiagAckChrome();
+  syncSessionChrome();
+  return consumed;
 }
 
 function setQaSessionLock(mode: AgentTestingSessionKind | null): void {
@@ -1319,6 +1500,7 @@ function syncSessionChrome(): void {
   root.dataset.kind = kind;
   root.dataset.capture = capturePaused ? "paused" : "on";
   setQaSessionLock(active || settling ? kind : null);
+  syncDiagAckChrome();
 
   const locked = isAgentLocked() && (active || settling);
   const closeBtn = root.querySelector<HTMLButtonElement>(
@@ -1434,6 +1616,7 @@ function mcpChromeInput() {
     settling,
     sessionKind: getSessionKind(),
     awaitingReply: isAwaitingUserReply(),
+    agentControlKind: readLiveAgentControlKind(),
     gateOpen,
     overlayDomVisible: isAgentTestingOverlayDomVisible(),
     rootId: ROOT_ID,
@@ -1487,6 +1670,7 @@ function qaListenDeps(): QaListenDeps {
     getDiagnosticBlocking: () => diagnosticBlocking,
     setDiagnosticBlocking: (v) => {
       diagnosticBlocking = v;
+      syncDiagAckChrome();
     },
     getLastSitrepLine: () => lastSitrepLine,
     getTimelineKeys: () => timelineKeys,
@@ -1733,6 +1917,55 @@ function ensureOverlayChrome(root: HTMLElement): void {
     panel.querySelector(".studio-agent-testing-overlay__sitrep")?.remove();
   }
 
+  // Hint row: text + Keep open (sitrep auto-close)
+  let hint = panel.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__hint"
+  );
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.className = "studio-agent-testing-overlay__hint";
+    const activity = panel.querySelector(
+      ".studio-agent-testing-overlay__activity"
+    );
+    if (activity) panel.insertBefore(hint, activity);
+    else panel.appendChild(hint);
+  }
+  if (!hint.querySelector(".studio-agent-testing-overlay__hint-text")) {
+    const prior = (hint.textContent || "").trim();
+    hint.textContent = "";
+    const text = document.createElement("span");
+    text.className = "studio-agent-testing-overlay__hint-text";
+    text.textContent = prior || "Page visible — mid-flight QA below.";
+    hint.appendChild(text);
+  }
+  if (!hint.querySelector(".studio-agent-testing-overlay__keep-open")) {
+    const keep = document.createElement("button");
+    keep.type = "button";
+    keep.className = "studio-agent-testing-overlay__keep-open uxds-link";
+    keep.hidden = true;
+    keep.title = "Cancel auto-close — keep sitrep open";
+    keep.textContent = "Keep open";
+    keep.addEventListener("click", () => holdSettleOpen("click"));
+    hint.appendChild(keep);
+  }
+
+  const actions = panel.querySelector(
+    ".studio-agent-testing-overlay__actions"
+  );
+  if (
+    actions &&
+    !actions.querySelector(".studio-agent-testing-overlay__diag-ack")
+  ) {
+    const ack = document.createElement("button");
+    ack.type = "button";
+    ack.className = "studio-agent-testing-overlay__diag-ack";
+    ack.hidden = true;
+    ack.title = "Ack playback diagnostic — consume latch + clear";
+    ack.textContent = "Ack diag";
+    ack.addEventListener("click", () => acknowledgeQaPlaybackDiagnostic());
+    actions.appendChild(ack);
+  }
+
   let wrap = panel.querySelector<HTMLElement>(
     ".studio-agent-testing-overlay__timeline-wrap"
   );
@@ -1857,7 +2090,10 @@ function ensureRoot(): HTMLElement | null {
           </div>
         </div>
       </div>
-      <p class="studio-agent-testing-overlay__hint">Page visible — mid-flight QA below.</p>
+      <p class="studio-agent-testing-overlay__hint">
+        <span class="studio-agent-testing-overlay__hint-text">Page visible — mid-flight QA below.</span>
+        <button type="button" class="studio-agent-testing-overlay__keep-open uxds-link" hidden title="Cancel auto-close — keep sitrep open">Keep open</button>
+      </p>
       <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
       <div class="studio-agent-testing-overlay__session" aria-label="Session context">
         <p class="studio-agent-testing-overlay__bar-title">Session</p>
@@ -1871,6 +2107,7 @@ function ensureRoot(): HTMLElement | null {
         <button type="button" class="studio-agent-testing-overlay__alarm" hidden title="Alarm — observe or agent">Alarm</button>
         <button type="button" class="studio-agent-testing-overlay__cursor-flag" title="Flag cursor weird — latches live PO signal">Cursor</button>
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
+        <button type="button" class="studio-agent-testing-overlay__diag-ack" hidden title="Ack playback diagnostic — consume latch + clear">Ack diag</button>
       </div>
       <ol class="studio-agent-testing-overlay__log" data-empty="true"></ol>
       <form class="studio-agent-testing-overlay__note" autocomplete="off">
@@ -1887,6 +2124,16 @@ function ensureRoot(): HTMLElement | null {
     ".studio-agent-testing-overlay__close"
   );
   closeBtn?.addEventListener("click", () => closeManualSession("close-x"));
+  root
+    .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__keep-open")
+    ?.addEventListener("click", () => {
+      holdSettleOpen("click");
+    });
+  root
+    .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__diag-ack")
+    ?.addEventListener("click", () => {
+      acknowledgeQaPlaybackDiagnostic();
+    });
   root
     .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__reset")
     ?.addEventListener("click", () => resetManualSession());
@@ -1952,7 +2199,8 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
     entry.kind !== "agent-prompt" &&
     entry.kind !== "observe-escalate" &&
     entry.kind !== "alarm" &&
-    entry.kind !== "playback-diag"
+    entry.kind !== "playback-diag" &&
+    entry.kind !== "fail-handoff"
   ) {
     return;
   }
@@ -2233,9 +2481,11 @@ function safeResetStudio(
 
 function finishSettle(): void {
   settling = false;
+  settleHeld = false;
   settleResult = "neutral";
   clearSettleTimer();
   clearEnsureClearTimer();
+  setKeepOpenVisible(false);
   dismissRoboCursor();
   // Hard-remove so no stale panel remains after sitrep.
   teardownDom(true);
@@ -2255,9 +2505,11 @@ function cancelSettle(instantReload?: boolean): void {
   const wantReload = settleReload || !!instantReload;
   settleReload = false;
   settling = false;
+  settleHeld = false;
   settleResult = "neutral";
   clearSettleTimer();
   clearEnsureClearTimer();
+  setKeepOpenVisible(false);
   dismissRoboCursor();
   teardownDom(true);
   if (wantReload) scheduleReload(120);
@@ -2278,9 +2530,11 @@ function abandonSettleForRearch(): void {
   settleResetToHub = false;
   settleResetToJourneyStart = false;
   settling = false;
+  settleHeld = false;
   settleResult = "neutral";
   clearSettleTimer();
   clearEnsureClearTimer();
+  setKeepOpenVisible(false);
   cancelPendingReload();
   dismissRoboCursor();
   // Soft hide - start() will re-arm the same root.
@@ -2297,6 +2551,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   const settleMs = clampSettleMs(options?.settleMs);
   settleReload = !!options?.reload;
   latchSettleResetFlags(options);
+  settleHeld = false;
   settleResult =
     options?.result === "pass" || options?.result === "fail"
       ? options.result
@@ -2313,6 +2568,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   if (root) {
     root.dataset.active = "false";
     root.dataset.settling = "true";
+    delete root.dataset.settleHeld;
   }
   // Release pointer block so PO can use the page while reading sitrep.
   releaseClickGuard();
@@ -2331,19 +2587,24 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   consoleSeparator("END", `${sessionTitle} · ${settleResult}`);
   const endsAt = Date.now() + settleMs;
   const tickHint = () => {
+    if (settleHeld) return;
     const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
     setHint(formatSitrepHint(left, settleReload, settleResult));
   };
   tickHint();
+  setKeepOpenVisible(true);
   renderLog();
   renderHistory();
   clearSettleTimer();
   settleCountdownTimer = setInterval(tickHint, SITREP_COUNTDOWN_TICK_MS);
   settleTimer = setTimeout(() => {
+    if (settleHeld) return;
     finishSettle();
   }, settleMs);
   // Failsafe: if settle somehow stalls, hard-clear after settle + 1s.
+  // Skip when PO held sitrep open.
   ensureClearTimer = setTimeout(() => {
+    if (settleHeld) return;
     if (settling || isAgentTestingOverlayDomPresent()) {
       forceClearAgentTestingOverlay();
     }
@@ -2351,6 +2612,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
 }
 
 export function startAgentTestingOverlay(title?: string): void {
+  confirmAgentHandshake("start");
   if (settling) {
     abandonSettleForRearch();
   }
@@ -2585,6 +2847,7 @@ export function touchAgentTestingOverlay(
   title?: string,
   options?: TouchAgentTestingOverlayOptions
 ): void {
+  confirmAgentHandshake("touch");
   openQaDiagGate({ reason: "overlay-touch" });
   if (settling) {
     abandonSettleForRearch();
@@ -3111,6 +3374,8 @@ export function forceClearAgentTestingOverlay(): void {
   try {
     logQaToolbarAction("forceClear · wipe session");
     dismissStaleDiagForSession("force-clear");
+    clearFailHandoffFromSession();
+    clearFailHandoff();
     nest = 0;
     active = false;
     settling = false;
@@ -3249,6 +3514,12 @@ export function installAgentTestingOverlayApi(): void {
     forceClear: forceClearAgentTestingOverlay,
     openLogger: openAgentTestingLogger,
     softClose: softCloseAgentTestingLogger,
+    keepOpen: () => holdSettleOpen("api"),
+    ackDiagnostic: () => {
+      confirmAgentHandshake("ack-diag");
+      return acknowledgeQaPlaybackDiagnostic();
+    },
+    confirmFailTakeover: () => confirmAgentHandshake("api"),
     toggleLogger: toggleAgentTestingLogger,
     handoff: handoffQaSession,
     askUser: askUserInQa,
@@ -3265,7 +3536,11 @@ export function installAgentTestingOverlayApi(): void {
     flagCursorWeird: flagAgentTestingCursorWeird,
     flagScrollIssue: flagAgentTestingScrollIssue,
     peekPoSignal,
-    consumePoSignal,
+    consumePoSignal: () => {
+      const signal = consumePoSignal();
+      if (signal) confirmAgentHandshake(`consume:${signal.code}`);
+      return signal;
+    },
     setTimeline: setAgentTestingTimeline,
     markTimeline: markAgentTestingTimeline,
     downloadDump: () => downloadCurrentAgentTestingLog(),
@@ -3281,6 +3556,16 @@ export function installAgentTestingOverlayApi(): void {
   registerQaDiagnosticOpenHandler((error) =>
     onPlaybackDiagnosticOpened(qaListenDeps(), error)
   );
+  try {
+    const w = window as Window & {
+      __studioBeginQaFailHandoff?: (reason: string) => void;
+      __studioConfirmFailTakeover?: () => boolean;
+    };
+    w.__studioBeginQaFailHandoff = beginQaFailHandoff;
+    w.__studioConfirmFailTakeover = () => confirmAgentHandshake("window");
+  } catch {
+    /* hang-safe */
+  }
   installViteHmrListen(qaListenDeps());
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () =>

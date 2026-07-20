@@ -29,8 +29,17 @@ describe("agentTestingMcpStatus", () => {
 
   it("formats labels", () => {
     expect(formatMcpStatusLabel("control")).toBe("AGENT — CONTROL");
+    expect(formatMcpStatusLabel("control", null, "playback")).toBe(
+      "AGENT — CONTROL · PLAYBACK"
+    );
+    expect(formatMcpStatusLabel("control", null, "manual")).toBe(
+      "AGENT — CONTROL · MANUAL"
+    );
     expect(formatMcpStatusLabel("observe")).toBe("AGENT — OBSERVE");
     expect(formatMcpStatusLabel("pending")).toBe("AGENT — CONTROL · PENDING");
+    expect(formatMcpStatusLabel("pending", null, "playback")).toBe(
+      "AGENT — CONTROL · PENDING · PLAYBACK"
+    );
     expect(formatMcpStatusLabel("error", "timeout")).toBe(
       "AGENT — ERROR: timeout"
     );

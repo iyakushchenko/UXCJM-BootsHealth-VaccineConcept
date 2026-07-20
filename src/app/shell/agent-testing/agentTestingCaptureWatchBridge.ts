@@ -1,13 +1,12 @@
 /**
- * Overlay wiring for capture watch + observe pointer follow.
- * Kept out of agentTestingOverlay.ts to stay under hygiene ceiling.
+ * Overlay wiring for capture watch.
+ * Manual/observe: OS cursor only — never bind demo/robo pointer-follow
+ * (PO: dual cursor with CJM park = wrong UX).
  */
 
+import { removeDemoCursor } from "@/app/scenario/demoCursor";
 import { bindAgentTestingCaptureWatch } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
-import {
-  bindObservePointerCursorFollow,
-  stopObservePointerCursorFollow,
-} from "@/app/shell/agent-testing/agentTestingObserveCursor";
+import { stopObservePointerCursorFollow } from "@/app/shell/agent-testing/agentTestingObserveCursor";
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
 import type { AgentTestingLogEntry } from "@/app/shell/agent-testing/agentTestingTypes";
 
@@ -32,7 +31,11 @@ export function isCaptureInProgressBridge(
   return !opts.isCapturePaused();
 }
 
-function syncObserveCursorFollow(opts: CaptureWatchBridgeOptions): void {
+/**
+ * Manual / observe (user driving): hide demo/robo cursor — OS pointer only.
+ * Agent CONTROL: leave CJM Play/SF robo cursor alone.
+ */
+function syncUserDrivingCursorPolicy(opts: CaptureWatchBridgeOptions): void {
   if (observeCursorUnbind) {
     try {
       observeCursorUnbind();
@@ -42,23 +45,19 @@ function syncObserveCursorFollow(opts: CaptureWatchBridgeOptions): void {
     observeCursorUnbind = null;
   }
   const kind = opts.getSessionKind();
-  const follow =
+  // Never follow pointer with a second robo cursor (legacy observe-follow retired).
+  stopObservePointerCursorFollow({ remove: false });
+  if (
     opts.isActive() &&
     !opts.isSettling() &&
-    !opts.isCapturePaused() &&
-    (kind === "observe" || kind === "manual");
-  if (!follow) {
-    stopObservePointerCursorFollow({ remove: kind === "agent" });
-    return;
+    (kind === "observe" || kind === "manual")
+  ) {
+    try {
+      removeDemoCursor({ immediate: true });
+    } catch {
+      /* hang-safe */
+    }
   }
-  observeCursorUnbind = bindObservePointerCursorFollow({
-    shouldFollow: () =>
-      opts.isActive() &&
-      !opts.isSettling() &&
-      !opts.isCapturePaused() &&
-      (opts.getSessionKind() === "observe" ||
-        opts.getSessionKind() === "manual"),
-  });
 }
 
 export function unbindCaptureWatchBridge(): void {
@@ -83,7 +82,7 @@ export function unbindCaptureWatchBridge(): void {
 export function syncCaptureWatchBridge(opts: CaptureWatchBridgeOptions): void {
   unbindCaptureWatchBridge();
   if (!opts.isActive() || opts.isSettling()) {
-    syncObserveCursorFollow(opts);
+    syncUserDrivingCursorPolicy(opts);
     return;
   }
   captureWatchUnbind = bindAgentTestingCaptureWatch({
@@ -112,5 +111,5 @@ export function syncCaptureWatchBridge(opts: CaptureWatchBridgeOptions): void {
       });
     },
   });
-  syncObserveCursorFollow(opts);
+  syncUserDrivingCursorPolicy(opts);
 }

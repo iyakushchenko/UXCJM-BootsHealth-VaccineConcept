@@ -10,12 +10,14 @@ import {
   type McpConnectionStatus,
 } from "@/app/shell/agent-testing/agentTestingMcpStatus";
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
+import type { AgentControlKind } from "@/app/shell/agent-testing/agentTestingControlKind";
 
 export type McpChromeLiveInput = {
   active: boolean;
   settling: boolean;
   sessionKind: AgentTestingSessionKind;
   awaitingReply: boolean;
+  agentControlKind?: AgentControlKind | null;
   gateOpen: boolean;
   overlayDomVisible: boolean;
   rootId: string;
@@ -41,6 +43,7 @@ export function deriveLiveMcpStatus(input: McpChromeLiveInput): McpConnectionSta
     overlayActive: live,
     sessionKind: live ? input.sessionKind : "manual",
     awaitingReply: live ? input.awaitingReply : false,
+    agentControlKind: live ? input.agentControlKind ?? null : null,
   });
 }
 

@@ -768,6 +768,9 @@ export function ChatScreen({
   /**
    * Scroll: never snap mid pull-up (layoutY JUMP vs Motion). Thinking→reply
    * + progressive reveal defer to post settle only.
+   *
+   * Under scenarioReveal (CJM Play/SF): do **not** instant-snap here.
+   * Instant snap + eased settle = visible stutter. Settle camera owns the move.
    */
   const prevThinkingModeRef = useRef(thinking.mode);
   useLayoutEffect(() => {
@@ -791,22 +794,14 @@ export function ChatScreen({
       });
       return;
     }
-    const max = Math.max(0, column.scrollHeight - column.clientHeight);
-    if (column.scrollTop < max) {
-      const scrollBefore = column.scrollTop;
-      // Camera SSoT — target last revealed frame / thinking (not raw max pin).
-      scrollChatCamera(column, { instant: true, align: "end" });
-      const delta = column.scrollTop - scrollBefore;
-      if (delta !== 0) {
-        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
-          tag: "reveal-snap",
-          delta,
-          visibleCount: revealedFrameCount,
-          scrollTop: column.scrollTop,
-          scrollMax: max,
-        });
-      }
-    }
+    // CJM progressive reveal — skip instant snap (settle ease below owns camera).
+    console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+      tag: "reveal-snap-skipped-settle-owns",
+      delta: 0,
+      visibleCount: revealedFrameCount,
+      scrollTop: column.scrollTop,
+      scrollMax: Math.max(0, column.scrollHeight - column.clientHeight),
+    });
   }, [
     scenarioReveal.active,
     revealedFrameCount,
@@ -871,8 +866,9 @@ export function ChatScreen({
         if (clearPx == null || clearPx >= 16) return;
         const max = Math.max(0, column.scrollHeight - column.clientHeight);
         if (column.scrollTop >= max - 2) return;
+        // Instant top-up only — second ease after settle = visible stutter.
         scrollCameraToHostEnd(column, {
-          instant: false,
+          instant: true,
           reason: `composer clearance top-up (clearPx=${Math.round(clearPx)})`,
         });
         console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {

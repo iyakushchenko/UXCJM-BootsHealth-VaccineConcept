@@ -197,6 +197,7 @@ function compactDiagEvent(ev: unknown): Record<string, unknown> | null {
       layoutY: b.layoutY ?? null,
       deltaY: b.deltaY ?? null,
       deltaTransformY: b.deltaTransformY ?? null,
+      scrollTop: b.scrollTop ?? null,
       shouldAnimate: b.shouldAnimate ?? null,
       visibleCount: b.visibleCount ?? null,
       jump: b.jump === true,

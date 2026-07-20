@@ -3,6 +3,13 @@
  * Overlay supplies session mutators via deps — hang-safe.
  */
 
+import {
+  beginFailHandoff,
+  clearFailHandoff,
+  confirmAgentFailTakeover,
+  isFailHandoffPending,
+  peekFailHandoff,
+} from "@/app/shell/agent-testing/agentTestingFailHandoff";
 import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
 import { getOpenDiagnosticFlash } from "@/app/shell/playbackDiagnosticFlash";
 import { latchPoSignal } from "@/app/shell/agent-testing/agentTestingPoSignal";
@@ -114,15 +121,42 @@ export function onPlaybackDiagnosticOpened(
   error: PlaybackDiagnosticError
 ): void {
   deps.setDiagnosticBlocking(true);
-  pauseCaptureAndHalt(
-    deps,
-    "diagnostic-open",
-    `control-room · Alarm red / diagnostic — ${
-      error.message.length > 80
-        ? `${error.message.slice(0, 78)}…`
-        : error.message
-    }`
-  );
+  beginFailHandoff({
+    reason: "diagnostic-open",
+    pause: (r) =>
+      pauseCaptureAndHalt(
+        deps,
+        r,
+        `control-room · Alarm red / diagnostic — ${
+          error.message.length > 80
+            ? `${error.message.slice(0, 78)}…`
+            : error.message
+        }`
+      ),
+    log: (label, outcome) =>
+      deps.pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label,
+        outcome: outcome ?? "fail",
+        kind: "fail-handoff",
+      }),
+  });
+  try {
+    deps.pushLogEntry({
+      atMs: Date.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: `playback-diag · DIAGNOSTIC — ${
+        error.message.length > 100
+          ? `${error.message.slice(0, 98)}…`
+          : error.message
+      }`,
+      outcome: "fail",
+      kind: "playback-diag",
+    });
+  } catch {
+    /* hang-safe */
+  }
   try {
     latchPoSignal({
       type: "diagnostic",
@@ -135,6 +169,46 @@ export function onPlaybackDiagnosticOpened(
     /* hang-safe */
   }
 }
+
+/** Agent handshake after FAIL handoff — call from consume/touch/handoff. */
+export function confirmFailHandoffFromAgent(
+  deps: QaListenDeps,
+  source: string
+): boolean {
+  if (!isFailHandoffPending()) return false;
+  return confirmAgentFailTakeover({
+    source,
+    log: (label, outcome) =>
+      deps.pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label,
+        outcome: outcome ?? "ok",
+        kind: "fail-handoff",
+      }),
+  });
+}
+
+export function clearFailHandoffFromSession(deps?: QaListenDeps): void {
+  clearFailHandoff(
+    deps
+      ? {
+          log: (label, outcome) =>
+            deps.pushLogEntry({
+              atMs: Date.now(),
+              timeLabel: new Date().toLocaleTimeString("en-GB", {
+                hour12: false,
+              }),
+              label,
+              outcome: outcome ?? "ok",
+              kind: "fail-handoff",
+            }),
+        }
+      : undefined
+  );
+}
+
+export { peekFailHandoff, isFailHandoffPending };
 
 export function focusMessageInput(
   rootId: string,

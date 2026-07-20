@@ -109,7 +109,20 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Full chat bubble motion (restartable):** `await window.__studioRunChatBubbleMotionSelfTest?.()` — opens QA, SF agentic q0…r3, asserts samples / thinking-handoff / jumps=0. See [SELF_TEST.md](./SELF_TEST.md).
 
-**OBSERVE + REC dual-use:** StartRecording preserves observe. Observe/manual: demo cursor **follows pointer** while capturing. Session Beat = selected journey (rec-* catalog); STEPS frames show as `Steps` when different.
+**OBSERVE + REC dual-use:** StartRecording preserves observe. **Manual/observe = OS cursor only** — demo/robo cursor is hidden (no pointer-follow; PO dual-cursor FAIL). Robo cursor returns for agent CONTROL / CJM Play/SF. Session Beat = selected journey (rec-* catalog); STEPS frames show as `Steps` when different.
+
+### FAIL → agent takeover handshake (HARD)
+
+On PlaybackDiagnostic / Alarm / Bubble JUMP / FAIL:
+
+1. Progress **pauses immediately**
+2. QA log: `Caught error. Handing off to agent....`
+3. After **real** agent handshake (`touch` / `consumePoSignal` / `ackDiagnostic` / `__studioConfirmFailTakeover`): `Agent take over confirmed. In progress`
+4. Then: `Please wait... Agent will resume on completion`
+5. Agent investigates under CONTROL, then clears / resumes
+
+Never emit (3) without handshake. Module: `agentTestingFailHandoff.ts`.
+
 
 **Session finale:** before teardown call `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` system line. Self-test smoke appends this automatically.
 
@@ -131,7 +144,20 @@ Agents **must** cross-check the same session:
 
 Mismatch = desync — fix bridge, do not trust vibes. See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § QA bridge.
 
-**Architect (PO 2026-07-20):** Prefer QA dump/ring over the diagnostic **popup** for agents. Popup stays for PO eyes; agents ingest via Save Log / `__studioConsumePlaybackDiagnostic` (dismisses modal + latch). Do **not** rebuild two monitors.
+**Architect (PO 2026-07-20 / hardened):** **One monitor.** While QA gate/agent session is open, PlaybackDiagnostic lands **in the QA log** (fail row + ring + dump `diagnosticFlashes`) and **does not** open the blocking modal. Halt + latch still fire; PO/agent **Ack diag** in the overlay (or `__studioConsumePlaybackDiagnostic`). Modal remains **PO-only when QA is closed**. Do **not** rebuild two monitors.
+
+**Sitrep Keep open:** DONE sitrep shows `Auto-closes in Ns` + **Keep open** link — cancels countdown so PO does not lose log context.
+
+### Two agent CONTROL kinds (not a third sessionKind)
+
+Under `sessionKind: agent` only — derived from CJM on/off (no soup):
+
+| `agentControlKind` | When | Status label |
+|--------------------|------|--------------|
+| **playback** | CJM cassette on (Play/SF/director) | `AGENT — CONTROL · PLAYBACK` |
+| **manual** | CJM off — free exploration / QA latch | `AGENT — CONTROL · MANUAL` |
+
+Not the same as `sessionKind: manual` (bug-icon free logger). Module: `agentTestingControlKind.ts`.
 
 ### QA latch status (not Cursor MCP)
 
@@ -143,9 +169,9 @@ Primary: **lean muted status line** under Message/Send with a **live connection 
 |-------|-------|-------|----------|
 | STARTING | `AGENT — STARTING` | pulse cool | — |
 | READY | `AGENT — READY` | pulse cool (brief) | — |
-| CONTROL | `AGENT — CONTROL` | bright green | **10px gold** |
+| CONTROL | `AGENT — CONTROL` (+ `· PLAYBACK` / `· MANUAL`) | bright green | **10px gold** |
 | OBSERVE | `AGENT — OBSERVE` | fuchsia | — |
-| CONTROL · PENDING | `AGENT — CONTROL · PENDING` | blue pulse | **10px blue** |
+| CONTROL · PENDING | `AGENT — CONTROL · PENDING` (+ kind) | blue pulse | **10px blue** |
 | ERROR | `AGENT — ERROR: …` | red | **10px red** |
 | Idle / closed | hidden | off | none |
 

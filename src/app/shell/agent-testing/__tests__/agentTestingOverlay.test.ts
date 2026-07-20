@@ -15,6 +15,7 @@ import {
   forceClearAgentTestingOverlay,
   formatPreArmHint,
   formatSitrepHint,
+  formatSitrepHeldHint,
   formatSitrepTitle,
   IDLE_MS,
   installAgentTestingOverlayApi,
@@ -355,6 +356,10 @@ describe("agentTestingOverlay", () => {
       "FAIL - Auto-closes in 9s (then reload)"
     );
     expect(formatSitrepHint(0, false)).toBe("Auto-closes in 0s");
+    expect(formatSitrepHeldHint()).toBe("Held open — Close when done");
+    expect(formatSitrepHeldHint("fail")).toBe(
+      "FAIL - Held open — Close when done"
+    );
     expect(formatSitrepTitle("pass")).toBe("AGENT DONE - PASS");
     expect(formatSitrepTitle("fail")).toBe("AGENT DONE - FAIL");
     expect(formatSitrepTitle("neutral")).toBe("AGENT DONE - SITREP");

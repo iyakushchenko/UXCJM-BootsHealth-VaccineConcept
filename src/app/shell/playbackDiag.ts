@@ -124,6 +124,7 @@ export type PlaybackDiagEvent = {
     layoutY?: number | null;
     deltaY?: number | null;
     deltaTransformY?: number | null;
+    scrollTop?: number | null;
     shouldAnimate?: boolean;
     visibleCount?: number | null;
     note?: string | null;
@@ -676,6 +677,7 @@ export function playbackDiagChatBubbleMotion(options: {
   opacity?: number | null;
   layoutY?: number | null;
   deltaY?: number | null;
+  scrollTop?: number | null;
   shouldAnimate?: boolean;
   visibleCount?: number | null;
   note?: string | null;
@@ -749,6 +751,7 @@ export function playbackDiagChatBubbleMotion(options: {
     layoutY: options.layoutY ?? null,
     deltaY,
     deltaTransformY,
+    scrollTop: options.scrollTop ?? null,
     shouldAnimate: options.shouldAnimate ?? true,
     visibleCount: options.visibleCount ?? null,
     note: options.note ?? skippedNote,
@@ -797,6 +800,15 @@ export function playbackDiagChatBubbleMotion(options: {
           : phase === "animate-end"
             ? `Bubble ${id} settle${skippedNote ? " · SKIP" : ""}`
             : `Bubble ${id} ${phase}`;
+    if (jump) {
+      try {
+        (
+          window as Window & { __studioBeginQaFailHandoff?: (r: string) => void }
+        ).__studioBeginQaFailHandoff?.("bubble-jump");
+      } catch {
+        /* hang-safe */
+      }
+    }
     try {
       appendQaDiagRing({
         kind: "chat-bubble-motion",

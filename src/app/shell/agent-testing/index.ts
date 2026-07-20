@@ -10,6 +10,9 @@ export {
   DEFAULT_PREARM_MS,
   resolveAgentTestingOverlayTitle,
   formatSitrepHint,
+  formatSitrepHeldHint,
+  holdSettleOpen,
+  acknowledgeQaPlaybackDiagnostic,
   formatSitrepTitle,
   clampPreArmMs,
   formatPreArmHint,
@@ -99,6 +102,13 @@ export {
 } from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 
 export { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
+
+export {
+  deriveAgentControlKind,
+  formatAgentControlKindSuffix,
+  isCjmCassetteOn,
+  type AgentControlKind,
+} from "@/app/shell/agent-testing/agentTestingControlKind";
 
 export {
   getSessionKind,

@@ -47,7 +47,7 @@ window.__studioForceClearAgentTestingOverlay?.()
 |----|-------|--------------|
 | observe-open-capture | Y | Observe → Observing + MCP OBSERVE |
 | observe-page-click-log | Y | Dense clicks → one row each (no ×N coalesce) |
-| observe-pointer-follow | Y | Demo cursor tracks mousemove while observe+capturing |
+| observe-pointer-follow | N | **Retired** — manual/observe = OS cursor only (no dual robo follow) |
 | observe-alarm-escalate | Y | Alarm → agent + latch |
 | observe-unlock | Y | unlockObserve → observe |
 | ask-pending-reply | Y | Ask → PENDING; Message/Send → Reply + not PENDING; **stays paused** + latch `USER_MESSAGE_RECEIVED` (consume before Resume) |

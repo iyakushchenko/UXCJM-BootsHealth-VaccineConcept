@@ -574,9 +574,51 @@
 
 .studio-agent-testing-overlay__hint {
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
   font-size: 11px;
   line-height: 1.35;
   color: #b8bcc4;
+}
+
+.studio-agent-testing-overlay__hint-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.studio-agent-testing-overlay__keep-open {
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--uxds-text-text-link, #4d8dff);
+  text-decoration: underline;
+}
+
+.studio-agent-testing-overlay__keep-open[hidden] {
+  display: none !important;
+}
+
+.studio-agent-testing-overlay__diag-ack {
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 120, 100, 0.55);
+  background: rgba(90, 28, 24, 0.85);
+  color: #ffc9c0;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studio-agent-testing-overlay__diag-ack[hidden] {
+  display: none !important;
 }
 
 .studio-agent-testing-overlay__activity {
