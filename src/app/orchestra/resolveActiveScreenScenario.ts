@@ -45,6 +45,20 @@ export function resolveActiveScreenScenario(options: {
     }
   }
 
+  // Avail overlay beats open ON chat — keep site-pilot-chat scenario alive so
+  // the thread is not torn down (active→false → visibleCount 0 / bridge wipe).
+  if (
+    beat?.kind === "overlay" &&
+    Boolean(beat.availScript) &&
+    currentChildIndex != null
+  ) {
+    const underlay = getProtoScenarioForChildIndex(
+      scenarioScreens,
+      currentChildIndex
+    );
+    if (underlay?.id === "site-pilot-chat") return underlay;
+  }
+
   if (browseMode && currentChildIndex != null) {
     return getProtoScenarioForChildIndex(scenarioScreens, currentChildIndex);
   }

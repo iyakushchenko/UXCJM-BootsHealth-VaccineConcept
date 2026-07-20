@@ -47,6 +47,16 @@ describe("chatScenarioRevealBridge", () => {
     expect(resolveChatRevealedFrameCount(8, 8, 1)).toBe(8);
   });
 
+  it("inactive hold keeps prior visibleCount (avail overlay underlay)", () => {
+    publishChatScenarioReveal({ active: true, visibleCount: 7 });
+    publishChatScenarioReveal({ active: false, visibleCount: 7 });
+    expect(getChatScenarioRevealState()).toEqual({
+      active: false,
+      visibleCount: 7,
+    });
+    expect(resolveChatRevealedFrameCount(7, 8, 1)).toBe(7);
+  });
+
   it("holds agent reply paint while playback thinking is anchored", () => {
     const thinking = { mode: "playback", anchorFrameId: "r0" };
     expect(isChatReplyHeldForPlaybackThinking("r0", thinking)).toBe(true);

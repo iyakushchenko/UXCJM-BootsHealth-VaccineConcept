@@ -62,4 +62,21 @@ describe("resolveActiveScreenScenario", () => {
     });
     expect(scenario?.id).toBe("site-pilot-chat");
   });
+
+  it("keeps site-pilot-chat under avail overlay when still on chat child", () => {
+    const availBeatIndex = AGENTIC_CJM_JOURNEY.beats.findIndex(
+      (b) => b.id === "avail-continue"
+    );
+    const scenario = resolveActiveScreenScenario({
+      hubOpen: false,
+      modeId: "agentic-cjm",
+      beatIndex: availBeatIndex,
+      currentTabIndex: studioTabToIndex(2),
+      currentChildIndex: 10,
+      journeys: [AGENTIC_CJM_JOURNEY],
+      scenarioScreens: BOOTS_PHARMACY_SCENARIO_SCREENS,
+      studioTabToIndex,
+    });
+    expect(scenario?.id).toBe("site-pilot-chat");
+  });
 });
