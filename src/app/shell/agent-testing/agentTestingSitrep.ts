@@ -3,6 +3,7 @@ import {
   getControlPanelSnapshot,
   type ControlPanelSnapshot,
 } from "@/app/shell/controlPanelLog";
+import { parseStudioUrl } from "@/app/shell/studioUrl";
 
 function pickString(
   snap: ControlPanelSnapshot | null | undefined,
@@ -59,7 +60,11 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
   } else if (journeyId) {
     cjm = journeyId;
   }
-  const screenId = pickString(snap, ["screenId", "screen"]) ?? undefined;
+  const screenId =
+    pickString(snap, ["screenId", "screen"]) ??
+    (typeof window !== "undefined" && window.location?.search
+      ? parseStudioUrl(window.location.search).screenId ?? undefined
+      : undefined);
   const beatId = pickString(snap, ["beatId", "beatLabel"]) ?? undefined;
   const touchpointKey =
     pickString(snap, ["touchpointKey", "touchpointLabel"]) ?? undefined;
@@ -78,11 +83,14 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
     counter = pickString(snap, ["scenarioProgress", "counter"]);
   }
 
+  /** Session bar = mid-flight brain (no console). Include screen always; beat when CJM. */
   const sessionParts = [
     mode ? `Mode ${shortId(mode, 20)}` : null,
     projectId ? `Project ${shortId(projectId, 22)}` : null,
     personaId ? `Persona ${shortId(personaId, 22)}` : null,
     cjm ? `CJM ${shortId(cjm, 24)}` : null,
+    screenId ? `Screen ${shortId(screenId, 22)}` : null,
+    snap?.journeyMode === true && counter ? `Beat ${counter}` : null,
   ].filter(Boolean);
 
   const sessionLine =
@@ -92,8 +100,7 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
 
   const dumpParts = [
     ...sessionParts,
-    screenId ? `screen ${screenId}` : null,
-    counter ? `beat ${counter}` : null,
+    snap?.journeyMode !== true && counter ? `beat ${counter}` : null,
     beatId ? beatId : null,
     touchpointKey ? `tp ${touchpointKey}` : null,
     experience && experience !== mode ? `exp ${experience}` : null,

@@ -62,6 +62,19 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "WaitAgentTeardownClean",
 ]);
 
+/**
+ * Product REC helpers — log + soft-arm, but never wipe observe/manual → agent.
+ * Dual-use: OBSERVE/MANUAL capture while recording a real CJM.
+ */
+const PRESERVE_LOGGER_HELPER_SUFFIXES = new Set([
+  "StartRecording",
+  "StopRecording",
+  "PauseRecording",
+  "ResumeRecording",
+  "SaveRecordingAsJourney",
+  "ClearRecording",
+]);
+
 const ARMED_FLAG = "__studioOverlayArmed";
 const STUDIO_WINDOW_API = /^__(?:proto|studio)[A-Z]/;
 
@@ -79,7 +92,12 @@ function wrapHelper(suffix: string, fn: (...args: unknown[]) => unknown) {
   if ((fn as { [ARMED_FLAG]?: boolean })[ARMED_FLAG]) return fn;
   const wrapped = (...args: unknown[]) => {
     // Clean title only — structured helper row (coalesces transport spam).
-    touchAgentTestingOverlay();
+    touchAgentTestingOverlay(
+      undefined,
+      PRESERVE_LOGGER_HELPER_SUFFIXES.has(suffix)
+        ? { preserveLogger: true }
+        : undefined
+    );
     try {
       logAgentTestingHelper(suffix);
     } catch {

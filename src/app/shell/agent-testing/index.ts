@@ -20,6 +20,7 @@ export {
   ensureAgentTestingOverlayDomArmed,
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
+  downloadCurrentAgentTestingLog,
   logAgentTestingOverlay,
   logAgentTestingStep,
   logAgentTestingHelper,

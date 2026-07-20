@@ -70,7 +70,9 @@ window.__studioForceClearAgentTestingOverlay?.()
 
 **Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12).
 
-**Save Log:** disabled while capturing — Pause first. **Reset:** disabled until log dirty. Empty Message does not append.
+**Save Log:** disabled while capturing — Pause first. Downloads a **fresh current-session** dump (`reason: manual`, live `log[]` + `sessionKind` + `mcp`) — **not** the last Alarm stash. **Reset:** disabled until log dirty. Empty Message does not append.
+
+**OBSERVE + REC dual-use:** `__studioStartRecording` / Stop / SaveRecordingAsJourney soft-arm with `preserveLogger` — do **not** wipe observe/manual → agent. Session bar always shows `Screen` (+ `Beat` when CJM on).
 
 **Refresh mid-CONTROL:** gate persist stores `sessionKind` + `awaitingReply`; boot reopens agent CONTROL (not manual) and re-arms PENDING when awaiting.
 

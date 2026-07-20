@@ -66,13 +66,18 @@ window.__studioPeekPoSignal?.() / __studioConsumePoSignal?.()
 | rec-xor-keeps-overlay | Y | REC toggle leaves overlay `active` |
 | empty-message-noop | N | Whitespace Message → no row |
 | bug-toggle-observe-noop | Y | `__studioToggleQaLogger` while observe → stays open |
+| observe-rec-preserve | Y | Open observe → `__studioStartRecording` → kind stays `observe` (no wipe→agent) |
+| save-log-current-session | Y | Pause → Save Log / `__studioDownloadAgentTestingDump` → dump `reason:manual`, `log[]` matches overlay rows (not stale Alarm) |
+| session-line-screen | Y | Session bar includes `Screen <id>` (URL fallback); CJM on → `Beat n/N` |
+| dual-use-cjm-play | Y | Record PLP→PDP → Add as CJM → ApplyJourney + Play while OBSERVE — clicks + `Screen →` in log |
 
 ---
 
 ## Exhaustion / confidence
 
 Re-run **different** dual-role waves until last 2–3 waves find only nits.  
-Known nits (not trust-breakers): Studio nav clicks omitted from capture log; CONNECTING/CONNECTED flash before OBSERVE/CONTROL settle (~0.8s).
+Known nits (not trust-breakers): Studio nav clicks omitted from capture log; CONNECTING/CONNECTED flash before OBSERVE/CONTROL settle (~0.8s).  
+**Dual-use residuals (gap report):** Session Beat counter may show orchestra `n/11` while a short imported CJM has 3 beats; dump click rows are label-only (no selector); Alarm row duration can look absurd after long pause/resume clocks.
 
 ```js
 const r = await window.__studioRunQaSelfTestSmoke?.()

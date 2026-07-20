@@ -81,6 +81,7 @@ import {
   consoleSeparator,
   downloadAgentTestingDump,
   pushAgentTestingDump,
+  type AgentTestingDump,
 } from "@/app/shell/agent-testing/agentTestingDump";
 import {
   clearPoSignal,
@@ -503,7 +504,7 @@ function saveDump(
     poSignal?: AgentTestingPoSignal | null;
     agentPrompt?: string;
   }
-): void {
+): AgentTestingDump | null {
   try {
     const dump = buildAgentTestingDump({
       reason,
@@ -520,6 +521,22 @@ function saveDump(
       poSignal: extras?.poSignal ?? peekPoSignal(),
       gateMode: getSessionKind(),
       capturePaused,
+      mcp: (() => {
+        try {
+          const s = deriveMcpConnectionStatus({
+            sessionKind: getSessionKind(),
+            overlayActive: active,
+            awaitingReply: isAwaitingUserReply(),
+          });
+          return {
+            phase: s.phase,
+            label: s.label,
+            pendingMsLeft: s.pendingMsLeft ?? null,
+          };
+        } catch {
+          return undefined;
+        }
+      })(),
     });
     pushAgentTestingDump(dump);
     console.info(
@@ -529,9 +546,24 @@ function saveDump(
       dump.atIso,
       "— primary: window.__studioConsumePoSignal() · dump: __studioDownloadAgentTestingDump()"
     );
+    return dump;
   } catch {
     /* never block overlay */
+    return null;
   }
+}
+
+/**
+ * Save Log / agent parse — always the **current** session (not a stale Alarm dump).
+ * Pushes to last-N store then downloads that payload.
+ */
+export function downloadCurrentAgentTestingLog(): boolean {
+  if (!active && logEntries.length === 0) {
+    return downloadAgentTestingDump();
+  }
+  const dump = saveDump("manual");
+  if (!dump) return false;
+  return downloadAgentTestingDump(dump);
 }
 
 /**
@@ -1489,7 +1521,7 @@ function ensureOverlayChrome(root: HTMLElement): void {
     dumpBtn.title = "Download lean dump JSON when paused or idle";
     dumpBtn.addEventListener("click", () => {
       if (isCaptureInProgress()) return;
-      downloadAgentTestingDump();
+      downloadCurrentAgentTestingLog();
     });
     headerActions.appendChild(dumpBtn);
   } else if (strayDump && strayDump !== dumpBtn) {
@@ -1720,7 +1752,7 @@ function ensureRoot(): HTMLElement | null {
     .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dump")
     ?.addEventListener("click", () => {
       if (isCaptureInProgress()) return;
-      downloadAgentTestingDump();
+      downloadCurrentAgentTestingLog();
     });
   // Last child of body - paint above #root concept lightboxes.
   (document.body ?? document.documentElement).appendChild(root);
@@ -2335,18 +2367,40 @@ export function stopAgentTestingOverlay(
   }
 }
 
+export type TouchAgentTestingOverlayOptions = {
+  /**
+   * Keep open manual/observe logger (no wipe→agent). Use for product REC helpers
+   * so OBSERVE+REC dual-use does not steal the capture session.
+   */
+  preserveLogger?: boolean;
+};
+
 /**
  * Ensure the BR panel is visible while an agent drives the tab.
  * Safe to call on every helper / DevTools evaluate - does not bump nest.
  * Default handoff: if manual/observe open without oversee → wipe → agent.
+ * `preserveLogger: true` → note activity only (REC / soft product helpers).
  */
-export function touchAgentTestingOverlay(title?: string): void {
+export function touchAgentTestingOverlay(
+  title?: string,
+  options?: TouchAgentTestingOverlayOptions
+): void {
   openQaDiagGate({ reason: "overlay-touch" });
   if (settling) {
     abandonSettleForRearch();
   }
   const kind = getSessionKind();
   if (active && (kind === "manual" || kind === "observe")) {
+    if (options?.preserveLogger) {
+      noteActivity();
+      if (!isAgentTestingOverlayDomVisible()) {
+        ensureAgentTestingOverlayDomArmed(
+          resolveAgentTestingOverlayTitle(title)
+        );
+      }
+      syncSessionChrome();
+      return;
+    }
     // Default connect without explicit oversee = wipe + agent lock.
     applyQaHandoff({ oversee: false, title });
     return;
@@ -2968,7 +3022,7 @@ export function installAgentTestingOverlayApi(): void {
     consumePoSignal,
     setTimeline: setAgentTestingTimeline,
     markTimeline: markAgentTestingTimeline,
-    downloadDump: () => downloadAgentTestingDump(),
+    downloadDump: () => downloadCurrentAgentTestingLog(),
     isActive: isAgentTestingOverlayActive,
   };
   bindOverlayApi(api);
@@ -2976,8 +3030,10 @@ export function installAgentTestingOverlayApi(): void {
   installPoSignalPlaybackHaltWindowApis();
   ensureMcpPendingHandler();
   if (typeof window !== "undefined") {
-    window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
-    window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
+    window.__studioDownloadAgentTestingDump = () =>
+      downloadCurrentAgentTestingLog();
+    window.__protoDownloadAgentTestingDump = () =>
+      downloadCurrentAgentTestingLog();
     window.__studioForceClearAgentTestingOverlay = () =>
       forceClearAgentTestingOverlay();
     window.__protoForceClearAgentTestingOverlay = () =>

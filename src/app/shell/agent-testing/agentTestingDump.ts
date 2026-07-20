@@ -93,6 +93,12 @@ export type AgentTestingDump = {
   ring?: Array<Record<string, unknown>>;
   /** Last-N control-panel rows (lean). */
   controlPanel?: unknown[];
+  /** MCP connection phase at dump time — agents need this without console. */
+  mcp?: {
+    phase: string;
+    label: string;
+    pendingMsLeft?: number | null;
+  };
 };
 
 function safeJsonParse(raw: string | null): AgentTestingDump[] {
@@ -166,6 +172,8 @@ export function buildAgentTestingDump(options: {
   gateMode?: AgentTestingDumpGateMode;
   capturePaused?: boolean;
   agentPrompt?: string;
+  /** Live MCP status — omit only in unit tests without overlay. */
+  mcp?: AgentTestingDump["mcp"];
 }): AgentTestingDump {
   let recentPlaybackDiagEvents: AgentTestingDump["recentPlaybackDiagEvents"];
   let summaries: AgentTestingDump["summaries"];
@@ -274,6 +282,7 @@ export function buildAgentTestingDump(options: {
     })),
     ring,
     controlPanel,
+    mcp: options.mcp,
   };
 }
 
