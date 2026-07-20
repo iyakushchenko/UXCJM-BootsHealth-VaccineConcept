@@ -3,15 +3,19 @@
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
 ## v0.0.48 - 200726
-- **shell:** CJM retreat: agentic avail list closes overlay before beat change; suppress touchpoint-ahead Alarm during retreatSync; home sync clears sticky avail
+- **shell:** CJM retreat: agentic avail list closes overlay before beat change (was jumping to chat/home while Choose Pharmacy stayed open)
+- **shell:** Suppress touchpoint-ahead-of-beat Alarm during retreatSync/scripting (one-tick wire/URL lag)
+- **shell:** Home retreat sync clears sticky Availability / popups (`sarah-query-submit` path)
+- **shell:** Checkpoint `checkpoint-2026-07-20` — tip ships nav-above-modals + chat thinking/STEPS/avail-hold wave + traditional REC disk prove
 
 ## v0.0.47 - 200726
-- **shell:** Studio nav chrome z-index above avail/diagnostic lightboxes; agent-testing capture clears nav band so Step/Play/REC stay clickable
+- **shell:** Studio nav chrome z-index `11000` above avail/diagnostic lightboxes (`.studio-nav-panel-host`)
+- **shell:** Agent-testing capture hole clears nav band; `#root` pe:none no longer blocks Step/Play/REC
 
 ## v0.0.46 - 200726
 - **project:** Chat: thinking LEFT before every agent reply; restore after Motion layout thrash
-- **shell:** Playlist: one SF = one STEPS frame (drop :thinking playlist slots that jumped #2→#4)
-- **project:** Chat: user bubble enter uses shared CHAT_PULL_UP opacity+y (air ease, no height stepping)
+- **shell:** Playlist: one SF = one STEPS frame (drop `:thinking` playlist slots that jumped #2→#4)
+- **project:** Chat: user bubble enter uses shared `CHAT_PULL_UP` opacity+y (air ease, no height stepping)
 - **project:** Chat: keep full thread painted under avail overlay (hold scenario + reveal bridge)
 - **shell:** Playback: chat column bottom-pin only — stop tall-bubble scroll-reversal Alarms
 
