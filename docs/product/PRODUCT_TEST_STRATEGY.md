@@ -70,11 +70,11 @@ Run lean cells first (★). Expand when ★ green.
 
 ```
 Date: 2026-07-20
-Tip: (see ship)
-Gate: QA self-test PASS (12/12) | bubble PASS (jumps=0) | leftover modal PASS
-Matrix: M3 Pause PASS · Save Log sitrep PASS · (M1 observe optional expand next wave)
-PP closed/updated: PP-17…20,23…27 COMPLETE; PP-13/15/16/21/22 WATCH
-Blockers: none for Phase 0/1 trust gate
+Tip: (see ship v0.0.92)
+Gate: QA self-test PASS (12/12) | bubble PASS | leftover modal PASS | MCP lean filter PASS
+Matrix: M1–M8 ALL PASS (observe/agent/manual · agentic/trad · CJM on/off · SF/Play · REC XOR · book-step-1)
+PP: PP-17…20,23…28 COMPLETE; PP-13/15/16/21/22 WATCH with retest evidence
+Blockers: none
 ```
 
 ---

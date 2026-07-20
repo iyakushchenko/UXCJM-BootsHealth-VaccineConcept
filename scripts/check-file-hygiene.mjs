@@ -31,7 +31,7 @@ const ALLOWLIST = {
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 2010, // + recordedClick SF/Play wiring; core play in recordedClickPlayback.ts
-  "src/app/App.tsx": 2090, // quiet diagnostic dismiss sources for QA session wipe
+  "src/app/App.tsx": 2100, // stopAllPlayback window mirror + quiet diag dismiss
   "src/app/shell/agent-testing/agentTestingOverlay.ts": 3500, // QA action sitrep rows + stale diag dismiss on wipe
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth

@@ -56,7 +56,7 @@ window.__studioForceClearAgentTestingOverlay?.()
 | pending-typing-extends | Y | AskUser → focus/type Message → log `user-typing` + pending deadline extends |
 | message-draft-focus | Y | Open QA → Message focused; type draft → refresh → draft restored + focus |
 | diag-blocks-play | Y | Diagnostic open → QA pause + Play ignored + latch `PLAYBACK_DIAGNOSTIC_OPEN` |
-| mcp-phase-timeline | Y | Agent open → log `MCP · … → CONTROL` (or CONNECTING→…); AskUser → PENDING row |
+| mcp-phase-timeline | Y | Agent open → **no** CONNECTING/CONNECTED spam in log; AskUser → `MCP · … → PENDING`; diode still shows CONTROL |
 | priority-hints-dump | Y | Save Log after Pause/Message → `priorityHints[]` cause-before-symptom |
 | handoff-oversee-keeps-note | Y | oversee keeps note |
 | handoff-wipe-clears-note | Y | wipe clears note |

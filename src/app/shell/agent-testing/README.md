@@ -88,7 +88,17 @@ When PO **Send**s a Message (or Reply) mid-flight:
 
 **Playback diagnostic open:** QA pauses, latches `PLAYBACK_DIAGNOSTIC_OPEN`, logs control-room Alarm-red sitrep, blocks Play until Ack/`__studioConsumePlaybackDiagnostic`.
 
-**MCP phase changes:** logged as `MCP · prev → PHASE` in the timeline (CONNECTING/CONTROL/OBSERVE/PENDING/ERROR).
+**MCP phase changes (lean filter — HARD):** diode + status line under Message = live SSoT for CONNECTING/CONNECTED/CONTROL.  
+Visible chat log **does not** spam flash transitions. Log only:
+
+| Log to chat? | Phase / event |
+|--------------|---------------|
+| NO | CONNECTING · CONNECTED · first settle to CONTROL/OBSERVE · idle |
+| YES | ERROR · PENDING start · CONTROL↔OBSERVE kind switch · leave ERROR |
+| NO (dup) | PENDING leave — Reply / timeout rows already cover it |
+
+Code: `shouldLogMcpPhaseToChat` in `agentTestingQaListenBridge.ts`.  
+Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meaningful events, less chrome.
 
 **Vite HMR:** on `vite:beforeUpdate`, QA pauses capture/play and logs `vite-hmr` (lean).
 

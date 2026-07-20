@@ -227,6 +227,45 @@ export function installViteHmrListen(deps: QaListenDeps): void {
   }
 }
 
+/**
+ * MCP phase → visible QA chat filter (HARD).
+ * Diode + status line under Message already show live CONNECTING/CONNECTED/CONTROL.
+ * Chat log only gets **meaningful** transitions — never flash spam.
+ *
+ * Log YES: ERROR · PENDING enter · CONTROL↔OBSERVE kind switch · leave ERROR
+ * Log NO: CONNECTING · CONNECTED · first settle to CONTROL/OBSERVE · idle
+ */
+export function shouldLogMcpPhaseToChat(
+  prevPhase: string,
+  nextPhase: string
+): boolean {
+  const prev = (prevPhase || "").toLowerCase();
+  const next = (nextPhase || "").toLowerCase();
+  if (!next || next === "idle") return false;
+  if (next === "connecting" || next === "connected") return false;
+  if (next === prev) return false;
+
+  if (next === "error") return true;
+  if (prev === "error" && (next === "control" || next === "observe" || next === "pending")) {
+    return true; // recovered from ERROR
+  }
+  if (next === "pending") return true; // PENDING start
+  // PENDING leave is covered by Reply / timeout system rows — skip duplicate MCP row
+  if (prev === "pending") return false;
+
+  // Kind change only (observe ↔ control), not first land after flash
+  const stablePrev =
+    prev === "control" || prev === "observe" ? prev : null;
+  if (
+    (next === "control" || next === "observe") &&
+    stablePrev &&
+    stablePrev !== next
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function maybeLogMcpPhaseChange(
   deps: QaListenDeps,
   input: {
@@ -237,35 +276,37 @@ export function maybeLogMcpPhaseChange(
   }
 ): void {
   const phase = input.phase ?? "";
-  if (
-    deps.isActive() &&
-    phase &&
-    phase !== "idle" &&
-    phase !== input.lastLoggedPhase
-  ) {
+  if (!deps.isActive()) {
+    if (phase === "idle") input.setLastLoggedPhase("");
+    return;
+  }
+
+  if (phase && phase !== "idle" && phase !== input.lastLoggedPhase) {
     const prev = input.lastLoggedPhase || "—";
+    const shouldLog = shouldLogMcpPhaseToChat(prev, phase);
+    // Always advance memory so we don't re-evaluate flash spam.
     input.setLastLoggedPhase(phase);
-    const outcome =
-      phase === "error" ? "fail" : phase === "pending" ? "soft-fail" : "ok";
-    deps.pushLogEntry({
-      atMs: Date.now(),
-      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-      label: `MCP · ${prev} → ${phase.toUpperCase()}${
-        input.label ? ` (${input.label})` : ""
-      }`,
-      outcome,
-      kind: "system",
-    });
-    if (phase === "error") {
-      try {
-        latchPoSignal({
-          type: "mcp",
-          code: "MCP_PHASE_CHANGE",
-          note: input.label || "MCP ERROR",
-          sitrepLine: deps.getLastSitrepLine(),
-        });
-      } catch {
-        /* hang-safe */
+    if (shouldLog) {
+      const outcome =
+        phase === "error" ? "fail" : phase === "pending" ? "soft-fail" : "ok";
+      deps.pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label: `MCP · ${formatMcpPhaseShort(prev)} → ${formatMcpPhaseShort(phase)}`,
+        outcome,
+        kind: "system",
+      });
+      if (phase === "error") {
+        try {
+          latchPoSignal({
+            type: "mcp",
+            code: "MCP_PHASE_CHANGE",
+            note: input.label || "MCP ERROR",
+            sitrepLine: deps.getLastSitrepLine(),
+          });
+        } catch {
+          /* hang-safe */
+        }
       }
     }
   } else if (phase === "idle") {
@@ -278,4 +319,16 @@ export function maybeLogMcpPhaseChange(
   } catch {
     /* ignore */
   }
+}
+
+function formatMcpPhaseShort(phase: string): string {
+  const p = (phase || "").toLowerCase();
+  if (!p || p === "—") return "—";
+  if (p === "pending") return "PENDING";
+  if (p === "error") return "ERROR";
+  if (p === "observe") return "OBSERVE";
+  if (p === "control") return "CONTROL";
+  if (p === "connecting") return "CONNECTING";
+  if (p === "connected") return "CONNECTED";
+  return p.toUpperCase();
 }

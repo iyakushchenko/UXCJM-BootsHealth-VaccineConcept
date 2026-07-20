@@ -19,43 +19,28 @@ export function registerPoSignalPlaybackHalt(fn: HaltFn | null): void {
 /**
  * Hard-stop cassette / scenario Play immediately.
  * Safe to call from overlay click handlers (sync, hang-safe).
+ *
+ * Do **not** fall back to `__studioTriggerTransport("play")` — that path is MCP-gated
+ * (`no-active-mcp-session`) and QA `shouldBlockPlay` can no-op while isPlaying stays true.
  */
 export function haltPlaybackForPoSignal(reason = "po-signal"): void {
-  let halted = false;
   try {
-    if (registeredHalt) {
-      registeredHalt();
-      halted = true;
-    }
+    registeredHalt?.();
   } catch {
     /* hang-safe */
   }
 
-  // Fallback if App has not registered yet (early click / tests).
-  // Prefer stop semantics: only toggle "play" when already playing (play toggles pause).
-  if (!halted) {
-    try {
-      if (typeof window !== "undefined") {
-        const w = window as Window & {
-          __protoStudioState?: () => {
-            isPlaying?: boolean;
-            isOnAir?: boolean;
-          };
-          __studioStudioState?: () => {
-            isPlaying?: boolean;
-            isOnAir?: boolean;
-          };
-          __protoTriggerTransport?: (action: "play") => boolean;
-          __studioTriggerTransport?: (action: "play") => boolean;
-        };
-        const state = w.__studioStudioState?.() ?? w.__protoStudioState?.();
-        if (state?.isPlaying) {
-          (w.__studioTriggerTransport ?? w.__protoTriggerTransport)?.("play");
-        }
-      }
-    } catch {
-      /* hang-safe */
+  // Belt: App also mirrors stop on window (survives HMR module split).
+  try {
+    if (typeof window !== "undefined") {
+      const w = window as Window & {
+        __studioStopAllPlayback?: () => void;
+        __protoStopAllPlayback?: () => void;
+      };
+      (w.__studioStopAllPlayback ?? w.__protoStopAllPlayback)?.();
     }
+  } catch {
+    /* hang-safe */
   }
 
   try {

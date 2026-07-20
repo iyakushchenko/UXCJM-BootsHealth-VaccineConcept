@@ -631,12 +631,23 @@ export default function App() {
 
   // PO overlay Alarm/Cursor/Scroll / diagnostic Cancel → halt Play same click turn.
   useEffect(() => {
-    registerPoSignalPlaybackHalt(() => {
+    const stop = () => {
       stopAllPlaybackRef.current();
       cancelDemoCursorTravel();
       cancelPlaybackScroll();
-    });
-    return () => registerPoSignalPlaybackHalt(null);
+    };
+    registerPoSignalPlaybackHalt(stop);
+    const w = window as Window & {
+      __studioStopAllPlayback?: () => void;
+      __protoStopAllPlayback?: () => void;
+    };
+    w.__studioStopAllPlayback = stop;
+    w.__protoStopAllPlayback = stop;
+    return () => {
+      registerPoSignalPlaybackHalt(null);
+      delete w.__studioStopAllPlayback;
+      delete w.__protoStopAllPlayback;
+    };
   }, []);
 
   useEffect(() => {
