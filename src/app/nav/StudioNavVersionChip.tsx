@@ -4,7 +4,7 @@ import { toggleAgentTestingLogger } from "@/app/shell/agent-testing/agentTesting
 /**
  * Sticky right chip on the page-tabs row — version + channel.
  * Amber BUG icon toggles MANUAL TEST logger (open / close+stop capture).
- * Disabled while an agent-locked mid-flight session owns the overlay.
+ * Small MCP hint (CTRL / OBS / PENDING) mirrors overlay status when agent online.
  */
 export function StudioNavVersionChip() {
   const release = getStudioRelease();
@@ -17,6 +17,12 @@ export function StudioNavVersionChip() {
       title={`UX Studio ${release.label} (${release.channel})`}
       aria-label={`UX Studio ${release.label}, ${release.channel} channel`}
     >
+      <span
+        className="studio-nav-version__mcp"
+        hidden
+        aria-live="polite"
+        data-studio-mcp-hint="true"
+      />
       <button
         type="button"
         className="studio-nav-version__qa"

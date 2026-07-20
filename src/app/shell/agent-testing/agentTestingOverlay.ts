@@ -63,6 +63,18 @@ import {
   type AgentTestingSessionKind,
 } from "@/app/shell/agent-testing/agentTestingSession";
 import {
+  armMcpPendingTimeout,
+  beginMcpConnecting,
+  clearMcpConnectionError,
+  clearMcpPending,
+  deriveMcpConnectionStatus,
+  getQaPendingTimeoutMs,
+  registerMcpPendingTimeoutHandler,
+  reportMcpConnectionError,
+  resetMcpStatusLatches,
+  type McpConnectionStatus,
+} from "@/app/shell/agent-testing/agentTestingMcpStatus";
+import {
   buildAgentTestingDump,
   consoleSeparator,
   downloadAgentTestingDump,
@@ -173,6 +185,8 @@ type OverlayApi = {
   unlockObserve: () => boolean;
   /** Clear log/ring/timer for a fresh manual session. */
   resetSession: () => void;
+  /** MCP connection status snapshot (CONTROL / OBSERVE / PENDING / …). */
+  mcpStatus: () => McpConnectionStatus;
   /** Append PO free-text note into log + dump ring. */
   appendPoNote: (text: string) => boolean;
   log: (line: string) => void;
@@ -384,6 +398,7 @@ function armElapsedTimer(): void {
     if (!active || settling) return;
     setElapsedLabel(formatElapsed(getElapsedMs()));
     refreshSitrepDom();
+    refreshMcpStatusDom();
     if (!capturePaused) {
       maybeAutoFlagCursorIssue();
       maybeAutoFlagScrollIssue();
@@ -1132,7 +1147,7 @@ function setQaSessionLock(mode: AgentTestingSessionKind | null): void {
   }
 }
 
-/** Sync close / reset / capture / Save Log / owner chrome after mode changes. */
+/** Sync close / reset / capture / Save Log / MCP status / owner chrome. */
 function syncSessionChrome(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
@@ -1205,6 +1220,122 @@ function syncSessionChrome(): void {
   }
 
   ensureMessageUnderLog(root);
+  refreshMcpStatusDom();
+}
+
+function readLiveMcpStatus(): McpConnectionStatus {
+  return deriveMcpConnectionStatus({
+    overlayActive: active && !settling,
+    sessionKind: getSessionKind(),
+    awaitingReply: isAwaitingUserReply(),
+  });
+}
+
+export function getAgentTestingMcpConnectionStatus(): McpConnectionStatus {
+  return readLiveMcpStatus();
+}
+
+function refreshMcpStatusDom(): void {
+  if (!hasDomQuery()) return;
+  const status = readLiveMcpStatus();
+  const root = document.getElementById(ROOT_ID);
+  const chip = root?.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__mcp"
+  );
+  if (chip) {
+    if (!status.label || status.phase === "idle") {
+      chip.hidden = true;
+      chip.textContent = "";
+      delete chip.dataset.phase;
+    } else {
+      chip.hidden = false;
+      chip.textContent = status.label;
+      chip.dataset.phase = status.phase;
+      chip.title = status.label;
+    }
+  }
+  if (root) {
+    if (status.phase === "idle") delete root.dataset.mcp;
+    else root.dataset.mcp = status.phase;
+  }
+  const html = document.documentElement;
+  if (html?.dataset) {
+    if (status.phase === "idle") delete html.dataset.studioMcpStatus;
+    else html.dataset.studioMcpStatus = status.phase;
+  }
+  const navHint = document.querySelector<HTMLElement>(
+    ".studio-nav-version__mcp"
+  );
+  if (navHint) {
+    if (!status.label || status.phase === "idle") {
+      navHint.hidden = true;
+      navHint.textContent = "";
+      delete navHint.dataset.phase;
+    } else {
+      navHint.hidden = false;
+      // Short nav hint
+      const short =
+        status.phase === "pending"
+          ? "PENDING"
+          : status.phase === "control"
+            ? "CTRL"
+            : status.phase === "observe"
+              ? "OBS"
+              : status.phase === "connecting"
+                ? "…"
+                : status.phase === "connected"
+                  ? "OK"
+                  : status.phase === "error"
+                    ? "ERR"
+                    : "";
+      navHint.textContent = short;
+      navHint.dataset.phase = status.phase;
+      navHint.title = status.label;
+    }
+  }
+}
+
+/** PENDING timeout: auto-pause + log (user can Resume). */
+function onMcpPendingTimeout(): void {
+  if (!active || settling) {
+    clearMcpPending();
+    setAwaitingUserReply(false);
+    return;
+  }
+  setAwaitingUserReply(false);
+  clearMcpPending();
+  if (!capturePaused) {
+    pauseElapsedClock();
+    capturePaused = true;
+  }
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `MCP pending timed out (${Math.round(getQaPendingTimeoutMs() / 1000)}s) — paused; resume when ready`,
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase("paused");
+  armElapsedTimer();
+  syncCaptureWatch();
+  syncSessionChrome();
+}
+
+function ensureMcpPendingHandler(): void {
+  registerMcpPendingTimeoutHandler(onMcpPendingTimeout);
+}
+
+/** Agent/observe connect path — CONNECTING → CONNECTED flash → settle. */
+function signalMcpConnect(): void {
+  clearMcpConnectionError();
+  beginMcpConnecting();
+  ensureMcpPendingHandler();
+  // Re-paint after flash windows
+  if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+    window.setTimeout(() => refreshMcpStatusDom(), 300);
+    window.setTimeout(() => refreshMcpStatusDom(), 900);
+  }
+  refreshMcpStatusDom();
 }
 
 function ensureMessageUnderLog(root: HTMLElement): void {
@@ -1252,6 +1383,18 @@ function ensureOverlayChrome(root: HTMLElement): void {
   }
   if (clock && pauseBtn && pauseBtn.parentElement !== clock) {
     clock.appendChild(pauseBtn);
+  }
+
+  if (!header.querySelector(".studio-agent-testing-overlay__mcp")) {
+    const mcp = document.createElement("span");
+    mcp.className = "studio-agent-testing-overlay__mcp";
+    mcp.hidden = true;
+    const titleEl = header.querySelector(".studio-agent-testing-overlay__title");
+    if (titleEl?.nextSibling) {
+      header.insertBefore(mcp, titleEl.nextSibling);
+    } else {
+      header.appendChild(mcp);
+    }
   }
 
   // Migrate Dismiss → Close (X) + Reset
@@ -1396,6 +1539,7 @@ function ensureRoot(): HTMLElement | null {
       <div class="studio-agent-testing-overlay__header">
         <p class="studio-agent-testing-overlay__badge" hidden></p>
         <p class="studio-agent-testing-overlay__title">${DEFAULT_TITLE}</p>
+        <span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>
         <div class="studio-agent-testing-overlay__clock">
           <span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span>
           <button type="button" class="studio-agent-testing-overlay__capture-toggle" hidden title="Pause or resume">Pause</button>
@@ -1882,8 +2026,10 @@ export function startAgentTestingOverlay(title?: string): void {
   settleResult = "neutral";
   setSessionKind("agent");
   setAwaitingUserReply(false);
+  clearMcpPending();
   capturePaused = false;
   clearEnsureClearTimer();
+  signalMcpConnect();
   const resolved = resolveAgentTestingOverlayTitle(
     title ?? titleForSessionKind("agent")
   );
@@ -2145,10 +2291,12 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
 
   setSessionKind(target, { escalatedFromObserve: false });
   setAwaitingUserReply(false);
+  clearMcpPending();
   capturePaused = false;
   active = true;
   settling = false;
   settleResult = "neutral";
+  signalMcpConnect();
 
   const resolved = resolveAgentTestingOverlayTitle(
     options?.title ?? titleForSessionKind(target)
@@ -2208,6 +2356,8 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
 export function escalateObserveToAgentSession(reason = "escalate"): boolean {
   if (!escalateObserveToAgent()) return false;
   capturePaused = false;
+  clearMcpPending();
+  signalMcpConnect();
   setAgentTestingHtmlFlag(true);
   setQaDiagLoggerMode(false);
   const resolved = titleForSessionKind("agent");
@@ -2230,6 +2380,9 @@ export function escalateObserveToAgentSession(reason = "escalate"): boolean {
 /** After agent work on escalated observe — unlock back to observe. */
 export function unlockObserveSession(): boolean {
   if (!unlockAgentToObserve()) return false;
+  clearMcpPending();
+  setAwaitingUserReply(false);
+  signalMcpConnect();
   setAgentTestingHtmlFlag(false);
   setQaDiagLoggerMode(true);
   const resolved = titleForSessionKind("observe");
@@ -2268,6 +2421,7 @@ export function askUserInQa(prompt: string): boolean {
   const body =
     trimmed.length > 160 ? `${trimmed.slice(0, 158)}…` : trimmed;
   setAwaitingUserReply(true);
+  armMcpPendingTimeout();
   pushLogEntry({
     atMs: performance.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -2308,8 +2462,14 @@ export function openAgentTestingLogger(
   setQaDiagLoggerMode(isLoggerStyleSession(kind));
   setSessionKind(kind);
   setAwaitingUserReply(false);
+  clearMcpPending();
   // Manual opens paused; observe/agent start capturing.
   capturePaused = kind === "manual";
+  if (kind === "agent" || kind === "observe") {
+    signalMcpConnect();
+  } else {
+    clearMcpConnectionError();
+  }
   if (settling) abandonSettleForRearch();
   const resolved = resolveAgentTestingOverlayTitle(
     opts.title?.trim() || titleForSessionKind(kind)
@@ -2357,6 +2517,9 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   closeQaDiagGate({ reason });
   setSessionKind("manual");
   setAwaitingUserReply(false);
+  clearMcpPending();
+  clearMcpConnectionError();
+  resetMcpStatusLatches();
   capturePaused = false;
   setQaDiagLoggerMode(false);
   nest = 0;
@@ -2434,13 +2597,12 @@ export function appendAgentTestingUserMessage(text: string): boolean {
   markAgentTestingTimeline(`user-message:${Date.now()}`, "ok");
   if (awaiting) {
     setAwaitingUserReply(false);
+    clearMcpPending();
     setActivityPhase("running", "reply");
   } else if (!capturePaused) {
-    setActivityPhase(
-      getSessionKind() === "agent" ? "running" : "running",
-      "user-message"
-    );
+    setActivityPhase("running", "user-message");
   }
+  syncSessionChrome();
   return true;
 }
 
@@ -2501,8 +2663,11 @@ export function forceClearAgentTestingOverlay(): void {
     settling = false;
     settleReload = false;
     settleResult = "neutral";
-    setSessionKind("agent");
+    setSessionKind("manual");
     setAwaitingUserReply(false);
+    clearMcpPending();
+    clearMcpConnectionError();
+    resetMcpStatusLatches();
     capturePaused = false;
     elapsedAccumMs = 0;
     elapsedRunStartedAt = 0;
@@ -2530,6 +2695,7 @@ export function forceClearAgentTestingOverlay(): void {
     // race during reset cannot leave a sticky BR panel after forceClear.
     safeResetStudio();
     teardownDom(true);
+    refreshMcpStatusDom();
   } catch {
     try {
       closeQaDiagGate({ reason: "force-clear" });
@@ -2617,6 +2783,7 @@ export function installAgentTestingOverlayApi(): void {
     escalateObserve: escalateObserveToAgentSession,
     unlockObserve: unlockObserveSession,
     resetSession: resetManualSession,
+    mcpStatus: getAgentTestingMcpConnectionStatus,
     appendPoNote: appendAgentTestingUserMessage,
     log: logAgentTestingOverlay,
     logStep: logAgentTestingStep,
@@ -2634,9 +2801,15 @@ export function installAgentTestingOverlayApi(): void {
   bindOverlayApi(api);
   installPoSignalWindowApis();
   installPoSignalPlaybackHaltWindowApis();
+  ensureMcpPendingHandler();
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
+    window.__studioForceClearAgentTestingOverlay = () =>
+      forceClearAgentTestingOverlay();
+    window.__protoForceClearAgentTestingOverlay = () =>
+      forceClearAgentTestingOverlay();
+    window.__studioSoftCloseQaLogger = () => softCloseAgentTestingLogger();
     window.__studioOpenQaLogger = (opts?: OpenQaLoggerOptions | string) =>
       openAgentTestingLogger(opts);
     window.__studioToggleQaLogger = () => toggleAgentTestingLogger();
@@ -2647,6 +2820,12 @@ export function installAgentTestingOverlayApi(): void {
       appendAgentTestingUserMessage(String(text ?? ""));
     window.__studioQaDiagGateOpen = () => isQaDiagGateOpen();
     window.__studioQaSessionKind = () => getSessionKind();
+    window.__studioMcpConnectionStatus = () =>
+      getAgentTestingMcpConnectionStatus();
+    window.__studioReportMcpConnectionError = (detail: string) => {
+      reportMcpConnectionError(String(detail ?? ""));
+      refreshMcpStatusDom();
+    };
   }
   // Quiet restore — no remount thrash; show panel if gate was open.
   if (hydrated.open) {
@@ -2718,6 +2897,9 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioAgentTestingOverlay;
     delete window.__studioDownloadAgentTestingDump;
     delete window.__protoDownloadAgentTestingDump;
+    delete window.__studioForceClearAgentTestingOverlay;
+    delete window.__protoForceClearAgentTestingOverlay;
+    delete window.__studioSoftCloseQaLogger;
     delete window.__studioOpenQaLogger;
     delete window.__studioToggleQaLogger;
     delete window.__studioQaHandoff;
@@ -2725,6 +2907,8 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioAppendPoNote;
     delete window.__studioQaDiagGateOpen;
     delete window.__studioQaSessionKind;
+    delete window.__studioMcpConnectionStatus;
+    delete window.__studioReportMcpConnectionError;
   }
 }
 
@@ -2734,6 +2918,9 @@ declare global {
     __studioAgentTestingOverlay?: OverlayApi;
     __studioDownloadAgentTestingDump?: () => boolean;
     __protoDownloadAgentTestingDump?: () => boolean;
+    __studioForceClearAgentTestingOverlay?: () => void;
+    __protoForceClearAgentTestingOverlay?: () => void;
+    __studioSoftCloseQaLogger?: () => void;
     __studioOpenQaLogger?: (opts?: OpenQaLoggerOptions | string) => void;
     __studioToggleQaLogger?: () => void;
     __studioQaHandoff?: (opts?: QaHandoffOptions) => void;
@@ -2741,6 +2928,8 @@ declare global {
     __studioAppendPoNote?: (text: string) => boolean;
     __studioQaDiagGateOpen?: () => boolean;
     __studioQaSessionKind?: () => AgentTestingSessionKind;
-    __studioQaDiagGateOpen?: () => boolean;
+    __studioMcpConnectionStatus?: () => McpConnectionStatus;
+    __studioReportMcpConnectionError?: (detail: string) => void;
+    __studioQaPendingTimeoutMs?: number;
   }
 }

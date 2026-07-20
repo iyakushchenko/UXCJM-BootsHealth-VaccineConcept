@@ -65,7 +65,10 @@ Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only 
 | Bug / `__studioToggleQaLogger()` | Toggle **manual** only (amber). Observe = soft chip (Close ×). Agent = disabled |
 | `__studioOpenQaLogger({ kind, oversee? })` | Open as kind; oversee keeps context |
 | `__studioQaHandoff({ oversee })` | Default wipe→agent; oversee keeps ring/log |
-| `__studioAskUserInQa(prompt)` | `agent-prompt` row; Message/Send → `Reply: …` |
+| `__studioAskUserInQa(prompt)` | `agent-prompt` row; Message/Send → `Reply: …`; starts PENDING (60s) |
+| MCP status chip | `MCP — CONTROL` (green) / `OBSERVE` (fuchsia) / `CONTROL · PENDING` / … |
+| `__studioMcpConnectionStatus()` | Snapshot `{ phase, label, … }` |
+| PENDING timeout | Auto-pause + log; `__studioQaPendingTimeoutMs` override for prove |
 | Agent `touch` / `start` | Agent lock; if manual/observe open without oversee → wipe |
 | Observe Alarm | Escalate → agent + `observe-escalate` log |
 | **Pause / Resume** | Freezes elapsed + capture. Status: `Paused` / `Capturing` (manual) — never “send a message” |
@@ -77,11 +80,12 @@ window.__studioQaSessionKind?.()
 window.__studioOpenQaLogger?.({ kind: "observe" })
 window.__studioQaHandoff?.({ oversee: true })
 window.__studioAskUserInQa?.("Does Book now look right?")
+window.__studioMcpConnectionStatus?.()
 window.__studioToggleQaLogger?.()
 window.__studioAppendPoNote?.("pixel drift on PDP Book")
 ```
 
-Code: `qaDiagGate.ts` · `agentTestingSession.ts` · overlay: `agent-testing/`.
+Code: `qaDiagGate.ts` · `agentTestingSession.ts` · `agentTestingMcpStatus.ts` · overlay: `agent-testing/`.
 
 ---
 

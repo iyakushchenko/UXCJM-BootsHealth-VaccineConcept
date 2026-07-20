@@ -43,6 +43,27 @@ __studioQaSessionKind() // current kind
 
 Dump includes `sessionKind` (+ `gateMode` alias).
 
+### MCP connection status
+
+Overlay header chip (primary) + short nav hint beside bug icon.
+
+| Phase | Label | Color |
+|-------|-------|-------|
+| CONNECTING | `MCP — CONNECTING` | soft blue |
+| CONNECTED | `MCP — CONNECTED` | soft blue (brief) |
+| CONTROL | `MCP — CONTROL` | bright green (`sessionKind=agent`) |
+| OBSERVE | `MCP — OBSERVE` | bright fuchsia (`sessionKind=observe`) |
+| CONTROL · PENDING | `MCP — CONTROL · PENDING` | amber pulse (agent-prompt awaiting reply) |
+| ERROR | `MCP — ERROR: …` | red |
+| Idle | hidden | manual / no agent session |
+
+**PENDING timeout (default 60s):** auto-pause capture + log `MCP pending timed out (Ns) — paused; resume when ready`. Override: `window.__studioQaPendingTimeoutMs`. Clear on user Reply/Send.
+
+```js
+__studioMcpConnectionStatus()
+__studioReportMcpConnectionError("latch fail")
+```
+
 ## Overlay CTAs (PO mid-flight)
 
 | CTA | Meaning | Latch code |

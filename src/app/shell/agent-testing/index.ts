@@ -37,6 +37,7 @@ export {
   askUserInQa,
   escalateObserveToAgentSession,
   unlockObserveSession,
+  getAgentTestingMcpConnectionStatus,
   appendAgentTestingPoNote,
   appendAgentTestingUserMessage,
   scheduleAgentTestingOverlayEnsureClear,
@@ -106,3 +107,10 @@ export {
   type OpenQaLoggerOptions,
   type QaHandoffOptions,
 } from "@/app/shell/agent-testing/agentTestingSession";
+
+export {
+  deriveMcpConnectionStatus,
+  getQaPendingTimeoutMs,
+  type McpConnectionPhase,
+  type McpConnectionStatus,
+} from "@/app/shell/agent-testing/agentTestingMcpStatus";

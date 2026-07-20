@@ -1250,6 +1250,53 @@
   pointer-events: none;
 }
 
+.studio-nav-version__mcp {
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 4px 0 0;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(16, 18, 24, 0.45);
+  color: rgba(160, 166, 176, 0.8);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  max-width: 52px;
+}
+
+.studio-nav-version__mcp[hidden] {
+  display: none !important;
+}
+
+.studio-nav-version__mcp[data-phase="control"] {
+  color: #3dff8a;
+  border-color: rgba(61, 255, 138, 0.5);
+}
+
+.studio-nav-version__mcp[data-phase="observe"] {
+  color: #ff4cf0;
+  border-color: rgba(255, 76, 240, 0.5);
+}
+
+.studio-nav-version__mcp[data-phase="pending"] {
+  color: #ffe08a;
+  border-color: rgba(255, 224, 138, 0.5);
+}
+
+.studio-nav-version__mcp[data-phase="error"] {
+  color: #ff8a8a;
+  border-color: rgba(255, 120, 120, 0.5);
+}
+
+.studio-nav-version__mcp[data-phase="connecting"],
+.studio-nav-version__mcp[data-phase="connected"] {
+  color: #c8e0ff;
+  border-color: rgba(140, 190, 255, 0.4);
+}
+
 .studio-nav-version__qa {
   pointer-events: auto;
   display: inline-flex;

@@ -44,11 +44,15 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "QaHandoff",
   "AskUserInQa",
   "QaSessionKind",
+  "McpConnectionStatus",
+  "ReportMcpConnectionError",
   "AppendPoNote",
   "DownloadAgentTestingDump",
   // Cleanup / abort manage overlay themselves — do not re-arm mid-reset.
   "EnsureCleanStudio",
   "AbortAll",
+  "ForceClearAgentTestingOverlay",
+  "SoftCloseQaLogger",
   // Page probe / sanity manage start+stop themselves — wrapping touch() nest-bumps
   // start() and leaves stop() stuck at nest>0 (no sitrep / flaky panel).
   "RunMcpPageProbe",
