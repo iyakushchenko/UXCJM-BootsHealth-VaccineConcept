@@ -10,6 +10,12 @@ export type ChatThinkingBubbleProps = {
 export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps) {
   // Make: playback toggled --hint → align-items flex-start (LEFT agent rail).
   const hint = mode === "hint" || mode === "playback";
+  // Playback thinking must be visibly LEFT immediately — opacity:0 pull-up
+  // + agent-slot layout="size" made r0 look like “no thinking” (PO).
+  const enter =
+    mode === "playback"
+      ? { opacity: 1, y: 8 }
+      : CHAT_PULL_UP.initial;
 
   return (
     <motion.div
@@ -19,7 +25,7 @@ export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps
       data-studio-chat-thinking-gen={String(generation)}
       role="status"
       aria-live="polite"
-      initial={CHAT_PULL_UP.initial}
+      initial={enter}
       animate={CHAT_PULL_UP.animate}
       exit={CHAT_THINKING_EXIT}
       transition={CHAT_PULL_UP.transition}

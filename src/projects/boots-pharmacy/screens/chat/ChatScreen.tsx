@@ -347,7 +347,6 @@ function QueryFrame({
         <motion.div
           className="chat__user-slot"
           data-studio-chat-user-slot={frame.id}
-          layout="size"
           initial={shouldAnimate ? { height: 0, opacity: 1 } : false}
           animate={slotAnimate}
           transition={CHAT_PULL_UP.transition}
@@ -484,7 +483,9 @@ function ReplyFrame({
       <motion.div
         className="chat__agent-slot"
         data-studio-chat-agent-slot={frame.id}
-        layout="size"
+        // Disable layout projection while thinking — layout="size" + opacity:0
+        // enter hid the LEFT dots before r0 (regression after user-slot Motion).
+        layout={showThinking ? false : "size"}
         transition={CHAT_PULL_UP.transition}
       >
         <AnimatePresence mode="sync" initial={false}>

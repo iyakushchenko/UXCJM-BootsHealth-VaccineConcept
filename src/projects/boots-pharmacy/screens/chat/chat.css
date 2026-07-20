@@ -322,6 +322,12 @@
   align-items: flex-start;
 }
 
+/* Thinking hold — never clip / collapse the LEFT dots slot. */
+.chat__frame[data-studio-chat-thinking-slot="true"] .chat__agent-slot {
+  min-height: 40px;
+  overflow: visible;
+}
+
 .chat__bubble {
   box-sizing: border-box;
   border-radius: 16px;
