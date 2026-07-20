@@ -132,3 +132,12 @@ export {
   QA_SELF_TEST_CLEAR_MS,
   type QaSelfTestSmokeResult,
 } from "@/app/shell/agent-testing/agentTestingSelfTest";
+
+export {
+  CHAT_BUBBLE_MOTION_EXPECTED_IDS,
+  analyzeChatBubbleMotionSamples,
+  assertChatBubbleMotionFromBundle,
+  runChatBubbleMotionSelfTest,
+  type ChatBubbleMotionSelfTestResult,
+  type ChatBubbleMotionBubbleResult,
+} from "@/app/shell/agent-testing/chatBubbleMotionSelfTest";

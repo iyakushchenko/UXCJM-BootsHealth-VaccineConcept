@@ -3074,6 +3074,12 @@ export function installAgentTestingOverlayApi(): void {
       );
       return runQaSelfTestSmoke();
     };
+    window.__studioRunChatBubbleMotionSelfTest = async (opts) => {
+      const { runChatBubbleMotionSelfTest } = await import(
+        "@/app/shell/agent-testing/chatBubbleMotionSelfTest"
+      );
+      return runChatBubbleMotionSelfTest(opts);
+    };
   }
   // Quiet restore — no remount thrash; reopen with persisted sessionKind (CONTROL).
   if (hydrated.open) {
@@ -3172,6 +3178,7 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioMcpConnectionStatus;
     delete window.__studioReportMcpConnectionError;
     delete window.__studioRunQaSelfTestSmoke;
+    delete window.__studioRunChatBubbleMotionSelfTest;
   }
 }
 
@@ -3199,6 +3206,15 @@ declare global {
       scenarioCount: number;
       checks: Array<{ id: string; ok: boolean; detail?: string }>;
     }>;
+    __studioRunChatBubbleMotionSelfTest?: (opts?: {
+      assertOnly?: boolean;
+      expectedIds?: readonly string[];
+    }) => Promise<import("@/app/shell/agent-testing/chatBubbleMotionSelfTest").ChatBubbleMotionSelfTestResult>;
     __studioQaPendingTimeoutMs?: number;
+    __studioChatBubbleMotionPaceMs?: {
+      step?: number;
+      think?: number;
+      settle?: number;
+    };
   }
 }

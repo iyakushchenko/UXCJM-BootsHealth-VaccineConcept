@@ -23,6 +23,28 @@ export const CHAT_THINKING_EXIT = {
 /** Match sitePilotChat pull-up settle window (ms). */
 export const CHAT_PULL_UP_MS = Math.round(CHAT_PULL_UP.transition.duration * 1000);
 
+/** Scroll lock while any bubble pull-up tween runs (prevents layoutY JUMP). */
+let chatPullUpScrollLocks = 0;
+
+export function acquireChatPullUpScrollLock(): () => void {
+  chatPullUpScrollLocks += 1;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    chatPullUpScrollLocks = Math.max(0, chatPullUpScrollLocks - 1);
+  };
+}
+
+export function isChatPullUpScrollLocked(): boolean {
+  return chatPullUpScrollLocks > 0;
+}
+
+/** Test-only. */
+export function resetChatPullUpScrollLockForTests(): void {
+  chatPullUpScrollLocks = 0;
+}
+
 export type ChatBubbleMotionPhase =
   | "mount"
   | "animate-start"
@@ -90,6 +112,7 @@ export function startChatBubbleMotionSample(options: {
   durationMs?: number;
 }): () => void {
   if (!options.el || !options.shouldAnimate) return () => {};
+  const releaseScroll = acquireChatPullUpScrollLock();
   const start = performance.now();
   const durationMs = options.durationMs ?? CHAT_PULL_UP_MS + 80;
   let prevLayoutY: number | null = null;
@@ -123,6 +146,8 @@ export function startChatBubbleMotionSample(options: {
 
     if (now - start < durationMs) {
       raf = requestAnimationFrame(tick);
+    } else {
+      releaseScroll();
     }
   };
 
@@ -130,5 +155,6 @@ export function startChatBubbleMotionSample(options: {
   return () => {
     stopped = true;
     cancelAnimationFrame(raf);
+    releaseScroll();
   };
 }

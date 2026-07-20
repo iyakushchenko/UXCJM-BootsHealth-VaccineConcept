@@ -37,7 +37,7 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-09 | Team listening | Team must **use** TEAM_KNOWLEDGE / LESSONS (Knowledge used), not only append. Write-only = FAIL. | WATCH | TEAM.md · Arch gate on team check |
 | PP-10 | Agent testing overlay vision | Overlay must be a **mid-flight QA shell** (named steps, colors, timer, sitrep, alarm, cursor flag, timeline strip, console START/END, dump on FAIL/alarm) — not a monotonous `helper: __studioTriggerTransport` list. | COMPLETE | R11 `:5173` mid-flight prove 2026-07-20 — coalesced transport×2, ok/amber/red rows, sitrep, timeline chips, Alarm/Cursor, console END, dumps=3 · Uma/Finn/Quinn |
 | PP-13 | QA-tool trust (dual-role self-test) | Overlay is **load-bearing** for agent mid-flight work. Observe↔agent handoff, Alarm escalate, ask/PENDING, refresh hydrate, and REC XOR must stay trustworthy — agents **must** re-run self-test after overlay changes. | IN PROGRESS | v0.0.85: `chatBubbleMotion` in Save Log (gate-open); chat pull-up polish (no scroll/layout fight). Prior: no ghost OBS; beat honesty; SELF_TEST · Quinn/Finn |
-| PP-14 | Chat bubble motion polish | Progressive / thinking→reply pull-up must be continuous ease (face of product) — agents need dump forensics, not DevTools-only. | IN PROGRESS | v0.0.85: pipe samples + JUMP flags; defer scroll mid pull-up; `layout={false}` on agent slot |
+| PP-14 | Chat bubble motion polish | Progressive / thinking→reply pull-up must be continuous ease (face of product) — agents need dump forensics, not DevTools-only. | IN PROGRESS | v0.0.86: `__studioRunChatBubbleMotionSelfTest` full q0…r3; scroll lock mid pull-up; q0 entry-paint OK |
 
 ---
 

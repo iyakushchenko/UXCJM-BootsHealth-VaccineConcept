@@ -59,6 +59,7 @@ window.__studioForceClearAgentTestingOverlay?.()
 | save-log-live-snapshot | Y | Save Log while capturing → current log + selectors |
 | save-log-selector-depth | Y | Dump click rows include `selector` / `dataStudioAction` |
 | save-log-chat-bubble-motion | Y | QA open → SF chat reveals → Save Log `chatBubbleMotion.samples` has `phase` frames; healthy path `jumps≈0` / low `maxAbsDeltaY` |
+| chat-bubble-motion-full | Y | `await __studioRunChatBubbleMotionSelfTest()` — all q0…r3; q0 may be entry-paint; r* thinking-handoff; jumps=0; continuous y |
 | duration-ms-sane | Y | After Pause/Alarm, durationMs ≤ 10min (no ~1.7e9s) |
 | cjm-beat-honesty | Y | Active `rec-*` → Beat n/3 not orchestra Steps 1/11 as Beat |
 | session-finale-line | Y | `RESULT · PASS/FAIL — …` before teardown |
@@ -102,6 +103,7 @@ Run in one session at `http://127.0.0.1:5173/` (reuse tab). Pace ~350–900ms. A
 | 23 | Pending timeout (optional short `__studioQaPendingTimeoutMs=2000`) | auto-pause line |
 | 24 | Save Log after Alarm | current session not stale-only |
 | 25 | Chat SF + Save Log | `chatBubbleMotion.samples` present; no JUMP on healthy pull-up |
+| 26 | Full chat bubble motion | `__studioRunChatBubbleMotionSelfTest()` → ok; per-id table q0…r3 |
 
 ```js
 const r = await window.__studioRunQaSelfTestSmoke?.()
@@ -109,9 +111,12 @@ console.table(r?.checks)
 // Agents closing any session:
 window.__studioAgentTestingOverlay?.appendFinale?.(r?.ok ? "pass" : "fail", "summary")
 
-// Prove bubble forensics (manual):
-// __studioOpenQaLogger({ kind: "agent" }) → Play/SF chat → Save Log
-// → dump.chatBubbleMotion.samples.length > 0 · jumps === 0 on polish path
+// Full agentic chat bubble motion (gate opens inside runner):
+const b = await window.__studioRunChatBubbleMotionSelfTest?.()
+console.table(b?.bubbles)
+// → ok:true · jumps:0 · all q0…r3 · r* hasThinkingHandoff
+// Pace override: window.__studioChatBubbleMotionPaceMs = { step:500, think:2200, settle:600 }
+// Assert-only (after manual SF): await __studioRunChatBubbleMotionSelfTest({ assertOnly:true })
 ```
 
 ---

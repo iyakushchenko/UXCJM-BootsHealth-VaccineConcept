@@ -14,6 +14,7 @@
 
 import { playbackDiagScroll } from "@/app/shell/playbackDiag";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
+import { isChatPullUpScrollLocked } from "@/projects/boots-pharmacy/screens/chat/chatMotion";
 
 export type PlaybackScrollAlign = "start" | "center" | "end" | "nearest";
 
@@ -700,6 +701,8 @@ export type ScrollCameraOptions = PlaybackScrollOptions & {
   padding?: number;
   instant?: boolean;
   retreat?: boolean;
+  /** Bypass chat pull-up scroll lock (settle after tween only). */
+  force?: boolean;
 };
 
 /**
@@ -810,11 +813,15 @@ export function resolveChatCameraTarget(
 /**
  * Chat CJM camera — target frame/thinking when present; else host-end
  * (documented: latest thread is the resolved “target”).
+ * Skips while a bubble pull-up tween holds the scroll lock (layoutY JUMP guard).
  */
 export function scrollChatCamera(
   scrollEl?: HTMLElement | null,
   options?: ScrollCameraOptions
 ): void {
+  if (isChatPullUpScrollLocked() && !options?.force) {
+    return;
+  }
   const el =
     scrollEl ??
     (typeof document !== "undefined"

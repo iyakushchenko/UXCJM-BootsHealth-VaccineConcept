@@ -128,7 +128,7 @@ export type PlaybackDiagEvent = {
 };
 
 /** Cap full bubble frame series for Save Log (gate-open sampling). */
-const MAX_BUBBLE_SAMPLES = 240;
+const MAX_BUBBLE_SAMPLES = 720;
 const bubbleSamples: PlaybackDiagEvent[] = [];
 /** Per-id phase set — detect skipped mount→start→end. */
 const bubblePhasesById = new Map<string, Set<string>>();

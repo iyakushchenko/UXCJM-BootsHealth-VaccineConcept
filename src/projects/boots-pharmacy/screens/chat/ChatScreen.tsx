@@ -763,7 +763,7 @@ export function ChatScreen({
     const tSettle = window.setTimeout(() => {
       const settleMax = Math.max(0, column.scrollHeight - column.clientHeight);
       const before = column.scrollTop;
-      scrollChatCamera(column, { instant: true, align: "end" });
+      scrollChatCamera(column, { instant: true, align: "end", force: true });
       const delta = column.scrollTop - before;
       if (delta !== 0) {
         console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {

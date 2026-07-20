@@ -72,6 +72,8 @@ window.__studioForceClearAgentTestingOverlay?.()
 
 **Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`). On chat SF with gate open, dump also includes **`chatBubbleMotion.samples`** (pull-up / thinking→reply y·opacity·deltaY frames + jump flags) — see [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § Chat bubble motion.
 
+**Full chat bubble motion (restartable):** `await window.__studioRunChatBubbleMotionSelfTest?.()` — opens QA, SF agentic q0…r3, asserts samples / thinking-handoff / jumps=0. See [SELF_TEST.md](./SELF_TEST.md).
+
 **OBSERVE + REC dual-use:** StartRecording preserves observe. Observe/manual: demo cursor **follows pointer** while capturing. Session Beat = selected journey (rec-* catalog); STEPS frames show as `Steps` when different.
 
 **Session finale:** before teardown call `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` system line. Self-test smoke appends this automatically.
