@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import type { ChatThinkingBridgeState } from "./chatThinkingBridge";
 import { AnimatePresence, motion } from "@/uxds/motion";
 import { ButtonPrimary } from "@/uxds/components";
 import { CHAT_PULL_UP } from "./chatMotion";
@@ -169,12 +170,23 @@ const QUERY_FRAME_CLASSES = ["chat__frame", "chat__frame--query"];
  * Parent frames use `hidden` / `display:none` until revealed. Mounting
  * motion.div in that same commit skips enter (no layout frame for y:22).
  * Double-rAF: first paint at CHAT_PULL_UP.initial, then animate up.
+ *
+ * `shouldAnimate` gates the pull-up to one-at-a-time reveals only.
+ * Batch reveals (scenario deactivate / browse init) skip to final position
+ * so later bubbles don't jump/tear.
  */
-function useChatPullUpLive(revealed: boolean): boolean {
+function useChatPullUpLive(
+  revealed: boolean,
+  shouldAnimate: boolean
+): boolean {
   const [live, setLive] = useState(false);
   useLayoutEffect(() => {
     if (!revealed) {
       setLive(false);
+      return;
+    }
+    if (!shouldAnimate) {
+      setLive(true);
       return;
     }
     setLive(false);
@@ -186,20 +198,22 @@ function useChatPullUpLive(revealed: boolean): boolean {
       cancelAnimationFrame(outer);
       cancelAnimationFrame(inner);
     };
-  }, [revealed]);
+  }, [revealed, shouldAnimate]);
   return live;
 }
 
 function QueryFrame({
   frame,
   revealed,
+  shouldAnimate,
 }: {
   frame: Extract<ChatThreadFrame, { kind: "query" }>;
   revealed: boolean;
+  shouldAnimate: boolean;
 }) {
   const ref = useStaticFrameClasses(QUERY_FRAME_CLASSES);
   useChatFrameRevealPaint(ref, revealed);
-  const pullLive = useChatPullUpLive(revealed);
+  const pullLive = useChatPullUpLive(revealed, shouldAnimate);
   const bubble = (
     <>
       <div data-name="Subtotal">
@@ -245,17 +259,19 @@ const REPLY_FRAME_CLASSES = ["chat__frame", "chat__frame--reply"];
 function ReplyFrame({
   frame,
   revealed,
+  shouldAnimate,
   onAgentCta,
   onProductLink,
 }: {
   frame: Extract<ChatThreadFrame, { kind: "reply" }>;
   revealed: boolean;
+  shouldAnimate: boolean;
   onAgentCta?: (label: string) => void;
   onProductLink?: (label: string) => void;
 }) {
   const ref = useStaticFrameClasses(REPLY_FRAME_CLASSES);
   useChatFrameRevealPaint(ref, revealed);
-  const pullLive = useChatPullUpLive(revealed);
+  const pullLive = useChatPullUpLive(revealed, shouldAnimate);
   const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement | null;
     const link = t?.closest?.(".uxds-link, .chat__link");
@@ -437,12 +453,41 @@ export function ChatScreen({
     getChatScenarioRevealState
   );
 
-  /** Engine visibleCount — progressive paint; default min until publish lands. */
+  /**
+   * Engine visibleCount — progressive paint; default min until publish lands.
+   * When scenario is NOT active (overlay beat / browse idle), show the full
+   * thread so the chat never empties behind a modal (FIX-1).
+   */
   const revealedFrameCount = resolveChatRevealedFrameCount(
-    scenarioReveal.active ? scenarioReveal.visibleCount : 0,
+    scenarioReveal.active
+      ? scenarioReveal.visibleCount
+      : CHAT_THREAD_FRAMES.length,
     CHAT_THREAD_FRAMES.length,
     1
   );
+
+  /**
+   * FIX-2: Only pull-up-animate the single most-recently-revealed frame.
+   * Batch reveals (scenario deactivate, browse init) skip to final position
+   * so later bubbles never jump/tear.
+   */
+  const prevRevealedCountRef = useRef(revealedFrameCount);
+  const revealDelta = revealedFrameCount - prevRevealedCountRef.current;
+  useEffect(() => {
+    prevRevealedCountRef.current = revealedFrameCount;
+  }, [revealedFrameCount]);
+
+  const shouldAnimateFrame = (
+    frameIndex: number,
+    frameRevealed: boolean,
+    thinkingState: ChatThinkingBridgeState
+  ): boolean => {
+    if (!frameRevealed) return false;
+    if (!scenarioReveal.active) return false;
+    if (revealDelta !== 1) return false;
+    if (thinkingState.mode === "playback") return true;
+    return frameIndex === revealedFrameCount - 1;
+  };
 
   /**
    * Pull chat up on every progressive reveal / thinking paint so the newest
@@ -453,15 +498,28 @@ export function ChatScreen({
   useEffect(() => {
     const column = columnRef.current;
     if (!column || !scenarioReveal.active) return;
-    const snapBottom = () => {
+    const snapBottom = (tag: string) => {
+      const scrollBefore = column.scrollTop;
       const max = Math.max(0, column.scrollHeight - column.clientHeight);
-      // Monotonic toward bottom — never ease/fight other cameras.
       if (column.scrollTop < max) column.scrollTop = max;
+      const delta = column.scrollTop - scrollBefore;
+      if (delta !== 0) {
+        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+          tag,
+          delta,
+          visibleCount: revealedFrameCount,
+          scrollTop: column.scrollTop,
+          scrollMax: max,
+        });
+      }
     };
-    snapBottom();
+    snapBottom("reveal");
     const pullUpMs = Math.round(CHAT_PULL_UP.transition.duration * 1000);
-    const tEarly = window.setTimeout(snapBottom, 160);
-    const tLate = window.setTimeout(snapBottom, pullUpMs + 40);
+    const tEarly = window.setTimeout(() => snapBottom("pull-up-early"), 160);
+    const tLate = window.setTimeout(
+      () => snapBottom("pull-up-settle"),
+      pullUpMs + 40
+    );
     return () => {
       window.clearTimeout(tEarly);
       window.clearTimeout(tLate);
@@ -603,9 +661,16 @@ export function ChatScreen({
       );
     }
 
+    const animate = shouldAnimateFrame(frameIndex, revealed, thinking);
+
     if (frame.kind === "query") {
       threadNodes.push(
-        <QueryFrame key={frame.id} frame={frame} revealed={revealed} />
+        <QueryFrame
+          key={frame.id}
+          frame={frame}
+          revealed={revealed}
+          shouldAnimate={animate}
+        />
       );
     } else {
       threadNodes.push(
@@ -613,6 +678,7 @@ export function ChatScreen({
           key={frame.id}
           frame={frame}
           revealed={revealed}
+          shouldAnimate={animate}
           onAgentCta={onAgentCta}
           onProductLink={onProductLink}
         />
