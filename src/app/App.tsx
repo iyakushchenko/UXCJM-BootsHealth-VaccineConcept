@@ -438,22 +438,22 @@ export default function App() {
         const journey = activeJourneyRef.current;
         const fromIndex = journeyBeatIndexRef.current;
         const beat = journey?.beats[fromIndex];
-        // dateChat opens Choose date — advance beat BEFORE opening Availability
-        // so transport guard never sees agentic-chat + popup:availability:date
-        // (touchpoint-ahead-of-beat / diagnostic-on-step-8).
-        if (beat?.id === "agentic-chat" && journey) {
-          const availContinueIndex = journey.beats.findIndex(
-            (entry) => entry.id === "avail-continue"
-          );
-          const nextIndex =
-            availContinueIndex >= 0 ? availContinueIndex : fromIndex + 1;
-          journeyBeatIndexRef.current = nextIndex;
-          setJourneyBeatIndexRef.current(nextIndex);
-        }
-        await runSitePilotChatScenarioFinale(
-          (intent) => openAvailabilityToolRef.current(intent),
-          AVAIL_INTENT.dateChat
-        );
+        // Click "Choose Different Date" WHILE still on agentic-chat.
+        // Advancing the beat first tore down screen-frames → onPreludeAbort →
+        // preludeAborted mid-delay → click FAIL aborted-before-travel.
+        // Advance beat only when opening Availability (touchpoint guard).
+        await runSitePilotChatScenarioFinale((intent) => {
+          if (beat?.id === "agentic-chat" && journey) {
+            const availContinueIndex = journey.beats.findIndex(
+              (entry) => entry.id === "avail-continue"
+            );
+            const nextIndex =
+              availContinueIndex >= 0 ? availContinueIndex : fromIndex + 1;
+            journeyBeatIndexRef.current = nextIndex;
+            setJourneyBeatIndexRef.current(nextIndex);
+          }
+          openAvailabilityToolRef.current(intent);
+        }, AVAIL_INTENT.dateChat);
         if (beat?.id === "agentic-chat" && shouldContinueJourney) {
           resumeJourneyPlayRef.current();
         }

@@ -382,20 +382,40 @@ async function syncBookBeatState(
   }
 }
 
+/** Exported for unit ratchet — React CTA over Make retired div. */
+export function findReserveAppointmentButton(
+  screen: HTMLElement
+): HTMLElement | null {
+  // Prefer React Book Step 2 CTA — Make dump uses a non-button div with the
+  // same data-name and was winning querySelector → click FAIL not-clickable.
+  const reactBtn =
+    screen.querySelector<HTMLElement>(
+      'button[data-studio-action="book-step-2-reserve"], button.book-step-2__reserve'
+    ) ?? null;
+  if (reactBtn && !reactBtn.closest("[data-studio-make-retired]")) {
+    return reactBtn;
+  }
+  return (
+    Array.from(
+      screen.querySelectorAll<HTMLElement>(
+        'button[data-name="component.input.button"], [data-name="component.input.button"]'
+      )
+    ).find(
+      (el) =>
+        !el.closest("[data-studio-make-retired]") &&
+        /^reserve appointment$/i.test(
+          (el.textContent ?? "").replace(/\s+/g, " ").trim()
+        )
+    ) ?? null
+  );
+}
+
 async function waitForReserveButton(
   screen: HTMLElement
 ): Promise<HTMLElement | null> {
   for (let i = 0; i < 60; i++) {
     if (shouldAbort()) return null;
-    const btn = Array.from(
-      screen.querySelectorAll<HTMLElement>(
-        '[data-name="component.input.button"]'
-      )
-    ).find((el) =>
-      /^reserve appointment$/i.test(
-        (el.textContent ?? "").replace(/\s+/g, " ").trim()
-      )
-    );
+    const btn = findReserveAppointmentButton(screen);
     if (btn) return btn;
     await delay(40);
   }
