@@ -326,6 +326,14 @@
   flex: 0 0 auto;
 }
 
+/* FAIL badge diode — deep red (never green while live). */
+.studio-agent-testing-overlay__badge[data-result="fail"]::before,
+.studio-agent-testing-overlay__badge[data-live="true"][data-result="fail"]::before {
+  background: #e02020;
+  box-shadow: 0 0 0 0 rgba(224, 32, 32, 0.55);
+  animation: studio-agent-testing-diode-pulse-fail 1.25s ease-out infinite;
+}
+
 @keyframes studio-agent-testing-diode-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(61, 214, 140, 0.55);
@@ -335,6 +343,18 @@
   }
   100% {
     box-shadow: 0 0 0 0 rgba(61, 214, 140, 0);
+  }
+}
+
+@keyframes studio-agent-testing-diode-pulse-fail {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 32, 32, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(224, 32, 32, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 32, 32, 0);
   }
 }
 
@@ -348,8 +368,8 @@
 .studio-agent-testing-overlay__badge[data-result="fail"],
 .studio-agent-testing-overlay[data-result="fail"]
   .studio-agent-testing-overlay__badge {
-  color: #2a0606;
-  background: #ff6b6b;
+  color: #1a0000;
+  background: #e02020;
 }
 
 .studio-agent-testing-overlay__title {
@@ -744,6 +764,13 @@
   color: #8ec5ff !important;
 }
 
+/* RESULT · FAIL — deep red wins over system blue */
+.studio-agent-testing-overlay__log li[data-kind="system"][data-outcome="fail"] .studio-agent-testing-overlay__log-body,
+.studio-agent-testing-overlay__log li[data-outcome="fail"] .studio-agent-testing-overlay__log-body {
+  color: #ff2a2a !important;
+  font-weight: 700;
+}
+
 .studio-agent-testing-overlay__log li[data-kind="agent-prompt"] .studio-agent-testing-overlay__log-body {
   color: #b8a0ff !important;
   font-weight: 600;
@@ -765,9 +792,8 @@
 }
 
 .studio-agent-testing-overlay__log li[data-kind="alarm"] .studio-agent-testing-overlay__log-body,
-.studio-agent-testing-overlay__log li[data-kind="scroll"] .studio-agent-testing-overlay__log-body,
-.studio-agent-testing-overlay__log li[data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #f0a0a0 !important;
+.studio-agent-testing-overlay__log li[data-kind="scroll"] .studio-agent-testing-overlay__log-body {
+  color: #ff2a2a !important;
   font-weight: 600;
 }
 
@@ -944,7 +970,8 @@
 }
 
 .studio-agent-testing-overlay__log li[data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #e88a8a;
+  color: #ff2a2a !important;
+  font-weight: 700;
 }
 
 .studio-agent-testing-overlay__log li[data-kind="alarm"] .studio-agent-testing-overlay__log-body,

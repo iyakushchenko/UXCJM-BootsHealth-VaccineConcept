@@ -460,20 +460,8 @@ export async function runChatBubbleMotionSelfTest(options?: {
       }
     }
     if (!isRevealed(id)) {
-      // q2/q3 need agent CTA before user frame — click first so beforeReveal isn't starved
-      if (id === "q2" || id === "q3") {
-        const re =
-          id === "q2"
-            ? /check availability slot for me/i
-            : /find available slots for today/i;
-        const cta = [...document.querySelectorAll("button")].find((b) =>
-          re.test((b.textContent || "").trim())
-        ) as HTMLButtonElement | undefined;
-        if (cta) {
-          cta.click();
-          await sleep(500);
-        }
-      }
+      // q2/q3: sitePilotChat beforeReveal clicks the agent CTA with demo cursor.
+      // Do NOT raw-click here — that races/aborts the prelude and starves q3/r3.
       const clicked =
         transport("step-forward") ||
         (() => {
@@ -486,25 +474,21 @@ export async function runChatBubbleMotionSelfTest(options?: {
         })();
       const maxWait =
         id === "q3" || id === "q2"
-          ? pace.thinkMs + 5000
+          ? pace.thinkMs + 8000
           : id.startsWith("r")
             ? pace.thinkMs + 1800
             : i === 0
               ? pace.stepMs + 1500
               : pace.thinkMs + 2800;
-      const got = await waitUntil(() => isRevealed(id), maxWait);
+      let got = await waitUntil(() => isRevealed(id), maxWait);
       if (!got && (id === "q2" || id === "q3")) {
-        const re =
-          id === "q2"
-            ? /check availability slot for me/i
-            : /find available slots for today/i;
-        const cta = [...document.querySelectorAll("button")].find((b) =>
-          re.test((b.textContent || "").trim())
-        ) as HTMLButtonElement | undefined;
-        cta?.click();
-        await sleep(600);
+        // Retry once via transport only (prelude owns CTA).
         transport("step-forward");
-        await waitUntil(() => isRevealed(id), 6000);
+        const btn = [...document.querySelectorAll("button")].find(
+          (b) => b.getAttribute("aria-label") === "Step forward"
+        ) as HTMLButtonElement | undefined;
+        if (btn && !btn.disabled) btn.click();
+        got = await waitUntil(() => isRevealed(id), 8000);
       }
       await sleep(CHAT_PULL_UP_SETTLE_MS);
       w.__studioAgentTestingOverlay?.logStep?.({

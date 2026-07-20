@@ -14,6 +14,7 @@ import { ButtonPrimary } from "@/uxds/components";
 import {
   CHAT_PULL_UP,
   CHAT_PULL_UP_MS,
+  isChatPullUpScrollLocked,
   logChatBubbleMotion,
   startChatBubbleMotionSample,
 } from "./chatMotion";
@@ -27,7 +28,7 @@ import {
   STUDIO_SCROLL_OVERFLOW_CLASS,
   syncStudioScrollOverflowGutter,
 } from "@/app/scenario/studioScrollOverflow";
-import { scrollChatCamera } from "@/app/scenario/playbackScroll";
+import { scrollCameraToHostEnd, scrollChatCamera } from "@/app/scenario/playbackScroll";
 import { CHAT_REACT_SCREEN_ID } from "./chatContract";
 import { ChatSitePilotBar } from "./ChatSitePilotBar";
 import {
@@ -39,6 +40,7 @@ import {
   getChatScenarioRevealState,
   isChatReplyHeldForPlaybackThinking,
   logChatReveal,
+  publishChatScenarioReveal,
   resolveChatFrameRevealed,
   resolveChatPullUpAnimateIds,
   resolveChatRevealedFrameCount,
@@ -711,6 +713,51 @@ export function ChatScreen({
   ): boolean => frameRevealed && pullUpAnimateIds.has(frameId);
 
   /**
+   * CJM OFF browse — paint full thread, then scroll past composer.
+   * Note: bridge `active` stays true while site-pilot-chat scenario is mounted
+   * even in browse — key off URL `cjm=off`, not `!scenarioReveal.active`.
+   */
+  useEffect(() => {
+    let cjmOff = false;
+    try {
+      cjmOff = new URLSearchParams(location.search).get("cjm") === "off";
+    } catch {
+      cjmOff = false;
+    }
+    if (!cjmOff) return;
+
+    let cancelled = false;
+    const total = CHAT_THREAD_FRAMES.length;
+    publishChatScenarioReveal({ active: false, visibleCount: total });
+
+    const ensureEnd = (instant: boolean) => {
+      if (cancelled) return;
+      const col = columnRef.current;
+      if (!col) return;
+      if (getChatScenarioRevealState().visibleCount < total) {
+        publishChatScenarioReveal({ active: false, visibleCount: total });
+      }
+      const max = Math.max(0, col.scrollHeight - col.clientHeight);
+      if (max < 8) return;
+      scrollCameraToHostEnd(col, {
+        instant,
+        reason: instant
+          ? "cjm-off browse snap — clear composer"
+          : "cjm-off browse ease — clear composer",
+      });
+    };
+
+    const timers = [180, 1500, 2000, 2600, 3400].map((ms, i) =>
+      window.setTimeout(() => ensureEnd(i !== 1), ms)
+    );
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+    // Mount / URL only — ignore bridge visibleCount flaps from browse reveal.
+  }, []);
+
+  /**
    * Scroll: never snap mid pull-up (layoutY JUMP vs Motion). Thinking→reply
    * + progressive reveal defer to post settle only.
    */
@@ -760,10 +807,41 @@ export function ChatScreen({
   useEffect(() => {
     const column = columnRef.current;
     if (!column || !scenarioReveal.active) return;
-    const tSettle = window.setTimeout(() => {
+
+    /** Last thread extent under dock? (frame or CTA — not only camera target). */
+    const measureComposerClearPx = (): number | null => {
+      const dock = dockRef.current;
+      if (!dock || dock.hidden) return null;
+      const dockTop = dock.getBoundingClientRect().top;
+      const revealed = column.querySelectorAll(
+        '[data-studio-chat-revealed="true"]'
+      );
+      const lastFrame = revealed[revealed.length - 1] as HTMLElement | undefined;
+      const ctas = lastFrame
+        ? lastFrame.querySelectorAll("button.chat__cta")
+        : column.querySelectorAll("button.chat__cta");
+      let bottom = lastFrame?.getBoundingClientRect().bottom ?? 0;
+      ctas.forEach((btn) => {
+        const r = (btn as HTMLElement).getBoundingClientRect();
+        if (r.height > 0) bottom = Math.max(bottom, r.bottom);
+      });
+      if (!bottom) return null;
+      return dockTop - bottom;
+    };
+
+    let poll: number | null = null;
+    let topUp: number | null = null;
+    const runSettleCamera = () => {
       const settleMax = Math.max(0, column.scrollHeight - column.clientHeight);
       const before = column.scrollTop;
-      scrollChatCamera(column, { instant: true, align: "end", force: true });
+      // Life-like ease after pull-up; CSS scroll-padding-bottom owns composer inset
+      // (do not double-add pad into padding — underscroll + cancel races).
+      scrollChatCamera(column, {
+        instant: false,
+        align: "end",
+        force: true,
+        padding: 24,
+      });
       const delta = column.scrollTop - before;
       if (delta !== 0) {
         console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
@@ -774,8 +852,52 @@ export function ChatScreen({
           scrollMax: settleMax,
         });
       }
+      // Ease is async — after travel, top-up to host end if still under dock.
+      if (topUp != null) window.clearTimeout(topUp);
+      topUp = window.setTimeout(() => {
+        topUp = null;
+        if (isChatPullUpScrollLocked()) return;
+        const clearPx = measureComposerClearPx();
+        if (clearPx == null || clearPx >= 8) return;
+        const max = Math.max(0, column.scrollHeight - column.clientHeight);
+        if (column.scrollTop >= max - 2) return;
+        scrollCameraToHostEnd(column, {
+          instant: false,
+          reason: `composer clearance top-up (clearPx=${Math.round(clearPx)})`,
+        });
+        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+          tag: "composer-clearance-topup",
+          delta: 0,
+          clearPx: Math.round(clearPx),
+          visibleCount: revealedFrameCount,
+          scrollTop: column.scrollTop,
+          scrollMax: max,
+        });
+      }, 520);
+    };
+
+    const tSettle = window.setTimeout(() => {
+      if (isChatPullUpScrollLocked()) {
+        const started = performance.now();
+        poll = window.setInterval(() => {
+          if (
+            !isChatPullUpScrollLocked() ||
+            performance.now() - started > 900
+          ) {
+            if (poll != null) window.clearInterval(poll);
+            poll = null;
+            runSettleCamera();
+          }
+        }, 40);
+        return;
+      }
+      runSettleCamera();
     }, CHAT_PULL_UP_MS + 80);
-    return () => window.clearTimeout(tSettle);
+    return () => {
+      window.clearTimeout(tSettle);
+      if (topUp != null) window.clearTimeout(topUp);
+      if (poll != null) window.clearInterval(poll);
+    };
   }, [
     scenarioReveal.active,
     revealedFrameCount,

@@ -802,7 +802,24 @@ export function resolveChatCameraTarget(
   const revealed = scope.querySelectorAll<HTMLElement>(
     '[data-studio-chat-revealed="true"]'
   );
-  if (revealed.length > 0) return revealed[revealed.length - 1]!;
+  if (revealed.length > 0) {
+    const last = revealed[revealed.length - 1]!;
+    // Prefer lowest CTA in the last agent frame so dock clearance includes actions.
+    const ctas = last.querySelectorAll<HTMLElement>("button.chat__cta");
+    if (ctas.length > 0) {
+      let lowest: HTMLElement | null = null;
+      let lowestBottom = -Infinity;
+      ctas.forEach((btn) => {
+        const b = btn.getBoundingClientRect().bottom;
+        if (b > lowestBottom) {
+          lowestBottom = b;
+          lowest = btn;
+        }
+      });
+      if (lowest) return lowest;
+    }
+    return last;
+  }
   const anyFrame = scope.querySelectorAll<HTMLElement>(
     "[data-studio-chat-frame]"
   );

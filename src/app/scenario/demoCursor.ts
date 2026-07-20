@@ -1295,9 +1295,11 @@ export async function moveDemoCursorTo(
 
   if (travelAborted()) return bail();
 
-  // New director travel supersedes post-click hold.
+  // New director travel supersedes post-click hold + prior CTA hover
+  // (never leave previous target looking hovered while tip is mid-flight).
   clearHoldAtLastClick();
   cancelDemoCursorParkInFlight();
+  clearDemoCtaStates();
 
   const interactionRoot = findDemoInteractionRoot(target);
   const applyHover = options?.applyHover !== false;
@@ -1514,6 +1516,8 @@ export async function simulateDemoPointerClick(
   const cursor = await moveDemoCursorTo(target, {
     shouldAbort: options?.shouldAbort,
     syncPageScroll: options?.scroll !== false,
+    // Hover only after on-target gate below — never mid-travel / pre-gate.
+    applyHover: false,
   });
   if (!cursor || options?.shouldAbort?.()) {
     playbackDiagClick({
@@ -1558,7 +1562,7 @@ export async function simulateDemoPointerClick(
 
   const { x, y } = targetCenter(target);
 
-  // Hover class + enter/over/move events (CSS bridged via ensureDemoPseudoBridge).
+  // Hover class + enter/over/move events — only after tip is proven on-target.
   setDemoInteractionHover(interactionRoot, true, { x, y });
   await delay(CTA_HOVER_DWELL_MS);
   if (options?.shouldAbort?.()) {
