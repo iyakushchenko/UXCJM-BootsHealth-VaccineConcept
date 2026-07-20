@@ -12,6 +12,16 @@
 
 Primary: `window.__studioAgentTestingTakeover` / `__studioConsumePoSignal()`. Dump secondary.
 
+## QA diag gate / free-form logger
+
+- Version-chip **QA** icon opens the overlay as a logger (`openLogger`) and sets **`qaDiagGateOpen`**.
+- `[PLAYBACK_DIAG]` console emit is **silent** while the gate is closed; open via icon / `touch` / `start`.
+- **Dismiss** closes the gate (logger soft-hides DOM — no remount flash on reopen).
+- PO note field → `po-note` in log + persisted ring (`sessionStorage`).
+- Gate + ring survive refresh when open.
+
+See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § QA diag gate.
+
 ## Official overlay test & bugfix process (HARD)
 
 When PO clicks Alarm / Cursor / Scroll during a watched MCP / smoke session:

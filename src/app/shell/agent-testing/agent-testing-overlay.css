@@ -305,6 +305,59 @@
   border-color: #e25555;
 }
 
+.studio-agent-testing-overlay[data-logger="true"]
+  .studio-agent-testing-overlay__capture {
+  pointer-events: none;
+}
+
+.studio-agent-testing-overlay__note {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.studio-agent-testing-overlay__note-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(16, 18, 24, 0.75);
+  color: #f2f2f2;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.studio-agent-testing-overlay__note-input::placeholder {
+  color: #8b909a;
+}
+
+.studio-agent-testing-overlay__note-submit {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(120, 190, 255, 0.4);
+  background: rgba(40, 70, 110, 0.45);
+  color: #c8e0ff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.studio-agent-testing-overlay__note-submit:hover {
+  color: #fff;
+  border-color: rgba(120, 190, 255, 0.7);
+}
+
+.studio-agent-testing-overlay__log li[data-kind="po-note"] {
+  color: #c8e0ff;
+  font-weight: 600;
+}
+
 .studio-agent-testing-overlay__actions {
   display: flex;
   flex-wrap: wrap;

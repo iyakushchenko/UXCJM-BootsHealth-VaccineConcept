@@ -15,6 +15,17 @@ import { getMcpTestSession } from "@/app/shell/mcpTestGuard";
 import { getPlaybackDiagBundle, playbackDiagScroll } from "@/app/shell/playbackDiag";
 import { getRecentDiagnosticFlashes } from "@/app/shell/playbackDiagnosticFlash";
 import {
+  appendQaDiagRing,
+  closeQaDiagGate,
+  hydrateQaDiagGate,
+  isQaDiagGateOpen,
+  isQaDiagLoggerMode,
+  openQaDiagGate,
+  replaceQaDiagRing,
+  setQaDiagLoggerMode,
+  type QaDiagRingEvent,
+} from "@/app/shell/qaDiagGate";
+import {
   buildLogEntryFromPlain,
   buildLogEntryFromStep,
   coalesceLogEntry,
@@ -120,6 +131,12 @@ type OverlayApi = {
   stop: (options?: StopAgentTestingOverlayOptions) => void;
   /** Always clear instantly (Dismiss / stuck recovery). Hard-removes DOM. */
   forceClear: () => void;
+  /** Free-form QA logger (version chip) — opens gate, page clicks allowed. */
+  openLogger: () => void;
+  /** Soft-close logger (keep DOM, close gate). */
+  softClose: () => void;
+  /** Append PO free-text note into log + dump ring. */
+  appendPoNote: (text: string) => boolean;
   log: (line: string) => void;
   /** Structured mid-flight step (preferred over plain helper spam). */
   logStep: (input: LogAgentTestingStepInput) => void;
@@ -148,6 +165,8 @@ type HistoryEntry = {
 
 let active = false;
 let settling = false;
+/** Free-form logger from version chip — page clicks allowed, soft dismiss. */
+let loggerSession = false;
 let logEntries: AgentTestingLogEntry[] = [];
 let sessionTitle = DEFAULT_TITLE;
 let nest = 0;
@@ -770,7 +789,8 @@ function armIdleTimer(): void {
   idleTimer = setTimeout(() => {
     if (!active || settling) return;
     // Journey/play smokes run minutes — never idle-kill an active MCP session.
-    if (getMcpTestSession()) {
+    // Free-form QA logger stays open while the diag gate is open.
+    if (getMcpTestSession() || isQaDiagLoggerMode() || loggerSession) {
       armIdleTimer();
       return;
     }
@@ -936,6 +956,10 @@ function ensureRoot(): HTMLElement | null {
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
         <button type="button" class="studio-agent-testing-overlay__dump" title="Download last dump JSON (secondary — prefer __studioConsumePoSignal)">Dump</button>
       </div>
+      <form class="studio-agent-testing-overlay__note" autocomplete="off">
+        <input type="text" class="studio-agent-testing-overlay__note-input" name="po-note" maxlength="280" placeholder="PO note — Enter to log" aria-label="PO note" />
+        <button type="submit" class="studio-agent-testing-overlay__note-submit">Note</button>
+      </form>
       <ol class="studio-agent-testing-overlay__log"></ol>
     </div>
   `;
@@ -943,7 +967,32 @@ function ensureRoot(): HTMLElement | null {
     ".studio-agent-testing-overlay__dismiss"
   );
   dismiss?.addEventListener("click", () => {
-    forceClearAgentTestingOverlay();
+    // Prefer window API so Vite HMR duplicate modules still close the live panel.
+    const api = window.__studioAgentTestingOverlay;
+    if (loggerSession || isQaDiagLoggerMode() || api?.isActive?.()) {
+      if (typeof api?.softClose === "function") {
+        api.softClose();
+      } else {
+        softCloseAgentTestingLogger("dismiss");
+      }
+    } else if (typeof api?.forceClear === "function") {
+      api.forceClear();
+    } else {
+      forceClearAgentTestingOverlay();
+    }
+  });
+  const noteForm = root.querySelector<HTMLFormElement>(
+    ".studio-agent-testing-overlay__note"
+  );
+  noteForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = root.querySelector<HTMLInputElement>(
+      ".studio-agent-testing-overlay__note-input"
+    );
+    const text = input?.value?.trim() ?? "";
+    if (!text) return;
+    appendAgentTestingPoNote(text);
+    if (input) input.value = "";
   });
   root
     .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__alarm")
@@ -999,6 +1048,14 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
     const snippet = (entry.label || entry.kind || "").trim().slice(0, 48);
     setActivityPhase("running", snippet || undefined);
   }
+  appendQaDiagRing({
+    kind: entry.kind,
+    text: entry.label,
+    label: entry.label,
+    atMs: entry.atMs,
+    beatId: entry.beatId,
+    detail: entry.action,
+  });
   renderLog();
   refreshSitrepDom();
   if (active) noteActivity();
@@ -1294,8 +1351,13 @@ export function startAgentTestingOverlay(title?: string): void {
   setAgentTestingHtmlFlag(true);
   setTitle(resolved);
   setResultBadge("neutral");
-  setHint("Page visible - clicks blocked. Mid-flight QA below.");
+  setHint(
+    loggerSession
+      ? "QA logger — page clicks allowed. Notes + dump below."
+      : "Page visible - clicks blocked. Mid-flight QA below."
+  );
   setActivityPhase("running");
+  openQaDiagGate({ logger: loggerSession, reason: "overlay-start" });
   writePersist(resolved);
   bindBeforeUnload();
   bindVisibility();
@@ -1461,6 +1523,9 @@ export function stopAgentTestingOverlay(
  * Safe to call on every helper / DevTools evaluate - does not bump nest.
  */
 export function touchAgentTestingOverlay(title?: string): void {
+  // Open gate only when actually arming / refreshing an agent session —
+  // not when a read-only status helper was mistakenly wrapped (see helperOverlayArm).
+  openQaDiagGate({ reason: "overlay-touch" });
   if (settling) {
     abandonSettleForRearch();
   }
@@ -1478,6 +1543,94 @@ export function touchAgentTestingOverlay(title?: string): void {
     return;
   }
   startAgentTestingOverlay(title);
+}
+
+/**
+ * Version-chip free-form logger — opens gate + overlay without remount flash.
+ * Page clicks stay enabled (`data-logger`).
+ */
+export function openAgentTestingLogger(title?: string): void {
+  openQaDiagGate({ logger: true, reason: "version-chip" });
+  setQaDiagLoggerMode(true);
+  loggerSession = true;
+  if (settling) abandonSettleForRearch();
+  const resolved = resolveAgentTestingOverlayTitle(
+    title?.trim() || "QA LOGGER"
+  );
+  sessionTitle = resolved;
+  const root = ensureRoot();
+  if (root) {
+    root.dataset.active = "true";
+    root.dataset.settling = "false";
+    root.dataset.logger = "true";
+    delete root.dataset.result;
+    syncAgentTestingNavClearance(ROOT_ID, root);
+  }
+  active = true;
+  settling = false;
+  nest = Math.max(nest, 1);
+  setAgentTestingHtmlFlag(false); // do not block page
+  setTitle(resolved);
+  setResultBadge("neutral");
+  setHint("QA logger — page clicks allowed. Notes + dump below.");
+  setActivityPhase("running", "logger");
+  writePersist(resolved);
+  armElapsedTimer();
+  if (!sessionStartedAt) {
+    sessionStartedAt = Date.now();
+    lastStepAt = sessionStartedAt;
+  }
+  noteActivity();
+  refreshSitrepDom();
+  refreshActivityDom();
+  renderLog();
+}
+
+/** Soft dismiss — close gate, hide panel, keep DOM (no remount flash next open). */
+export function softCloseAgentTestingLogger(reason = "soft-close"): void {
+  closeQaDiagGate({ reason });
+  loggerSession = false;
+  setQaDiagLoggerMode(false);
+  nest = 0;
+  active = false;
+  settling = false;
+  settleResult = "neutral";
+  clearSafetyTimer();
+  clearIdleTimer();
+  clearSettleTimer();
+  clearEnsureClearTimer();
+  clearElapsedTimer();
+  clearPersist();
+  unbindBeforeUnload();
+  unbindVisibility();
+  hideOverlayDom();
+  const root = document.getElementById(ROOT_ID);
+  if (root) delete root.dataset.logger;
+  setActivityPhase("idle");
+}
+
+/** PO free-text note → log + timeline + persisted ring. */
+export function appendAgentTestingPoNote(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  // If module `active` is stale (Vite HMR fork) but gate is open, re-show logger.
+  if (!active) {
+    openAgentTestingLogger();
+  } else if (!isQaDiagGateOpen()) {
+    openQaDiagGate({ logger: true, reason: "po-note" });
+  }
+  const label =
+    trimmed.length > 120 ? `${trimmed.slice(0, 118)}…` : trimmed;
+  pushLogEntry({
+    atMs: performance.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `PO: ${label}`,
+    outcome: "ok",
+    kind: "po-note",
+  });
+  markAgentTestingTimeline(`po-note:${Date.now()}`, "ok");
+  setActivityPhase("running", "po-note");
+  return true;
 }
 
 export function logAgentTestingOverlay(line: string): void {
@@ -1532,6 +1685,9 @@ export function forceClearAgentTestingOverlay(): void {
     settling = false;
     settleReload = false;
     settleResult = "neutral";
+    loggerSession = false;
+    closeQaDiagGate({ reason: "force-clear" });
+    setQaDiagLoggerMode(false);
     cancelPendingReload();
     clearSafetyTimer();
     clearIdleTimer();
@@ -1554,6 +1710,7 @@ export function forceClearAgentTestingOverlay(): void {
     teardownDom(true);
   } catch {
     try {
+      closeQaDiagGate({ reason: "force-clear" });
       cancelPendingReload();
       dismissRoboCursor();
       releaseClickGuard();
@@ -1597,16 +1754,18 @@ function bindOverlayApi(api: OverlayApi): void {
 }
 
 /**
- * On install: never restore a stale "testing" flag unless an explicit
- * continue key is set (default: never). Clear orphan persist otherwise.
+ * On install: hydrate QA diag gate; restore logger quietly if gate was open.
+ * Orphan probe persist still cleared unless continue key is set.
  */
 export function installAgentTestingOverlayApi(): void {
   if (typeof window === "undefined") return;
   stripEphemeralStudioQuery();
+  const hydrated = hydrateQaDiagGate();
   if (!shouldContinueFromPersist()) {
     clearPersist();
-    // Orphan DOM from a hard refresh / HMR - hard-remove, never leave stale panel.
+    // Orphan DOM from a hard refresh / HMR - hard-remove unless restoring logger.
     if (
+      !hydrated.open &&
       typeof document !== "undefined" &&
       typeof document.getElementById === "function"
     ) {
@@ -1628,6 +1787,9 @@ export function installAgentTestingOverlayApi(): void {
     touch: touchAgentTestingOverlay,
     stop: (options) => stopAgentTestingOverlay(options),
     forceClear: forceClearAgentTestingOverlay,
+    openLogger: openAgentTestingLogger,
+    softClose: softCloseAgentTestingLogger,
+    appendPoNote: appendAgentTestingPoNote,
     log: logAgentTestingOverlay,
     logStep: logAgentTestingStep,
     logHelper: logAgentTestingHelper,
@@ -1647,7 +1809,34 @@ export function installAgentTestingOverlayApi(): void {
   if (typeof window !== "undefined") {
     window.__studioDownloadAgentTestingDump = () => downloadAgentTestingDump();
     window.__protoDownloadAgentTestingDump = () => downloadAgentTestingDump();
+    window.__studioOpenQaLogger = () => openAgentTestingLogger();
+    window.__studioAppendPoNote = (text: string) =>
+      appendAgentTestingPoNote(String(text ?? ""));
+    window.__studioQaDiagGateOpen = () => isQaDiagGateOpen();
   }
+  // Quiet restore — no remount thrash; show panel if gate was open.
+  if (hydrated.open) {
+    restoreLoggerFromRing(hydrated.ring);
+    openAgentTestingLogger("QA LOGGER");
+  }
+}
+
+function restoreLoggerFromRing(events: QaDiagRingEvent[]): void {
+  const restored: AgentTestingLogEntry[] = [];
+  for (const e of events) {
+    if (e.kind === "gate-open" || e.kind === "gate-close") continue;
+    restored.push({
+      atMs: e.atMs,
+      timeLabel: e.atIso
+        ? new Date(e.atIso).toLocaleTimeString("en-GB", { hour12: false })
+        : new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: e.label || e.text || e.kind,
+      outcome: "ok",
+      kind: e.kind === "po-note" ? "po-note" : "info",
+    });
+  }
+  logEntries = restored.slice(-LOG_LIMIT);
+  replaceQaDiagRing(events);
 }
 
 export function uninstallAgentTestingOverlayApi(): void {
@@ -1681,6 +1870,9 @@ export function uninstallAgentTestingOverlayApi(): void {
     delete window.__studioAgentTestingOverlay;
     delete window.__studioDownloadAgentTestingDump;
     delete window.__protoDownloadAgentTestingDump;
+    delete window.__studioOpenQaLogger;
+    delete window.__studioAppendPoNote;
+    delete window.__studioQaDiagGateOpen;
   }
 }
 
@@ -1690,5 +1882,8 @@ declare global {
     __studioAgentTestingOverlay?: OverlayApi;
     __studioDownloadAgentTestingDump?: () => boolean;
     __protoDownloadAgentTestingDump?: () => boolean;
+    __studioOpenQaLogger?: () => void;
+    __studioAppendPoNote?: (text: string) => boolean;
+    __studioQaDiagGateOpen?: () => boolean;
   }
 }

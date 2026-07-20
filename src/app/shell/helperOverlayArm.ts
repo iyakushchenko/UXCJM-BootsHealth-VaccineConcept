@@ -37,6 +37,11 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "ImportJourneyBundle",
   "QaHud",
   "SmokeRetreatChecks",
+  // QA diag gate / free-form logger — read/status + open-logger; must NOT re-arm.
+  "QaDiagGateOpen",
+  "OpenQaLogger",
+  "AppendPoNote",
+  "DownloadAgentTestingDump",
   // Cleanup / abort manage overlay themselves — do not re-arm mid-reset.
   "EnsureCleanStudio",
   "AbortAll",

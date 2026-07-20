@@ -54,6 +54,27 @@ window.__protoAssertPlayEndedAtStart?.()
 
 Filter DevTools console: `[PLAYBACK_DIAG]`.
 
+### QA diag gate (lean open-world logger)
+
+Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only while** `qaDiagGateOpen` is true.
+
+| Action | Gate |
+|--------|------|
+| Version-chip QA icon / `__studioOpenQaLogger()` | **Opens** gate + free-form logger overlay (page clicks allowed) |
+| Agent overlay `touch` / `start` | **Opens** gate |
+| Overlay **Dismiss** / `forceClear` / soft-close | **Closes** gate |
+| Refresh | Gate + capped event ring (`sessionStorage`, ~300) restored; logger reopens quietly if gate was open |
+
+PO notes: type in the overlay note field (Enter) or `__studioAppendPoNote("…")` → `po-note` rows in log/dump/timeline.
+
+```js
+window.__studioQaDiagGateOpen?.() // boolean
+window.__studioOpenQaLogger?.()
+window.__studioAppendPoNote?.("pixel drift on PDP Book")
+```
+
+Code: `src/app/shell/qaDiagGate.ts` · overlay: `agent-testing/`.
+
 ---
 
 ## Event schema (every beat — agentic + traditional)

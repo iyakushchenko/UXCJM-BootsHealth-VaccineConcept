@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   assertPlaybackPlayEndedAtStart,
   assertPlaybackTypeIn,
@@ -21,10 +21,20 @@ import {
   playbackDiagTypeInSkip,
   playbackDiagTypeInStart,
 } from "@/app/shell/playbackDiag";
+import {
+  openQaDiagGate,
+  resetQaDiagGateForTests,
+} from "@/app/shell/qaDiagGate";
 
 describe("playbackDiag", () => {
+  beforeEach(() => {
+    // Console emit is gated — open for suites that assert [PLAYBACK_DIAG] noise.
+    openQaDiagGate({ reason: "playbackDiag-test" });
+  });
+
   afterEach(() => {
     playbackDiagClear();
+    resetQaDiagGateForTests();
     vi.restoreAllMocks();
   });
 

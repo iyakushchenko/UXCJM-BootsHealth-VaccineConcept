@@ -4,12 +4,16 @@
  * Contract: every beat (agentic + traditional) logs cursor/scroll/click/type
  * so Quinn can prove regressions without guessing. See docs/shell/PLAYBACK_DIAG.md.
  *
+ * Console emit is gated by `qaDiagGate` (open via version-chip logger / agent overlay).
+ *
  * Console:
  *   window.__studioPlaybackDiag()
  *   window.__studioAssertTypeIn({ minChars?: number, minSamples?: number })
  *   window.__studioAssertPlayEndedAtStart({ startBeatId, startScreenId? })
  *   window.__studioPlaybackDiagClear()
  */
+
+import { isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 
 export type PlaybackDiagKind =
   | "type-in-start"
@@ -165,15 +169,19 @@ function push(event: Omit<PlaybackDiagEvent, "t">): PlaybackDiagEvent {
   const full: PlaybackDiagEvent = { t: now(), ...event };
   events.push(full);
   if (events.length > MAX_EVENTS) events.shift();
-  // Always mirror to console — PO: "all diagnostics in console".
-  console.info("[PLAYBACK_DIAG]", full.kind, consolePayload(full));
+  // Heavy console only while QA diag gate is open (version-chip logger / agent overlay).
+  if (isQaDiagGateOpen()) {
+    console.info("[PLAYBACK_DIAG]", full.kind, consolePayload(full));
+  }
   return full;
 }
 
 export function playbackDiagClear(): void {
   events.length = 0;
   typeInActive = null;
-  console.info("[PLAYBACK_DIAG]", "clear");
+  if (isQaDiagGateOpen()) {
+    console.info("[PLAYBACK_DIAG]", "clear");
+  }
 }
 
 export function playbackDiagLog(
@@ -775,15 +783,17 @@ export function playbackDiagHubNav(options: {
     mode: resolvePlaybackDiagMode(),
   });
   try {
-    console.warn(
-      "[PLAYBACK_DIAG] hub-nav",
-      options.reason,
-      {
-        source: options.source,
-        screenBefore,
-        stack,
-      }
-    );
+    if (isQaDiagGateOpen()) {
+      console.warn(
+        "[PLAYBACK_DIAG] hub-nav",
+        options.reason,
+        {
+          source: options.source,
+          screenBefore,
+          stack,
+        }
+      );
+    }
   } catch {
     /* hang-safe */
   }

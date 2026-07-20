@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.68 - 200726
+- **shell:** Lean QA diag gate + open-world logger — version-chip icon; `qaDiagGateOpen` gates PLAYBACK_DIAG console; PO notes; sessionStorage ring restore (no flash); QA window helpers read-only (no helper-arm re-open)
+
 ## v0.0.67 - 200726
 - **shell:** CREATE NEW ↔ REC guiding (auto REC on; REC off snaps first-saved); agent-testing activity pulse + timeline wrap; REC PLAYBACK_DIAG + browse beatId omit + SaveAsCJM `{label}` MCP arg
 

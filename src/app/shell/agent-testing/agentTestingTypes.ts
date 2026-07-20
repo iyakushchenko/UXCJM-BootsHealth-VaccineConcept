@@ -12,7 +12,8 @@ export type AgentTestingLogKind =
   | "alarm"
   | "cursor"
   | "scroll"
-  | "sequence";
+  | "sequence"
+  | "po-note";
 
 export type AgentTestingLogEntry = {
   atMs: number;
