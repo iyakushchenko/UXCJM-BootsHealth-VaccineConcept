@@ -85,13 +85,17 @@ function cssEscapeIdent(raw: string): string {
 /**
  * Canonical interactive for logging — sibling CJM label → switch, tab root, etc.
  * Avoids pointerdown-on-label + click-on-button as two different keys.
+ * Returns null for empty-space / non-interactive chrome (PO: interactive only).
  */
-export function resolveClickElement(el: Element): HTMLElement {
-  const modeGroup = el.closest?.(".studio-nav-scenario__cjm-group, .studio-nav-scenario__mode-control");
+export function resolveClickElement(el: Element): HTMLElement | null {
+  const modeGroup = el.closest?.(
+    ".studio-nav-scenario__cjm-group, .studio-nav-scenario__mode-control"
+  );
   if (modeGroup) {
     const sw =
-      modeGroup.querySelector<HTMLElement>(".studio-mode-switch, button, [role='switch']") ||
-      modeGroup.querySelector<HTMLElement>("button");
+      modeGroup.querySelector<HTMLElement>(
+        ".studio-mode-switch, button, [role='switch']"
+      ) || modeGroup.querySelector<HTMLElement>("button");
     if (sw) return sw;
   }
 
@@ -101,20 +105,39 @@ export function resolveClickElement(el: Element): HTMLElement {
   const interactive = el.closest?.(INTERACTIVE_SEL);
   if (interactive instanceof HTMLElement) return interactive;
 
-  // Status bar chrome — prefer title, never the whole bar textContent mash.
-  const statusTitle = el.closest?.(".studio-nav-status-bar")?.querySelector(
-    ".studio-nav-status-bar__title"
-  );
-  if (statusTitle instanceof HTMLElement && el.closest?.(".studio-nav-status-bar")) {
-    return statusTitle;
-  }
+  return null;
+}
 
-  return el as HTMLElement;
+/** True when the resolved node is a real control (not panel padding). */
+export function isInteractiveControl(el: Element | null): boolean {
+  if (!el || !(el instanceof HTMLElement)) return false;
+  if (typeof el.matches === "function" && el.matches(INTERACTIVE_SEL)) {
+    return true;
+  }
+  const role = el.getAttribute?.("role")?.trim();
+  if (role === "button" || role === "link" || role === "switch" || role === "tab") {
+    return true;
+  }
+  if (el.classList?.contains("studio-mode-switch")) return true;
+  if (el.classList?.contains("studio-nav-tab")) return true;
+  if (el.classList?.contains("studio-nav-step-btn")) return true;
+  if (el.getAttribute?.("data-studio-action")?.trim()) return true;
+  if (el.getAttribute?.("data-studio-screen")?.trim()) return true;
+  const tag = el.tagName?.toLowerCase?.() || "";
+  return (
+    tag === "button" ||
+    tag === "a" ||
+    tag === "input" ||
+    tag === "select" ||
+    tag === "textarea" ||
+    tag === "summary" ||
+    tag === "label"
+  );
 }
 
 /** Prefer stable studio attrs, then id, then short class+tag. */
 export function describeClickSelector(el: Element): string {
-  const labelled = resolveClickElement(el);
+  const labelled = resolveClickElement(el) ?? (el as HTMLElement);
 
   const action = labelled.getAttribute?.("data-studio-action")?.trim();
   if (action) return `[data-studio-action="${action}"]`;
@@ -143,7 +166,7 @@ export function describeClickSelector(el: Element): string {
 /** Short ancestor chain for dump (max 3 levels). */
 export function describeClickChain(el: Element, max = 3): string {
   const parts: string[] = [];
-  let cur: Element | null = resolveClickElement(el);
+  let cur: Element | null = resolveClickElement(el) ?? el;
   for (let i = 0; i < max && cur && cur !== document.body; i++) {
     const tag = cur.tagName?.toLowerCase?.() || "el";
     const id = cur.id ? `#${cssEscapeIdent(cur.id)}` : "";
@@ -167,6 +190,7 @@ export function describeClickChain(el: Element, max = 3): string {
 /** Prefer human affordance text over raw tag names / glued status-bar soup. */
 export function describeClickTarget(el: Element): string {
   const labelled = resolveClickElement(el);
+  if (!labelled) return "";
 
   // CJM / REC mode group — visible mode word beats aria "Toggle CJM".
   const modeGroup = labelled.closest?.(
@@ -207,14 +231,6 @@ export function describeClickTarget(el: Element): string {
     if (title) return title;
   }
 
-  // Status title only (not whole bar).
-  if (
-    labelled.classList?.contains("studio-nav-status-bar__title") ||
-    labelled.closest?.(".studio-nav-status-bar__title")
-  ) {
-    return shortText(labelled.textContent || "", 42) || "Status";
-  }
-
   if (labelled instanceof HTMLInputElement) {
     const v = labelled.value?.trim();
     if (labelled.type === "submit" || labelled.type === "button") {
@@ -249,13 +265,7 @@ export function describeClickTarget(el: Element): string {
 export function buildClickDetail(el: Element): AgentTestingClickDetail | null {
   if (isIgnoredTarget(el)) return null;
   const resolved = resolveClickElement(el);
-  // Skip empty layout chrome that isn't a real control (status bar padding).
-  if (
-    resolved.classList?.contains("studio-nav-status-bar") ||
-    /studio-nav-status-bar__(start|end)/.test(resolved.className || "")
-  ) {
-    return null;
-  }
+  if (!resolved || !isInteractiveControl(resolved)) return null;
   const desc = describeClickTarget(el);
   if (!desc) return null;
   const dataStudioAction =
@@ -316,7 +326,8 @@ export function bindAgentTestingCaptureWatch(
   };
 
   const commit = (detail: AgentTestingClickDetail) => {
-    if (!handlers.isCapturing() && detail.surface !== "control-room") return;
+    // Pause / CAPTURE off stops ALL surfaces (Control Room included).
+    if (!handlers.isCapturing()) return;
     const key = emitKey(detail);
     const now = Date.now();
     if (key === lastEmitKey && now - lastEmitAt < CLICK_DEDUPE_MS) return;
@@ -328,9 +339,9 @@ export function bindAgentTestingCaptureWatch(
   const onPointerDown = (event: Event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    if (!handlers.isCapturing()) return;
     const detail = buildClickDetail(target);
     if (!detail) return;
-    if (!handlers.isCapturing() && detail.surface !== "control-room") return;
     clearPending();
     pendingDetail = detail;
     pendingTimer = setTimeout(() => {

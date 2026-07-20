@@ -9,6 +9,11 @@ import {
   type ControlPanelSnapshot,
 } from "@/app/shell/controlPanelLog";
 import { parseStudioUrl } from "@/app/shell/studioUrl";
+import {
+  formatOriginHostLabel,
+  formatOriginSessionLine,
+  peekOriginLiveStatus,
+} from "@/app/shell/agent-testing/agentTestingOriginProbe";
 
 function pickString(
   snap: ControlPanelSnapshot | null | undefined,
@@ -123,8 +128,13 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
   const stepsCounter =
     stepsProgress && stepsProgress !== counter ? stepsProgress : undefined;
 
-  /** Session bar = mid-flight brain (no console). Include screen always; beat when CJM. */
-  const sessionParts = [
+  /** Session bar = live origin probe (host:port + Active/Offline). */
+  const sessionLine = formatOriginSessionLine(
+    peekOriginLiveStatus(),
+    formatOriginHostLabel()
+  );
+
+  const dumpParts = [
     mode ? `Mode ${shortId(mode, 20)}` : null,
     projectId ? `Project ${shortId(projectId, 22)}` : null,
     personaId ? `Persona ${shortId(personaId, 22)}` : null,
@@ -134,15 +144,6 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
     snap?.journeyMode === true && stepsCounter && stepsCounter !== counter
       ? `Steps ${stepsCounter}`
       : null,
-  ].filter(Boolean);
-
-  const sessionLine =
-    sessionParts.length > 0
-      ? sessionParts.join(" · ")
-      : "Session — waiting for studio state";
-
-  const dumpParts = [
-    ...sessionParts,
     snap?.journeyMode !== true && counter ? `beat ${counter}` : null,
     beatId ? beatId : null,
     touchpointKey ? `tp ${touchpointKey}` : null,

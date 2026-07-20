@@ -39,7 +39,7 @@ export type AgentTestingLogEntry = {
   /** Forensics — dump/ring; keep visible label short. */
   selector?: string;
   chain?: string;
-  surface?: "product" | "chrome";
+  surface?: "product" | "chrome" | "control-room";
   dataStudioAction?: string;
 };
 
@@ -60,7 +60,7 @@ export type AgentTestingSitrep = {
   touchpointKey?: string;
   /** Full legacy line (dump / diagnostics). */
   line: string;
-  /** Session bar only — mode / project / persona / CJM. */
+  /** Session bar — `Session: Localhost:5173 - Active` (live origin probe). */
   sessionLine: string;
 };
 

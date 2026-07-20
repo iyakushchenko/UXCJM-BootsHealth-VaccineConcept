@@ -82,7 +82,7 @@ describe("click forensics", () => {
       </div>`;
     const clicks: string[] = [];
     const unbind = bindAgentTestingCaptureWatch({
-      isCapturing: () => false,
+      isCapturing: () => true,
       onClick: (d) => clicks.push(d.label),
       onScreen: () => undefined,
     });
@@ -92,6 +92,38 @@ describe("click forensics", () => {
     sw.dispatchEvent(new Event("click", { bubbles: true }));
     vi.advanceTimersByTime(400);
     expect(clicks).toEqual(["Control room: CJM"]);
+    unbind();
+    vi.useRealTimers();
+  });
+
+  it("ignores empty-space control-room clicks", () => {
+    document.body.innerHTML = `
+      <div class="studio-nav-panel">
+        <div class="studio-nav-status-bar"><p class="studio-nav-status-bar__title">PLP</p></div>
+      </div>`;
+    const bar = document.querySelector(".studio-nav-status-bar")!;
+    expect(buildClickDetail(bar)).toBeNull();
+  });
+
+  it("does not emit while capture is paused", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML =
+      '<div class="studio-nav-panel"><button data-studio-action="play">Play</button></div>';
+    const clicks: string[] = [];
+    let capturing = false;
+    const unbind = bindAgentTestingCaptureWatch({
+      isCapturing: () => capturing,
+      onClick: (d) => clicks.push(d.label),
+      onScreen: () => undefined,
+    });
+    const btn = document.querySelector("button")!;
+    btn.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    btn.dispatchEvent(new Event("click", { bubbles: true }));
+    vi.advanceTimersByTime(400);
+    expect(clicks).toEqual([]);
+    capturing = true;
+    btn.dispatchEvent(new Event("click", { bubbles: true }));
+    expect(clicks).toEqual(["Control room: Play"]);
     unbind();
     vi.useRealTimers();
   });

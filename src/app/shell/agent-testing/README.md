@@ -107,7 +107,9 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`). On chat SF with gate open, dump also includes **`chatBubbleMotion.samples`** — pull-up / thinking→reply frames with **TRACE** (`scrollTop`, `scrollMax`, `scrollLock`, `composerDockTop`, `bubbleBottom`, `clearPx`, `underComposer`, `deltaScrollTop`) + `jump` / `chop` flags. Read TRACE: filter samples by `phase=frame|trace`, look for `underComposer` / `chopReason` / camera tags `pull-up-settle` · `composer-clearance-topup`. See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § Chat bubble motion.
 
-**Control room (manual/observe):** clicks on `.studio-nav-panel` / transport land as `Control room: …` (`surface: control-room`) in Save Log — even while Manual CAPTURE is paused (product clicks stay gated). One intentional gesture → one line (click-canonical; pointerdown/click coalesced; CJM label resolves to the switch).
+**Control room (manual/observe):** interactive controls only (buttons/toggles/tabs/inputs) → `Control room: …`. Empty-space nav clicks are ignored. Pause / CAPTURE off stops **all** interaction logging until Resume. One gesture → one line (click-canonical coalesce).
+
+**Session line:** `Session: Localhost:5173 - Active` (live origin probe; Offline when unreachable).
 
 **Agent intervene:** takeover confirm / wipe handoff / observe escalate → **fresh AGENT SESSION** (elapsed reset + boundary log). Old manual elapsed does not continue.
 

@@ -149,6 +149,10 @@ import {
 } from "@/app/shell/agent-testing/agentTestingPlaybackHalt";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 import {
+  armOriginProbe,
+  disarmOriginProbe,
+} from "@/app/shell/agent-testing/agentTestingOriginProbe";
+import {
   deriveAgentControlKind,
   isCjmCassetteOn,
   readLiveJourneyIsPlaying,
@@ -525,6 +529,20 @@ function refreshSitrepDom(): void {
     ".studio-agent-testing-overlay__sitrep"
   );
   if (legacy && !sessionEl) legacy.textContent = sitrep.sessionLine;
+}
+
+function armSessionOriginProbe(): void {
+  try {
+    armOriginProbe(() => {
+      try {
+        refreshSitrepDom();
+      } catch {
+        /* hang-safe */
+      }
+    });
+  } catch {
+    /* hang-safe */
+  }
 }
 
 function renderTimeline(): void {
@@ -2030,7 +2048,7 @@ function ensureOverlayChrome(root: HTMLElement): void {
     session.setAttribute("aria-label", "Session context");
     session.innerHTML = `
       <p class="studio-agent-testing-overlay__bar-title">Session</p>
-      <p class="studio-agent-testing-overlay__session-line">Session — waiting for studio state</p>
+      <p class="studio-agent-testing-overlay__session-line">Session: Localhost:5173 - Checking…</p>
     `;
     const activity = panel.querySelector(
       ".studio-agent-testing-overlay__activity"
@@ -2230,7 +2248,7 @@ function ensureRoot(): HTMLElement | null {
       <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
       <div class="studio-agent-testing-overlay__session" aria-label="Session context">
         <p class="studio-agent-testing-overlay__bar-title">Session</p>
-        <p class="studio-agent-testing-overlay__session-line">Session — waiting for studio state</p>
+        <p class="studio-agent-testing-overlay__session-line">Session: Localhost:5173 - Checking…</p>
       </div>
       <div class="studio-agent-testing-overlay__timeline-wrap" hidden>
         <p class="studio-agent-testing-overlay__bar-title">Touchpoints</p>
@@ -2331,8 +2349,7 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
   ) {
     return;
   }
-  // Manual pause: skip auto product events; user-message + system control still land.
-  // Control-room clicks always land (PO A — Manual Save Log nav/transport).
+  // Manual pause: skip auto product/control-room events; user-message + system still land.
   if (
     capturePaused &&
     entry.kind !== "user-message" &&
@@ -2342,8 +2359,7 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
     entry.kind !== "observe-escalate" &&
     entry.kind !== "alarm" &&
     entry.kind !== "playback-diag" &&
-    entry.kind !== "fail-handoff" &&
-    !(entry.kind === "click" && entry.surface === "control-room")
+    entry.kind !== "fail-handoff"
   ) {
     return;
   }
@@ -2823,6 +2839,7 @@ export function startAgentTestingOverlay(title?: string): void {
   syncSessionChrome();
   syncCaptureWatch();
   softShowOverlayPanel(root);
+  armSessionOriginProbe();
 }
 
 /**
@@ -3325,6 +3342,7 @@ export function openAgentTestingLogger(
   renderLog();
   syncCaptureWatch();
   softShowOverlayPanel(root);
+  armSessionOriginProbe();
   if (root) {
     bindMessageListen(qaListenDeps(), root);
     focusMessageInput(ROOT_ID, root);
@@ -3344,6 +3362,11 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   dismissStaleDiagForSession(
     reason.startsWith("qa-") ? reason : `qa-${reason}`
   );
+  try {
+    disarmOriginProbe();
+  } catch {
+    /* hang-safe */
+  }
   unbindCaptureWatch();
   closeQaDiagGate({ reason });
   setSessionKind("manual");
@@ -3550,6 +3573,11 @@ export function forceClearAgentTestingOverlay(): void {
     clearQaProgressFreeze();
     clearQaAgentPresence();
     clearAgentTestingFinaleSeal();
+    try {
+      disarmOriginProbe();
+    } catch {
+      /* hang-safe */
+    }
     nest = 0;
     active = false;
     settling = false;
