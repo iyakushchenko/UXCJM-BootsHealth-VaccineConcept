@@ -57,6 +57,8 @@ function eventDedupeKey(event: RecordedEvent): string {
       return `wire-intent:${event.intentId}:${JSON.stringify(event.payload ?? {})}`;
     case "scroll":
       return `scroll:${event.anchorSelector ?? ""}:${(event.selectorChain ?? []).join(">")}`;
+    case "scroll-stop":
+      return `scroll-stop:${event.durationMs}:${event.anchorSelector ?? ""}:${(event.selectorChain ?? []).join(">")}`;
     case "typed-text":
       return `typed-text:${(event.selectorChain ?? []).join(">")}:${event.value}`;
     case "touchpoint":
@@ -92,6 +94,7 @@ export function isRecordingActive(): boolean {
 /**
  * Journey STEPS for REC UI.
  * - Excludes `scroll` (engine replay targets only).
+ * - Includes `scroll-stop` (camera wait / STEPS slot after compile).
  * - Excludes `studio` chrome field flips (not concept steps).
  * - Coalesces demo-click → screen within {@link SCREEN_AFTER_CLICK_MS}
  *   (one user nav action must not count as two STEPS).

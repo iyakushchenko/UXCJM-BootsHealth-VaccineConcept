@@ -66,6 +66,21 @@ export type RecordedScrollEvent = {
   snapshot?: RecordingSnapshot;
 };
 
+/**
+ * Scroll host settled ≥ ~2s with no meaningful movement (jiggles ignored).
+ * Compile → first-class `kind: "camera"` dwell / pause wait (optional target).
+ */
+export type RecordedScrollStopEvent = {
+  kind: "scroll-stop";
+  /** Settled pause ms (at least SCROLL_STOP_DWELL_MS). → camera.dwellMs */
+  durationMs: number;
+  /** Scroll host target at settle (optional next target when known). */
+  selectorChain?: string[];
+  anchorSelector?: string;
+  atMs: number;
+  snapshot?: RecordingSnapshot;
+};
+
 /** Settled text entry on input/textarea (debounced) for REC ↺ replay. */
 export type RecordedTypedTextEvent = {
   kind: "typed-text";
@@ -130,6 +145,7 @@ export type RecordedEvent =
   | RecordedDemoClickEvent
   | RecordedWireIntentEvent
   | RecordedScrollEvent
+  | RecordedScrollStopEvent
   | RecordedTypedTextEvent
   | RecordedTouchpointEvent
   | RecordedDwellEvent

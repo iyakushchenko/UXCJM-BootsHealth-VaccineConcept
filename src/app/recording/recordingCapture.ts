@@ -10,6 +10,14 @@ import type {
   RecordingSnapshot,
 } from "@/app/recording/recordingTypes";
 import { isUsablePlaybackSelectorChain } from "@/app/recording/recordingCompile";
+import {
+  SCROLL_STOP_DWELL_MS,
+  createScrollStopTracker,
+  noteScrollIdle,
+  noteScrollSample,
+  resetScrollStopTracker,
+  type ScrollStopTracker,
+} from "@/app/recording/scrollStopDetect";
 import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
 import type {
   ManualTransportAction,
@@ -24,11 +32,13 @@ let scrollCaptureInstalled = false;
 let typedTextCaptureInstalled = false;
 let domCaptureUnsubSession: (() => void) | null = null;
 let scrollCaptureTimer: ReturnType<typeof setTimeout> | null = null;
+let scrollStopTimer: ReturnType<typeof setTimeout> | null = null;
 let typedTextCaptureTimer: ReturnType<typeof setTimeout> | null = null;
 /** Dedupe key for last emitted scroll **target** (not scrollTop). */
 let lastCapturedScrollTargetKey: string | undefined;
 /** Rate-limit chrome-reject diag so panel mashing does not spam the ring. */
 let lastChromeRejectDiagAtMs = 0;
+let scrollStopTracker: ScrollStopTracker = createScrollStopTracker();
 
 const SCROLL_CAPTURE_DEBOUNCE_MS = 120;
 const TYPED_TEXT_CAPTURE_DEBOUNCE_MS = 280;
@@ -278,6 +288,28 @@ export function captureScroll(options: {
   if (!selectorChain?.length && !anchorSelector) return;
   captureRecordingEvent({
     kind: "scroll",
+    selectorChain: selectorChain?.length ? selectorChain : undefined,
+    anchorSelector,
+  });
+}
+
+/**
+ * Capture a scroll-host settle (≥ {@link SCROLL_STOP_DWELL_MS}, jiggles ignored).
+ * Compile maps this to a first-class `kind: "camera"` dwell / pause wait.
+ */
+export function captureScrollStop(options: {
+  durationMs: number;
+  anchorSelector?: string;
+  selectorChain?: string[];
+}): void {
+  if (!getActiveRecordingSession()) return;
+  const durationMs = Math.max(0, Math.round(options.durationMs));
+  if (durationMs < SCROLL_STOP_DWELL_MS) return;
+  const selectorChain = options.selectorChain?.filter(Boolean);
+  const anchorSelector = options.anchorSelector?.trim() || undefined;
+  captureRecordingEvent({
+    kind: "scroll-stop",
+    durationMs,
     selectorChain: selectorChain?.length ? selectorChain : undefined,
     anchorSelector,
   });
@@ -643,13 +675,21 @@ function resolvePrototypeScrollRoot(): HTMLElement | null {
   return getPrototypeScrollRoot();
 }
 
+function describeCurrentScrollAnchor(): {
+  selectorChain?: string[];
+  anchorSelector?: string;
+} | null {
+  const root = resolvePrototypeScrollRoot();
+  if (!root) return null;
+  const anchorEl = resolveScrollAnchorElement(root);
+  if (!anchorEl) return null;
+  return describeScrollAnchor(anchorEl);
+}
+
 function flushRecordingScrollCapture(): void {
   scrollCaptureTimer = null;
   if (!isRecordingActive()) return;
-  const root = resolvePrototypeScrollRoot();
-  if (!root) return;
-  const anchorEl = resolveScrollAnchorElement(root);
-  const described = anchorEl ? describeScrollAnchor(anchorEl) : null;
+  const described = describeCurrentScrollAnchor();
   // Targets only — skip position-only scrolls with no resolvable anchor.
   if (!described?.selectorChain?.length && !described?.anchorSelector) return;
   const targetKey = `${described.anchorSelector ?? ""}|${(described.selectorChain ?? []).join(">")}`;
@@ -660,11 +700,43 @@ function flushRecordingScrollCapture(): void {
     anchorSelector: described.anchorSelector,
   });
   playbackDiagRecCapture({
-    detail: `scroll → ${described.anchorSelector ?? described.selectorChain[0] ?? "?"}`,
+    detail: `scroll → ${described.anchorSelector ?? described.selectorChain?.[0] ?? "?"}`,
     eventKind: "scroll",
-    selector: described.anchorSelector ?? described.selectorChain[0] ?? null,
+    selector: described.anchorSelector ?? described.selectorChain?.[0] ?? null,
     found: true,
     usable: isUsablePlaybackSelectorChain(described.selectorChain),
+  });
+}
+
+function scheduleScrollStopWatch(): void {
+  if (scrollStopTimer != null) clearTimeout(scrollStopTimer);
+  scrollStopTimer = setTimeout(() => {
+    scrollStopTimer = null;
+    flushRecordingScrollStop();
+  }, SCROLL_STOP_DWELL_MS);
+}
+
+function flushRecordingScrollStop(): void {
+  if (!isRecordingActive()) return;
+  const root = resolvePrototypeScrollRoot();
+  if (!root) return;
+  const atMs = performance.now();
+  // Seed idle sample so quiet stretches emit even without further scroll events.
+  noteScrollSample(scrollStopTracker, root.scrollTop, atMs);
+  const signal = noteScrollIdle(scrollStopTracker, atMs);
+  if (!signal) return;
+  const described = describeCurrentScrollAnchor();
+  captureScrollStop({
+    durationMs: signal.dwellMs,
+    selectorChain: described?.selectorChain,
+    anchorSelector: described?.anchorSelector,
+  });
+  playbackDiagRecCapture({
+    detail: `scroll-stop ${signal.dwellMs}ms → ${described?.anchorSelector ?? described?.selectorChain?.[0] ?? "host"}`,
+    eventKind: "scroll-stop",
+    selector: described?.anchorSelector ?? described?.selectorChain?.[0] ?? null,
+    found: true,
+    usable: isUsablePlaybackSelectorChain(described?.selectorChain),
   });
 }
 
@@ -673,11 +745,23 @@ function onRecordingScroll(event: Event): void {
   if (!("isTrusted" in event) || event.isTrusted !== true) return;
   const root = resolvePrototypeScrollRoot();
   if (!root || event.target !== root) return;
+  const atMs = performance.now();
+  const signal = noteScrollSample(scrollStopTracker, root.scrollTop, atMs);
   if (scrollCaptureTimer != null) clearTimeout(scrollCaptureTimer);
   scrollCaptureTimer = setTimeout(
     flushRecordingScrollCapture,
     SCROLL_CAPTURE_DEBOUNCE_MS
   );
+  // Meaningful activity arms a ≥2s settle watch; jiggles do not reset via tracker.
+  scheduleScrollStopWatch();
+  if (signal) {
+    const described = describeCurrentScrollAnchor();
+    captureScrollStop({
+      durationMs: signal.dwellMs,
+      selectorChain: described?.selectorChain,
+      anchorSelector: described?.anchorSelector,
+    });
+  }
 }
 
 function isTypedTextField(el: Element | null): el is HTMLInputElement | HTMLTextAreaElement {
@@ -749,6 +833,10 @@ function clearDomCaptureTimers(): void {
     clearTimeout(scrollCaptureTimer);
     scrollCaptureTimer = null;
   }
+  if (scrollStopTimer != null) {
+    clearTimeout(scrollStopTimer);
+    scrollStopTimer = null;
+  }
   if (typedTextCaptureTimer != null) {
     clearTimeout(typedTextCaptureTimer);
     typedTextCaptureTimer = null;
@@ -773,10 +861,12 @@ function syncRecordingDomCaptureListeners(): void {
     document.addEventListener("scroll", onRecordingScroll, true);
     scrollCaptureInstalled = true;
     lastCapturedScrollTargetKey = undefined;
+    resetScrollStopTracker(scrollStopTracker);
   } else if (!want && scrollCaptureInstalled) {
     document.removeEventListener("scroll", onRecordingScroll, true);
     scrollCaptureInstalled = false;
     lastCapturedScrollTargetKey = undefined;
+    resetScrollStopTracker(scrollStopTracker);
   }
 
   if (want && !typedTextCaptureInstalled) {

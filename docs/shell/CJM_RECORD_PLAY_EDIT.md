@@ -11,9 +11,9 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 | **Play** | Same engine plays those targets. **Continuous Play ≡ Step** (automated). No dump-all / skip-motion Play path. |
 | **Edit** | PO gives a **user story**. Agent changes the script by **swapping targets / timing / order** on beats (`recordedClick.selectorChain`, `dwellMs`, beat order) — **not** rewriting `book.ts` / director prose. |
 
-**Compile path:** REC events → `recordedClick` + `dwellMs` beats → same Play runners as Step.
+**Compile path:** REC events → `recordedClick` + `dwellMs` + **`scroll-stop` → `kind: "camera"`** beats → same Play runners as Step.
 
-**Prove helpers:** Agentic keep-overlay = `__studioRunAgenticFullPlayProve`. Traditional keep-overlay = `__studioRunTraditionalFullPlayProve` (smoke `__protoRunTraditionalPlaySmoke` tears down).
+**Prove helpers (universal):** prefer `__studioRunFullPlayProve({ journeyId | experience })` — ALWAYS CLEAR → arm → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve` (no duplicated logic). Smoke `__protoRunTraditionalPlaySmoke` tears down overlay.
 
 ## Camera engine rails
 
@@ -22,7 +22,7 @@ Same camera for agentic / traditional / REC — see [PLAYBACK.md](./PLAYBACK.md)
 - Target-driven; no blind origin on screen-enter while CJM/play/AIR.
 - `playbackScroll.ts` is SSoT — wire must not snap origin on tab change during session.
 - Intentional origin (start/retreat/probe) uses `force: true` and honors post-click hold.
-- **Camera beat** (`kind: "camera"` + `camera: { dwellMs, selectorChain }`) — own STEPS slot: wait (show page) → eased scroll; step-back reverses to pre-scroll top. Edit = swap target / timing. Traditional Book Step 3 uses this before Open Appointments.
+- **Camera beat** (`kind: "camera"` + `camera: { dwellMs, selectorChain }`) — own STEPS slot: wait (show page) → eased scroll; step-back reverses to pre-scroll top. Edit = swap target / timing. Traditional Book Step 3 uses this before Open Appointments. **REC:** scroll-host settle ≥ ~2s (jiggles ignored) compiles to the same beat.
 
 ## Exceptions (deeper, keep thin)
 

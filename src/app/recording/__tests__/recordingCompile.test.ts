@@ -310,6 +310,98 @@ describe("compileRecordingToJourney", () => {
     expect(gaps).toContain("demo-click:unusable-selector");
   });
 
+  it("scroll-stop ≥2s compiles to kind:camera beat (dwell + target)", () => {
+    const session: RecordingSession = {
+      id: "scroll-stop-compile",
+      version: 1,
+      startedAt: "2026-07-21T12:00:00.000Z",
+      projectId: "boots-pharmacy",
+      personaId: "sarah-jenkins",
+      journeyId: "traditional-cjm",
+      orchestraMode: "traditional-cjm",
+      events: [
+        {
+          kind: "screen",
+          screenId: "book-step-3",
+          atMs: 0,
+          snapshot: { currentTabIndex: 6, screenId: "book-step-3" },
+        },
+        {
+          kind: "scroll",
+          selectorChain: ['[data-studio-open-appointment="true"]'],
+          anchorSelector: '[data-studio-open-appointment="true"]',
+          atMs: 100,
+        },
+        {
+          kind: "scroll-stop",
+          durationMs: 2400,
+          selectorChain: ['[data-studio-open-appointment="true"]'],
+          anchorSelector: '[data-studio-open-appointment="true"]',
+          atMs: 2500,
+        },
+      ],
+    };
+
+    const { journey, gaps } = compileRecordingToJourney(session);
+    const cameras = journey.beats.filter((b) => b.kind === "camera");
+    expect(cameras.length).toBeGreaterThanOrEqual(1);
+    expect(cameras[0]?.camera).toMatchObject({
+      dwellMs: 2400,
+      selectorChain: ['[data-studio-open-appointment="true"]'],
+      anchorSelector: '[data-studio-open-appointment="true"]',
+    });
+    expect(gaps).not.toContain("scroll-stop");
+  });
+
+  it("scroll-stop before click stamps camera dwell then recordedClick", () => {
+    const session: RecordingSession = {
+      id: "scroll-stop-click",
+      version: 1,
+      startedAt: "2026-07-21T12:00:00.000Z",
+      projectId: "boots-pharmacy",
+      personaId: "sarah-jenkins",
+      journeyId: "traditional-cjm",
+      orchestraMode: "traditional-cjm",
+      events: [
+        {
+          kind: "screen",
+          screenId: "book-step-3",
+          atMs: 0,
+          snapshot: { currentTabIndex: 6, screenId: "book-step-3" },
+        },
+        {
+          kind: "scroll",
+          selectorChain: ['[data-studio-open-appointment="true"]'],
+          atMs: 50,
+        },
+        {
+          kind: "scroll-stop",
+          durationMs: 2100,
+          selectorChain: ['[data-studio-open-appointment="true"]'],
+          atMs: 2200,
+        },
+        {
+          kind: "demo-click",
+          element: "Open appointments",
+          selectorChain: ['[data-studio-action="confirmation-open-appointments"]'],
+          atMs: 2300,
+        },
+      ],
+    };
+
+    const { journey } = compileRecordingToJourney(session);
+    const camera = journey.beats.find((b) => b.kind === "camera");
+    const click = journey.beats.find((b) => b.recordedClick);
+    expect(camera?.camera?.dwellMs).toBe(2100);
+    expect(camera?.camera?.selectorChain).toEqual([
+      '[data-studio-open-appointment="true"]',
+    ]);
+    expect(click?.recordedClick?.selectorChain).toEqual([
+      '[data-studio-action="confirmation-open-appointments"]',
+    ]);
+    expect(click?.recordedClick?.cameraSelectorChain).toBeUndefined();
+  });
+
   it("persists raw recording session with Add as CJM", () => {
     const session = sessionWithTouchpoints();
     const saved = saveRecordingAsJourney(session, {

@@ -224,7 +224,8 @@ if (sig?.type === "alarm") {
 | Agentic step-forward | `__protoRunAgenticStepForwardSmoke` |
 | Traditional step-forward | `__protoRunTraditionalStepForwardSmoke` |
 | Agentic Play → start | `__protoRunAgenticPlaySmoke` |
-| **Full agentic Play prove (KEEP overlay)** | `__studioRunAgenticFullPlayProve` / `__protoRunAgenticFullPlayProve` |
+| **Full Play prove (KEEP overlay, universal)** | `__studioRunFullPlayProve` / `__protoRunFullPlayProve` (`{ journeyId \| experience }`) |
+| **Thin presets** | `__studioRunAgenticFullPlayProve` · `__studioRunTraditionalFullPlayProve` |
 | Traditional Play → start | `__protoRunTraditionalPlaySmoke` |
 | Home Play (chat handoff) | `__protoRunHomePlaySmoke` |
 

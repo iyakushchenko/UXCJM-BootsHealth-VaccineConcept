@@ -72,7 +72,8 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   // start() and leaves stop() stuck at nest>0 (no sitrep / flaky panel).
   "RunMcpPageProbe",
   "RunMcpSanityCheck",
-  // Full agentic Play prove — owns forceClear/arm/leave; must not double-touch wrap.
+  // Full Play prove — owns forceClear/arm/leave; must not double-touch wrap.
+  "RunFullPlayProve",
   "RunAgenticFullPlayProve",
   "RunTraditionalFullPlayProve",
   // Auto-Rule agent-teardown-clean asserts — must not re-arm overlay while proving clear.

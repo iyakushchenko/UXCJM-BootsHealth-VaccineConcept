@@ -80,15 +80,16 @@ import {
   type PlayJourneySmokeResult,
 } from "@/app/shell/playJourneySmoke";
 import {
+  runFullPlayProve,
   runAgenticFullPlayProve,
+  runTraditionalFullPlayProve,
+  type FullPlayProveOptions,
+  type FullPlayProveResult,
   type AgenticFullPlayProveOptions,
   type AgenticFullPlayProveResult,
-} from "@/app/shell/agenticFullPlayProve";
-import {
-  runTraditionalFullPlayProve,
   type TraditionalFullPlayProveOptions,
   type TraditionalFullPlayProveResult,
-} from "@/app/shell/traditionalFullPlayProve";
+} from "@/app/shell/fullPlayProve";
 import type { AgentTestingPoSignal } from "@/app/shell/agent-testing/agentTestingPoSignal";
 import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
 
@@ -236,20 +237,21 @@ declare global {
       timeoutMs?: number;
       softFailPoAlarm?: boolean;
     }) => Promise<PlayJourneySmokeResult>;
-    /**
-     * Full agentic continuous Play prove (KEEP overlay for Save Log).
-     * Prefer this over ad-hoc Play / `__protoRunAgenticPlaySmoke` for agent proves.
-     */
+    /** Universal full Play prove (KEEP overlay). Prefer over thin presets. */
+    __studioRunFullPlayProve?: (
+      options?: FullPlayProveOptions
+    ) => Promise<FullPlayProveResult>;
+    __protoRunFullPlayProve?: (
+      options?: FullPlayProveOptions
+    ) => Promise<FullPlayProveResult>;
+    /** Thin agentic preset → runFullPlayProve({ experience: "agentic" }). */
     __studioRunAgenticFullPlayProve?: (
       options?: AgenticFullPlayProveOptions
     ) => Promise<AgenticFullPlayProveResult>;
     __protoRunAgenticFullPlayProve?: (
       options?: AgenticFullPlayProveOptions
     ) => Promise<AgenticFullPlayProveResult>;
-    /**
-     * Full Traditional continuous Play prove (KEEP overlay for Save Log).
-     * Prefer over `__protoRunTraditionalPlaySmoke` for agent proves.
-     */
+    /** Thin traditional preset → runFullPlayProve({ experience: "traditional" }). */
     __studioRunTraditionalFullPlayProve?: (
       options?: TraditionalFullPlayProveOptions
     ) => Promise<TraditionalFullPlayProveResult>;
@@ -1193,11 +1195,11 @@ export function registerStudioMcpHelpers(options: {
       { resetToJourneyStart: true }
     );
 
-  // Prove path — forceClear + arm + Play + peak 22/22 + leave; keeps QA overlay.
+  // Universal prove — forceClear + arm + Play + peak + leave; keeps QA overlay.
+  window.__studioRunFullPlayProve = runFullPlayProve;
+  window.__protoRunFullPlayProve = runFullPlayProve;
   window.__studioRunAgenticFullPlayProve = runAgenticFullPlayProve;
   window.__protoRunAgenticFullPlayProve = runAgenticFullPlayProve;
-
-  // Traditional keep-overlay prove — peak 13 (or 12 when login skipped) + leave.
   window.__studioRunTraditionalFullPlayProve = runTraditionalFullPlayProve;
   window.__protoRunTraditionalFullPlayProve = runTraditionalFullPlayProve;
 
@@ -1352,6 +1354,8 @@ export function registerStudioMcpHelpers(options: {
     delete window.__protoRunTraditionalStepForwardSmoke;
     delete window.__protoRunTraditionalPlaySmoke;
     delete window.__protoRunAgenticPlaySmoke;
+    delete window.__studioRunFullPlayProve;
+    delete window.__protoRunFullPlayProve;
     delete window.__studioRunAgenticFullPlayProve;
     delete window.__protoRunAgenticFullPlayProve;
     delete window.__studioRunTraditionalFullPlayProve;

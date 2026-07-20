@@ -124,19 +124,29 @@ Sitrep audit: [TRADITIONAL_CJM_UX_2026-07-21.md](../projects/boots-pharmacy/audi
 
 ---
 
-## Prove recipe (agentic CJM)
+## Prove recipe (universal — any CJM)
 
 **Localhost only:** `http://localhost:5173/` (`strictPort`; never invent 5174+). One `npm run dev`. Chrome MCP: `list_pages` → reuse tab.
 
-**Full agentic continuous Play prove (HARD — one entrypoint):** agents MUST call only:
+**Full continuous Play prove (HARD — one engine):** agents MUST prefer:
 
 ```js
-await window.__studioRunAgenticFullPlayProve?.() // default timeoutMs 300_000
-// or: await window.__studioRunAgenticFullPlayProve?.({ timeoutMs: 600_000 })
-// alias: window.__protoRunAgenticFullPlayProve
-// → { pass, peak, end, errors } — forceClear + fresh arm + Play + assert peak 22/22
-//   + play-end at start + pauseForAgentLeave; overlay STAYS open for Save Log.
-// Do NOT ad-hoc Play / do NOT prefer __protoRunAgenticPlaySmoke (tears down overlay).
+await window.__studioRunFullPlayProve?.({ experience: "agentic" })
+// or: await window.__studioRunFullPlayProve?.({ journeyId: "traditional-cjm" })
+// or: await window.__studioRunFullPlayProve?.({ experience: "traditional", timeoutMs: 180_000 })
+// alias: window.__protoRunFullPlayProve
+// → { pass, peak, end, errors, journeyId, experience } — ALWAYS forceClear + fresh arm
+//   + Play + peak assert + play-end at start + pauseForAgentLeave; overlay STAYS open.
+// Thin presets (same core, no duplicated logic):
+//   __studioRunAgenticFullPlayProve / __studioRunTraditionalFullPlayProve
+// Do NOT ad-hoc Play / do NOT prefer *PlaySmoke (tears down overlay).
+```
+
+### Agentic preset
+
+```js
+await window.__studioRunFullPlayProve?.({ experience: "agentic" }) // default timeoutMs 300_000
+// thin: window.__studioRunAgenticFullPlayProve?.()
 ```
 
 Example URL:
@@ -161,10 +171,11 @@ http://localhost:5173/?project=boots-pharmacy&screen=home&persona=sarah-jenkins&
 
 ## Prove recipe (Traditional CJM)
 
-**Full Traditional continuous Play prove (HARD — keep overlay):** agents MUST prefer:
+**Full Traditional continuous Play prove (HARD — keep overlay):** prefer universal API:
 
 ```js
-await window.__studioRunTraditionalFullPlayProve?.() // default timeoutMs 180_000
+await window.__studioRunFullPlayProve?.({ experience: "traditional" }) // default timeoutMs 180_000
+// thin: window.__studioRunTraditionalFullPlayProve?.()
 // alias: window.__protoRunTraditionalFullPlayProve
 // → { pass, peak, end, errors } — forceClear + fresh arm + Play + peak
 //   (13 with login, or 12 when Sarah login-skipped) + play-end at start

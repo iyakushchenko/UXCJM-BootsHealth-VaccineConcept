@@ -1,6 +1,7 @@
 import type {
   JourneyBeat,
   JourneyBeatActionId,
+  JourneyBeatCamera,
   JourneyBeatKind,
   JourneyBeatRecordedClick,
   JourneyDefinition,
@@ -21,6 +22,7 @@ import { isBuiltInOrchestraModeId } from "@/app/orchestra/orchestraModes";
 import {
   compileRecordingToBeatTimeline,
 } from "@/app/recording/recordingReplay";
+import { SCROLL_STOP_DWELL_MS } from "@/app/recording/scrollStopDetect";
 import type {
   CompiledBeatSegment,
   CompiledRecordingTimeline,
@@ -37,6 +39,8 @@ import { playbackDiagRecCompile } from "@/app/shell/playbackDiag";
 
 /** Match STEPS coalescing — screen after click is navigation, not a new beat. */
 const SCREEN_AFTER_CLICK_MS = 1000;
+/** Default camera dwell when scroll preceded click but no scroll-stop was captured. */
+const DEFAULT_CAMERA_DWELL_MS = 1200;
 
 const BEAT_ACTIONS = new Set<JourneyBeatActionId>([
   "open-availability-start",
@@ -242,6 +246,7 @@ function applyScriptToBeat(
 }
 
 function inferKind(beat: JourneyBeat): JourneyBeatKind {
+  if (beat.kind === "camera" || beat.camera) return "camera";
   if (beat.recordedClick) {
     for (const sel of beat.recordedClick.selectorChain) {
       const m = sel.match(/data-studio-action="([^"]+)"/);
@@ -274,6 +279,74 @@ function recordedClickFromDemoEvent(
     }
   }
   return click;
+}
+
+type PendingCamera = {
+  dwellMs: number;
+  selectorChain?: string[];
+  anchorSelector?: string;
+  labelHint?: string;
+};
+
+function cameraFromScrollStop(
+  event: Extract<RecordedEvent, { kind: "scroll-stop" }>
+): PendingCamera | null {
+  const dwellMs = Math.max(
+    SCROLL_STOP_DWELL_MS,
+    Math.round(event.durationMs ?? 0)
+  );
+  const chain = event.selectorChain?.filter((s) => s && s !== "#root");
+  const usable = isUsablePlaybackSelectorChain(chain);
+  return {
+    dwellMs,
+    selectorChain: usable ? chain : undefined,
+    anchorSelector: event.anchorSelector?.trim() || undefined,
+  };
+}
+
+function cameraFromPendingClickScroll(
+  click: JourneyBeatRecordedClick,
+  dwellMs?: number
+): PendingCamera | null {
+  const camChain = click.cameraSelectorChain;
+  const camAnchor = click.cameraAnchorSelector;
+  if (!camChain?.length && !camAnchor) return null;
+  return {
+    dwellMs: dwellMs ?? DEFAULT_CAMERA_DWELL_MS,
+    selectorChain: camChain,
+    anchorSelector: camAnchor,
+    labelHint: click.element,
+  };
+}
+
+function pushCameraBeat(
+  beats: JourneyBeat[],
+  usedIds: Set<string>,
+  pending: PendingCamera,
+  options?: { protoTab?: number; idBase?: string; label?: string }
+): void {
+  const camera: JourneyBeatCamera = {
+    dwellMs: pending.dwellMs,
+  };
+  if (pending.selectorChain?.length) camera.selectorChain = pending.selectorChain;
+  if (pending.anchorSelector) camera.anchorSelector = pending.anchorSelector;
+
+  const id = uniqueBeatId(
+    slugBeatId(options?.idBase ?? "camera"),
+    usedIds
+  );
+  const label =
+    options?.label?.trim() ||
+    (pending.labelHint
+      ? `Camera — ${pending.labelHint.trim().slice(0, 48)}`
+      : "Camera — show page");
+  beats.push({
+    id,
+    label,
+    kind: "camera",
+    protoTab: options?.protoTab,
+    camera,
+  });
 }
 
 function compileSegmentToBeat(
@@ -350,6 +423,25 @@ function compileSegmentToBeat(
       }
     }
 
+    if (event.kind === "scroll-stop") {
+      const stop = cameraFromScrollStop(event);
+      if (stop) {
+        // Segment → single beat: promote to camera when no click/script yet.
+        if (!recordedClickApplied && !scriptApplied) {
+          beat.kind = "camera";
+          beat.camera = {
+            dwellMs: stop.dwellMs,
+            selectorChain: stop.selectorChain,
+            anchorSelector: stop.anchorSelector,
+          };
+          beat.label = beat.label || "Camera — show page";
+        } else if (beat.dwellMs == null) {
+          beat.dwellMs = stop.dwellMs;
+        }
+        pendingScroll = null;
+      }
+    }
+
     if (event.kind === "demo-click" && !recordedClickApplied && !scriptApplied) {
       const click = recordedClickFromDemoEvent(event, pendingScroll);
       if (click) {
@@ -416,6 +508,8 @@ function compileFallbackBeats(
   let currentProtoTab: number | undefined;
   let lastClickAtMs: number | undefined;
   let pendingScroll: Extract<RecordedEvent, { kind: "scroll" }> | null = null;
+  /** Last scroll-stop not yet consumed by a camera beat / click pair. */
+  let pendingStop: PendingCamera | null = null;
   const landedScreens = new Set<string>();
 
   const flushPending = () => {
@@ -432,12 +526,25 @@ function compileFallbackBeats(
     pendingScreen = null;
   };
 
+  const flushPendingCamera = (idBase?: string, label?: string) => {
+    if (!pendingStop) return;
+    pushCameraBeat(beats, usedIds, pendingStop, {
+      protoTab: contextProtoTab(),
+      idBase: idBase ?? "scroll-stop-camera",
+      label,
+    });
+    pendingStop = null;
+    pendingScroll = null;
+  };
+
   const contextProtoTab = (): number | undefined =>
     currentProtoTab ??
     screenIdToProtoTab(projectId, currentScreenId);
 
   for (const event of events) {
     if (event.kind === "scroll") {
+      // New scroll motion ends the prior settle wait → emit camera first.
+      if (pendingStop) flushPendingCamera();
       if (isUsablePlaybackSelectorChain(event.selectorChain)) {
         pendingScroll = event;
       } else {
@@ -446,14 +553,40 @@ function compileFallbackBeats(
       continue;
     }
 
+    if (event.kind === "scroll-stop") {
+      flushPending();
+      if (pendingStop) flushPendingCamera();
+      pendingStop = cameraFromScrollStop(event);
+      // Bind to preceding scroll target when stop itself lacks selectors.
+      if (
+        pendingStop &&
+        !pendingStop.selectorChain?.length &&
+        !pendingStop.anchorSelector &&
+        pendingScroll &&
+        isUsablePlaybackSelectorChain(pendingScroll.selectorChain)
+      ) {
+        pendingStop.selectorChain = pendingScroll.selectorChain.filter(
+          (s) => s && s !== "#root"
+        );
+        pendingStop.anchorSelector = pendingScroll.anchorSelector;
+      }
+      // Standalone settle → camera beat now; click may later consume via pendingStop.
+      // Keep pendingStop until click or next non-scroll event flushes it.
+      continue;
+    }
+
     if (event.kind === "demo-click") {
       const click = recordedClickFromDemoEvent(event, pendingScroll);
+      const stopDwell = pendingStop?.dwellMs;
       pendingScroll = null;
       if (!click) {
+        // Still flush any prior scroll-stop wait before skipping the click.
+        flushPendingCamera();
         gaps.push("demo-click:unusable-selector");
         continue;
       }
       flushPending();
+
       const fromSnap =
         event.snapshot?.currentTabIndex != null
           ? event.snapshot.currentTabIndex + 1
@@ -500,27 +633,19 @@ function compileFallbackBeats(
         actionMatch?.[1] ??
         slugBeatId(event.element ?? "recorded-click");
 
-      // First-class camera beat when REC captured scroll-before-click.
-      const camChain = click.cameraSelectorChain;
-      const camAnchor = click.cameraAnchorSelector;
-      if (camChain?.length || camAnchor) {
-        const camId = uniqueBeatId(
-          slugBeatId(`${base}-camera`),
-          usedIds
-        );
-        beats.push({
-          id: camId,
-          label: `Camera — ${(event.element ?? base).trim().slice(0, 48)}`,
-          kind: "camera",
+      // Camera: prefer scroll-stop dwell; else scroll-before-click default.
+      const fromClick = cameraFromPendingClickScroll(click, stopDwell);
+      const cameraPending = fromClick ?? pendingStop;
+      if (cameraPending) {
+        if (stopDwell != null) cameraPending.dwellMs = stopDwell;
+        pushCameraBeat(beats, usedIds, cameraPending, {
           protoTab: contextProtoTab(),
-          camera: {
-            dwellMs: 1200,
-            selectorChain: camChain,
-            anchorSelector: camAnchor,
-          },
+          idBase: `${base}-camera`,
+          label: `Camera — ${(event.element ?? base).trim().slice(0, 48)}`,
         });
         delete click.cameraSelectorChain;
         delete click.cameraAnchorSelector;
+        pendingStop = null;
       }
 
       const beatId = uniqueBeatId(slugBeatId(base), usedIds);
@@ -537,6 +662,11 @@ function compileFallbackBeats(
       beats.push(beat);
       if (typeof event.atMs === "number") lastClickAtMs = event.atMs;
       continue;
+    }
+
+    // Any other major event: flush pending scroll-stop as its own camera beat.
+    if (pendingStop && event.kind !== "typed-text") {
+      flushPendingCamera();
     }
 
     if (event.kind === "screen") {
@@ -618,6 +748,7 @@ function compileFallbackBeats(
     }
   }
 
+  flushPendingCamera();
   flushPending();
   return beats;
 }

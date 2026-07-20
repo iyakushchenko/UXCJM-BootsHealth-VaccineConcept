@@ -38,7 +38,8 @@ function isMajorReplayHoldKind(kind: RecordedEvent["kind"]): boolean {
     kind === "director-script" ||
     kind === "beat-enter" ||
     kind === "typed-text" ||
-    kind === "dwell"
+    kind === "dwell" ||
+    kind === "scroll-stop"
   );
 }
 
@@ -63,8 +64,11 @@ export function resolveRecordingReplayHoldMs(
   if (event.kind === "scroll") {
     return Math.max(RECORDING_REPLAY_SCROLL_SETTLE_MS, Math.min(gap, stepDelayMs));
   }
-  if (event.kind === "dwell") {
-    const dwell = event.durationMs ?? 0;
+  if (event.kind === "dwell" || event.kind === "scroll-stop") {
+    const dwell =
+      event.kind === "dwell"
+        ? event.durationMs ?? 0
+        : event.durationMs ?? 0;
     return Math.max(RECORDING_REPLAY_MIN_STEP_HOLD_MS, stepDelayMs, dwell, gap);
   }
   if (!isMajorReplayHoldKind(event.kind)) {
@@ -258,7 +262,7 @@ export async function replayRecordingSession(
       continue;
     }
 
-    if (event.kind === "dwell") {
+    if (event.kind === "dwell" || event.kind === "scroll-stop") {
       await holdAfter();
       result.replayed += 1;
       continue;
