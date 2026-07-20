@@ -135,8 +135,14 @@ import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSi
 import {
   deriveAgentControlKind,
   isCjmCassetteOn,
+  readLiveJourneyIsPlaying,
   type AgentControlKind,
 } from "@/app/shell/agent-testing/agentTestingControlKind";
+import {
+  clearAgentTestingFinaleSeal,
+  isAgentTestingFinaleSealed,
+  sealAgentTestingFinale,
+} from "@/app/shell/agent-testing/agentTestingFinaleSeal";
 import {
   bindAgentTestingNavClearance,
   syncAgentTestingNavClearance,
@@ -775,6 +781,8 @@ export function appendAgentTestingSessionFinale(
   summary?: string
 ): void {
   if (!active && !settling) return;
+  // Cleanup first (quiet) — RESULT must be the last visible chat word.
+  dismissStaleDiagForSession("session-finale");
   const clean =
     summary?.trim() ||
     (result === "pass" ? "all checks ok" : "one or more checks failed");
@@ -787,7 +795,7 @@ export function appendAgentTestingSessionFinale(
   });
   settleResult = result;
   setResultBadge(result);
-  dismissStaleDiagForSession("session-finale");
+  sealAgentTestingFinale();
   try {
     setTitle(
       result === "pass" ? "PASS — session finale" : "FAIL — session finale"
@@ -1090,16 +1098,19 @@ export function formatSitrepHeldHint(
 }
 
 function readLiveAgentControlKind(): AgentControlKind | null {
+  const isPlaying = readLiveJourneyIsPlaying();
   try {
     const sitrep = readAgentTestingSitrep();
     return deriveAgentControlKind({
       sessionKind: getSessionKind(),
       cjmOn: isCjmCassetteOn(sitrep.cjm),
+      isPlaying,
     });
   } catch {
     return deriveAgentControlKind({
       sessionKind: getSessionKind(),
       cjmOn: false,
+      isPlaying,
     });
   }
 }
@@ -2190,6 +2201,14 @@ function ensureRoot(): HTMLElement | null {
 
 function pushLogEntry(entry: AgentTestingLogEntry): void {
   if (!active && !settling) return;
+  // After RESULT finale — no clear-stale / playback-diag chat noise.
+  if (
+    isAgentTestingFinaleSealed() &&
+    entry.kind === "playback-diag" &&
+    !/RESULT ·/.test(entry.label)
+  ) {
+    return;
+  }
   // Manual pause: skip auto events; user-message + system control still land.
   if (
     capturePaused &&
@@ -2620,6 +2639,7 @@ export function startAgentTestingOverlay(title?: string): void {
   active = true;
   settling = false;
   settleResult = "neutral";
+  clearAgentTestingFinaleSeal();
   setSessionKind("agent");
   setAwaitingUserReply(false);
   clearMcpPending();
@@ -3376,6 +3396,7 @@ export function forceClearAgentTestingOverlay(): void {
     dismissStaleDiagForSession("force-clear");
     clearFailHandoffFromSession();
     clearFailHandoff();
+    clearAgentTestingFinaleSeal();
     nest = 0;
     active = false;
     settling = false;

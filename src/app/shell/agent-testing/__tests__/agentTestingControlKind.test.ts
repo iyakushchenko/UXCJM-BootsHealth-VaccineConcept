@@ -18,17 +18,41 @@ describe("agentTestingControlKind", () => {
     ).toBeNull();
   });
 
-  it("playback when agent + CJM on; manual when agent + CJM off", () => {
+  it("manual when agent + CJM off", () => {
     expect(
-      deriveAgentControlKind({ sessionKind: "agent", cjmOn: true })
+      deriveAgentControlKind({
+        sessionKind: "agent",
+        cjmOn: false,
+        isPlaying: true,
+      })
+    ).toBe("manual");
+  });
+
+  it("playback when agent + CJM on + isPlaying; stepped when Play off", () => {
+    expect(
+      deriveAgentControlKind({
+        sessionKind: "agent",
+        cjmOn: true,
+        isPlaying: true,
+      })
     ).toBe("playback");
     expect(
-      deriveAgentControlKind({ sessionKind: "agent", cjmOn: false })
-    ).toBe("manual");
+      deriveAgentControlKind({
+        sessionKind: "agent",
+        cjmOn: true,
+        isPlaying: false,
+      })
+    ).toBe("stepped");
+    expect(
+      deriveAgentControlKind({ sessionKind: "agent", cjmOn: true })
+    ).toBe("stepped");
   });
 
   it("suffix + cjm cassette helper", () => {
     expect(formatAgentControlKindSuffix("playback")).toBe(" · PLAYBACK");
+    expect(formatAgentControlKindSuffix("stepped")).toBe(
+      " · STEPPED PLAYBACK"
+    );
     expect(formatAgentControlKindSuffix("manual")).toBe(" · MANUAL");
     expect(formatAgentControlKindSuffix(null)).toBe("");
     expect(isCjmCassetteOn("on")).toBe(true);

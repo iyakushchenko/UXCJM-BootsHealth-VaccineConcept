@@ -548,20 +548,21 @@ export async function runChatBubbleMotionSelfTest(options?: {
   const result = assertChatBubbleMotionFromBundle(expectedIds);
   result.mode = "drive";
 
-  try {
-    w.__studioAgentTestingOverlay?.appendFinale?.(
-      result.ok ? "pass" : "fail",
-      `chat-bubble-motion ${result.bubbles.filter((b) => b.ok).length}/${result.bubbles.length}`
-    );
-  } catch {
-    /* hang-safe */
-  }
+  // Cleanup before RESULT — never leave clear-stale / diag rows after PASS/FAIL.
   try {
     (
       w as Window & {
         __studioClearStalePlaybackDiagnostic?: (s?: string) => boolean;
       }
     ).__studioClearStalePlaybackDiagnostic?.("prove-wave-end");
+  } catch {
+    /* hang-safe */
+  }
+  try {
+    w.__studioAgentTestingOverlay?.appendFinale?.(
+      result.ok ? "pass" : "fail",
+      `chat-bubble-motion ${result.bubbles.filter((b) => b.ok).length}/${result.bubbles.length}`
+    );
   } catch {
     /* hang-safe */
   }

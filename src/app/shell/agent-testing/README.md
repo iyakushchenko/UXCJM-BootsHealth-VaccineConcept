@@ -124,7 +124,7 @@ On PlaybackDiagnostic / Alarm / Bubble JUMP / FAIL:
 Never emit (3) without handshake. Module: `agentTestingFailHandoff.ts`.
 
 
-**Session finale:** before teardown call `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` system line. Self-test smoke appends this automatically.
+**Session finale:** cleanup first, then `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` is the **last** visible chat line. Post-RESULT clear-stale / playback-diag housekeeping is sealed out of chat. Self-test smoke appends this automatically.
 
 **Refresh mid-CONTROL:** gate persist stores `sessionKind` + `awaitingReply` + **`elapsedAccumMs` / `sessionStartedAt`**; boot reopens agent CONTROL (not manual), re-arms PENDING when awaiting, **keeps elapsed clock**, and logs `page refresh · session restored`.
 
@@ -150,14 +150,19 @@ Mismatch = desync — fix bridge, do not trust vibes. See [PLAYBACK_DIAG.md](../
 
 ### Two agent CONTROL kinds (not a third sessionKind)
 
-Under `sessionKind: agent` only — derived from CJM on/off (no soup):
+Under `sessionKind: agent` only — derived from CJM on/off + Play transport:
 
 | `agentControlKind` | When | Status label |
 |--------------------|------|--------------|
-| **playback** | CJM cassette on (Play/SF/director) | `AGENT — CONTROL · PLAYBACK` |
+| **playback** | CJM on + auto Play (`isPlaying`) | `AGENT — CONTROL · PLAYBACK` |
+| **stepped** | CJM on + Play off (frame-by-frame SF) | `AGENT — CONTROL · STEPPED PLAYBACK` |
 | **manual** | CJM off — free exploration / QA latch | `AGENT — CONTROL · MANUAL` |
 
 Not the same as `sessionKind: manual` (bug-icon free logger). Module: `agentTestingControlKind.ts`.
+
+**Session finale:** cleanup first, then `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` is the **last** visible chat line. Post-RESULT clear-stale / playback-diag housekeeping is sealed out of the chat (console may still note dismiss).
+
+**Console ↔ QA (HARD):** when QA log looks wrong or empty vs expected FAIL/Alarm/diag, agents **MUST** compare raw `[PLAYBACK_DIAG]` / `[AGENT_TESTING]` console against the sitrep. If desync → fix QA bridge — do not trust chat alone.
 
 ### QA latch status (not Cursor MCP)
 

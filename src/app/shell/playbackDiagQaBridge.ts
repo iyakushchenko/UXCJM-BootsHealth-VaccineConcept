@@ -7,6 +7,10 @@ import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
 import { getOpenDiagnosticFlash } from "@/app/shell/playbackDiagnosticFlash";
 import { appendQaDiagRing, isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 import type { PlaybackDiagEvent } from "@/app/shell/playbackDiag";
+import {
+  isAgentTestingFinaleSealed,
+  isQuietDiagDismissSource,
+} from "@/app/shell/agent-testing/agentTestingFinaleSeal";
 
 export type PlaybackDiagQaOutcome = "ok" | "soft-fail" | "fail";
 
@@ -211,6 +215,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 /** Mirror a diag event into ring + overlay when gate open. */
 export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
   if (!isQaDiagGateOpen()) return;
+  if (isAgentTestingFinaleSealed()) return;
   if (!shouldMirrorPlaybackDiagToQa(event)) return;
   const label = labelForPlaybackDiagEvent(event);
   const outcome = outcomeForPlaybackDiagEvent(event);
@@ -240,6 +245,7 @@ export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
 /** Explicit clear — always monitor-colored when gate open. */
 export function mirrorPlaybackDiagClearToQa(): void {
   if (!isQaDiagGateOpen()) return;
+  if (isAgentTestingFinaleSealed()) return;
   const label = "playback-diag · clear";
   try {
     appendQaDiagRing({ kind: "playback-diag", label, text: "clear" });
@@ -391,7 +397,9 @@ export function clearStalePlaybackDiagnostic(
   }
   lastDiagnostic = null;
   suppressPlaybackDiagnosticBriefly(900);
-  if (had) {
+  const quiet =
+    isQuietDiagDismissSource(source) || isAgentTestingFinaleSealed();
+  if (had && !quiet) {
     try {
       appendQaDiagRing({
         kind: "playback-diag",
@@ -401,6 +409,8 @@ export function clearStalePlaybackDiagnostic(
     } catch {
       /* hang-safe */
     }
+  }
+  if (had) {
     try {
       console.info("[AGENT_TESTING] stale playback diagnostic cleared", source);
     } catch {

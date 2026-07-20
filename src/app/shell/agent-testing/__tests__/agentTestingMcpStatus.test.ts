@@ -32,6 +32,9 @@ describe("agentTestingMcpStatus", () => {
     expect(formatMcpStatusLabel("control", null, "playback")).toBe(
       "AGENT — CONTROL · PLAYBACK"
     );
+    expect(formatMcpStatusLabel("control", null, "stepped")).toBe(
+      "AGENT — CONTROL · STEPPED PLAYBACK"
+    );
     expect(formatMcpStatusLabel("control", null, "manual")).toBe(
       "AGENT — CONTROL · MANUAL"
     );

@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.95 - 200726
+- --intent=STEPPED PLAYBACK + RESULT finale seal + handshake prove --lane=studio
+
 ## v0.0.94 - 200726
 - --lane=studio --intent=No dual robo cursor in manual/observe; FAIL handoff handshake (Caught→confirm→wait); bubble dump scrollTop+JUMP; chat jump=0; QA-first diag + Keep open; AGENT CONTROL PLAYBACK|MANUAL
 

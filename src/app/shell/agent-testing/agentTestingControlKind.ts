@@ -1,21 +1,24 @@
 /**
- * Two agent CONTROL kinds — not a third sessionKind.
- * Aligns with existing sessionKind=agent + CJM on/off.
+ * Agent CONTROL kinds — not a third sessionKind.
+ * Aligns with sessionKind=agent + CJM on/off + transport.
  *
- * - playback — CJM/Play/SF/director cassette on-air (journey transport)
- * - manual  — agent QA latch without cassette (CJM off / free exploration)
+ * - playback — CJM on + auto Play on-air (`isPlaying`)
+ * - stepped  — CJM on + Play off (frame-by-frame SF / parked cassette)
+ * - manual   — agent QA latch without cassette (CJM off)
  *
  * Do not confuse with sessionKind "manual" (bug-icon free logger).
  */
 
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
 
-export type AgentControlKind = "playback" | "manual";
+export type AgentControlKind = "playback" | "stepped" | "manual";
 
 export type DeriveAgentControlKindInput = {
   sessionKind: AgentTestingSessionKind;
   /** True when Studio journeyMode / CJM is on (cassette). */
   cjmOn: boolean;
+  /** Auto Play transport — when true with CJM → playback; when false → stepped. */
+  isPlaying?: boolean;
 };
 
 /** null when not in agent CONTROL (manual logger / observe / idle). */
@@ -23,7 +26,9 @@ export function deriveAgentControlKind(
   input: DeriveAgentControlKindInput
 ): AgentControlKind | null {
   if (input.sessionKind !== "agent") return null;
-  return input.cjmOn ? "playback" : "manual";
+  if (!input.cjmOn) return "manual";
+  if (input.isPlaying) return "playback";
+  return "stepped";
 }
 
 /** Short suffix for AGENT — CONTROL label. */
@@ -31,6 +36,7 @@ export function formatAgentControlKindSuffix(
   kind: AgentControlKind | null | undefined
 ): string {
   if (kind === "playback") return " · PLAYBACK";
+  if (kind === "stepped") return " · STEPPED PLAYBACK";
   if (kind === "manual") return " · MANUAL";
   return "";
 }
@@ -41,4 +47,20 @@ export function isCjmCassetteOn(cjm: string | null | undefined): boolean {
   const v = cjm.trim().toLowerCase();
   if (!v || v === "off" || v === "hub") return false;
   return true;
+}
+
+/**
+ * Live Play transport from Studio nav (aria-pressed on Play journey).
+ * Hang-safe — false when DOM missing.
+ */
+export function readLiveJourneyIsPlaying(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const btn = document.querySelector(
+      'button[aria-label="Play journey"]'
+    );
+    return btn?.getAttribute("aria-pressed") === "true";
+  } catch {
+    return false;
+  }
 }
