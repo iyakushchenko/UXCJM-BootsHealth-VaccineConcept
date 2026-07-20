@@ -34,6 +34,11 @@ export type AgentTestingLogEntry = {
   beatId?: string;
   touchpointKey?: string;
   action?: string;
+  /** Forensics — dump/ring; keep visible label short. */
+  selector?: string;
+  chain?: string;
+  surface?: "product" | "chrome";
+  dataStudioAction?: string;
 };
 
 export type AgentTestingTimelineKey = {

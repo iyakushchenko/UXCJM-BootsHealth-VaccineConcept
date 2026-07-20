@@ -1,3 +1,8 @@
+/**
+ * Session/Touchpoints sitrep — mid-flight brain without console.
+ * Beat counter = selected journey beats (rec-* honesty), never STEPS frames as "Beat".
+ */
+
 import type { AgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingTypes";
 import {
   getControlPanelSnapshot,
@@ -22,6 +27,27 @@ function shortId(raw: string, max = 28): string {
   return raw.length > max ? `${raw.slice(0, max - 1)}…` : raw;
 }
 
+function isBuiltInCjmId(id: string | undefined): boolean {
+  return id === "traditional-cjm" || id === "agentic-cjm";
+}
+
+/** Catalog beatCount for imported rec-* when snap is missing/zero. */
+function catalogBeatCount(journeyId: string | undefined): number | undefined {
+  if (!journeyId || typeof window === "undefined") return undefined;
+  try {
+    const w = window as Window & {
+      __studioListJourneys?: () => Array<{ id: string; beatCount?: number }>;
+    };
+    const hit = w.__studioListJourneys?.()?.find((j) => j.id === journeyId);
+    if (hit && typeof hit.beatCount === "number" && hit.beatCount > 0) {
+      return hit.beatCount;
+    }
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
 /** Pull useful control-panel / playback snapshot into sitrep + session bars. */
 export function readAgentTestingSitrep(): AgentTestingSitrep {
   let snap: ControlPanelSnapshot | null = null;
@@ -33,11 +59,16 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
 
   const orchestraMode =
     pickString(snap, ["orchestraModeId", "mode", "playbackMode"]) ?? undefined;
+  const urlExperience =
+    typeof window !== "undefined" && window.location?.search
+      ? parseStudioUrl(window.location.search).experienceId ?? undefined
+      : undefined;
   const experience =
     pickString(snap, ["experience"]) ??
-    (orchestraMode?.endsWith("-cjm")
+    urlExperience ??
+    (orchestraMode?.endsWith("-cjm") && !orchestraMode.startsWith("rec-")
       ? orchestraMode.slice(0, -4)
-      : orchestraMode) ??
+      : undefined) ??
     undefined;
   /** Experience path for Session bar (agentic | traditional) — not the CJM id. */
   const mode = experience;
@@ -48,11 +79,7 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
   let cjm: string | undefined;
   if (snap?.journeyMode === true) {
     cjm =
-      journeyId &&
-      journeyId !== "traditional-cjm" &&
-      journeyId !== "agentic-cjm"
-        ? journeyId
-        : "on";
+      journeyId && !isBuiltInCjmId(journeyId) ? journeyId : "on";
   } else if (snap?.journeyMode === false) {
     cjm = "off";
   } else if (snap?.hubOpen === true) {
@@ -69,19 +96,32 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
   const touchpointKey =
     pickString(snap, ["touchpointKey", "touchpointLabel"]) ?? undefined;
 
+  /** Journey beat counter only — never STEPS frame progress as "Beat". */
   let counter: string | undefined;
   const beatIndex = snap?.beatIndex;
-  const beatCount = snap?.beatCount;
+  let beatCount =
+    typeof snap?.beatCount === "number" && snap.beatCount > 0
+      ? snap.beatCount
+      : undefined;
+  const catalog = catalogBeatCount(journeyId);
+  // rec-* / imported: catalog beatCount is SSoT (avoid traditional STEPS bleed as Beat n/11)
+  if (journeyId && !isBuiltInCjmId(journeyId) && catalog != null) {
+    beatCount = catalog;
+  }
   if (
     typeof beatIndex === "number" &&
     typeof beatCount === "number" &&
     Number.isFinite(beatIndex) &&
-    Number.isFinite(beatCount)
+    Number.isFinite(beatCount) &&
+    beatCount > 0
   ) {
-    counter = `${beatIndex + 1}/${beatCount}`;
-  } else {
-    counter = pickString(snap, ["scenarioProgress", "counter"]);
+    const idx = Math.min(Math.max(0, beatIndex), beatCount - 1);
+    counter = `${idx + 1}/${beatCount}`;
   }
+
+  const stepsProgress = pickString(snap, ["scenarioProgress"]);
+  const stepsCounter =
+    stepsProgress && stepsProgress !== counter ? stepsProgress : undefined;
 
   /** Session bar = mid-flight brain (no console). Include screen always; beat when CJM. */
   const sessionParts = [
@@ -91,6 +131,9 @@ export function readAgentTestingSitrep(): AgentTestingSitrep {
     cjm ? `CJM ${shortId(cjm, 24)}` : null,
     screenId ? `Screen ${shortId(screenId, 22)}` : null,
     snap?.journeyMode === true && counter ? `Beat ${counter}` : null,
+    snap?.journeyMode === true && stepsCounter && stepsCounter !== counter
+      ? `Steps ${stepsCounter}`
+      : null,
   ].filter(Boolean);
 
   const sessionLine =

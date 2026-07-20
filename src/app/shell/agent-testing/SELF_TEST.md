@@ -2,7 +2,7 @@
 
 **Prove URL:** `http://127.0.0.1:5173/` only (`strictPort`).  
 **Catalog:** [`agentTestingSelfTest.scenarios.ts`](./agentTestingSelfTest.scenarios.ts)  
-**Lean runner:** `window.__studioRunQaSelfTestSmoke?.()` → pure session checks + paced DOM probe.  
+**Lean runner:** `window.__studioRunQaSelfTestSmoke?.()` → pure session checks + paced DOM probe + **RESULT finale line**.  
 **Doctrine:** [PAINPOINTS.md](../../../../docs/product/PAINPOINTS.md) **PP-13** · [README.md](./README.md)
 
 The QA overlay is **load-bearing** for mid-flight agent work. Do not claim Studio/product green without a recent self-test when the overlay changed.
@@ -11,40 +11,32 @@ The QA overlay is **load-bearing** for mid-flight agent work. Do not claim Studi
 
 ## Pace (near real-life, slightly faster)
 
-Ultra-fast sleeps invent flaky fails (MCP CONNECTING flash, latch races). Defaults:
-
 | Constant | Default | Role |
 |----------|---------|------|
-| `QA_SELF_TEST_STEP_MS` | **350** | Between actions (Alarm, unlock, toggle) — in the 200–500ms band |
-| `QA_SELF_TEST_SETTLE_MS` | **900** | After open — covers CONNECTING(~280)+CONNECTED(~500) flash |
-| `QA_SELF_TEST_CLEAR_MS` | **250** | After forceClear before reopen |
+| `QA_SELF_TEST_STEP_MS` | **350** | Between actions |
+| `QA_SELF_TEST_SETTLE_MS` | **900** | After open (MCP flash) |
+| `QA_SELF_TEST_CLEAR_MS` | **250** | After forceClear |
 
-Override for prove only: `window.__studioQaSelfTestPaceMs = { step: 400, settle: 1000 }`.  
-Do **not** drop settle below ~800ms unless you accept `phase=connected` as PASS (smoke already allows connected briefly).
-
-Manual marathon: same pacing — pause ~⅓–½s between clicks; wait ~1s after open before asserting MCP phase.
+Override: `window.__studioQaSelfTestPaceMs = { step: 400, settle: 1000 }`.
 
 ---
 
-## Dual roles (same machine, sequential)
+## Dual roles
 
 ### USER (Observe)
 ```js
 window.__studioForceClearAgentTestingOverlay?.()
 window.__studioOpenQaLogger?.({ kind: "observe" })
-// CAPTURE is on — click concept pages freely; Studio nav stays usable
-// Alarm = escalate to agent + latch (not hidden)
-// Close × dismisses; bug icon does NOT close observe
+// CAPTURE on — demo cursor follows pointer; clicks log 1:1 (no coalesce)
+// Alarm = escalate → agent + latch
 ```
 
 ### AGENT
 ```js
-window.__studioAskUserInQa?.("Does Book now look right?")
-// User replies via Message/Send → clears PENDING
-window.__studioAgentTestingOverlay?.unlockObserve?.() // after observe→agent escalate
-window.__studioQaHandoff?.({ oversee: true })  // keep notes
-window.__studioQaHandoff?.({ oversee: false }) // wipe → agent
-window.__studioPeekPoSignal?.() / __studioConsumePoSignal?.()
+window.__studioAskUserInQa?.("Does Book now look right?") // → PENDING
+// User types Message + Send → Reply in log; PENDING clears
+window.__studioAgentTestingOverlay?.appendFinale?.("pass", "12/12 checks")
+window.__studioForceClearAgentTestingOverlay?.()
 ```
 
 ---
@@ -53,35 +45,68 @@ window.__studioPeekPoSignal?.() / __studioConsumePoSignal?.()
 
 | ID | Trust | How to prove |
 |----|-------|--------------|
-| observe-open-capture | Y | Observe open → `Observing` + MCP OBSERVE after settle |
-| observe-page-click-log | Y | Quick View click → `Click: …` row (Studio tabs ignored by design) |
-| observe-alarm-escalate | Y | Alarm → agent + `ALARM_SEQUENCE_MISMATCH` latch |
-| observe-unlock | Y | `unlockObserve()` → observe |
-| ask-pending-reply | Y | Ask → PENDING; reply → CONTROL/OBSERVE not PENDING |
-| handoff-oversee-keeps-note | Y | Note then `handoff({oversee:true})` — note remains in ring |
-| handoff-wipe-clears-note | Y | Note then `handoff({oversee:false})` — note gone |
-| refresh-mid-control | Y | Agent + ask → reload → AGENT + PENDING |
-| refresh-mid-observe | Y | Observe → reload → OBSERVE |
-| control-border-under-modal | Y | Agent + Quick View/avail → gold inset on capture |
-| rec-xor-keeps-overlay | Y | REC toggle leaves overlay `active` |
-| empty-message-noop | N | Whitespace Message → no row |
-| bug-toggle-observe-noop | Y | `__studioToggleQaLogger` while observe → stays open |
-| observe-rec-preserve | Y | Open observe → `__studioStartRecording` → kind stays `observe` (no wipe→agent) |
-| save-log-current-session | Y | Pause → Save Log / `__studioDownloadAgentTestingDump` → dump `reason:manual`, `log[]` matches overlay rows (not stale Alarm) |
-| session-line-screen | Y | Session bar includes `Screen <id>` (URL fallback); CJM on → `Beat n/N` |
-| dual-use-cjm-play | Y | Record PLP→PDP → Add as CJM → ApplyJourney + Play while OBSERVE — clicks + `Screen →` in log |
+| observe-open-capture | Y | Observe → Observing + MCP OBSERVE |
+| observe-page-click-log | Y | Dense clicks → one row each (no ×N coalesce) |
+| observe-pointer-follow | Y | Demo cursor tracks mousemove while observe+capturing |
+| observe-alarm-escalate | Y | Alarm → agent + latch |
+| observe-unlock | Y | unlockObserve → observe |
+| ask-pending-reply | Y | Ask → PENDING; Message/Send → Reply + not PENDING |
+| handoff-oversee-keeps-note | Y | oversee keeps note |
+| handoff-wipe-clears-note | Y | wipe clears note |
+| refresh-mid-control | Y | Reload restores agent (+ PENDING) |
+| control-border-10px | Y | CONTROL/PENDING/ERROR inset **10px** under modal |
+| rec-observe-preserve | Y | StartRecording keeps observe |
+| save-log-live-snapshot | Y | Save Log while capturing → current log + selectors |
+| save-log-selector-depth | Y | Dump click rows include `selector` / `dataStudioAction` |
+| duration-ms-sane | Y | After Pause/Alarm, durationMs ≤ 10min (no ~1.7e9s) |
+| cjm-beat-honesty | Y | Active `rec-*` → Beat n/3 not orchestra Steps 1/11 as Beat |
+| session-finale-line | Y | `RESULT · PASS/FAIL — …` before teardown |
+| dual-message-bridge | Y | Ask twice → two prompts; two replies clear PENDING |
+| observe-rec-cjm-play | Y | REC+OBSERVE → Add CJM → Play while observe logs clicks |
+
+---
+
+## Stress marathon matrix (15–25) — run via MCP
+
+Run in one session at `http://127.0.0.1:5173/` (reuse tab). Pace ~350–900ms. After each fail: STOP → fix → restart that scenario.
+
+| # | Combo | Expect |
+|---|-------|--------|
+| 1 | OBSERVE open + settle | phase observe; Session has Screen |
+| 2 | Dense product clicks (QV→Close→Book) | ≥3 Click rows; no coalesce merge |
+| 3 | mousemove while observing | demo cursor follows (not parked) |
+| 4 | Pause → Resume | system pause/resume lines; clicks resume |
+| 5 | REC start while OBSERVE | kind stays observe |
+| 6 | Stop REC → Add as CJM | journey id `rec-*` listed |
+| 7 | ApplyJourney(rec) + CJM on | Session **Beat** uses journey beatCount |
+| 8 | Play while OBSERVE | Click + Screen → in log |
+| 9 | Save Log mid-capture | dump reason manual; log has selector |
+| 10 | AskUser → PENDING | border blue 10px; status PENDING |
+| 11 | Message/Send reply | Reply row; PENDING clears → CONTROL/OBSERVE |
+| 12 | Dual Ask + dual Reply | two prompts; two replies |
+| 13 | Observe Alarm | escalate agent + latch + gold 10px |
+| 14 | unlockObserve | back to observe |
+| 15 | handoff wipe | log cleared |
+| 16 | handoff oversee | log kept |
+| 17 | Quick View under CONTROL | gold 10px still visible |
+| 18 | SoftClose + reopen | fresh session |
+| 19 | `__studioRunQaSelfTestSmoke` | ok + RESULT finale line |
+| 20 | forceClear | overlay gone; latch wiped |
+| 21 | Chrome nav click | ignored (not product Click) |
+| 22 | duration after Alarm | durations human (ms/s), not e9 |
+| 23 | Pending timeout (optional short `__studioQaPendingTimeoutMs=2000`) | auto-pause line |
+| 24 | Save Log after Alarm | current session not stale-only |
+
+```js
+const r = await window.__studioRunQaSelfTestSmoke?.()
+console.table(r?.checks)
+// Agents closing any session:
+window.__studioAgentTestingOverlay?.appendFinale?.(r?.ok ? "pass" : "fail", "summary")
+```
 
 ---
 
 ## Exhaustion / confidence
 
-Re-run **different** dual-role waves until last 2–3 waves find only nits.  
-Known nits (not trust-breakers): Studio nav clicks omitted from capture log; CONNECTING/CONNECTED flash before OBSERVE/CONTROL settle (~0.8s).  
-**Dual-use residuals (gap report):** Session Beat counter may show orchestra `n/11` while a short imported CJM has 3 beats; dump click rows are label-only (no selector); Alarm row duration can look absurd after long pause/resume clocks.
-
-```js
-const r = await window.__studioRunQaSelfTestSmoke?.()
-console.table(r?.checks)
-console.log(r?.paceMs) // { step: 350, settle: 900, clear: 250 }
-// r.ok === true → pure+DOM trust smoke green; still walk SELF_TEST table for marathon
-```
+Re-run waves until last 2–3 find only nits.  
+**Sole-brain residuals (still NO for absolute sole brain):** selector ≠ full CDP path; Steps vs Beat both shown when playlist expands; chrome outside nav may still tag product.

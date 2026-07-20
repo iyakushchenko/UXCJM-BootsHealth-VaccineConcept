@@ -140,7 +140,8 @@ export function buildLogEntryFromStep(
   };
 }
 
-/** Merge identical consecutive helper/info rows into one counted line. */
+/** Merge identical consecutive helper/info rows into one counted line.
+ * Never coalesce clicks/nav — dense click paths must stay 1:1 visible. */
 export function coalesceLogEntry(
   prev: AgentTestingLogEntry | undefined,
   next: AgentTestingLogEntry
@@ -152,7 +153,6 @@ export function coalesceLogEntry(
   if (
     prev.kind !== "helper" &&
     prev.kind !== "info" &&
-    prev.kind !== "click" &&
     prev.kind !== "init" &&
     prev.kind !== "system"
   ) {
@@ -160,8 +160,9 @@ export function coalesceLogEntry(
   }
   const durationMs =
     prev.durationMs != null || next.durationMs != null
-      ? (prev.durationMs ?? 0) + (next.durationMs ?? Math.max(0, next.atMs - prev.atMs))
-      : Math.max(0, next.atMs - prev.atMs);
+      ? (prev.durationMs ?? 0) +
+        (next.durationMs ?? clampStepDurationMs(next.atMs - prev.atMs))
+      : clampStepDurationMs(next.atMs - prev.atMs);
   return {
     ...prev,
     count: (prev.count ?? 1) + 1,
@@ -169,6 +170,13 @@ export function coalesceLogEntry(
     atMs: next.atMs,
     timeLabel: next.timeLabel,
   };
+}
+
+/** Cap absurd deltas from mixed Date.now / performance.now clocks. */
+export function clampStepDurationMs(delta: number): number {
+  if (!Number.isFinite(delta) || delta < 0) return 0;
+  // 10 minutes max between steps — larger = clock mix bug
+  return Math.min(delta, 10 * 60 * 1000);
 }
 
 export function formatLogRowText(entry: AgentTestingLogEntry): string {

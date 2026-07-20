@@ -123,6 +123,7 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       __studioAgentTestingOverlay?: {
         ringAlarm?: (n?: string) => void;
         unlockObserve?: () => boolean;
+        appendFinale?: (result: "pass" | "fail", summary?: string) => void;
       };
       __studioPeekPoSignal?: () => { code?: string } | null;
       __studioConsumePoSignal?: () => { code?: string } | null;
@@ -187,6 +188,32 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
             document.getElementById("agent-testing-overlay")?.dataset
               ?.active === "true",
           "bug toggle must not close observe"
+        )
+      );
+
+      const passed = checks.filter((c) => c.ok).length;
+      const failed = checks.length - passed;
+      const finaleOk = failed === 0;
+      w.__studioAgentTestingOverlay?.appendFinale?.(
+        finaleOk ? "pass" : "fail",
+        `${passed}/${checks.length} checks`
+      );
+      await sleep(pace.step);
+      const finaleLine = [
+        ...document.querySelectorAll(
+          ".studio-agent-testing-overlay__log li"
+        ),
+      ]
+        .map((li) => li.textContent || "")
+        .find((t) => /RESULT · (PASS|FAIL)/.test(t));
+      checks.push(
+        check(
+          "session-finale-line",
+          !!finaleLine &&
+            (finaleOk
+              ? /RESULT · PASS/.test(finaleLine)
+              : /RESULT · FAIL/.test(finaleLine)),
+          finaleLine?.slice(0, 80)
         )
       );
     } catch (err) {

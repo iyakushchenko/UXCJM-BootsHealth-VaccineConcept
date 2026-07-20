@@ -39,6 +39,8 @@ export function registerJourneyMcpHelpers(options: {
   getJourneys: () => JourneyDefinition[];
   getActiveJourneyId?: () => string | undefined;
   onJourneysApplied?: () => void;
+  /** After import — select that journey as active orchestra CJM (beat honesty). */
+  onSelectJourney?: (journeyId: string) => void;
 }): () => void {
   if (typeof window === "undefined") return () => {};
 
@@ -78,6 +80,7 @@ export function registerJourneyMcpHelpers(options: {
     const file = deserializeJourneyFile(json);
     applyImportedJourneyFile(file);
     options.onJourneysApplied?.();
+    options.onSelectJourney?.(file.journey.id);
     return summarizeJourney(file.journey);
   };
 
@@ -85,6 +88,8 @@ export function registerJourneyMcpHelpers(options: {
     const bundle = deserializeJourneyBundleFile(json);
     applyImportedJourneyBundle(bundle);
     options.onJourneysApplied?.();
+    const last = bundle.journeys[bundle.journeys.length - 1];
+    if (last) options.onSelectJourney?.(last.id);
     return bundle.journeys.map((journey) => summarizeJourney(journey));
   };
 

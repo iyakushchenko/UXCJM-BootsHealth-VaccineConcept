@@ -1,15 +1,28 @@
 /**
  * Lean page-click + screen-nav watch for the QA overlay visible log.
- * Full detail stays in the diag ring via the overlay; this only emits short labels.
+ * Visible rows stay short; dump/ring get selector + surface for forensics.
  */
 
 const OVERLAY_ROOT_ID = "agent-testing-overlay";
 const SCREEN_POLL_MS = 400;
 
+export type AgentTestingClickSurface = "product" | "chrome";
+
+export type AgentTestingClickDetail = {
+  /** Short visible label (no selector). */
+  label: string;
+  /** CSS-ish selector / data-studio-action for dump forensics. */
+  selector?: string;
+  /** Short parent chain (tag#id.class > …). */
+  chain?: string;
+  surface: AgentTestingClickSurface;
+  dataStudioAction?: string;
+};
+
 export type AgentTestingCaptureWatchHandlers = {
   /** True when clicks/nav should land in the visible log. */
   isCapturing: () => boolean;
-  onClick: (label: string) => void;
+  onClick: (detail: AgentTestingClickDetail) => void;
   onScreen: (screenId: string) => void;
 };
 
@@ -30,14 +43,84 @@ function shortText(raw: string, max = 42): string {
   return t.length > max ? `${t.slice(0, max - 1)}…` : t;
 }
 
+function isStudioChrome(el: Element): boolean {
+  if (typeof el.closest !== "function") return false;
+  return !!el.closest(
+    ".studio-nav-panel, .studio-nav-panel-host, .studio-nav-version, [data-studio-nav], .studio-playback-diagnostic, .studio-playback-shield"
+  );
+}
+
 function isIgnoredTarget(el: Element | null): boolean {
   if (!el || typeof el.closest !== "function") return true;
   if (el.closest(`#${OVERLAY_ROOT_ID}`)) return true;
+  // Studio transport/nav — ignore (noise). Other chrome (bookmarks etc.) tags surface=chrome.
   if (el.closest(".studio-nav-panel, .studio-nav-version, [data-studio-nav]")) {
     return true;
   }
   if (el.closest("[data-studio-agent-testing-ignore]")) return true;
   return false;
+}
+
+function cssEscapeIdent(raw: string): string {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(raw);
+  }
+  return raw.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+}
+
+/** Prefer stable studio attrs, then id, then short class+tag. */
+export function describeClickSelector(el: Element): string {
+  const labelled =
+    el.closest<HTMLElement>(
+      "button, a, [role='button'], [role='link'], label, summary, input, select, textarea, [data-studio-action], [data-studio-screen]"
+    ) ?? (el as HTMLElement);
+
+  const action = labelled.getAttribute?.("data-studio-action")?.trim();
+  if (action) return `[data-studio-action="${action}"]`;
+
+  const screen = labelled.getAttribute?.("data-studio-screen")?.trim();
+  if (screen) return `[data-studio-screen="${screen}"]`;
+
+  const testId =
+    labelled.getAttribute?.("data-testid")?.trim() ||
+    labelled.getAttribute?.("data-studio-id")?.trim();
+  if (testId) return `[data-testid="${testId}"]`;
+
+  if (labelled.id) return `#${cssEscapeIdent(labelled.id)}`;
+
+  const tag = labelled.tagName?.toLowerCase?.() || "el";
+  const cls = String(labelled.className || "")
+    .trim()
+    .split(/\s+/)
+    .filter((c) => c && !/^(hover|active|focus|open|selected)/i.test(c))
+    .slice(0, 2)
+    .map((c) => `.${cssEscapeIdent(c)}`)
+    .join("");
+  return `${tag}${cls}` || tag;
+}
+
+/** Short ancestor chain for dump (max 3 levels). */
+export function describeClickChain(el: Element, max = 3): string {
+  const parts: string[] = [];
+  let cur: Element | null = el;
+  for (let i = 0; i < max && cur && cur !== document.body; i++) {
+    const tag = cur.tagName?.toLowerCase?.() || "el";
+    const id = cur.id ? `#${cssEscapeIdent(cur.id)}` : "";
+    const action = cur.getAttribute?.("data-studio-action");
+    const hint = action
+      ? `[data-studio-action="${action}"]`
+      : id ||
+        (() => {
+          const cls = String(cur.className || "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)[0];
+          return cls ? `.${cssEscapeIdent(cls)}` : "";
+        })();
+    parts.unshift(`${tag}${hint}`);
+    cur = cur.parentElement;
+  }
+  return parts.join(" > ");
 }
 
 /** Prefer human affordance text over raw tag names. */
@@ -75,9 +158,32 @@ export function describeClickTarget(el: Element): string {
   return tag;
 }
 
+export function buildClickDetail(el: Element): AgentTestingClickDetail | null {
+  if (isIgnoredTarget(el)) return null;
+  const desc = describeClickTarget(el);
+  if (!desc) return null;
+  const labelled =
+    el.closest<HTMLElement>(
+      "button, a, [role='button'], [role='link'], label, summary, input, select, textarea, [data-studio-action]"
+    ) ?? (el as HTMLElement);
+  const dataStudioAction =
+    labelled.getAttribute?.("data-studio-action")?.trim() || undefined;
+  const surface: AgentTestingClickSurface = isStudioChrome(el)
+    ? "chrome"
+    : "product";
+  const prefix = surface === "chrome" ? "Chrome click" : "Click";
+  return {
+    label: `${prefix}: ${desc}`,
+    selector: describeClickSelector(el),
+    chain: describeClickChain(labelled),
+    surface,
+    dataStudioAction,
+  };
+}
+
 /**
- * Bind capture-phase click + screen poll. Returns unbind.
- * Safe to call repeatedly — previous bind is replaced by caller unbind.
+ * Bind capture-phase pointerdown + click + screen poll. Returns unbind.
+ * pointerdown catches targets that preventDefault on click.
  */
 export function bindAgentTestingCaptureWatch(
   handlers: AgentTestingCaptureWatchHandlers
@@ -92,15 +198,22 @@ export function bindAgentTestingCaptureWatch(
   }
 
   let lastScreen = readScreenId();
+  let lastEmitKey = "";
+  let lastEmitAt = 0;
 
-  const onClick = (event: MouseEvent) => {
+  const emitClick = (event: Event) => {
     if (!handlers.isCapturing()) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
-    if (isIgnoredTarget(target)) return;
-    const desc = describeClickTarget(target);
-    if (!desc) return;
-    handlers.onClick(`Click: ${desc}`);
+    const detail = buildClickDetail(target);
+    if (!detail) return;
+    // Dedupe pointerdown→click same target within 40ms (not coalesce across seconds).
+    const key = `${detail.surface}|${detail.selector}|${detail.label}`;
+    const now = Date.now();
+    if (key === lastEmitKey && now - lastEmitAt < 40) return;
+    lastEmitKey = key;
+    lastEmitAt = now;
+    handlers.onClick(detail);
   };
 
   const pollScreen = () => {
@@ -111,14 +224,16 @@ export function bindAgentTestingCaptureWatch(
     handlers.onScreen(`Screen → ${next}`);
   };
 
-  document.addEventListener("click", onClick, true);
+  document.addEventListener("pointerdown", emitClick, true);
+  document.addEventListener("click", emitClick, true);
   const timer =
     typeof window.setInterval === "function"
       ? window.setInterval(pollScreen, SCREEN_POLL_MS)
       : null;
 
   return () => {
-    document.removeEventListener("click", onClick, true);
+    document.removeEventListener("pointerdown", emitClick, true);
+    document.removeEventListener("click", emitClick, true);
     if (timer != null && typeof window.clearInterval === "function") {
       window.clearInterval(timer);
     }

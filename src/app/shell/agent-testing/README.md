@@ -70,9 +70,11 @@ window.__studioForceClearAgentTestingOverlay?.()
 
 **Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12).
 
-**Save Log:** disabled while capturing — Pause first. Downloads a **fresh current-session** dump (`reason: manual`, live `log[]` + `sessionKind` + `mcp`) — **not** the last Alarm stash. **Reset:** disabled until log dirty. Empty Message does not append.
+**Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`).
 
-**OBSERVE + REC dual-use:** `__studioStartRecording` / Stop / SaveRecordingAsJourney soft-arm with `preserveLogger` — do **not** wipe observe/manual → agent. Session bar always shows `Screen` (+ `Beat` when CJM on).
+**OBSERVE + REC dual-use:** StartRecording preserves observe. Observe/manual: demo cursor **follows pointer** while capturing. Session Beat = selected journey (rec-* catalog); STEPS frames show as `Steps` when different.
+
+**Session finale:** before teardown call `__studioAgentTestingOverlay.appendFinale("pass"|"fail", summary)` → `RESULT · PASS/FAIL — …` system line. Self-test smoke appends this automatically.
 
 **Refresh mid-CONTROL:** gate persist stores `sessionKind` + `awaitingReply`; boot reopens agent CONTROL (not manual) and re-arms PENDING when awaiting.
 
@@ -84,10 +86,10 @@ Primary: **lean muted status line** under Message/Send (no bordered chip / no du
 |-------|-------|----------|
 | CONNECTING | `MCP — CONNECTING` | — |
 | CONNECTED | `MCP — CONNECTED` | — (brief) |
-| CONTROL | `MCP — CONTROL` | **3px gold** viewport border |
+| CONTROL | `MCP — CONTROL` | **10px gold** viewport border |
 | OBSERVE | `MCP — OBSERVE` | — |
-| CONTROL · PENDING | `MCP — CONTROL · PENDING` | **3px blue** border |
-| ERROR | `MCP — ERROR: …` | **3px red** border |
+| CONTROL · PENDING | `MCP — CONTROL · PENDING` | **10px blue** border |
+| ERROR | `MCP — ERROR: …` | **10px red** border |
 | Idle | hidden | manual / no agent session |
 
 **PENDING timeout (default 60s):** auto-pause capture + log `MCP pending timed out (Ns) — paused; resume when ready`. Override: `window.__studioQaPendingTimeoutMs`. Clear on user Reply/Send.
@@ -128,7 +130,7 @@ Primary: `window.__studioAgentTestingTakeover` / `__studioConsumePoSignal()`. Du
 - Log colors: capture muted · system **blue** · user message **amber** · agent-prompt **violet** · observe-escalate **orange** · alarms warn · init muted.
 - Warm-up → one **Initializing…** row.
 - **Session** bar ≠ **Touchpoints** strip.
-- **Close (×)** / **Reset** (manual + observe). **Save Log** gated while capturing.
+- **Close (×)** / **Reset** (manual + observe). **Save Log** snapshots anytime while session active.
 
 See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § QA diag gate.
 

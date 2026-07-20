@@ -31,8 +31,8 @@ const ALLOWLIST = {
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 2010, // + recordedClick SF/Play wiring; core play in recordedClickPlayback.ts
-  "src/app/App.tsx": 2050, // + CREATE NEW ↔ REC guiding (controlled studioRecMode)
-  "src/app/shell/agent-testing/agentTestingOverlay.ts": 3200, // + MCP under compose / CAPTURE / Alarm agent / viewport border
+  "src/app/App.tsx": 2060, // ApplyJourney selects rec-* for CJM beat honesty
+  "src/app/shell/agent-testing/agentTestingOverlay.ts": 3300, // click forensics + finale; capture watch in bridge
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth
   "src/app/scenario/demoCursor.ts": 1680, // on-target click gate; hit-test in demoCursorOnTarget.ts

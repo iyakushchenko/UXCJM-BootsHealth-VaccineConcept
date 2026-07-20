@@ -33,6 +33,7 @@ import {
   formatElapsed,
   formatHelperStepLabel,
   formatLogRowText,
+  clampStepDurationMs,
 } from "@/app/shell/agent-testing/agentTestingFormat";
 import {
   animate,
@@ -102,7 +103,11 @@ import {
   bindAgentTestingNavClearance,
   syncAgentTestingNavClearance,
 } from "@/app/shell/agent-testing/agentTestingNavClearance";
-import { bindAgentTestingCaptureWatch } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
+import {
+  isCaptureInProgressBridge,
+  syncCaptureWatchBridge,
+  unbindCaptureWatchBridge,
+} from "@/app/shell/agent-testing/agentTestingCaptureWatchBridge";
 import type {
   AgentTestingLogEntry,
   AgentTestingOverlayResult,
@@ -192,6 +197,8 @@ type OverlayApi = {
   mcpStatus: () => McpConnectionStatus;
   /** Append PO free-text note into log + dump ring. */
   appendPoNote: (text: string) => boolean;
+  /** Final RESULT · PASS/FAIL line before teardown. */
+  appendFinale: (result: "pass" | "fail", summary?: string) => void;
   log: (line: string) => void;
   /** Structured mid-flight step (preferred over plain helper spam). */
   logStep: (input: LogAgentTestingStepInput) => void;
@@ -239,8 +246,6 @@ let lastStepAt = 0;
 let elapsedAccumMs = 0;
 /** Wall clock when current run segment started; 0 while paused / stopped. */
 let elapsedRunStartedAt = 0;
-/** Unbind for page click + screen watch. */
-let captureWatchUnbind: (() => void) | null = null;
 let beforeUnloadBound = false;
 let visibilityBound = false;
 let reloadPending = false;
@@ -567,6 +572,36 @@ export function downloadCurrentAgentTestingLog(): boolean {
 }
 
 /**
+ * Clear final RESULT line for agents closing a session / self-test.
+ * Lands even while paused. Call while overlay still active (before forceClear).
+ */
+export function appendAgentTestingSessionFinale(
+  result: "pass" | "fail",
+  summary?: string
+): void {
+  if (!active && !settling) return;
+  const clean =
+    summary?.trim() ||
+    (result === "pass" ? "all checks ok" : "one or more checks failed");
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `RESULT · ${result.toUpperCase()} — ${clean}`,
+    outcome: result === "pass" ? "ok" : "fail",
+    kind: "system",
+  });
+  settleResult = result;
+  setResultBadge(result);
+  try {
+    setTitle(
+      result === "pass" ? "PASS — session finale" : "FAIL — session finale"
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * PO Alarm = sequence / expected-steps mismatch.
  * Observe → escalate to agent lock first (dual-role QA), then latch investigate prompt.
  * Stops progress (halt Play + pause capture).
@@ -601,7 +636,7 @@ export function ringAgentTestingAlarm(note?: string): void {
     })
   );
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: `Agent prompt: ${ALARM_AGENT_PROMPT}`,
     outcome: "ok",
@@ -927,52 +962,33 @@ function setActivityPhase(
 }
 
 /** Capture is “in progress” when the session is actively appending (not paused/settling). */
+/** Capture is “in progress” when session is active and not paused — ignore activityPhase
+ * (idle/waiting must not drop page clicks). */
 function isCaptureInProgress(): boolean {
-  if (!active || settling) return false;
-  if (capturePaused) return false;
-  return (
-    activityPhase === "running" ||
-    activityPhase === "preparing" ||
-    activityPhase === "waiting"
-  );
+  return isCaptureInProgressBridge({
+    isActive: () => active,
+    isSettling: () => settling,
+    isCapturePaused: () => capturePaused,
+  });
+}
+
+function captureWatchOpts() {
+  return {
+    isActive: () => active,
+    isSettling: () => settling,
+    isCapturePaused: () => capturePaused,
+    getSessionKind,
+    pushLogEntry,
+  };
 }
 
 function unbindCaptureWatch(): void {
-  if (captureWatchUnbind) {
-    try {
-      captureWatchUnbind();
-    } catch {
-      /* hang-safe */
-    }
-    captureWatchUnbind = null;
-  }
+  unbindCaptureWatchBridge();
 }
 
 /** Page clicks + screen nav → short visible log lines while capturing. */
 function syncCaptureWatch(): void {
-  unbindCaptureWatch();
-  if (!active || settling) return;
-  captureWatchUnbind = bindAgentTestingCaptureWatch({
-    isCapturing: () => isCaptureInProgress(),
-    onClick: (label) => {
-      pushLogEntry({
-        atMs: performance.now(),
-        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-        label,
-        outcome: "ok",
-        kind: "click",
-      });
-    },
-    onScreen: (label) => {
-      pushLogEntry({
-        atMs: performance.now(),
-        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-        label,
-        outcome: "ok",
-        kind: "nav",
-      });
-    },
-  });
+  syncCaptureWatchBridge(captureWatchOpts());
 }
 
 function closeManualSession(reason: string): void {
@@ -999,7 +1015,7 @@ function resetManualSession(): void {
   resetElapsedClock(false);
   armElapsedTimer();
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: "Session reset",
     outcome: "ok",
@@ -1246,12 +1262,15 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__dump"
   );
   if (saveBtn) {
-    const enabled = !isCaptureInProgress();
+    // Snapshot anytime while session active — does not require Pause.
+    const enabled = active && !settling;
     saveBtn.disabled = !enabled;
     saveBtn.textContent = "Save Log";
     saveBtn.title = enabled
-      ? "Download lean dump JSON (secondary — prefer __studioConsumePoSignal)"
-      : "Pause capture or wait until idle to save log";
+      ? capturePaused
+        ? "Download lean dump JSON (current session)"
+        : "Snapshot dump while capturing (does not pause)"
+      : "Open a QA session to save log";
   }
 
   const alarmBtn = root.querySelector<HTMLButtonElement>(
@@ -1372,7 +1391,7 @@ function onMcpPendingTimeout(): void {
     capturePaused = true;
   }
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: `MCP pending timed out (${Math.round(getQaPendingTimeoutMs() / 1000)}s) — paused; resume when ready`,
     outcome: "ok",
@@ -1518,9 +1537,9 @@ function ensureOverlayChrome(root: HTMLElement): void {
     dumpBtn.type = "button";
     dumpBtn.className = "studio-agent-testing-overlay__dump";
     dumpBtn.textContent = "Save Log";
-    dumpBtn.title = "Download lean dump JSON when paused or idle";
+    dumpBtn.title =
+      "Snapshot lean dump JSON (works while capturing — does not pause)";
     dumpBtn.addEventListener("click", () => {
-      if (isCaptureInProgress()) return;
       downloadCurrentAgentTestingLog();
     });
     headerActions.appendChild(dumpBtn);
@@ -1619,7 +1638,7 @@ function toggleCapturePause(): void {
   if (next) {
     pauseElapsedClock();
     pushLogEntry({
-      atMs: performance.now(),
+      atMs: Date.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label,
       outcome: "ok",
@@ -1631,7 +1650,7 @@ function toggleCapturePause(): void {
     sessionHadProgress = true;
     resumeElapsedClock();
     pushLogEntry({
-      atMs: performance.now(),
+      atMs: Date.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label,
       outcome: "ok",
@@ -1751,7 +1770,6 @@ function ensureRoot(): HTMLElement | null {
   root
     .querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dump")
     ?.addEventListener("click", () => {
-      if (isCaptureInProgress()) return;
       downloadCurrentAgentTestingLog();
     });
   // Last child of body - paint above #root concept lightboxes.
@@ -1791,7 +1809,15 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
     label: ringEntry.label,
     atMs: ringEntry.atMs,
     beatId: ringEntry.beatId,
-    detail: ringEntry.action,
+    detail: [
+      ringEntry.action,
+      ringEntry.selector,
+      ringEntry.chain,
+      ringEntry.surface,
+      ringEntry.dataStudioAction,
+    ]
+      .filter(Boolean)
+      .join(" · "),
   });
 
   let visible = entry;
@@ -1822,8 +1848,16 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
   } else {
     const withDuration =
       visible.durationMs == null && lastStepAt > 0
-        ? { ...visible, durationMs: Math.max(0, visible.atMs - lastStepAt) }
-        : visible;
+        ? {
+            ...visible,
+            durationMs: clampStepDurationMs(visible.atMs - lastStepAt),
+          }
+        : visible.durationMs != null
+          ? {
+              ...visible,
+              durationMs: clampStepDurationMs(visible.durationMs),
+            }
+          : visible;
     logEntries.push(withDuration);
     lastStepAt = visible.atMs;
   }
@@ -2243,7 +2277,7 @@ export async function preArmAgentTestingOverlay(options?: {
   ensureAgentTestingOverlayDomArmed(title);
   setResultBadge("neutral");
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: "Initializing…",
     outcome: "ok",
@@ -2491,7 +2525,7 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
   setActivityPhase("running");
   if (!wipe) {
     pushLogEntry({
-      atMs: performance.now(),
+      atMs: Date.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label: `Handoff → ${target} (oversee)`,
       outcome: "ok",
@@ -2499,7 +2533,7 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
     });
   } else {
     pushLogEntry({
-      atMs: performance.now(),
+      atMs: Date.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
       label: `Handoff → ${target} (fresh)`,
       outcome: "ok",
@@ -2533,7 +2567,7 @@ export function escalateObserveToAgentSession(reason = "escalate"): boolean {
   setTitle(resolved);
   setHint(hintForSessionKind("agent"));
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: `Escalated observe → agent (${reason})`,
     outcome: "ok",
@@ -2559,7 +2593,7 @@ export function unlockObserveSession(): boolean {
   setTitle(resolved);
   setHint(hintForSessionKind("observe"));
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: "Unlocked → observe",
     outcome: "ok",
@@ -2598,7 +2632,7 @@ export function askUserInQa(prompt: string): boolean {
   setQaDiagSessionMeta({ sessionKind: "agent", awaitingReply: true });
   armMcpPendingTimeout();
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: `Agent asks: ${body}`,
     outcome: "ok",
@@ -2796,7 +2830,7 @@ export function appendAgentTestingUserMessage(text: string): boolean {
   const awaiting = isAwaitingUserReply();
   const label = awaiting ? `Reply: ${body}` : `Message: ${body}`;
   pushLogEntry({
-    atMs: performance.now(),
+    atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label,
     outcome: "ok",
@@ -3012,6 +3046,7 @@ export function installAgentTestingOverlayApi(): void {
     resetSession: resetManualSession,
     mcpStatus: getAgentTestingMcpConnectionStatus,
     appendPoNote: appendAgentTestingUserMessage,
+    appendFinale: appendAgentTestingSessionFinale,
     log: logAgentTestingOverlay,
     logStep: logAgentTestingStep,
     logHelper: logAgentTestingHelper,

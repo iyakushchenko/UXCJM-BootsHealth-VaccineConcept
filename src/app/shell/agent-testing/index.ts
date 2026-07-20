@@ -21,6 +21,7 @@ export {
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
   downloadCurrentAgentTestingLog,
+  appendAgentTestingSessionFinale,
   logAgentTestingOverlay,
   logAgentTestingStep,
   logAgentTestingHelper,

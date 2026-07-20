@@ -1685,10 +1685,16 @@ export default function App() {
       getJourneys: () => studioJourneys,
       getActiveJourneyId: () => activeJourney?.id,
       onJourneysApplied: refreshJourneysAfterImport,
+      onSelectJourney: (journeyId) => {
+        setOrchestraModeId(journeyId);
+        setStudioJourneyMode(true);
+        setCreateNewCjmSelected(false);
+      },
     });
   }, [
     activeJourney?.id,
     refreshJourneysAfterImport,
+    setOrchestraModeId,
     studioJourneys,
     studioPersonaId,
     studioProjectId,

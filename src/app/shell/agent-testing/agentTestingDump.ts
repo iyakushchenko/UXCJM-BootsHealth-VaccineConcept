@@ -88,6 +88,10 @@ export type AgentTestingDump = {
     durationMs?: number;
     beatId?: string;
     action?: string;
+    selector?: string;
+    chain?: string;
+    surface?: string;
+    dataStudioAction?: string;
   }>;
   /** Capped QA ring echo (includes user-message). */
   ring?: Array<Record<string, unknown>>;
@@ -279,6 +283,12 @@ export function buildAgentTestingDump(options: {
       durationMs: e.durationMs,
       beatId: e.beatId,
       action: e.action,
+      selector: e.selector ? clip(e.selector, 120) : undefined,
+      chain: e.chain ? clip(e.chain, 160) : undefined,
+      surface: e.surface,
+      dataStudioAction: e.dataStudioAction
+        ? clip(e.dataStudioAction, 80)
+        : undefined,
     })),
     ring,
     controlPanel,
