@@ -90,13 +90,10 @@ function expandBeatToTouchpoints(
   if (beat.kind === "screen-frames" && beat.scenarioId === "site-pilot-chat") {
     const total = Math.max(1, chatFrames);
     const items: StudioTouchpointEntry[] = [];
+    // One playlist frame per content bubble. Thinking is visual-only during
+    // beforeReveal — a separate :thinking slot made one SF jump STEPS +2
+    // (playlist-frame-skip Alarm: #2→#4 on r0).
     for (let frame = 1; frame <= total; frame++) {
-      if (isSitePilotChatAgentReplyFrameIndex(frame)) {
-        items.push({
-          key: `beat:${beat.id}:frame:${frame}:thinking`,
-          label: `${beat.label} — thinking`,
-        });
-      }
       items.push({
         key: `beat:${beat.id}:frame:${frame}`,
         label: frame === 1 ? beat.label : `${beat.label} — ${frame}/${total}`,
@@ -182,6 +179,8 @@ export function resolveStudioTouchpoint(
     const frame = input.chatFrameIndex;
     const baseLabel = input.beatLabel ?? "Chat experience";
 
+    // During agent thinking, pin STEPS on the upcoming reply frame (same
+    // playlist slot) — label shows thinking; counter advances once per SF.
     if (
       input.chatPausingBeforeReveal &&
       (input.chatPlaybackThinking ||
@@ -189,7 +188,7 @@ export function resolveStudioTouchpoint(
     ) {
       const nextFrame = frame + 1;
       return {
-        key: `beat:agentic-chat:frame:${nextFrame}:thinking`,
+        key: `beat:agentic-chat:frame:${nextFrame}`,
         label: `${baseLabel} — thinking`,
       };
     }
@@ -229,14 +228,21 @@ export function resolvePlaylistTouchpointIndex(
     }
   }
 
-  const chatFrameMatch = touchpointKey.match(/^beat:([^:]+):frame:(\d+)/);
+  // Prefer exact `frame:N` over legacy `frame:N:thinking` prefix matches.
+  const chatFrameMatch = touchpointKey.match(
+    /^beat:([^:]+):frame:(\d+)(?::thinking)?$/
+  );
   if (chatFrameMatch) {
     const [, beatId, frame] = chatFrameMatch;
-    const framePrefix = `beat:${beatId}:frame:${frame}`;
-    const frameIndex = playlist.findIndex((entry) =>
-      entry.key.startsWith(framePrefix)
+    const exactFrameKey = `beat:${beatId}:frame:${frame}`;
+    const exactFrameIndex = playlist.findIndex(
+      (entry) => entry.key === exactFrameKey
     );
-    if (frameIndex >= 0) return frameIndex;
+    if (exactFrameIndex >= 0) return exactFrameIndex;
+    const legacyThinkingIndex = playlist.findIndex(
+      (entry) => entry.key === `${exactFrameKey}:thinking`
+    );
+    if (legacyThinkingIndex >= 0) return legacyThinkingIndex;
   }
 
   const beatPrefix = touchpointKey.match(/^beat:([^:]+)/)?.[1];

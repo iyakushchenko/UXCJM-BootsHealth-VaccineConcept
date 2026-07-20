@@ -327,13 +327,7 @@ function QueryFrame({
     </>
   );
 
-  // Slot height 0→auto (Motion) so prior bubbles ease aside — opacity/y alone
-  // left full layout height on reveal and shoved the thread (PO).
-  const slotAnimate =
-    pullLive || !shouldAnimate
-      ? { height: "auto" as const, opacity: 1 }
-      : { height: 0, opacity: 1 };
-
+  // Same CHAT_PULL_UP as agent (opacity+y ease) — no height 0→auto stepping.
   return (
     <div
       ref={ref}
@@ -345,29 +339,22 @@ function QueryFrame({
     >
       {revealed ? (
         <motion.div
-          className="chat__user-slot"
+          ref={bubbleRef}
+          className="chat__bubble chat__bubble--user"
+          data-name="component.co.order.summary"
           data-studio-chat-user-slot={frame.id}
-          initial={shouldAnimate ? { height: 0, opacity: 1 } : false}
-          animate={slotAnimate}
+          data-studio-chat-pull-up={pullLive ? "up" : "start"}
+          initial={shouldAnimate ? CHAT_PULL_UP.initial : false}
+          animate={
+            pullLive
+              ? CHAT_PULL_UP.animate
+              : shouldAnimate
+                ? CHAT_PULL_UP.initial
+                : CHAT_PULL_UP.animate
+          }
           transition={CHAT_PULL_UP.transition}
         >
-          <motion.div
-            ref={bubbleRef}
-            className="chat__bubble chat__bubble--user"
-            data-name="component.co.order.summary"
-            data-studio-chat-pull-up={pullLive ? "up" : "start"}
-            initial={shouldAnimate ? CHAT_PULL_UP.initial : false}
-            animate={
-              pullLive
-                ? CHAT_PULL_UP.animate
-                : shouldAnimate
-                  ? CHAT_PULL_UP.initial
-                  : CHAT_PULL_UP.animate
-            }
-            transition={CHAT_PULL_UP.transition}
-          >
-            {bubble}
-          </motion.div>
+          {bubble}
         </motion.div>
       ) : (
         <div

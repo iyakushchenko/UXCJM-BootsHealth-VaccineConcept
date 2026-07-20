@@ -85,7 +85,11 @@ describe("buildStudioTouchpointPlaylist", () => {
       { popupTouchpoints: BOOTS_PHARMACY_POPUP_TOUCHPOINTS }
     );
 
-    expect(playlist).toHaveLength(25);
+    // 9 chat content frames only — no separate :thinking playlist slots.
+    expect(playlist).toHaveLength(21);
+    expect(
+      playlist.some((entry) => entry.key.includes(":thinking"))
+    ).toBe(false);
   });
 });
 
@@ -153,16 +157,42 @@ describe("resolveStudioTouchpointProgress", () => {
         agenticPlaylist,
         "beat:agentic-chat:frame:3"
       )
-    ).toEqual({ visibleCount: 5, totalFrames: 25 });
+    ).toEqual({ visibleCount: 4, totalFrames: 21 });
   });
 
-  it("resolves agentic chat thinking sub-steps", () => {
+  it("maps legacy thinking keys onto the reply frame playlist slot", () => {
     expect(
       resolveStudioTouchpointProgress(
         agenticPlaylist,
         "beat:agentic-chat:frame:4:thinking"
       )
-    ).toEqual({ visibleCount: 6, totalFrames: 25 });
+    ).toEqual(
+      resolveStudioTouchpointProgress(
+        agenticPlaylist,
+        "beat:agentic-chat:frame:4"
+      )
+    );
+  });
+
+  it("pins STEPS on the upcoming reply frame while thinking (one SF = +1)", () => {
+    expect(
+      resolveStudioTouchpoint({
+        beatId: "agentic-chat",
+        beatLabel: "Chat experience",
+        availabilityOpen: false,
+        vaccinePickerOpen: false,
+        recipientPickerOpen: false,
+        loginPopupOpen: false,
+        quickViewOpen: false,
+        chatFrameIndex: 1,
+        chatFrameTotal: 9,
+        chatPausingBeforeReveal: true,
+        chatPlaybackThinking: true,
+      })
+    ).toEqual({
+      key: "beat:agentic-chat:frame:2",
+      label: "Chat experience — thinking",
+    });
   });
 
   it("maps availability start popups to the avail-location beat", () => {
@@ -171,7 +201,7 @@ describe("resolveStudioTouchpointProgress", () => {
         agenticPlaylist,
         "popup:availability:start"
       )
-    ).toEqual({ visibleCount: 15, totalFrames: 25 });
+    ).toEqual({ visibleCount: 11, totalFrames: 21 });
   });
 
   it("anchors avail-time STEPS on popup:availability:time (not beat:avail-time)", () => {

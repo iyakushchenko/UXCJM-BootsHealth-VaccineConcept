@@ -2,8 +2,8 @@ import { MOTION_EASE_IN_OUT } from "@/uxds/motion";
 
 /**
  * Make / sitePilotChat pull-up for progressive bubbles.
- * User: slot height 0→auto + bubble pull-up (same tween as agent).
- * Agent: in-slot thinking→reply; thinking exits opacity-only (no y collapse).
+ * User + agent: shared opacity+y ease (no height 0→auto stepping).
+ * Agent thinking exits opacity-only (no y collapse).
  */
 export const CHAT_PULL_UP = {
   initial: { opacity: 0, y: 14 },
