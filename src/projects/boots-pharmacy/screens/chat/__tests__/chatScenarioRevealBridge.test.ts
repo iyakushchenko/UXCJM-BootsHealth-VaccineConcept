@@ -5,6 +5,7 @@ import {
   isChatReplyHeldForPlaybackThinking,
   publishChatScenarioReveal,
   resolveChatFrameRevealed,
+  resolveChatPullUpAnimateIds,
   resolveChatRevealedFrameCount,
 } from "../chatScenarioRevealBridge";
 
@@ -52,5 +53,42 @@ describe("chatScenarioRevealBridge", () => {
     expect(isChatReplyHeldForPlaybackThinking("r0", thinking)).toBe(true);
     expect(isChatReplyHeldForPlaybackThinking("r1", thinking)).toBe(false);
     expect(resolveChatFrameRevealed(1, 2, "r0", thinking)).toBe(false);
+  });
+
+  it("pull-up animates single progressive reveal and thinking→reply release", () => {
+    const ids = ["q0", "r0", "q1", "r1"] as const;
+    const none = { mode: "none", anchorFrameId: null };
+
+    // First user bubble alone.
+    expect(
+      [...resolveChatPullUpAnimateIds(ids, 1, none, new Set(), true)]
+    ).toEqual(["q0"]);
+
+    // Batch (browse / deactivate path inactive) — no animate.
+    expect(
+      resolveChatPullUpAnimateIds(ids, 4, none, new Set(), false).size
+    ).toBe(0);
+
+    // Batch many new ids — no thrash.
+    expect(
+      resolveChatPullUpAnimateIds(ids, 4, none, new Set(["q0"]), true).size
+    ).toBe(0);
+
+    // Thinking holds r0 while count already 2 — no new paint yet.
+    const thinking = { mode: "playback", anchorFrameId: "r0" };
+    expect(
+      resolveChatPullUpAnimateIds(
+        ids,
+        2,
+        thinking,
+        new Set(["q0"]),
+        true
+      ).size
+    ).toBe(0);
+
+    // Think ends → r0 newly revealed with count delta 0 — still animates.
+    expect([
+      ...resolveChatPullUpAnimateIds(ids, 2, none, new Set(["q0"]), true),
+    ]).toEqual(["r0"]);
   });
 });

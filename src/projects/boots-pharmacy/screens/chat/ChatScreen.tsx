@@ -9,7 +9,6 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import type { ChatThinkingBridgeState } from "./chatThinkingBridge";
 import { AnimatePresence, motion } from "@/uxds/motion";
 import { ButtonPrimary } from "@/uxds/components";
 import { CHAT_PULL_UP } from "./chatMotion";
@@ -35,6 +34,7 @@ import {
   isChatReplyHeldForPlaybackThinking,
   logChatReveal,
   resolveChatFrameRevealed,
+  resolveChatPullUpAnimateIds,
   resolveChatRevealedFrameCount,
   subscribeChatScenarioReveal,
 } from "./chatScenarioRevealBridge";
@@ -467,27 +467,48 @@ export function ChatScreen({
   );
 
   /**
-   * FIX-2: Only pull-up-animate the single most-recently-revealed frame.
-   * Batch reveals (scenario deactivate, browse init) skip to final position
-   * so later bubbles never jump/tear.
+   * FIX-2: Only pull-up-animate frames that newly become revealed one-at-a-time.
+   * Batch reveals skip to final position. Thinking→reply release (count delta
+   * 0) still animates via previous-id set — see resolveChatPullUpAnimateIds.
    */
-  const prevRevealedCountRef = useRef(revealedFrameCount);
-  const revealDelta = revealedFrameCount - prevRevealedCountRef.current;
+  const prevRevealedIdsRef = useRef<Set<string>>(new Set());
+  const pullUpAnimateIds = useMemo(
+    () =>
+      resolveChatPullUpAnimateIds(
+        CHAT_THREAD_FRAMES.map((f) => f.id),
+        revealedFrameCount,
+        thinking,
+        prevRevealedIdsRef.current,
+        scenarioReveal.active
+      ),
+    [scenarioReveal.active, revealedFrameCount, thinking]
+  );
+
   useEffect(() => {
-    prevRevealedCountRef.current = revealedFrameCount;
-  }, [revealedFrameCount]);
+    if (!scenarioReveal.active) {
+      prevRevealedIdsRef.current = new Set();
+      return;
+    }
+    const next = new Set<string>();
+    CHAT_THREAD_FRAMES.forEach((frame, frameIndex) => {
+      if (
+        resolveChatFrameRevealed(
+          frameIndex,
+          revealedFrameCount,
+          frame.id,
+          thinking
+        )
+      ) {
+        next.add(frame.id);
+      }
+    });
+    prevRevealedIdsRef.current = next;
+  }, [scenarioReveal.active, revealedFrameCount, thinking]);
 
   const shouldAnimateFrame = (
-    frameIndex: number,
-    frameRevealed: boolean,
-    thinkingState: ChatThinkingBridgeState
-  ): boolean => {
-    if (!frameRevealed) return false;
-    if (!scenarioReveal.active) return false;
-    if (revealDelta !== 1) return false;
-    if (thinkingState.mode === "playback") return true;
-    return frameIndex === revealedFrameCount - 1;
-  };
+    frameId: string,
+    frameRevealed: boolean
+  ): boolean => frameRevealed && pullUpAnimateIds.has(frameId);
 
   /**
    * Pull chat up on every progressive reveal / thinking paint so the newest
@@ -661,7 +682,7 @@ export function ChatScreen({
       );
     }
 
-    const animate = shouldAnimateFrame(frameIndex, revealed, thinking);
+    const animate = shouldAnimateFrame(frame.id, revealed);
 
     if (frame.kind === "query") {
       threadNodes.push(

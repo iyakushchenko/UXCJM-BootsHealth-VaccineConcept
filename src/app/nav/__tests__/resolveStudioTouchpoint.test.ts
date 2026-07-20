@@ -173,4 +173,36 @@ describe("resolveStudioTouchpointProgress", () => {
       )
     ).toEqual({ visibleCount: 15, totalFrames: 25 });
   });
+
+  it("anchors avail-time STEPS on popup:availability:time (not beat:avail-time)", () => {
+    const availTimeBeat = AGENTIC_CJM_JOURNEY.beats.find(
+      (beat) => beat.id === "avail-time"
+    );
+    expect(
+      resolveStudioTouchpointProgressForBeat(
+        agenticPlaylist,
+        "popup:availability:time",
+        availTimeBeat
+      ).visibleCount
+    ).toBeGreaterThan(0);
+    expect(
+      resolveStudioTouchpointProgress(
+        agenticPlaylist,
+        "popup:availability:time"
+      ).visibleCount
+    ).toBeGreaterThan(0);
+  });
+
+  it("anchors avail-continue STEPS on popup:availability:date", () => {
+    const availContinueBeat = AGENTIC_CJM_JOURNEY.beats.find(
+      (beat) => beat.id === "avail-continue"
+    );
+    expect(
+      resolveStudioTouchpointProgressForBeat(
+        agenticPlaylist,
+        "popup:availability:date",
+        availContinueBeat
+      ).visibleCount
+    ).toBeGreaterThan(0);
+  });
 });

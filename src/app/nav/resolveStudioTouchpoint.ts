@@ -63,13 +63,22 @@ const DEFAULT_POPUP_TOUCHPOINTS: Record<
   Record<string, StudioTouchpointEntry[]>
 > = {};
 
-function overlayBeatKey(beat: JourneyBeat): string {
+/** Playlist key for an avail overlay beat (may be popup:* not beat:*). */
+export function overlayBeatKey(beat: JourneyBeat): string {
   if (beat.id === "avail-book") return `beat:${beat.id}`;
   if (beat.availScript === "continue-from-date") {
     return "popup:availability:date";
   }
   if (beat.availScript === "select-time-slot") {
     return "popup:availability:time";
+  }
+  return `beat:${beat.id}`;
+}
+
+/** Anchor key used for STEPS counter — must match expandBeatToTouchpoints. */
+export function beatPlaylistAnchorKey(beat: JourneyBeat): string {
+  if (beat.kind === "overlay" && beat.availScript) {
+    return overlayBeatKey(beat);
   }
   return `beat:${beat.id}`;
 }
@@ -341,11 +350,16 @@ export function resolveStudioTouchpointProgressForBeat(
 
   const beatProgress = resolveStudioTouchpointProgress(
     playlist,
-    `beat:${beat.id}`
+    beatPlaylistAnchorKey(beat)
   );
   if (isPopupSubstepOfBeat(beat.id, touchpointKey)) {
     return {
-      visibleCount: beatProgress.visibleCount,
+      // Prefer beat anchor; if playlist uses popup:* for the beat itself,
+      // fall back to the live touchpoint so STEPS never flashes 0/N.
+      visibleCount:
+        beatProgress.visibleCount > 0
+          ? beatProgress.visibleCount
+          : touchpointProgress.visibleCount,
       totalFrames: touchpointProgress.totalFrames,
     };
   }

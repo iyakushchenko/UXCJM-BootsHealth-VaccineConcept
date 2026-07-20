@@ -99,6 +99,36 @@ export function resolveChatFrameRevealed(
   return true;
 }
 
+/**
+ * Frames that should Motion pull-up this paint — only when exactly one id
+ * newly becomes revealed (progressive SF or thinking→reply release).
+ * Batch paints (size≠1) return empty so later bubbles do not thrash.
+ */
+export function resolveChatPullUpAnimateIds(
+  frameIds: readonly string[],
+  revealedFrameCount: number,
+  thinking: { mode: string; anchorFrameId: string | null },
+  previouslyRevealedIds: ReadonlySet<string>,
+  scenarioActive: boolean
+): Set<string> {
+  const animate = new Set<string>();
+  if (!scenarioActive) return animate;
+
+  const now = new Set<string>();
+  frameIds.forEach((id, index) => {
+    if (resolveChatFrameRevealed(index, revealedFrameCount, id, thinking)) {
+      now.add(id);
+    }
+  });
+
+  const fresh: string[] = [];
+  now.forEach((id) => {
+    if (!previouslyRevealedIds.has(id)) fresh.push(id);
+  });
+  if (fresh.length === 1) animate.add(fresh[0]!);
+  return animate;
+}
+
 export type ChatRevealKind = "user" | "thinking" | "agent";
 
 /**
