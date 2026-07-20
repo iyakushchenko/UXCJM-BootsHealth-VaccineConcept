@@ -300,8 +300,9 @@ export async function replayRecordingSession(
       }
       try {
         const applied = await applyScroll({
-          scrollTop: event.scrollTop,
+          selectorChain: event.selectorChain,
           anchorSelector: event.anchorSelector,
+          scrollTop: event.scrollTop,
         });
         if (applied === false) {
           result.skipped += 1;

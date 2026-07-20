@@ -50,8 +50,15 @@ export type RecordedWireIntentEvent = {
 
 export type RecordedScrollEvent = {
   kind: "scroll";
-  scrollTop?: number;
+  /**
+   * Primary — nearest meaningful target in the scroll viewport.
+   * Replay uses engine scroll-to-target (eased), not pixel snap.
+   */
+  selectorChain?: string[];
+  /** Leaf / human-readable selector (diagnostic + simple querySelector fallback). */
   anchorSelector?: string;
+  /** Fallback / diagnostic only — prefer selectorChain / anchorSelector. */
+  scrollTop?: number;
   atMs: number;
   snapshot?: RecordingSnapshot;
 };
@@ -203,8 +210,10 @@ export type RecordingBeatEnterApplyInput = {
 };
 
 export type RecordingScrollApplyInput = {
-  scrollTop?: number;
+  selectorChain?: string[];
   anchorSelector?: string;
+  /** Fallback only when no resolvable target. */
+  scrollTop?: number;
 };
 
 export type RecordingTypedTextApplyInput = {
@@ -254,7 +263,7 @@ export type RecordingReplayOptions = {
     event: RecordingBeatEnterApplyInput
   ) => boolean | void | Promise<boolean | void>;
   /**
-   * v3 — restore prototype scroll position (or scrollIntoView via anchor).
+   * v3 — engine scroll-to-target (selectorChain / anchor); scrollTop fallback.
    * When omitted, scroll events count as unsupported.
    */
   applyScroll?: (

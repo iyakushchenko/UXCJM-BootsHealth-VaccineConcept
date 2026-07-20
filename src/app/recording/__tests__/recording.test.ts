@@ -659,6 +659,7 @@ describe("replayRecordingSession", () => {
     expect(applyScroll).toHaveBeenCalledWith({
       scrollTop: 240,
       anchorSelector: undefined,
+      selectorChain: undefined,
     });
     expect(applyTypedText).toHaveBeenCalledWith(
       expect.objectContaining({ value: "London" })
@@ -733,6 +734,7 @@ describe("recording scroll + typed-text capture", () => {
     expect(session?.events[0]).toMatchObject({
       kind: "scroll",
       scrollTop: 120,
+      // Direct captureScroll API may omit target; DOM flush fills selectorChain.
     });
     expect(session?.events[1]).toMatchObject({
       kind: "typed-text",

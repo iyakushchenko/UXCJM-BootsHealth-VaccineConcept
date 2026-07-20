@@ -198,7 +198,7 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ↓ | Download `.recording.json` |
 | ↑ | Import a saved `.recording.json` |
 | ↺ | Replay last stopped or imported session (v3: transport + screen + demo/human-click + wire-intent + director-script + beat-enter + scroll + typed-text) |
-| ⌁ (save) | **Save as journey** — compile → replace current CJM slot in the runtime catalog + download `journey-*.json` |
+| ⌁ (save) | **Add as CJM** — compile → **new** journey id under current project+persona (runtime catalog + localStorage) + download `journey-*.json` (does **not** overwrite built-in Agentic/Traditional slots) |
 
 UI and MCP share `recordingSession` + `replayRecordingSession` — no second session store.
 
@@ -216,7 +216,7 @@ UI and MCP share `recordingSession` + `replayRecordingSession` — no second ses
 | `beat-enter` | Beat onEnter via `notePlaybackBeatEnter` | Yes — known `JourneyBeatActionId` → `runBeatAction`; `sync-<bookScript>` → book script with `syncState` |
 | `wire-intent` | Retreat sync / `captureWireIntent` / beat actions | Yes — known `JourneyBeatActionId` via `runBeatAction`; `retreat-sync` → script runner with `syncState` when `scriptId` resolves |
 | `studio` | Journey/orchestra mode changes (manual API) | No |
-| `scroll` | Debounced active scroll host while REC (`captureScroll` via `getPrototypeScrollRoot`) | Yes — restore `scrollTop` on host (React Chat = `.chat__column`; else `.studio-scroll--prototype`) or `anchorSelector` → `scrollIntoView` |
+| `scroll` | Debounced active scroll host while REC — captures **target** (`selectorChain` / `anchorSelector`) nearest meaningful element in viewport; `scrollTop` diagnostic fallback only | Yes — **engine** eased scroll-to-target (`animateScrollElementIntoView`); pixel `scrollTop` only if target missing |
 | `typed-text` | Debounced trusted `input`/`change` on text-like fields with selector chain | Yes — set value + dispatch `input`/`change` (modal eyes) |
 | `dwell` | Manual API or compiled pauses | Yes (delay) |
 
@@ -289,25 +289,25 @@ window.__studioImportRecording?.(jsonString)
 
 Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall back to the **last stopped or imported** session when nothing is live.
 
-### Compile → journeys (PO path)
+### Compile → journeys (PO path) — **Add as CJM**
 
 1. Record (or ↑ import a `.recording.json`).
-2. Stop ■ then **Save as journey** (or `__studioSaveRecordingAsJourney()`).
-3. Studio merges the compiled journey over the matching CJM slot (`agentic-cjm` / `traditional-cjm`) via `journeyRuntimeStore` — same seam as `__studioApplyJourney` / journey bundle import.
-4. Turn **CJM** on and play/step — beats come from the recording (label ends with `(recorded)`).
-5. Optional: keep the downloaded `journey-*.json` and re-apply later with `__studioApplyJourney(json)`.
-6. Clear overlay: `__studioClearImportedJourneys()`.
+2. Stop ■ then **Add as CJM** (or `__studioSaveRecordingAsJourney()`).
+3. Studio mints a free id (`rec-trad-…` / `rec-agentic-…`), merges into `journeyRuntimeStore`, persists in **localStorage** for that project+persona, selects it in the nav CJM picker, and downloads `journey-*.json`.
+4. Turn **CJM** on and play/step — best-effort beats from the recording.
+5. Optional: keep the downloaded JSON under `data/journeys/` (repo) or re-apply with `__studioApplyJourney(json)`.
+6. Clear runtime overlay: `__studioClearImportedJourneys()` (localStorage recorded CJMs re-hydrate on next load unless cleared from storage).
 
 **Mapped into beats:** touchpoint segments (or screen/director fallback), `director-script` → home/avail/book/tab scripts, known `wire-intent` / `beat-enter` → `onEnter`, `dwell` → `dwellMs`, snapshot `protoTab` / `currentTabIndex`.
 
-**Not compiled (honest gaps — use REC ↺ replay):** `scroll`, `typed-text`, unknown wire intents / unknown beat-enter ids, writing durable `journeys.ts` source (runtime overlay only).
+**Not compiled (honest gaps — use REC ↺ replay for fidelity):** `scroll` (target-based REC replay works; not mapped into JourneyBeat), `typed-text`, unknown wire intents / unknown beat-enter ids. Built-in persona `journeys.ts` is not auto-edited.
 
 ### Beat-enter + scroll + typed-text replay (v3)
 
 | Kind | Capture | Replay |
 |------|---------|--------|
 | `beat-enter` | Flight recorder (`notePlaybackBeatEnter`) | `applyBeatEnter` → `runBeatAction` or `sync-*` book script |
-| `scroll` | Debounced scroll on `.studio-scroll--prototype` while REC | `applyScroll` → `scrollTop` / optional anchor |
+| `scroll` | Debounced scroll → **`selectorChain` / `anchorSelector`** (viewport target) + optional `scrollTop` diagnostic | `applyScroll` → engine `animateScrollElementIntoView` (eased); `scrollTop` fallback only |
 | `typed-text` | Debounced trusted text field `input`/`change` (needs selector chain) | `applyTypedText` → native value + events |
 
 Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-home-query` / `agentic-chat-query` / `avail-notify-email`. Password / checkbox / radio / file / chrome skipped.
@@ -318,11 +318,11 @@ Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-hom
 
 | v3 (now) | Later |
 |----------|-------|
-| In-memory session + JSON export | Persist compile into persona `journeys.ts` / `data/journeys/` commit path |
+| In-memory session + JSON export + **Add as CJM** (localStorage + download) | Auto-commit into persona `journeys.ts` / `data/journeys/` |
 | Studio REC deck + MCP helpers | Nested scroll containers beyond prototype root |
-| Transport + screen + dwell + demo-click + human REC click + **beat-enter + scroll + typed-text** | Drag / contenteditable / rich form widgets |
+| Transport + screen + dwell + demo-click + human REC click + **beat-enter + scroll-to-target + typed-text** | Drag / contenteditable / rich form widgets |
 | Director-script + retreat-sync via shared script apply | — |
-| **Compile → ephemeral journey catalog** (Save as journey) | Multi-journey free ids beyond the two CJM slots; compile scroll/typed into beats |
+| **Compile → new free CJM id** in picker (`rec-…`) | Compile scroll/typed into beats; edit `journeys.ts` source automatically |
 
 ---
 

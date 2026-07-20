@@ -106,8 +106,8 @@ describe("compileRecordingToJourney", () => {
     );
 
     expect(warnings).toEqual([]);
-    expect(journey.id).toBe("agentic-cjm");
-    expect(journey.label).toContain("recorded");
+    expect(journey.id).toMatch(/^rec-agentic-/);
+    expect(journey.label).toMatch(/Recorded Agentic/i);
     expect(journey.beats).toHaveLength(3);
 
     expect(journey.beats[0]).toMatchObject({
@@ -169,7 +169,7 @@ describe("compileRecordingToJourney", () => {
 
     const { journey, warnings } = compileRecordingToJourney(session);
     expect(warnings).toContain("no-touchpoint-markers");
-    expect(journey.id).toBe("traditional-cjm");
+    expect(journey.id).toMatch(/^rec-trad-/);
     expect(journey.beats).toHaveLength(2);
     expect(journey.beats[0]).toMatchObject({
       tabScript: "plp-open-pdp",
@@ -181,21 +181,24 @@ describe("compileRecordingToJourney", () => {
     });
   });
 
-  it("saves into the runtime catalog replacing the mode slot", () => {
+  it("adds a new CJM id without overwriting built-in slots", () => {
     const saved = saveRecordingAsJourney(sessionWithTouchpoints());
     expect(saved.summary.beatCount).toBe(3);
+    expect(saved.journey.id).toMatch(/^rec-agentic-/);
     expect(saved.json).toContain('"agentic-home"');
 
     const merged = resolveRuntimeJourneys([
       AGENTIC_CJM_JOURNEY,
       TRADITIONAL_CJM_JOURNEY,
     ]);
-    const agentic = merged.find((j) => j.id === "agentic-cjm");
-    expect(agentic?.label).toContain("recorded");
-    expect(agentic?.beats[0]?.homeScript).toBe("sarah-query-submit");
+    expect(merged.find((j) => j.id === "agentic-cjm")?.label).toBe(
+      AGENTIC_CJM_JOURNEY.label
+    );
     expect(merged.find((j) => j.id === "traditional-cjm")?.label).toBe(
       TRADITIONAL_CJM_JOURNEY.label
     );
+    const recorded = merged.find((j) => j.id === saved.journey.id);
+    expect(recorded?.beats[0]?.homeScript).toBe("sarah-query-submit");
 
     clearImportedJourneys();
     expect(resolveRuntimeJourneys([AGENTIC_CJM_JOURNEY])[0]?.label).toBe(

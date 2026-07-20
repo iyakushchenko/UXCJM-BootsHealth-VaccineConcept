@@ -25,8 +25,11 @@ import { logControlPanel } from "@/app/shell/controlPanelLog";
 export type StudioNavRecordingControlsProps = {
   getStartOptions: () => StartRecordingOptions;
   onReplay: (session: RecordingSession) => void | Promise<void>;
-  /** Compile last/live session → ephemeral journey in the CJM catalog + download JSON. */
-  onSaveAsJourney?: (session: RecordingSession) => void;
+  /** Compile last/live session → new CJM option (project+persona) + download JSON. */
+  onSaveAsJourney?: (
+    session: RecordingSession,
+    saved?: { journeyId: string; label: string }
+  ) => void;
   /** When true (AIR / play live), REC mode switch is locked — same gate as cassette transport. */
   recModeLocked?: boolean;
 };
@@ -439,7 +442,7 @@ export function StudioNavRecordingControls({
 
   const handleSaveAsJourney = (event: React.MouseEvent<HTMLButtonElement>) => {
     let session = getActiveRecordingSession() ?? getLastRecordingSession();
-    logControlPanel("recording:save-as-journey", {
+    logControlPanel("recording:add-as-cjm", {
       blocked: !session || replaying,
       eventCount: session?.events.length ?? 0,
     });
@@ -453,6 +456,7 @@ export function StudioNavRecordingControls({
       const saved = saveRecordingAsJourney(session, {
         projectId: session.projectId ?? defaults.projectId,
         personaId: session.personaId ?? defaults.personaId,
+        addAsNew: true,
       });
       const stamp = session.stoppedAt ?? session.startedAt ?? "session";
       const safeStamp = stamp.replace(/[:.]/g, "-");
@@ -460,11 +464,14 @@ export function StudioNavRecordingControls({
         `journey-${saved.journey.id}-${safeStamp}.json`,
         saved.json
       );
-      onSaveAsJourney?.(session);
-      setStatusNote(`JOURNEY · ${saved.summary.beatCount}`);
+      onSaveAsJourney?.(session, {
+        journeyId: saved.journey.id,
+        label: saved.journey.label,
+      });
+      setStatusNote(`CJM · ${saved.journey.id}`);
     } catch (error) {
-      console.warn("[StudioRecording] save-as-journey failed", error);
-      setStatusNote("JOURNEY FAIL");
+      console.warn("[StudioRecording] add-as-cjm failed", error);
+      setStatusNote("CJM FAIL");
     }
   };
 
@@ -546,8 +553,8 @@ export function StudioNavRecordingControls({
       <button
         type="button"
         className="studio-nav-step-btn studio-nav-scenario__btn"
-        aria-label="Save recording as journey"
-        title="Compile → journey catalog (play in CJM) + download .json"
+        aria-label="Add as CJM"
+        title="Add recording as a new CJM option (current project + persona) + download .json"
         disabled={!ui.canExport || replaying}
         onClick={handleSaveAsJourney}
       >

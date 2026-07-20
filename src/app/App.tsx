@@ -1473,6 +1473,13 @@ export default function App() {
     resetBeatIndex();
     transportActionsRef.current.jumpToStart();
   }, [resetBeatIndex]);
+  const onRecordingAddedAsCjm = useCallback(
+    (_s: unknown, saved?: { journeyId: string }) => {
+      refreshJourneysAfterImport();
+      if (saved?.journeyId) handleOrchestraModeChange(saved.journeyId);
+    },
+    [handleOrchestraModeChange, refreshJourneysAfterImport]
+  );
 
   const { replayRecordingOptions } = useRecordingReplayBridge({
     transportActionsRef,
@@ -1804,7 +1811,7 @@ export default function App() {
                   onReplay={(session) =>
                     replayRecordingSession(session, replayRecordingOptions())
                   }
-                  onSaveAsJourney={refreshJourneysAfterImport}
+                  onSaveAsJourney={onRecordingAddedAsCjm}
                 />
               }
             />
@@ -1817,7 +1824,7 @@ export default function App() {
                 onReplay={(session) =>
                   replayRecordingSession(session, replayRecordingOptions())
                 }
-                onSaveAsJourney={refreshJourneysAfterImport}
+                onSaveAsJourney={onRecordingAddedAsCjm}
               />
             </div>
           )

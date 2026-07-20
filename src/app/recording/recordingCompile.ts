@@ -15,6 +15,8 @@ import {
   type JourneyFile,
 } from "@/app/journey/journeyFile";
 import { applyImportedJourneyFile } from "@/app/journey/journeyRuntimeStore";
+import { persistRecordedJourneyFile } from "@/app/journey/recordedJourneyPersist";
+import { isBuiltInOrchestraModeId } from "@/app/orchestra/orchestraModes";
 import {
   compileRecordingToBeatTimeline,
 } from "@/app/recording/recordingReplay";
@@ -39,9 +41,17 @@ const KNOWN_SCENARIO_BY_BEAT: Record<string, string> = {
 };
 
 export type CompileRecordingJourneyOptions = {
-  /** Target CJM slot — defaults to session journey/orchestra mode or agentic-cjm. */
+  /**
+   * Target journey id. When `addAsNew` (default for Add as CJM), a free
+   * `rec-trad-|rec-agentic-…` id is minted unless `journeyId` is set.
+   */
   journeyId?: OrchestraModeId;
   label?: string;
+  /**
+   * When true (default), always create a **new** CJM id — do not overwrite
+   * agentic-cjm / traditional-cjm slots.
+   */
+  addAsNew?: boolean;
 };
 
 export type CompiledRecordingJourney = {
@@ -61,20 +71,46 @@ export type SaveRecordingAsJourneyResult = {
   json: string;
 };
 
-function isOrchestraModeId(value: string | null | undefined): value is OrchestraModeId {
-  return value === "agentic-cjm" || value === "traditional-cjm";
+function resolvePathFlavor(
+  session: RecordingSession
+): "trad" | "agentic" {
+  const mode = session.orchestraMode ?? session.journeyId ?? "";
+  if (
+    mode === "traditional-cjm" ||
+    mode === "traditional" ||
+    String(mode).includes("trad")
+  ) {
+    return "trad";
+  }
+  return "agentic";
+}
+
+function mintRecordedJourneyId(session: RecordingSession): OrchestraModeId {
+  const flavor = resolvePathFlavor(session);
+  const stamp = Date.now().toString(36);
+  const rand = Math.random().toString(36).slice(2, 6);
+  return `rec-${flavor}-${stamp}-${rand}`;
 }
 
 function resolveJourneyId(
   session: RecordingSession,
   options?: CompileRecordingJourneyOptions
 ): OrchestraModeId {
-  if (options?.journeyId && isOrchestraModeId(options.journeyId)) {
+  const addAsNew = options?.addAsNew !== false;
+  if (options?.journeyId) {
+    if (addAsNew && isBuiltInOrchestraModeId(options.journeyId)) {
+      return mintRecordedJourneyId(session);
+    }
     return options.journeyId;
   }
-  if (isOrchestraModeId(session.journeyId)) return session.journeyId;
-  if (isOrchestraModeId(session.orchestraMode)) return session.orchestraMode;
-  return "agentic-cjm";
+  if (addAsNew) {
+    return mintRecordedJourneyId(session);
+  }
+  if (isBuiltInOrchestraModeId(session.journeyId)) return session.journeyId;
+  if (isBuiltInOrchestraModeId(session.orchestraMode)) {
+    return session.orchestraMode;
+  }
+  return mintRecordedJourneyId(session);
 }
 
 function slugBeatId(raw: string): string {
@@ -371,11 +407,17 @@ export function compileRecordingToJourney(
   }
 
   const journeyId = resolveJourneyId(session, options);
-  const defaultLabel =
-    journeyId === "traditional-cjm" ? "Traditional CJM" : "Agentic CJM";
+  const flavor = resolvePathFlavor(session);
+  const defaultLabel = isBuiltInOrchestraModeId(journeyId)
+    ? journeyId === "traditional-cjm"
+      ? "Traditional CJM (recorded)"
+      : "Agentic CJM (recorded)"
+    : flavor === "trad"
+      ? `Recorded Traditional ${new Date().toLocaleString()}`
+      : `Recorded Agentic ${new Date().toLocaleString()}`;
   const journey: JourneyDefinition = {
     id: journeyId,
-    label: options?.label?.trim() || `${defaultLabel} (recorded)`,
+    label: options?.label?.trim() || defaultLabel,
     beats,
   };
 
@@ -383,7 +425,11 @@ export function compileRecordingToJourney(
   return { journey, timeline, warnings, gaps: uniqueGaps };
 }
 
-/** Compile + merge into the runtime journey catalog (ephemeral until reload/clear). */
+/**
+ * Compile + add as a **new** CJM under project/persona (runtime catalog +
+ * localStorage). Downloads still happen in the REC UI. Does **not** overwrite
+ * the built-in agentic/traditional slots unless `addAsNew: false`.
+ */
 export function saveRecordingAsJourney(
   session: RecordingSession,
   options?: CompileRecordingJourneyOptions & {
@@ -391,7 +437,10 @@ export function saveRecordingAsJourney(
     personaId?: PersonaId | string;
   }
 ): SaveRecordingAsJourneyResult {
-  const compiled = compileRecordingToJourney(session, options);
+  const compiled = compileRecordingToJourney(session, {
+    ...options,
+    addAsNew: options?.addAsNew !== false,
+  });
   const file: JourneyFile = {
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -400,6 +449,7 @@ export function saveRecordingAsJourney(
     journey: compiled.journey,
   };
   applyImportedJourneyFile(file);
+  persistRecordedJourneyFile(file);
   return {
     journey: compiled.journey,
     file,

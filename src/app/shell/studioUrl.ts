@@ -13,6 +13,7 @@
 
 import {
   experienceToOrchestraModeId,
+  isBuiltInOrchestraModeId,
   normalizeOrchestraModeId,
   normalizeStudioCjmFlag,
   normalizeStudioExperienceId,
@@ -33,7 +34,9 @@ export const STUDIO_QUERY = {
   cjm: "cjm",
   experience: "experience",
   modal: "modal",
-  /** Legacy alias only — accepted on parse, never written. */
+  /** Free / recorded CJM id (beyond agentic|traditional experience path). */
+  journey: "journey",
+  /** Legacy alias only — accepted on parse; written only for non-built-in journey ids. */
   mode: "mode",
 } as const;
 
@@ -94,8 +97,8 @@ export type StudioUrlState = {
   screenId?: string;
   personaId?: string;
   /**
-   * Orchestra journey slot (`agentic-cjm` | `traditional-cjm`).
-   * Derived from canonical `experience=` or legacy `mode=`.
+   * Active CJM / journey id (`agentic-cjm` | `traditional-cjm` | `rec-…`).
+   * From `journey=` / free `mode=`, else derived from `experience=`.
    */
   modeId?: OrchestraModeId;
   /** Canonical experience path — agentic vs traditional (not CJM on/off). */
@@ -173,18 +176,32 @@ export function parseStudioUrl(
   );
   const cjmFromParam = normalizeStudioCjmFlag(params.get(STUDIO_QUERY.cjm));
 
+  const journeyRaw =
+    params.get(STUDIO_QUERY.journey)?.trim() ||
+    params.get(STUDIO_QUERY.mode)?.trim() ||
+    undefined;
+  const journeyModeId = normalizeOrchestraModeId(journeyRaw);
+  const freeJourneyId =
+    journeyModeId && !isBuiltInOrchestraModeId(journeyModeId)
+      ? journeyModeId
+      : undefined;
+
   const legacyModeRaw = params.get(STUDIO_QUERY.mode);
   const modeFromLegacy = normalizeOrchestraModeId(legacyModeRaw);
   const experienceFromLegacy = modeFromLegacy
     ? orchestraModeToExperienceId(modeFromLegacy)
     : undefined;
 
-  // Canonical params win; legacy `mode=` only fills `experience` (never implies CJM on —
-  // old `mode=agentic-cjm` selected the journey path, not the CJM switch).
-  const experienceId = experienceFromParam ?? experienceFromLegacy;
-  const modeId = experienceId
-    ? experienceToOrchestraModeId(experienceId)
-    : undefined;
+  // Canonical params win; legacy `mode=` fills `experience` for built-ins
+  // (never implies CJM on). Free `journey=` / `mode=rec-…` selects that CJM.
+  const experienceId =
+    experienceFromParam ??
+    (freeJourneyId
+      ? orchestraModeToExperienceId(freeJourneyId)
+      : experienceFromLegacy);
+  const modeId =
+    freeJourneyId ??
+    (experienceId ? experienceToOrchestraModeId(experienceId) : undefined);
 
   return finalizeUrlState({
     projectId,
@@ -210,6 +227,9 @@ export function serializeStudioUrl(state: StudioUrlState): string {
   }
   if (experienceId) {
     params.set(STUDIO_QUERY.experience, experienceId);
+  }
+  if (state.modeId && !isBuiltInOrchestraModeId(state.modeId)) {
+    params.set(STUDIO_QUERY.journey, state.modeId);
   }
   if (state.modalId) params.set(STUDIO_QUERY.modal, state.modalId);
   const qs = params.toString();
@@ -574,6 +594,9 @@ export function writeStudioUrl(
   }
   if (experienceId) {
     url.searchParams.set(STUDIO_QUERY.experience, experienceId);
+  }
+  if (state.modeId && !isBuiltInOrchestraModeId(state.modeId)) {
+    url.searchParams.set(STUDIO_QUERY.journey, state.modeId);
   }
   if (state.modalId) url.searchParams.set(STUDIO_QUERY.modal, state.modalId);
 

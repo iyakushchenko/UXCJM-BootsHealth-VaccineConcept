@@ -167,13 +167,82 @@ export function captureWireIntent(
 export function captureScroll(options: {
   scrollTop?: number;
   anchorSelector?: string;
+  selectorChain?: string[];
 }): void {
   if (!getActiveRecordingSession()) return;
   captureRecordingEvent({
     kind: "scroll",
-    scrollTop: options.scrollTop,
+    selectorChain: options.selectorChain,
     anchorSelector: options.anchorSelector,
+    scrollTop: options.scrollTop,
   });
+}
+
+const SCROLL_ANCHOR_CANDIDATE_SELECTOR = [
+  "[data-studio-action]",
+  "[data-studio-probe-below-fold]",
+  "[data-studio-avail-store]",
+  "[data-studio-beat]",
+  "[data-name]",
+  "h1",
+  "h2",
+  "h3",
+  "article",
+  '[role="article"]',
+].join(", ");
+
+/**
+ * Pick the nearest meaningful element in the prototype scroll viewport
+ * (prefer center band) for anchor-based REC scroll capture.
+ */
+export function resolveScrollAnchorElement(
+  root: HTMLElement
+): HTMLElement | null {
+  const rootRect = root.getBoundingClientRect();
+  if (rootRect.height < 8 || rootRect.width < 8) return null;
+  const midY = rootRect.top + rootRect.height * 0.42;
+  const nodes = root.querySelectorAll<HTMLElement>(SCROLL_ANCHOR_CANDIDATE_SELECTOR);
+  let best: HTMLElement | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (const el of nodes) {
+    if (isRecordingChromeTarget(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.height < 8 || r.width < 8) continue;
+    if (r.bottom < rootRect.top + 4 || r.top > rootRect.bottom - 4) continue;
+    const cy = r.top + r.height / 2;
+    const dist = Math.abs(cy - midY);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = el;
+    }
+  }
+  return best;
+}
+
+/** Build primary selectorChain + leaf anchorSelector for a scroll anchor. */
+export function describeScrollAnchor(el: HTMLElement): {
+  selectorChain: string[];
+  anchorSelector?: string;
+} {
+  const selectorChain = buildPlaybackSelectorChain(el);
+  if (selectorChain.length === 0) {
+    return { selectorChain: [] };
+  }
+  let anchorSelector = selectorChain[selectorChain.length - 1];
+  if (typeof document !== "undefined") {
+    for (let i = selectorChain.length - 1; i >= 0; i -= 1) {
+      const sel = selectorChain[i];
+      try {
+        if (document.querySelectorAll(sel).length === 1) {
+          anchorSelector = sel;
+          break;
+        }
+      } catch {
+        /* ignore bad selector */
+      }
+    }
+  }
+  return { selectorChain, anchorSelector };
 }
 
 export function captureTypedText(options: {
@@ -394,7 +463,16 @@ function flushRecordingScrollCapture(): void {
   const scrollTop = Math.round(root.scrollTop);
   if (lastCapturedScrollTop === scrollTop) return;
   lastCapturedScrollTop = scrollTop;
-  captureScroll({ scrollTop });
+  const anchorEl = resolveScrollAnchorElement(root);
+  const described = anchorEl ? describeScrollAnchor(anchorEl) : null;
+  // Primary = target (selectorChain / anchorSelector). scrollTop = diagnostic fallback.
+  captureScroll({
+    selectorChain: described?.selectorChain?.length
+      ? described.selectorChain
+      : undefined,
+    anchorSelector: described?.anchorSelector,
+    scrollTop,
+  });
 }
 
 function onRecordingScroll(event: Event): void {

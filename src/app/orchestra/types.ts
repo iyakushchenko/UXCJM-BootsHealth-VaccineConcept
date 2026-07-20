@@ -1,4 +1,6 @@
-export type OrchestraModeId = "agentic-cjm" | "traditional-cjm";
+/** Built-in CJM slots + free ids for recorded / imported journeys (`rec-…`). */
+export type BuiltInOrchestraModeId = "agentic-cjm" | "traditional-cjm";
+export type OrchestraModeId = BuiltInOrchestraModeId | (string & {});
 
 export type JourneyBeatKind = "screen-frames" | "tab-landing" | "overlay";
 

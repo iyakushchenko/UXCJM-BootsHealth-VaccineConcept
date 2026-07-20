@@ -1,4 +1,10 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { getJourneyForMode } from "@/app/orchestra/journeyUtils";
 import {
   getImportedJourneysSnapshot,
@@ -11,7 +17,8 @@ import {
   readStoredOrchestraMode,
   storeOrchestraMode,
 } from "@/app/orchestra/orchestraModes";
-import type { OrchestraModeId } from "@/app/orchestra/types";
+import type { OrchestraModeId, OrchestraModeOption } from "@/app/orchestra/types";
+import { hydrateRecordedJourneysFromStorage } from "@/app/journey/recordedJourneyPersist";
 import type {
   PersonaDefinition,
   PersonaId,
@@ -95,10 +102,29 @@ export function useStudio() {
     getImportedJourneysSnapshot
   );
 
+  // Durable recorded CJMs (localStorage) → runtime catalog for this project+persona.
+  useEffect(() => {
+    hydrateRecordedJourneysFromStorage(project.id, persona.id);
+  }, [project.id, persona.id]);
+
   const journeys = useMemo(
     () => resolveRuntimeJourneys(persona.journeys),
     [persona.journeys, importVersion]
   );
+
+  const modes: OrchestraModeOption[] = useMemo(() => {
+    const byId = new Map<string, OrchestraModeOption>();
+    for (const mode of ORCHESTRA_MODE_OPTIONS) {
+      byId.set(mode.id, mode);
+    }
+    for (const journeyDef of journeys) {
+      byId.set(journeyDef.id, {
+        id: journeyDef.id,
+        label: journeyDef.label,
+      });
+    }
+    return [...byId.values()];
+  }, [journeys]);
 
   const [modeId, setModeIdState] = useState<OrchestraModeId>(() => {
     return (
@@ -114,7 +140,9 @@ export function useStudio() {
   );
 
   const modeLabel =
-    ORCHESTRA_MODE_OPTIONS.find((mode) => mode.id === modeId)?.label ?? "Agentic CJM";
+    modes.find((mode) => mode.id === modeId)?.label ??
+    ORCHESTRA_MODE_OPTIONS.find((mode) => mode.id === modeId)?.label ??
+    "CJM";
 
   const setProjectId = useCallback((next: ProjectId) => {
     const nextProject = getProjectById(next);
@@ -163,7 +191,7 @@ export function useStudio() {
     modeId,
     setModeId,
     modeLabel,
-    modes: ORCHESTRA_MODE_OPTIONS,
+    modes,
     journey,
     beatIndex,
     setBeatIndex,

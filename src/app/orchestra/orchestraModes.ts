@@ -15,10 +15,14 @@ export type StudioExperienceId = "agentic" | "traditional";
 
 const MODE_STORAGE_KEY = "proto-orchestra-mode";
 
+/** Recorded / imported free CJM ids — must be `rec-…` slug. */
+const RECORDED_JOURNEY_ID_RE = /^rec-[a-z0-9][a-z0-9_-]{0,92}$/i;
+
 /**
- * URL / storage aliases → canonical OrchestraModeId.
+ * URL / storage aliases → OrchestraModeId.
  * Bare `traditional` / `agentic` must not win — they zero journey beats and
  * hide the cassette playback panel (REC-only RecordingModeSlot).
+ * Free recorded ids (`rec-trad-…` / `rec-agentic-…`) pass through.
  */
 export function normalizeOrchestraModeId(
   raw: string | null | undefined
@@ -32,7 +36,16 @@ export function normalizeOrchestraModeId(
   if (t === "traditional-cjm" || t === "traditional") {
     return "traditional-cjm";
   }
+  if (RECORDED_JOURNEY_ID_RE.test(t)) {
+    return t;
+  }
   return undefined;
+}
+
+export function isBuiltInOrchestraModeId(
+  value: string | null | undefined
+): value is "agentic-cjm" | "traditional-cjm" {
+  return value === "agentic-cjm" || value === "traditional-cjm";
 }
 
 export function normalizeStudioExperienceId(
@@ -63,7 +76,13 @@ export function normalizeStudioCjmFlag(
 export function orchestraModeToExperienceId(
   modeId: OrchestraModeId
 ): StudioExperienceId {
-  return modeId === "traditional-cjm" ? "traditional" : "agentic";
+  if (modeId === "traditional-cjm") return "traditional";
+  if (modeId === "agentic-cjm") return "agentic";
+  // Recorded CJMs encode path flavor in the id: `rec-trad-…` vs `rec-agentic-…`.
+  if (modeId.startsWith("rec-trad") || modeId.includes("-trad-")) {
+    return "traditional";
+  }
+  return "agentic";
 }
 
 export function experienceToOrchestraModeId(

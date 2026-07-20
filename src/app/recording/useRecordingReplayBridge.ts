@@ -10,7 +10,11 @@ import type { RecordingReplayOptions } from "@/app/recording/recordingTypes";
 import type { StartRecordingOptions } from "@/app/recording/recordingSession";
 import type { ManualTransportAction } from "@/app/shell/playbackInteractionContext";
 import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
-import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
+import {
+  animateScrollElementIntoView,
+  animateScrollTo,
+  getPrototypeScrollRoot,
+} from "@/app/scenario/playbackScroll";
 import {
   resolveClickTargetRespectingModal,
   STUDIO_MODAL,
@@ -279,24 +283,38 @@ export function useRecordingReplayBridge(options: {
   );
 
   const applyRecordingScroll = useCallback(
-    async (event: { scrollTop?: number; anchorSelector?: string }) => {
-      if (event.anchorSelector) {
-        let anchor: HTMLElement | null = null;
+    async (event: {
+      scrollTop?: number;
+      anchorSelector?: string;
+      selectorChain?: string[];
+    }) => {
+      // Primary: engine eased scroll-to-target (selectorChain / anchorSelector).
+      const fromChain = resolvePlaybackSelectorChain(
+        event.selectorChain,
+        document
+      );
+      let anchor = fromChain;
+      if (!anchor && event.anchorSelector) {
         try {
           anchor = document.querySelector<HTMLElement>(event.anchorSelector);
         } catch {
           anchor = null;
         }
-        if (!anchor) return false;
-        anchor.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+      if (anchor) {
+        await animateScrollElementIntoView(anchor, {
+          align: "center",
+          padding: 72,
+        });
         return true;
       }
+      // Fallback diagnostic only — eased pixel restore on prototype host.
       if (event.scrollTop == null || !Number.isFinite(event.scrollTop)) {
         return false;
       }
       const root = getPrototypeScrollRoot();
       if (!root) return false;
-      root.scrollTop = event.scrollTop;
+      await animateScrollTo(root, event.scrollTop);
       return true;
     },
     []

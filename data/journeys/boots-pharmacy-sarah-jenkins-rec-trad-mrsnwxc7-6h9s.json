@@ -1,0 +1,18 @@
+{
+  "personaId": "sarah-jenkins",
+  "version": 1,
+  "journey": {
+    "id": "rec-trad-mrsnwxc7-6h9s",
+    "label": "Recorded Traditional 7/20/2026, 6:25:53 AM",
+    "beats": [
+      {
+        "id": "pdp",
+        "label": "pdp",
+        "kind": "tab-landing",
+        "protoTab": 3
+      }
+    ]
+  },
+  "projectId": "boots-pharmacy",
+  "exportedAt": "2026-07-20T03:26:45.4071088Z"
+}
