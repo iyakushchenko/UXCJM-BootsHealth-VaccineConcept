@@ -9,7 +9,8 @@
     "book-step-3",
     "plp",
     "pdp",
-    "site-pilot"
+    "site-pilot",
+    "chat"
   ],
   "screens": [
     {
@@ -218,6 +219,66 @@
           { "id": "site-pilot-return-after-send", "pass": true },
           { "id": "site-pilot-chip-to-chat", "pass": true },
           { "id": "site-pilot-return-after-chip", "pass": true },
+          { "id": "url-screen", "pass": true }
+        ],
+        "landmarks": {
+          "header": false,
+          "main": true,
+          "section": true,
+          "aside": false,
+          "makeRetired": true
+        }
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "chat",
+      "status": "proven",
+      "hardGreen": true,
+      "stampedAt": {
+        "sha": "ba24641",
+        "date": "2026-07-20",
+        "note": "Uma+Finn structure + ButtonPrimary CTAs + SitePilotComposer DS; main landmark; BEM chat; make-retired; header waived (Make Body9). Quinn MCP 20/20."
+      },
+      "mcpFinalPass": {
+        "status": "HARD-GREEN",
+        "pass": true,
+        "stampedAt": {
+          "sha": "ba24641",
+          "date": "2026-07-20",
+          "version": "0.0.60",
+          "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN",
+          "note": "Quinn __studioRunMcpPageProbe({ screenId:\"chat\", reload:false }) 20/20 PASS on 127.0.0.1:5173. §0b layout; helpful hover; CTA sweep; footer hide; disclaimer. Audit: FE_AUDIT_CHAT_PAGE_FINAL_PASS_2026-07-20.md"
+        },
+        "url": "http://127.0.0.1:5173/?project=boots-pharmacy&screen=chat",
+        "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_CHAT_PAGE_FINAL_PASS_2026-07-20.md",
+        "matrix": [
+          { "id": "overlay-arm", "pass": true },
+          { "id": "chat-host", "pass": true },
+          { "id": "chat-make-retired", "pass": true },
+          { "id": "chat-site-pilot-bar", "pass": true },
+          { "id": "chat-landmarks", "pass": true },
+          { "id": "chat-composer-dock", "pass": true },
+          { "id": "chat-composer-textarea", "pass": true },
+          { "id": "chat-composer-send", "pass": true },
+          { "id": "chat-composer-mic-hover", "pass": true },
+          { "id": "chat-chip-hover", "pass": true },
+          { "id": "chat-cta-hover", "pass": true },
+          { "id": "chat-helpful-hover", "pass": true },
+          { "id": "chat-layout-rhythm", "pass": true },
+          { "id": "chat-disclaimer", "pass": true },
+          { "id": "chat-footer-hidden", "pass": true },
+          { "id": "chat-cta-frame-sweep", "pass": true },
+          { "id": "chat-below-fold-reveal", "pass": true },
+          { "id": "chat-composer-scroll-pad", "pass": true },
+          { "id": "chat-motion-owner", "pass": true },
           { "id": "url-screen", "pass": true }
         ],
         "landmarks": {

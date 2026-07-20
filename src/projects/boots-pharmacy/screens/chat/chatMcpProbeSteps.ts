@@ -1,6 +1,6 @@
 /**
  * Chat (Agentic) MCP probe recipe — kept out of studioMcpPageProbe.ts (hygiene).
- * Expanded recipe may PASS host/composer rows; does **not** stamp Chat PAGE FINAL PASS.
+ * Expanded Final Pass matrix (layout / helpful / footer / CTA sweep).
  */
 
 import { assertChatComposerScrollPad } from "./chatComposerScrollPadProbe";
@@ -231,6 +231,143 @@ export function chatMcpProbeSteps(): ChatMcpProbeStep[] {
           !stylesheetHasRule(".uxds-btn-primary--commerce:hover:not(:disabled)")
         ) {
           return "missing UXDS ButtonPrimary commerce :hover CSS";
+        }
+        return true;
+      },
+    },
+    {
+      // Conversation strip stays `hidden` (Make end-of-thread residual) — hover reply strip.
+      id: "chat-helpful-hover",
+      selector: `${hostSel} [data-studio-chat-helpful="reply"] .chat__helpful-choice`,
+      action: "hover",
+      settleMs: 420,
+      assert: () => {
+        if (
+          !document.querySelector(
+            `${hostSel} [data-studio-chat-helpful="reply"] .chat__helpful-choice`
+          )
+        ) {
+          return "missing per-reply feedback Yes/No";
+        }
+        if (!stylesheetHasRule(".chat__helpful-choice:hover")) {
+          return "missing .chat__helpful-choice:hover CSS";
+        }
+        const replyPrompt = normalizeText(
+          document.querySelector(
+            `${hostSel} [data-studio-chat-helpful="reply"] .chat__helpful-prompt`
+          )
+        );
+        if (!/Was this reply helpful\?/i.test(replyPrompt)) {
+          return `per-reply helpful prompt mismatch (got "${replyPrompt}")`;
+        }
+        const conv = document.querySelector(
+          `${hostSel} [data-studio-chat-helpful="conversation"]`
+        );
+        if (!conv) return "missing conversation helpful strip (Make residual; may stay hidden)";
+        const convPrompt = normalizeText(
+          conv.querySelector(".chat__helpful-prompt")
+        );
+        if (!/Was this conversation helpful so far\?/i.test(convPrompt)) {
+          return `conversation helpful prompt mismatch (got "${convPrompt}")`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "chat-layout-rhythm",
+      selector: `${hostSel} .chat__summary`,
+      action: "assert",
+      assert: () => {
+        const summary = document.querySelector(
+          `${hostSel} .chat__summary`
+        ) as HTMLElement | null;
+        const column = document.querySelector(
+          `${hostSel} .chat__column`
+        ) as HTMLElement | null;
+        const queryBubble = document.querySelector(
+          `${hostSel} [data-name="query"] .chat__bubble`
+        ) as HTMLElement | null;
+        if (!summary || !column || !queryBubble) {
+          return "layout rhythm: missing summary/column/query bubble";
+        }
+        const sCs = getComputedStyle(summary);
+        const cCs = getComputedStyle(column);
+        const qCs = getComputedStyle(queryBubble);
+        const gap = sCs.rowGap || sCs.gap;
+        if (gap !== "40px") return `summary gap must be 40px (got ${gap})`;
+        if (sCs.maxWidth !== "864px") {
+          return `summary max-width must be 864px (got ${sCs.maxWidth})`;
+        }
+        if (cCs.paddingTop !== "64px") {
+          return `column padding-top must be 64px (got ${cCs.paddingTop})`;
+        }
+        const qW = Math.round(queryBubble.getBoundingClientRect().width);
+        if (qW !== 438 && qCs.width !== "438px") {
+          return `query bubble width must be 438px (got ${qW} / ${qCs.width})`;
+        }
+        if (qCs.borderRadius !== "16px") {
+          return `query radius must be 16px (got ${qCs.borderRadius})`;
+        }
+        const host = document.querySelector(hostSel) as HTMLElement | null;
+        const bg = host ? getComputedStyle(host).backgroundColor : "";
+        if (bg !== "rgb(219, 235, 245)") {
+          return `chat host bg must be #dbebf5 (got ${bg})`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "chat-disclaimer",
+      selector: `${hostSel} .chat__disclaimer`,
+      action: "assert",
+      assert: () => {
+        const disc = document.querySelector(`${hostSel} .chat__disclaimer`);
+        if (!disc) return "missing .chat__disclaimer";
+        const text = normalizeText(disc);
+        if (!/SitePilot can make mistakes/i.test(text)) {
+          return `disclaimer copy mismatch (got "${text.slice(0, 80)}")`;
+        }
+        const link = disc.querySelector(".uxds-link.chat__disclaimer-link");
+        if (!link) return "disclaimer missing uxds-link support CTA";
+        return true;
+      },
+    },
+    {
+      id: "chat-footer-hidden",
+      selector: hostSel,
+      action: "assert",
+      assert: () => {
+        const mount = document.querySelector(".proto-footer-mount");
+        if (!mount) return true;
+        const h = Math.round(mount.getBoundingClientRect().height);
+        if (h > 1) {
+          return `chat must hide footer mount (height ${h}px — Make child-10 hide rule)`;
+        }
+        return true;
+      },
+    },
+    {
+      id: "chat-cta-frame-sweep",
+      selector: hostSel,
+      action: "assert",
+      assert: () => {
+        const replyFrames = Array.from(
+          document.querySelectorAll(
+            `${hostSel} [data-studio-chat-frame^="r"]`
+          )
+        );
+        if (replyFrames.length < 2) {
+          return `expected ≥2 reply frames for CTA sweep (got ${replyFrames.length}) — prove with cjm=off`;
+        }
+        let withCta = 0;
+        for (const frame of replyFrames) {
+          const ctas = frame.querySelectorAll(
+            ".chat__cta.uxds-btn-primary--commerce"
+          );
+          if (ctas.length > 0) withCta += 1;
+        }
+        if (withCta < 2) {
+          return `CTA frame sweep: expected ≥2 reply frames with commerce CTAs (got ${withCta})`;
         }
         return true;
       },

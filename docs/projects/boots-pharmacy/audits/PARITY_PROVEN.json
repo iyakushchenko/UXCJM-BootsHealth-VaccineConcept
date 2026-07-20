@@ -9,7 +9,8 @@
     "book-step-3",
     "plp",
     "pdp",
-    "site-pilot"
+    "site-pilot",
+    "chat"
   ],
   "screens": [
     {
@@ -72,6 +73,17 @@
         "sha": "963b493",
         "date": "2026-07-20",
         "note": "Quinn MCP 15/15 PASS __studioRunMcpPageProbe site-pilot reload:false on 127.0.0.1:5173; Uma PROVEN; PAGE FINAL PASS HARD-GREEN v0.0.59"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "chat",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_CHAT_PAGE_FINAL_PASS_2026-07-20.md",
+      "mcpMatrixAt": {
+        "sha": "ba24641",
+        "date": "2026-07-20",
+        "note": "Quinn MCP 20/20 PASS __studioRunMcpPageProbe chat reload:false on 127.0.0.1:5173; Uma PROVEN; PAGE FINAL PASS HARD-GREEN v0.0.60"
       },
       "requireMcp": true
     }

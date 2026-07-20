@@ -25,6 +25,7 @@ const REACT_MIGRATED_SCREENS = [
   "plp",
   "pdp",
   "site-pilot",
+  "chat",
 ];
 
 const CHECKLIST_KEYS = [
@@ -41,6 +42,7 @@ const SCREEN_SOURCES = {
   plp: "src/projects/boots-pharmacy/screens/plp/PlpScreen.tsx",
   pdp: "src/projects/boots-pharmacy/screens/pdp/PdpScreen.tsx",
   "site-pilot": "src/projects/boots-pharmacy/screens/home/HomeScreen.tsx",
+  chat: "src/projects/boots-pharmacy/screens/chat/ChatScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx",
   "book-step-2":
@@ -53,6 +55,7 @@ const SCREEN_MOUNTS = {
   plp: "src/projects/boots-pharmacy/screens/plp/mountPlpScreen.tsx",
   pdp: "src/projects/boots-pharmacy/screens/pdp/mountPdpScreen.tsx",
   "site-pilot": "src/projects/boots-pharmacy/screens/home/mountHomeScreen.tsx",
+  chat: "src/projects/boots-pharmacy/screens/chat/mountChatScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen.tsx",
   "book-step-2":
@@ -65,7 +68,7 @@ const SCREEN_MOUNTS = {
  * Make frames without in-page crumbs header — engine mounts shared chrome.
  * Do not invent <header> crumbs on these screens (PO / Make truth).
  */
-const HEADER_LANDMARK_OPTIONAL = new Set(["site-pilot"]);
+const HEADER_LANDMARK_OPTIONAL = new Set(["site-pilot", "chat"]);
 
 /** Screens that must use SearchField or stamp search-icon markers. */
 const SEARCH_REQUIRED = new Set(["plp", "book-step-1"]);
@@ -77,8 +80,10 @@ const BUTTON_PRIMARY_REQUIRED = new Set([
   "book-step-1",
   "book-step-2",
   "book-step-3",
+  "chat",
 ]);
-/** Site Pilot uses Make component.input.button (mic/send), not ButtonPrimary. */
+/** Site Pilot home uses Make component.input.button (mic/send), not ButtonPrimary.
+ *  Chat reply pills use ButtonPrimary commerce; composer mic/send stay shared kit. */
 
 const errors = [];
 const fail = (msg) => errors.push(msg);

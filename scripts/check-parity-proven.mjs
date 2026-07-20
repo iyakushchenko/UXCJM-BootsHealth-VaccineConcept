@@ -25,6 +25,7 @@ const REACT_MIGRATED_SCREENS = [
   "plp",
   "pdp",
   "site-pilot",
+  "chat",
 ];
 
 const MCP_EVIDENCE_RE =
