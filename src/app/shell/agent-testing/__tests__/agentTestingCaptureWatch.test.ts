@@ -1,11 +1,13 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { clampStepDurationMs, coalesceLogEntry } from "@/app/shell/agent-testing/agentTestingFormat";
 import {
+  bindAgentTestingCaptureWatch,
   buildClickDetail,
   describeClickSelector,
+  resolveClickElement,
 } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
 
 describe("clampStepDurationMs", () => {
@@ -50,5 +52,47 @@ describe("click forensics", () => {
     const detail = buildClickDetail(btn);
     expect(detail?.surface).toBe("control-room");
     expect(detail?.label).toMatch(/^Control room:/);
+  });
+
+  it("resolves CJM mode label to the mode switch (stable key)", () => {
+    document.body.innerHTML = `
+      <div class="studio-nav-panel">
+        <span class="studio-nav-scenario__cjm-group">
+          <span class="studio-nav-scenario__mode-label">CJM</span>
+          <button type="button" class="studio-mode-switch studio-journey-switch" aria-label="Toggle CJM"></button>
+        </span>
+      </div>`;
+    const label = document.querySelector(".studio-nav-scenario__mode-label")!;
+    const sw = document.querySelector(".studio-mode-switch")!;
+    expect(resolveClickElement(label)).toBe(sw);
+    const fromLabel = buildClickDetail(label);
+    const fromSwitch = buildClickDetail(sw);
+    expect(fromLabel?.selector).toBe(fromSwitch?.selector);
+    expect(fromLabel?.label).toBe("Control room: CJM");
+  });
+
+  it("emits one line for pointerdown+click on the same control", () => {
+    vi.useFakeTimers();
+    document.body.innerHTML = `
+      <div class="studio-nav-panel">
+        <span class="studio-nav-scenario__cjm-group">
+          <span class="studio-nav-scenario__mode-label">CJM</span>
+          <button type="button" class="studio-mode-switch studio-journey-switch"></button>
+        </span>
+      </div>`;
+    const clicks: string[] = [];
+    const unbind = bindAgentTestingCaptureWatch({
+      isCapturing: () => false,
+      onClick: (d) => clicks.push(d.label),
+      onScreen: () => undefined,
+    });
+    const label = document.querySelector(".studio-nav-scenario__mode-label")!;
+    const sw = document.querySelector(".studio-mode-switch")!;
+    label.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    sw.dispatchEvent(new Event("click", { bubbles: true }));
+    vi.advanceTimersByTime(400);
+    expect(clicks).toEqual(["Control room: CJM"]);
+    unbind();
+    vi.useRealTimers();
   });
 });
