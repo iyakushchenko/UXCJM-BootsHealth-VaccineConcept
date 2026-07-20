@@ -45,8 +45,10 @@ export default defineConfig({
     __STUDIO_PACKAGE_VERSION__: JSON.stringify(pkg.version),
   },
   server: {
-    // Canonical localhost — agents MUST use this URL only (Auto-Rule fixed-localhost-reuse-tab).
-    // Fail hard if 5173 is taken (never silently bump to 5174+).
+    // Canonical prove URL: http://127.0.0.1:5173/ (also http://localhost:5173/).
+    // Bind IPv4+IPv6 — default Node listen can be [::1]-only on Windows (127.0.0.1 refused).
+    // Agents MUST use port 5173 only (Auto-Rule fixed-localhost-reuse-tab).
+    host: true,
     port: 5173,
     strictPort: true,
     // Studio shows build/HMR errors via ProtoFatalErrorScreen — avoid duplicate Vite overlay.

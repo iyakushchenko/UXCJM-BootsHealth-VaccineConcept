@@ -31,9 +31,9 @@ describe("agentTestingFormat", () => {
     expect(inferOutcomeFromText("FAIL  click")).toBe("fail");
     expect(inferOutcomeFromText("soft-fail unexpected dwell")).toBe("soft-fail");
     expect(inferOutcomeFromText("cursor issue detected")).toBe("soft-fail");
-    expect(inferOutcomeFromText("scroll issue detected · SCROLL_ISSUE_REPORTED")).toBe(
-      "soft-fail"
-    );
+    expect(
+      inferOutcomeFromText("scroll issue detected · SCROLL_ISSUE_REPORTED")
+    ).toBe("soft-fail");
   });
 
   it("coalesces identical helper spam", () => {
@@ -42,6 +42,14 @@ describe("agentTestingFormat", () => {
     const merged = coalesceLogEntry(a, b);
     expect(merged?.count).toBe(2);
     expect(merged?.label).toBe("transport");
+  });
+
+  it("coalesces identical system pause spam", () => {
+    const a = buildLogEntryFromPlain("Capture paused");
+    a.kind = "system";
+    const b = { ...a, atMs: a.atMs + 5, timeLabel: "12:00:02" };
+    const merged = coalesceLogEntry(a, b);
+    expect(merged?.count).toBe(2);
   });
 
   it("formats elapsed mm:ss", () => {

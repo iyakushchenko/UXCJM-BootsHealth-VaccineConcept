@@ -153,7 +153,8 @@ export function coalesceLogEntry(
     prev.kind !== "helper" &&
     prev.kind !== "info" &&
     prev.kind !== "click" &&
-    prev.kind !== "init"
+    prev.kind !== "init" &&
+    prev.kind !== "system"
   ) {
     return null;
   }

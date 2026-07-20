@@ -2571,8 +2571,27 @@ export function openAgentTestingLogger(
   setSessionKind(kind);
   setAwaitingUserReply(false);
   clearMcpPending();
-  sessionHadProgress = false;
-  logDirty = false;
+  // Fresh open (not oversee) — green field unless hydrate already restored rows.
+  if (!active) {
+    // Keep hydrate-restored logEntries; otherwise wipe leftovers after forceClear races.
+    if (logEntries.length === 0) {
+      timelineKeys = [];
+      lastStepAt = 0;
+    }
+  } else {
+    logEntries = [];
+    timelineKeys = [];
+    lastStepAt = 0;
+    try {
+      replaceQaDiagRing([]);
+    } catch {
+      /* ignore */
+    }
+  }
+  sessionHadProgress = logEntries.some(
+    (e) => e.kind === "click" || e.kind === "nav" || e.kind === "user-message"
+  );
+  logDirty = logEntries.length > 0;
   // Manual opens paused; observe/agent start capturing.
   capturePaused = kind === "manual";
   if (kind === "agent" || kind === "observe") {
@@ -2638,6 +2657,14 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   settleResult = "neutral";
   logEntries = [];
   timelineKeys = [];
+  sessionHadProgress = false;
+  logDirty = false;
+  lastStepAt = 0;
+  try {
+    replaceQaDiagRing([]);
+  } catch {
+    /* ignore */
+  }
   clearSafetyTimer();
   clearIdleTimer();
   clearSettleTimer();
@@ -2654,7 +2681,9 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
     delete root.dataset.logger;
     delete root.dataset.owner;
     delete root.dataset.kind;
+    delete root.dataset.mcp;
   }
+  setQaSessionLock(null);
   setActivityPhase("idle");
   syncSessionChrome();
 }
@@ -2781,6 +2810,18 @@ export function forceClearAgentTestingOverlay(): void {
     capturePaused = false;
     elapsedAccumMs = 0;
     elapsedRunStartedAt = 0;
+    sessionHadProgress = false;
+    logDirty = false;
+    logEntries = [];
+    timelineKeys = [];
+    lastStepAt = 0;
+    sessionStartedAt = 0;
+    try {
+      replaceQaDiagRing([]);
+    } catch {
+      /* ignore */
+    }
+    clearHistoryPersist();
     unbindCaptureWatch();
     closeQaDiagGate({ reason: "force-clear" });
     setQaDiagLoggerMode(false);
@@ -2973,6 +3014,11 @@ function restoreLoggerFromRing(events: QaDiagRingEvent[]): void {
   }
   logEntries = restored.slice(-LOG_LIMIT);
   replaceQaDiagRing(events);
+  // Restored rows count as dirty so Reset is available (not a blank session).
+  logDirty = logEntries.length > 0;
+  sessionHadProgress = logEntries.some(
+    (e) => e.kind === "click" || e.kind === "nav" || e.kind === "user-message"
+  );
 }
 
 export function uninstallAgentTestingOverlayApi(): void {
