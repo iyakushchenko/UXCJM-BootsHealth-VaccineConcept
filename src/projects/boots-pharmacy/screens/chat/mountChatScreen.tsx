@@ -56,7 +56,10 @@ function hideMakeChrome(page: HTMLElement): void {
     ) {
       return;
     }
-    node.style.display = "none";
+    // !important — globals force `display:flex !important` on Make Frame337
+    // (`:nth-child(2):not([data-studio-sticky-group])`), which resurrected a
+    // second SitePilot bar above React `.chat__site-pilot-bar`.
+    node.style.setProperty("display", "none", "important");
     node.dataset.studioMakeRetired = CHAT_REACT_SCREEN_ID;
   });
   page.dataset.studioReactScreen = CHAT_REACT_SCREEN_ID;

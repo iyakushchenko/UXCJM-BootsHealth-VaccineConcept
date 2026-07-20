@@ -48,6 +48,18 @@
   pointer-events: none !important;
 }
 
+/* Make Frame337 SitePilot bar — stay dead under React (globals flex!important). */
+.studio-viewport
+  > div
+  > div:nth-child(10)[data-studio-react-screen="chat"]
+  > [data-studio-make-retired="chat"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
 .studio-react-screen-host[data-studio-react-screen="chat"] {
   display: flex;
   flex-direction: column;
