@@ -438,7 +438,10 @@ export function useScenarioPlayback({
         minVisibleFrames
       )
     ) {
-      scrollPrototypeScrollToTop(scrollRootRef?.current, "instant");
+      scrollPrototypeScrollToTop(scrollRootRef?.current, "instant", {
+        force: true,
+        reason: "scenario-collapse-to-top",
+      });
     }
 
     const displayCount = Math.max(

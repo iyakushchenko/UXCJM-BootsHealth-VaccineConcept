@@ -141,7 +141,8 @@ export type ProjectWireApi = {
   closeAllPopups: () => void;
   saveHubScroll: () => void;
   savePrototypeScroll: () => void;
-  resetPrototypeScroll: () => void;
+  /** Browse tab-enter respects camera session; pass `{ force: true }` for jump-to-start / wipe. */
+  resetPrototypeScroll: (options?: { force?: boolean }) => void;
   resetPrototype: () => void;
   /** Soft-reset wire interaction state without a full page reload. */
   resetWireInteractionState: () => void;

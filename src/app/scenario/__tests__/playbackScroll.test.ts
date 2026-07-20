@@ -11,8 +11,12 @@ import {
   noteCameraHoldInteraction,
   POST_CLICK_CAMERA_HOLD_MS,
   readScrollPaddingBottom,
+  resetPlaybackCameraSessionForTests,
   resetPostClickCameraHoldForTests,
   scrollCameraToHostEnd,
+  scrollCameraToOrigin,
+  setPlaybackCameraSessionActive,
+  shouldBlindOriginResetOnScreenEnter,
 } from "@/app/scenario/playbackScroll";
 
 function mockRect(top: number, height: number) {
@@ -376,6 +380,7 @@ describe("prototype page scroll lock", () => {
 describe("post-click camera hold", () => {
   afterEach(() => {
     resetPostClickCameraHoldForTests();
+    resetPlaybackCameraSessionForTests();
     vi.useRealTimers();
   });
 
@@ -423,5 +428,81 @@ describe("post-click camera hold", () => {
       skipHold: true,
     });
     expect(el.scrollTop).toBe(1600);
+  });
+});
+
+describe("screen-enter camera policy", () => {
+  afterEach(() => {
+    resetPostClickCameraHoldForTests();
+    resetPlaybackCameraSessionForTests();
+  });
+
+  it("blocks blind origin while playback camera session is active", () => {
+    setPlaybackCameraSessionActive(true);
+    expect(shouldBlindOriginResetOnScreenEnter()).toBe(false);
+
+    const el = {
+      scrollTop: 400,
+      scrollLeft: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToOrigin(el, { instant: true, reason: "tab-enter" });
+    expect(el.scrollTop).toBe(400);
+
+    scrollCameraToOrigin(el, {
+      instant: true,
+      force: true,
+      reason: "jump-to-start",
+      skipHold: true,
+    });
+    expect(el.scrollTop).toBe(0);
+  });
+
+  it("blocks blind origin while post-click hold is armed", () => {
+    noteCameraHoldInteraction("test");
+    expect(shouldBlindOriginResetOnScreenEnter()).toBe(false);
+
+    const el = {
+      scrollTop: 220,
+      scrollLeft: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToOrigin(el, { instant: true });
+    expect(el.scrollTop).toBe(220);
+  });
+
+  it("allows blind origin when idle browse", () => {
+    expect(shouldBlindOriginResetOnScreenEnter()).toBe(true);
+    const el = {
+      scrollTop: 90,
+      scrollLeft: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToOrigin(el, { instant: true });
+    expect(el.scrollTop).toBe(0);
   });
 });

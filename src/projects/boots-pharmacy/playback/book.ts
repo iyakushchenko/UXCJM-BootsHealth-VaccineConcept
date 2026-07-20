@@ -566,7 +566,11 @@ async function scrollBookStep2ToDateSection(
       animated: !options?.instant,
       detail: "date-section-scroll-origin",
     });
-    scrollCameraToOrigin(scrollEl, { instant: !!options?.instant });
+    scrollCameraToOrigin(scrollEl, {
+      instant: !!options?.instant,
+      force: true,
+      reason: "book-date-section-origin-fallback",
+    });
   }
 }
 

@@ -101,6 +101,13 @@ function detailOf(event: PlaybackDiagEvent): string {
 }
 
 function isScrollReversal(event: PlaybackDiagEvent): boolean {
+  const detail = detailOf(event);
+  // Target-driven intoView / session skips are camera doing its job — not a yank.
+  // Blind `scrollCameraToOrigin` host-top during play still soft-fails (symptom of
+  // competing snaps); intentional force baselines are rare at play-end rewind.
+  if (/scrollIntoView|skipped \(camera session\)|skipped \(hold\/ease\)/i.test(detail)) {
+    return false;
+  }
   const before = event.scroll?.beforeTop;
   const after = event.scroll?.afterTop;
   return (

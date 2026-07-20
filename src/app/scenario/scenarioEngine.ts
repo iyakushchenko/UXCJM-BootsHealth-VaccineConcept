@@ -177,17 +177,24 @@ export function scenarioScrollTopBeforeCollapse(
 /** Scroll the prototype pane to top — camera SSoT `scrollCameraToOrigin`. */
 export function scrollPrototypeScrollToTop(
   scrollEl?: HTMLElement | null,
-  behavior: ScrollBehavior = "instant"
+  behavior: ScrollBehavior = "instant",
+  options?: { force?: boolean; reason?: string; skipHold?: boolean }
 ): void {
-  scrollCameraToOrigin(scrollEl, { instant: behavior !== "smooth" });
+  scrollCameraToOrigin(scrollEl, {
+    instant: behavior !== "smooth",
+    force: options?.force,
+    reason: options?.reason,
+    skipHold: options?.skipHold,
+  });
 }
 
 export function scrollPrototypeScrollToTopAfterLayout(
-  scrollEl?: HTMLElement | null
+  scrollEl?: HTMLElement | null,
+  options?: { force?: boolean; reason?: string; skipHold?: boolean }
 ): void {
-  scrollPrototypeScrollToTop(scrollEl, "instant");
+  scrollPrototypeScrollToTop(scrollEl, "instant", options);
   window.setTimeout(
-    () => scrollPrototypeScrollToTop(scrollEl, "instant"),
+    () => scrollPrototypeScrollToTop(scrollEl, "instant", options),
     SCENARIO_FRAME_ANIM_MS + 80
   );
 }
@@ -237,10 +244,17 @@ export function scrollScenarioChatAnchor(
   smooth = true
 ): void {
   if (align === "start") {
-    scrollPrototypeScrollToTop(scrollEl, smooth ? "smooth" : "instant");
+    scrollPrototypeScrollToTop(scrollEl, smooth ? "smooth" : "instant", {
+      force: true,
+      reason: "scenario-chat-anchor-start",
+    });
     if (!smooth) {
       window.setTimeout(
-        () => scrollPrototypeScrollToTop(scrollEl, "instant"),
+        () =>
+          scrollPrototypeScrollToTop(scrollEl, "instant", {
+            force: true,
+            reason: "scenario-chat-anchor-start",
+          }),
         SCENARIO_FRAME_ANIM_MS + 80
       );
     }
@@ -360,7 +374,12 @@ export function pinScenarioScrollToTopDuring(
   scrollEl: HTMLElement | null | undefined,
   durationMs = SCENARIO_SCROLL_ANIM_PIN_MS
 ): void {
-  startScrollPin(scrollEl, () => scrollPrototypeScrollToTop(scrollEl, "instant"), durationMs);
+  startScrollPin(scrollEl, () =>
+    scrollPrototypeScrollToTop(scrollEl, "instant", {
+      force: true,
+      reason: "scenario-pin-top",
+    })
+  , durationMs);
 }
 
 function scrollFrameInRoot(
@@ -442,7 +461,10 @@ export function scheduleScenarioScroll(
 ): void {
   if (frames.length === 0) {
     if (align === "start") {
-      scrollPrototypeScrollToTop(scrollEl, "instant");
+      scrollPrototypeScrollToTop(scrollEl, "instant", {
+        force: true,
+        reason: "scenario-empty-align-start",
+      });
     }
     return;
   }
@@ -490,10 +512,17 @@ export function scheduleScenarioScroll(
 
   if (align === "start") {
     if (smooth && el) {
-      scrollCameraToOrigin(el, { instant: false });
+      scrollCameraToOrigin(el, {
+        instant: false,
+        force: true,
+        reason: "scenario-align-start-ease",
+      });
       return;
     }
-    scrollPrototypeScrollToTop(scrollEl, "instant");
+    scrollPrototypeScrollToTop(scrollEl, "instant", {
+      force: true,
+      reason: "scenario-align-start",
+    });
     pinScenarioScrollToTopDuring(scrollEl);
     return;
   }

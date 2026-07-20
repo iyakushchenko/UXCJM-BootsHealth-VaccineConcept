@@ -101,7 +101,11 @@ export function mountBookStep2Screen(
   // scroll deep; landing date-section snap otherwise page-jiggle deltaY≫100.
   if (createdRoot) {
     const scrollEl = getPrototypeScrollRoot(page);
-    if (scrollEl) scrollCameraToOrigin(scrollEl, { instant: true });
+    if (scrollEl)
+      scrollCameraToOrigin(scrollEl, {
+        instant: true,
+        reason: "book-step-2-first-mount",
+      });
   }
   renderCount += 1;
   root.render(<BookStep2DateTimeScreen {...props} />);

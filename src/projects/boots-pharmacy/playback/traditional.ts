@@ -743,6 +743,8 @@ async function snapScreenScrollTop(
   // Camera SSoT — named origin, not anonymous scrollTo({top:0}).
   scrollCameraToOrigin(scrollEl, {
     instant: options?.instant !== false,
+    force: true,
+    reason: "traditional-retreat-tab-sync",
   });
 }
 

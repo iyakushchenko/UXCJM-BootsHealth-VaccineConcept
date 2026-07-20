@@ -56,6 +56,7 @@ import {
   cancelPlaybackScroll,
   getPrototypeScrollRoot,
   scrollCameraToOrigin,
+  setPlaybackCameraSessionActive,
 } from "@/app/scenario/playbackScroll";
 import { useJourneyPlayback } from "@/app/orchestra/useJourneyPlayback";
 import {
@@ -727,13 +728,17 @@ export default function App() {
     setDemoCursorJourneyMode(studioJourneyMode, {
       parkAfterInteraction: studioJourneyMode && !transport.isPlaying,
     });
+    // Camera engine session — CJM / Play / AIR: no blind origin on screen-enter.
+    setPlaybackCameraSessionActive(
+      studioJourneyMode || transport.isPlaying || transport.isOnAir
+    );
     if (!studioJourneyMode) {
       resetPlaybackCursorDiagnosticContext();
       disableCursorQaEyes();
       removeDemoCursor({ immediate: true });
       resetDemoCursorTravelOrigin();
     }
-  }, [studioJourneyMode, transport.isPlaying]);
+  }, [studioJourneyMode, transport.isPlaying, transport.isOnAir]);
 
   const { runNavTransition, navTransitionClass } = useNavTransition();
   runNavTransitionRef.current = runNavTransition;
@@ -863,7 +868,7 @@ export default function App() {
     }
 
     if (SCREENS[current]?.childIndex !== 10) {
-      wireApiRef.current?.resetPrototypeScroll();
+      wireApiRef.current?.resetPrototypeScroll({ force: true });
     }
     scenarioPlayback.jumpToStart();
     setJourneyBeatIndex(
@@ -894,7 +899,7 @@ export default function App() {
           setHubOpen(false);
           setCurrent(tabIndex);
           if (SCREENS[tabIndex]?.childIndex !== 10) {
-            wireApiRef.current?.resetPrototypeScroll();
+            wireApiRef.current?.resetPrototypeScroll({ force: true });
           }
         });
       }
@@ -929,12 +934,14 @@ export default function App() {
         setStudioJourneyMode(true);
         // Pin before restart so park during wipe/restore is not a no-op.
         studioJourneyModeRef.current = true;
+        setPlaybackCameraSessionActive(true);
         setDemoCursorJourneyMode(true, { parkAfterInteraction: true });
         restartStudioJourney();
         return;
       }
 
       setStudioJourneyMode(false);
+      setPlaybackCameraSessionActive(false);
       journeyPlayback.stopJourneyPlay();
       scenarioPlayback.cancelPreRevealPause();
       if (SCREENS[current]?.childIndex === 10) {
@@ -1474,7 +1481,11 @@ export default function App() {
       // React Chat scrolls `.chat__column`; Make still uses prototype pane.
       const chatHost = getPrototypeScrollRoot(screen) ?? scrollEl;
       if (chatHost) {
-        scrollCameraToOrigin(chatHost, { instant: true });
+        scrollCameraToOrigin(chatHost, {
+          instant: true,
+          force: true,
+          reason: "chat-scenario-at-start",
+        });
       }
     }
 
@@ -1511,7 +1522,7 @@ export default function App() {
         syncJourneyBeatToScreen(next);
         setHubOpen(false);
         if (SCREENS[next]?.childIndex !== 10) {
-          wireApiRef.current?.resetPrototypeScroll();
+          wireApiRef.current?.resetPrototypeScroll({ force: true });
         }
         setCurrent(next);
       });
@@ -1525,7 +1536,7 @@ export default function App() {
       if (hubOpen) {
         wireApiRef.current?.saveHubScroll();
         setHubOpen(false);
-        wireApiRef.current?.resetPrototypeScroll();
+        wireApiRef.current?.resetPrototypeScroll({ force: true });
         return;
       }
 
@@ -2024,7 +2035,7 @@ export default function App() {
                 // Product: first playable beat of active journey (never hub).
                 transport.jumpToStart();
                 if (SCREENS[current]?.childIndex !== 10) {
-                  wireApiRef.current?.resetPrototypeScroll();
+                  wireApiRef.current?.resetPrototypeScroll({ force: true });
                 }
               }}
               onStepBack={() => {

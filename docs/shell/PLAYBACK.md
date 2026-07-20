@@ -49,7 +49,7 @@ The shell **never** imports project script runners directly. It calls `project.p
 | API | Use |
 |-----|-----|
 | `scrollCameraToTarget(el)` | **Primary** — CJM clicks, director, retreat, REC replay, smoke reveal |
-| `scrollCameraToOrigin(host)` | Named host-top baseline (jump-to-start / tab reset / probe prep) |
+| `scrollCameraToOrigin(host)` | Named host-top baseline (jump-to-start / intentional tab reset / probe prep) |
 | `scrollCameraToHostEnd(host)` | Host-end **only** when no DOM frame/CTA target (chat latest thread) |
 | `scrollChatCamera(host)` | Chat — thinking → last revealed frame → else host-end |
 | `animateScrollElementIntoView` / `beginDemoTargetPageScroll` | Lower-level engine (same file) |
@@ -58,6 +58,18 @@ The shell **never** imports project script runners directly. It calls `project.p
 **Not camera:** product UI chrome (Hub carousel, Studio tabs strip, overlay sitrep list) — local scroll with an explicit boundary comment.
 
 REC capture is **target-only**; legacy `scrollTop`-only replay is **refused**.
+
+### Camera engine rails (screen-enter)
+
+One policy for **any** journey (agentic, traditional, REC tabs):
+
+1. **SSoT** = `playbackScroll.ts`. Directors / REC only pick **targets**. Wire must not bypass with competing origin snaps.
+2. **Playback camera session** — shell sets `setPlaybackCameraSessionActive(journeyMode ∪ playing ∪ onAir)`.
+3. **Screen-enter / tab change** — `shouldBlindOriginResetOnScreenEnter()` must be true before wire blind-origin. While session / post-click hold / in-flight ease: **skip** instant origin (no Δ−900 yanks fighting eased scrolls). Wire still **`cancelPlaybackScroll("abort")`** on CJM/play tab enter so a prior-screen ease cannot keep fighting the new layout.
+4. **Intentional origin only** — jump-to-start, retreat sync, probe prep, scenario align-start → `scrollCameraToOrigin(..., { force: true })` (optionally honor `POST_CLICK_CAMERA_HOLD`).
+5. **Chat** stays exempt from tab-enter origin; host-end / pull-up paths unchanged.
+
+Smell this kills: Traditional Reserve→history→details `scroll-reversal` soft-fails from `resetPrototypeScroll` on every non-chat tab.
 
 ---
 

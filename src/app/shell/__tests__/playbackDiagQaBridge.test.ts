@@ -65,12 +65,27 @@ describe("playbackDiagQaBridge", () => {
   it("flags unexpected scroll-reversal as soft-fail with human label", () => {
     const scroll = ev({
       kind: "scroll",
-      detail: "camera",
+      detail: "scrollCameraToOrigin — host top (named SSoT)",
       scroll: { beforeTop: 400, afterTop: 200, retreat: false },
     });
     expect(shouldMirrorPlaybackDiagToQa(scroll)).toBe(true);
     expect(outcomeForPlaybackDiagEvent(scroll)).toBe("soft-fail");
     expect(labelForPlaybackDiagEvent(scroll)).toMatch(/wrong way/i);
+  });
+
+  it("does not soft-fail target-driven scrollIntoView (large upward camera is OK)", () => {
+    const scroll = ev({
+      kind: "scroll",
+      detail: "scrollIntoView done (eased)",
+      scroll: {
+        beforeTop: 1475,
+        afterTop: 0,
+        retreat: false,
+        intoViewRequested: true,
+        intoViewDone: true,
+      },
+    });
+    expect(shouldMirrorPlaybackDiagToQa(scroll)).toBe(false);
   });
 
   it("mirrors bubble CHOP/JUMP; suppresses TRACE frames", () => {

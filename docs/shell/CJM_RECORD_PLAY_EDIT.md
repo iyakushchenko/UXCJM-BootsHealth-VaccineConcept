@@ -15,6 +15,14 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 
 **Prove helpers:** Agentic keep-overlay = `__studioRunAgenticFullPlayProve`. Traditional smoke = `__protoRunTraditionalPlaySmoke` (teardown); keep-overlay Traditional full prove = TBD.
 
+## Camera engine rails
+
+Same camera for agentic / traditional / REC — see [PLAYBACK.md](./PLAYBACK.md) § Scroll camera SSoT + **Camera engine rails**.
+
+- Target-driven; no blind origin on screen-enter while CJM/play/AIR.
+- `playbackScroll.ts` is SSoT — wire must not snap origin on tab change during session.
+- Intentional origin (start/retreat/probe) uses `force: true` and honors post-click hold.
+
 ## Exceptions (deeper, keep thin)
 
 - **Prebuilt chat / persona docks** — progressive frames, type-in, thinking camera. Prefer rails docs over inventing a second Play path. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)

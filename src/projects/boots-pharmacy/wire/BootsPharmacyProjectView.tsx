@@ -84,6 +84,10 @@ import {
 import { useScrollFill } from "@/app/scenario/useScrollFill";
 import { scrollPrototypeScrollToTopAfterLayout } from "@/app/scenario/scenarioEngine";
 import {
+  cancelPlaybackScroll,
+  shouldBlindOriginResetOnScreenEnter,
+} from "@/app/scenario/playbackScroll";
+import {
   boosterDoseSummaryLabel,
   PDP_CHECKBOX_LABEL,
   PDP_PRICE_WITH_BOOSTER,
@@ -1130,11 +1134,16 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     }
   }, []);
 
-  const resetPrototypeScroll = useCallback(() => {
+  const resetPrototypeScroll = useCallback((options?: { force?: boolean }) => {
     prototypeScrollPosRef.current = 0;
     const el = prototypeScrollElRef.current;
     if (!el) return;
-    scrollPrototypeScrollToTopAfterLayout(el);
+    // Default honors camera session / hold. force = jump-to-start / wire wipe.
+    scrollPrototypeScrollToTopAfterLayout(el, {
+      force: options?.force === true,
+      reason: "resetPrototypeScroll",
+      skipHold: options?.force === true,
+    });
   }, []);
 
   const resetWireInteractionState = useCallback(() => {
@@ -1154,7 +1163,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     pendingAgenticHomeQueryRef.current = null;
     resetPlpFilters(document);
     clearProtoUiStorage();
-    resetPrototypeScroll();
+    resetPrototypeScroll({ force: true });
     setPlpFiltersDirty(false);
     if (SCREENS[current]?.childIndex === 11) {
       syncAgenticHomeHeading(false);
@@ -1200,13 +1209,26 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     return () => ro.disconnect();
   }, [hubOpen, restoreHubScroll]);
 
-  // Prototype tabs always open at scroll top (nav, in-flow links, hub exit).
-  // Site Pilot Chat owns scroll — default is last frame pinned to bottom.
+  // Browse-mode tab open: scroll top. Chat owns scroll (last frame / bottom).
+  // CJM / Play / AIR: cancel in-flight ease from prior screen (no blind origin).
+  // Gate on journey/play directly (layout can race App's session latch useEffect).
   useLayoutEffect(() => {
     if (hubOpen) return;
     if (SCREENS[current]?.childIndex === 10) return;
+    if (studioJourneyMode || transport.isPlaying || transport.isOnAir) {
+      cancelPlaybackScroll("abort");
+      return;
+    }
+    if (!shouldBlindOriginResetOnScreenEnter()) return;
     resetPrototypeScroll();
-  }, [current, hubOpen, resetPrototypeScroll]);
+  }, [
+    current,
+    hubOpen,
+    resetPrototypeScroll,
+    studioJourneyMode,
+    transport.isPlaying,
+    transport.isOnAir,
+  ]);
 
   // Popups are tab-specific — close all when leaving a screen (nav tab or hub).
   const navSnapshotRef = useRef({ current, hubOpen });
@@ -1232,7 +1254,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       }
       closeAllPopups();
       setHubOpen(false);
-      resetPrototypeScroll();
+      resetPrototypeScroll({ force: true });
       setCurrent(0);
     };
 

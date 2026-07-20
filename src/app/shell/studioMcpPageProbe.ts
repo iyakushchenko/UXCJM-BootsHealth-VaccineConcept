@@ -1122,7 +1122,11 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
     const scrollEl = getPrototypeScrollRoot(el);
     // Park at origin so a mid-list target is honestly below-fold first (camera SSoT).
     if (scrollEl && scrollEl.scrollTop > 8) {
-      scrollCameraToOrigin(scrollEl, { instant: true });
+      scrollCameraToOrigin(scrollEl, {
+        instant: true,
+        force: true,
+        reason: "mcp-probe-reveal-prep",
+      });
       await delay(80);
     }
     const beforeInView = isDemoTargetInPrototypeView(el);

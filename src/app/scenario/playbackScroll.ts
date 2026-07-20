@@ -77,6 +77,37 @@ export function resetPostClickCameraHoldForTests(): void {
   postClickHoldGeneration += 1;
 }
 
+/**
+ * CJM / Play / AIR / REC playback session — directors own camera via targets.
+ * Wire must NOT blind-origin on tab/screen enter while this is active.
+ */
+let playbackCameraSessionActive = false;
+
+/** Shell sets this from journey mode ∪ playing ∪ onAir (and clears on browse idle). */
+export function setPlaybackCameraSessionActive(active: boolean): void {
+  playbackCameraSessionActive = active;
+}
+
+export function isPlaybackCameraSessionActive(): boolean {
+  return playbackCameraSessionActive;
+}
+
+/**
+ * Screen-enter / tab-change policy (SSoT).
+ * False while a playback camera session is active — prefer landing targets,
+ * skip origin reset, or use intentional eased/forced origin (retreat/start).
+ */
+export function shouldBlindOriginResetOnScreenEnter(): boolean {
+  if (playbackCameraSessionActive) return false;
+  if (isPlaybackScrollAnimating()) return false;
+  if (msUntilPostClickCameraHoldClears() > 0) return false;
+  return true;
+}
+
+export function resetPlaybackCameraSessionForTests(): void {
+  playbackCameraSessionActive = false;
+}
+
 function ensurePostClickCameraHoldArm(): void {
   if (postClickHoldArmInstalled || typeof document === "undefined") return;
   postClickHoldArmInstalled = true;
@@ -864,14 +895,70 @@ export async function scrollCameraToTarget(
   await animateDemoTargetIntoView(target, options);
 }
 
+export type ScrollCameraOriginOptions = PlaybackScrollOptions & {
+  instant?: boolean;
+  /**
+   * Intentional retreat / jump-to-start / probe / browse tab open.
+   * Required to blind-origin during a playback camera session or while
+   * post-click hold / in-flight ease would otherwise be cancelled.
+   */
+  force?: boolean;
+  skipHold?: boolean;
+  reason?: string;
+};
+
 /**
- * Named host-top baseline (jump-to-start / tab reset / probe prep).
+ * Named host-top baseline (jump-to-start / intentional tab reset / probe prep).
  * Call sites MUST use this instead of `scrollTop = 0`.
+ *
+ * **Screen-enter while CJM/play:** do not call without `force` — wire uses
+ * {@link shouldBlindOriginResetOnScreenEnter}; non-forced calls no-op when a
+ * playback camera session is active, post-click hold is armed, or an ease is
+ * in flight (avoids yank fighting target scrolls).
  */
 export function scrollCameraToOrigin(
   scrollEl?: HTMLElement | null,
-  options?: PlaybackScrollOptions & { instant?: boolean }
+  options?: ScrollCameraOriginOptions
 ): void {
+  const force = options?.force === true;
+  if (!force) {
+    if (playbackCameraSessionActive) {
+      try {
+        playbackDiagScroll({
+          detail: `scrollCameraToOrigin — skipped (camera session${
+            options?.reason ? `; ${options.reason}` : ""
+          })`,
+        });
+      } catch {
+        /* hang-safe */
+      }
+      return;
+    }
+    if (isPlaybackScrollAnimating() || msUntilPostClickCameraHoldClears() > 0) {
+      try {
+        playbackDiagScroll({
+          detail: `scrollCameraToOrigin — skipped (hold/ease${
+            options?.reason ? `; ${options.reason}` : ""
+          })`,
+        });
+      } catch {
+        /* hang-safe */
+      }
+      return;
+    }
+  } else if (
+    deferForPostClickCameraHold(
+      () =>
+        scrollCameraToOrigin(scrollEl, {
+          ...options,
+          skipHold: true,
+          force: true,
+        }),
+      options
+    )
+  ) {
+    return;
+  }
   const el = scrollEl ?? getPrototypeScrollRoot();
   if (!el) return;
   const beforeTop = el.scrollTop;
@@ -881,7 +968,9 @@ export function scrollCameraToOrigin(
     el.scrollTop = 0;
     el.scrollLeft = 0;
     playbackDiagScroll({
-      detail: "scrollCameraToOrigin — host top (named SSoT)",
+      detail: `scrollCameraToOrigin — host top (named SSoT${
+        options?.reason ? `; ${options.reason}` : ""
+      })`,
       host: describeScrollHost(el),
       beforeTop,
       afterTop: 0,
