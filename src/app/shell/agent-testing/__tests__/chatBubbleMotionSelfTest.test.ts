@@ -34,7 +34,25 @@ function cleanBubble(id: string, reply: boolean): PlaybackDiagEvent[] {
   ];
   if (reply) out.push(sample(id, "thinking-handoff", { y: 14, opacity: 0 }));
   for (const y of [12, 8, 4, 1, 0]) {
-    out.push(sample(id, "frame", { y, opacity: 1 - y / 14, deltaY: -1 }));
+    out.push(
+      sample(id, "frame", {
+        y,
+        opacity: 1 - y / 14,
+        deltaY: -1,
+        scrollTop: 120,
+        trace: {
+          scrollTop: 120,
+          scrollMax: 400,
+          scrollLock: true,
+          composerDockTop: 700,
+          bubbleBottom: 650,
+          clearPx: 50,
+          underComposer: false,
+          cameraTag: "pull-up-raf",
+          deltaScrollTop: 0,
+        },
+      })
+    );
   }
   out.push(sample(id, "animate-end", { y: 0, opacity: 1 }));
   return out;

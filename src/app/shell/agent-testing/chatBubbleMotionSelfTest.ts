@@ -145,8 +145,15 @@ export function analyzeChatBubbleMotionSamples(
     let jumps = 0;
     let maxAbsDeltaY = 0;
     let maxAbsDeltaTransformY = 0;
+    let framesWithScroll = 0;
+    let framesWithTrace = 0;
     for (const s of list) {
-      const b = s.bubble;
+      const b = s.bubble as
+        | (NonNullable<(typeof list)[0]["bubble"]> & {
+            chop?: boolean;
+            trace?: { clearPx?: number | null; scrollTop?: number | null };
+          })
+        | undefined;
       if (!b) continue;
       if (b.jump) jumps += 1;
       if (typeof b.deltaY === "number") {
@@ -158,6 +165,14 @@ export function analyzeChatBubbleMotionSamples(
           Math.abs(b.deltaTransformY)
         );
       }
+      if (b.phase === "frame") {
+        if (b.scrollTop != null || b.trace?.scrollTop != null) {
+          framesWithScroll += 1;
+        }
+        if (b.trace && (b.trace.clearPx != null || b.trace.scrollTop != null)) {
+          framesWithTrace += 1;
+        }
+      }
     }
     const ys = ySeries(list);
     const continuousY = isContinuousEase(ys);
@@ -168,7 +183,6 @@ export function analyzeChatBubbleMotionSamples(
     const hasAnimateEnd = phases.includes("animate-end");
     const hasThinkingHandoff =
       kind === "query" ? true : phases.includes("thinking-handoff");
-
     // q0 is often CJM entry-paint (resolveChatRevealedFrameCount minVisible=1)
     // — no progressive pull-up. Accept sparse phases when jumps=0.
     const entryPaint =
@@ -184,7 +198,8 @@ export function analyzeChatBubbleMotionSamples(
         continuousY &&
         hasThinkingHandoff &&
         maxAbsDeltaY <= 10 &&
-        maxAbsDeltaTransformY <= 4.5;
+        maxAbsDeltaTransformY <= 4.5 &&
+        (framesWithScroll >= 1 || framesWithTrace >= 1);
 
     const detailParts: string[] = [];
     if (entryPaint) detailParts.push("entry-paint (minVisible=1)");
@@ -196,7 +211,9 @@ export function analyzeChatBubbleMotionSamples(
     if (kind === "reply" && !phases.includes("thinking-handoff")) {
       detailParts.push("missing thinking-handoff");
     }
-
+    if (!entryPaint && framesWithScroll < 1 && framesWithTrace < 1) {
+      detailParts.push("missing composer TRACE/scrollTop");
+    }
     bubbles.push({
       id,
       kind,
@@ -553,16 +570,31 @@ export async function runChatBubbleMotionSelfTest(options?: {
     (
       w as Window & {
         __studioClearStalePlaybackDiagnostic?: (s?: string) => boolean;
+        __studioPeekPoSignal?: () => { type?: string } | null;
       }
     ).__studioClearStalePlaybackDiagnostic?.("prove-wave-end");
   } catch {
     /* hang-safe */
   }
   try {
-    w.__studioAgentTestingOverlay?.appendFinale?.(
-      result.ok ? "pass" : "fail",
-      `chat-bubble-motion ${result.bubbles.filter((b) => b.ok).length}/${result.bubbles.length}`
-    );
+    const pending = (
+      w as Window & {
+        __studioPeekPoSignal?: () => { type?: string } | null;
+      }
+    ).__studioPeekPoSignal?.();
+    if (pending?.type === "user-message") {
+      w.__studioAgentTestingOverlay?.logStep?.({
+        kind: "system",
+        label:
+          "self-test RESULT withheld — USER_MESSAGE pending (consume first)",
+        outcome: "soft-fail",
+      });
+    } else {
+      w.__studioAgentTestingOverlay?.appendFinale?.(
+        result.ok ? "pass" : "fail",
+        `chat-bubble-motion ${result.bubbles.filter((b) => b.ok).length}/${result.bubbles.length}`
+      );
+    }
   } catch {
     /* hang-safe */
   }

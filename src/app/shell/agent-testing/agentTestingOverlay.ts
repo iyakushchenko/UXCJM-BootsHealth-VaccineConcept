@@ -247,8 +247,8 @@ type OverlayApi = {
   mcpStatus: () => McpConnectionStatus;
   /** Append PO free-text note into log + dump ring. */
   appendPoNote: (text: string) => boolean;
-  /** Final RESULT · PASS/FAIL line before teardown. */
-  appendFinale: (result: "pass" | "fail", summary?: string) => void;
+  /** Final RESULT · PASS/FAIL line before teardown. Returns false if withheld. */
+  appendFinale: (result: "pass" | "fail", summary?: string) => boolean;
   log: (line: string) => void;
   /** Structured mid-flight step (preferred over plain helper spam). */
   logStep: (input: LogAgentTestingStepInput) => void;
@@ -775,12 +775,34 @@ export function beginQaFailHandoff(reason: string): void {
 /**
  * Clear final RESULT line for agents closing a session / self-test.
  * Lands even while paused. Call while overlay still active (before forceClear).
+ * Withholds RESULT when a PO USER_MESSAGE latch is still open — never look like
+ * a self-test answered / overshadowed a Message.
  */
 export function appendAgentTestingSessionFinale(
   result: "pass" | "fail",
   summary?: string
-): void {
-  if (!active && !settling) return;
+): boolean {
+  if (!active && !settling) return false;
+  try {
+    const pending = peekPoSignal();
+    if (pending?.type === "user-message") {
+      pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+        label:
+          "RESULT withheld — consume USER_MESSAGE latch first (Message stays open)",
+        outcome: "soft-fail",
+        kind: "system",
+      });
+      console.warn(
+        "[AGENT_TESTING] RESULT withheld — USER_MESSAGE pending",
+        pending.note
+      );
+      return false;
+    }
+  } catch {
+    /* hang-safe */
+  }
   // Cleanup first (quiet) — RESULT must be the last visible chat word.
   dismissStaleDiagForSession("session-finale");
   const clean =
@@ -803,6 +825,7 @@ export function appendAgentTestingSessionFinale(
   } catch {
     /* ignore */
   }
+  return true;
 }
 
 /**

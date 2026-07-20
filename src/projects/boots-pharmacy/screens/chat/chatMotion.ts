@@ -52,7 +52,21 @@ export type ChatBubbleMotionPhase =
   | "frame"
   | "animate-end"
   | "thinking-handoff"
-  | "exit";
+  | "exit"
+  | "trace";
+
+/** Composer-exit / camera TRACE snapshot (Save Log root-cause). */
+export type ChatBubbleComposerTrace = {
+  scrollTop: number | null;
+  scrollMax: number | null;
+  scrollLock: boolean;
+  composerDockTop: number | null;
+  bubbleBottom: number | null;
+  clearPx: number | null;
+  underComposer: boolean;
+  cameraTag?: string | null;
+  deltaScrollTop?: number | null;
+};
 
 export type ChatBubbleMotionPayload = {
   id: string;
@@ -66,7 +80,76 @@ export type ChatBubbleMotionPayload = {
   shouldAnimate: boolean;
   visibleCount?: number | null;
   note?: string;
+  trace?: ChatBubbleComposerTrace | null;
+  chop?: boolean;
+  chopReason?: string | null;
 };
+
+const SCROLL_CHOP_PX = 18;
+
+/**
+ * Measure bubble vs composer dock + scroll host — TRACE for composer-exit chop.
+ */
+export function readChatBubbleComposerTrace(
+  el: HTMLElement | null,
+  options?: { cameraTag?: string | null; prevScrollTop?: number | null }
+): ChatBubbleComposerTrace {
+  const empty: ChatBubbleComposerTrace = {
+    scrollTop: null,
+    scrollMax: null,
+    scrollLock: isChatPullUpScrollLocked(),
+    composerDockTop: null,
+    bubbleBottom: null,
+    clearPx: null,
+    underComposer: false,
+    cameraTag: options?.cameraTag ?? null,
+    deltaScrollTop: null,
+  };
+  if (!el) return empty;
+  try {
+    const host =
+      el.closest<HTMLElement>(".chat__column") ??
+      el.closest<HTMLElement>("[data-studio-react-screen]");
+    const dock =
+      host?.parentElement?.querySelector<HTMLElement>(".chat__composer-dock") ??
+      document.querySelector<HTMLElement>(
+        '[data-studio-react-screen="chat"] .chat__composer-dock'
+      );
+    const scrollTop = host ? host.scrollTop : null;
+    const scrollMax = host
+      ? Math.max(0, host.scrollHeight - host.clientHeight)
+      : null;
+    const bubbleBottom =
+      Math.round(el.getBoundingClientRect().bottom * 100) / 100;
+    const composerDockTop =
+      dock && !dock.hidden
+        ? Math.round(dock.getBoundingClientRect().top * 100) / 100
+        : null;
+    const clearPx =
+      composerDockTop != null
+        ? Math.round((composerDockTop - bubbleBottom) * 100) / 100
+        : null;
+    const deltaScrollTop =
+      scrollTop != null &&
+      options?.prevScrollTop != null &&
+      Number.isFinite(options.prevScrollTop)
+        ? Math.round((scrollTop - options.prevScrollTop) * 100) / 100
+        : null;
+    return {
+      scrollTop,
+      scrollMax,
+      scrollLock: isChatPullUpScrollLocked(),
+      composerDockTop,
+      bubbleBottom,
+      clearPx,
+      underComposer: clearPx != null && clearPx < 0,
+      cameraTag: options?.cameraTag ?? null,
+      deltaScrollTop,
+    };
+  } catch {
+    return empty;
+  }
+}
 
 /**
  * Per-bubble motion diag — phase + rAF frame samples.
@@ -81,10 +164,56 @@ export function logChatBubbleMotion(payload: ChatBubbleMotionPayload): void {
     opacity: payload.opacity ?? null,
     layoutY: payload.layoutY ?? null,
     deltaY: payload.deltaY ?? null,
-    scrollTop: payload.scrollTop ?? null,
+    scrollTop: payload.scrollTop ?? payload.trace?.scrollTop ?? null,
     shouldAnimate: payload.shouldAnimate,
     visibleCount: payload.visibleCount ?? null,
     note: payload.note ?? null,
+    trace: payload.trace ?? null,
+    chop: payload.chop ?? false,
+    chopReason: payload.chopReason ?? null,
+  });
+}
+
+/**
+ * Camera / clearance TRACE line (settle, top-up, defer) → bubble motion dump.
+ */
+export function logChatRevealCameraTrace(options: {
+  id?: string;
+  tag: string;
+  el?: HTMLElement | null;
+  visibleCount?: number | null;
+  delta?: number | null;
+  clearPx?: number | null;
+}): void {
+  const el =
+    options.el ??
+    (typeof document !== "undefined"
+      ? (document.querySelector(
+          '[data-studio-chat-revealed="true"][data-studio-chat-pull-up]'
+        ) as HTMLElement | null)
+      : null);
+  const trace = readChatBubbleComposerTrace(el, { cameraTag: options.tag });
+  if (options.clearPx != null) {
+    trace.clearPx = options.clearPx;
+    trace.underComposer = options.clearPx < 0;
+  }
+  const chop =
+    trace.underComposer ||
+    (typeof options.delta === "number" &&
+      Math.abs(options.delta) > SCROLL_CHOP_PX &&
+      /topup|clearance|instant/i.test(options.tag));
+  logChatBubbleMotion({
+    id: options.id ?? "camera",
+    phase: "trace",
+    shouldAnimate: true,
+    visibleCount: options.visibleCount ?? null,
+    scrollTop: trace.scrollTop,
+    note: `camera:${options.tag}`,
+    trace,
+    chop: /topup|clearance/i.test(options.tag) && (trace.underComposer || (typeof options.clearPx === "number" && options.clearPx < 16)),
+    chopReason: /topup|clearance/i.test(options.tag)
+      ? `clearance-topup clearPx=${options.clearPx ?? trace.clearPx}`
+      : null,
   });
 }
 
@@ -105,8 +234,8 @@ function readTransformY(el: HTMLElement): number {
 }
 
 /**
- * Sample a bubble across animation frames (transform y + layout top).
- * Returns cancel fn. Proves continuous ease vs abrupt jumps.
+ * Sample a bubble across animation frames (transform y + layout top + TRACE).
+ * Returns cancel fn. Proves continuous ease vs abrupt jumps / composer-exit chop.
  */
 export function startChatBubbleMotionSample(options: {
   id: string;
@@ -126,6 +255,7 @@ export function startChatBubbleMotionSample(options: {
   const start = performance.now();
   const durationMs = options.durationMs ?? CHAT_PULL_UP_MS + 80;
   let prevLayoutY: number | null = null;
+  let prevScrollTop: number | null = null;
   let raf = 0;
   let stopped = false;
 
@@ -142,13 +272,18 @@ export function startChatBubbleMotionSample(options: {
         ? 0
         : Math.round((layoutY - prevLayoutY) * 100) / 100;
     prevLayoutY = layoutY;
-    let scrollTop: number | null = null;
-    try {
-      const host = options.el.closest(".chat__column, [data-studio-react-screen]");
-      if (host instanceof HTMLElement) scrollTop = host.scrollTop;
-    } catch {
-      scrollTop = null;
-    }
+    const trace = readChatBubbleComposerTrace(options.el, {
+      cameraTag: "pull-up-raf",
+      prevScrollTop,
+    });
+    prevScrollTop = trace.scrollTop;
+    const scrollChop =
+      typeof trace.deltaScrollTop === "number" &&
+      Math.abs(trace.deltaScrollTop) > SCROLL_CHOP_PX;
+    const chop = scrollChop;
+    const chopReason = scrollChop
+      ? `scrollTop Δ=${trace.deltaScrollTop}`
+      : null;
 
     logChatBubbleMotion({
       id: options.id,
@@ -157,9 +292,12 @@ export function startChatBubbleMotionSample(options: {
       opacity: Number.isFinite(opacity) ? Math.round(opacity * 100) / 100 : null,
       layoutY,
       deltaY,
-      scrollTop,
+      scrollTop: trace.scrollTop,
       shouldAnimate: options.shouldAnimate,
       visibleCount: options.visibleCount ?? null,
+      trace,
+      chop,
+      chopReason,
     });
 
     if (now - start < durationMs) {

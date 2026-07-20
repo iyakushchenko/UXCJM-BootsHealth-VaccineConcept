@@ -105,7 +105,9 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12); DDOS yourself by re-reading the whole chat instead of consuming latches.
 
-**Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`). On chat SF with gate open, dump also includes **`chatBubbleMotion.samples`** (pull-up / thinking→reply y·opacity·deltaY frames + jump flags) — see [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § Chat bubble motion.
+**Save Log:** snapshot anytime while session active (does **not** require Pause). Downloads **current** session dump (`reason: manual`, live `log[]` + selectors + `sessionKind` + `mcp`). On chat SF with gate open, dump also includes **`chatBubbleMotion.samples`** — pull-up / thinking→reply frames with **TRACE** (`scrollTop`, `scrollMax`, `scrollLock`, `composerDockTop`, `bubbleBottom`, `clearPx`, `underComposer`, `deltaScrollTop`) + `jump` / `chop` flags. Read TRACE: filter samples by `phase=frame|trace`, look for `underComposer` / `chopReason` / camera tags `pull-up-settle` · `composer-clearance-topup`. See [PLAYBACK_DIAG.md](../../../../docs/shell/PLAYBACK_DIAG.md) § Chat bubble motion.
+
+**Message vs RESULT:** if PO Message latch (`USER_MESSAGE_RECEIVED`) is open, `appendFinale` **withholds** RESULT (logs soft-fail) so self-test PASS cannot overshadow Message. Consume latch first.
 
 **Full chat bubble motion (restartable):** `await window.__studioRunChatBubbleMotionSelfTest?.()` — opens QA, SF agentic q0…r3, asserts samples / thinking-handoff / jumps=0. See [SELF_TEST.md](./SELF_TEST.md).
 

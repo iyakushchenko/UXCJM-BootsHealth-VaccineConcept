@@ -71,11 +71,12 @@ export type AgentTestingDump = {
   lastPlaybackDiagnostic?: Record<string, unknown> | null;
   /** Lean cause-before-symptom hints for agents (not spam). */
   priorityHints?: string[];
-  /** Full chat-bubble-motion frame series (gate-open) + jump summary. */
+  /** Full chat-bubble-motion frame series (gate-open) + jump/chop summary. */
   chatBubbleMotion?: {
     samples: Array<Record<string, unknown>>;
     count: number;
     jumps: number;
+    chops?: number;
     maxAbsDeltaY: number;
     maxAbsDeltaTransformY: number;
     skippedPhaseNotes: string[];
@@ -98,6 +99,7 @@ export type AgentTestingDump = {
     chatBubbleMotion?: {
       count: number;
       jumps: number;
+      chops?: number;
       maxAbsDeltaY: number;
       maxAbsDeltaTransformY: number;
     };
@@ -202,7 +204,10 @@ function compactDiagEvent(ev: unknown): Record<string, unknown> | null {
       visibleCount: b.visibleCount ?? null,
       jump: b.jump === true,
       jumpReason: b.jumpReason ?? null,
+      chop: b.chop === true,
+      chopReason: b.chopReason ?? null,
       note: typeof b.note === "string" ? clip(b.note, 80) : null,
+      trace: b.trace && typeof b.trace === "object" ? b.trace : null,
     };
   }
   return out;
@@ -250,6 +255,7 @@ export function buildAgentTestingDump(options: {
         .filter((e): e is Record<string, unknown> => !!e),
       count: bubble.count,
       jumps: bubble.jumps,
+      chops: bubble.chops,
       maxAbsDeltaY: bubble.maxAbsDeltaY,
       maxAbsDeltaTransformY: bubble.maxAbsDeltaTransformY,
       skippedPhaseNotes: bubble.skippedPhaseNotes,
@@ -278,6 +284,7 @@ export function buildAgentTestingDump(options: {
       chatBubbleMotion: {
         count: bubble.count,
         jumps: bubble.jumps,
+        chops: bubble.chops,
         maxAbsDeltaY: bubble.maxAbsDeltaY,
         maxAbsDeltaTransformY: bubble.maxAbsDeltaTransformY,
       },

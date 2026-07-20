@@ -60,7 +60,8 @@ Do **not** lose this list. New PO rage → append a row here **and** stamp TEAM_
 | PP-34 | Chat bubble arrive stutter | Instant reveal-snap + eased settle + eased composer top-up fought Motion. | COMPLETE | settle owns camera; top-up instant |
 | PP-35 | Dual cursor manual+CJM | Observe/manual pointer-follow + parked CJM robo = two cursors. | COMPLETE | hide robo on manual/observe; Play keeps robo |
 | PP-37 | RESULT not final | clear-stale / playback-diag rows after `RESULT · PASS` undermine finale. | COMPLETE | cleanup→RESULT last + finale seal |
-| PP-38 | No STEPPED PLAYBACK label | Agent SF (Play off) looked like auto PLAYBACK. | COMPLETE | agentControlKind stepped |
+| PP-39 | Composer-exit scroll chop | Bubble rise from under dock + instant clearance top-up = stutter; dump too thin. | COMPLETE | TRACE + host-end settle |
+| PP-40 | Message then RESULT | Self-test RESULT after PO Message looks like ignore/reply. | COMPLETE | withhold RESULT while USER_MESSAGE latch |
 
 ---
 

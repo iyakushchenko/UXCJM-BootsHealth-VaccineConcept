@@ -16,6 +16,8 @@ import {
   CHAT_PULL_UP_MS,
   isChatPullUpScrollLocked,
   logChatBubbleMotion,
+  logChatRevealCameraTrace,
+  readChatBubbleComposerTrace,
   startChatBubbleMotionSample,
 } from "./chatMotion";
 import {
@@ -28,7 +30,7 @@ import {
   STUDIO_SCROLL_OVERFLOW_CLASS,
   syncStudioScrollOverflowGutter,
 } from "@/app/scenario/studioScrollOverflow";
-import { scrollCameraToHostEnd, scrollChatCamera, cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
+import { scrollCameraToHostEnd, cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
 import { CHAT_REACT_SCREEN_ID } from "./chatContract";
 import { ChatSitePilotBar } from "./ChatSitePilotBar";
 import {
@@ -238,6 +240,9 @@ function useChatBubbleMotionDiag(
       deltaY: 0,
       shouldAnimate: true,
       visibleCount: options.visibleCount ?? null,
+      trace: readChatBubbleComposerTrace(bubbleRef.current, {
+        cameraTag: "mount",
+      }),
     });
   }, [options.revealed, options.shouldAnimate, options.id, options.visibleCount, bubbleRef]);
 
@@ -256,6 +261,9 @@ function useChatBubbleMotionDiag(
       deltaY: 0,
       shouldAnimate: true,
       visibleCount: options.visibleCount ?? null,
+      trace: readChatBubbleComposerTrace(bubbleRef.current, {
+        cameraTag: "animate-start",
+      }),
     });
     sampleCancelRef.current?.();
     let cancelled = false;
@@ -276,6 +284,9 @@ function useChatBubbleMotionDiag(
         deltaY: 0,
         shouldAnimate: true,
         visibleCount: options.visibleCount ?? null,
+        trace: readChatBubbleComposerTrace(bubbleRef.current, {
+          cameraTag: "animate-end",
+        }),
       });
     };
     const armSample = () => {
@@ -785,22 +796,24 @@ export function ChatScreen({
         '[data-studio-chat-pull-up="start"], [data-studio-chat-pull-up="up"]'
       );
     if (releasingThink || pullBusy) {
-      console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+      logChatRevealCameraTrace({
         tag: releasingThink ? "handoff-defer-snap" : "pull-up-defer-snap",
-        delta: 0,
+        el: column.querySelector(
+          '[data-studio-chat-revealed="true"]'
+        ) as HTMLElement | null,
         visibleCount: revealedFrameCount,
-        scrollTop: column.scrollTop,
-        scrollMax: Math.max(0, column.scrollHeight - column.clientHeight),
+        delta: 0,
       });
       return;
     }
     // CJM progressive reveal — skip instant snap (settle ease below owns camera).
-    console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+    logChatRevealCameraTrace({
       tag: "reveal-snap-skipped-settle-owns",
-      delta: 0,
+      el: column.querySelector(
+        '[data-studio-chat-revealed="true"]'
+      ) as HTMLElement | null,
       visibleCount: revealedFrameCount,
-      scrollTop: column.scrollTop,
-      scrollMax: Math.max(0, column.scrollHeight - column.clientHeight),
+      delta: 0,
     });
   }, [
     scenarioReveal.active,
@@ -839,45 +852,53 @@ export function ChatScreen({
     const runSettleCamera = () => {
       const settleMax = Math.max(0, column.scrollHeight - column.clientHeight);
       const before = column.scrollTop;
-      // Life-like ease after pull-up. Never force during lock — prior settle
-      // ease is aborted when the next bubble acquires the pull-up lock.
-      scrollChatCamera(column, {
+      // One eased host-end settle — avoids scrollChatCamera undershoot + instant
+      // clearance top-up double-move (composer-exit chop).
+      scrollCameraToHostEnd(column, {
         instant: false,
-        align: "end",
-        force: false,
-        padding: 24,
+        reason: "pull-up-settle host-end (composer clearance)",
       });
       const delta = column.scrollTop - before;
-      if (delta !== 0) {
-        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
-          tag: "pull-up-settle",
-          delta,
-          visibleCount: revealedFrameCount,
-          scrollTop: column.scrollTop,
-          scrollMax: settleMax,
-        });
-      }
-      // Ease is async — after travel, top-up to host end if still under dock.
+      logChatRevealCameraTrace({
+        tag: "pull-up-settle",
+        el: column.querySelector(
+          '[data-studio-chat-revealed="true"]'
+        ) as HTMLElement | null,
+        visibleCount: revealedFrameCount,
+        delta,
+      });
+      // Ease is async — after travel, top-up only if still under dock.
       if (topUp != null) window.clearTimeout(topUp);
       topUp = window.setTimeout(() => {
         topUp = null;
         if (isChatPullUpScrollLocked()) return;
         const clearPx = measureComposerClearPx();
-        if (clearPx == null || clearPx >= 16) return;
+        if (clearPx == null || clearPx >= 16) {
+          logChatRevealCameraTrace({
+            tag: "composer-clearance-ok",
+            el: column.querySelector(
+              '[data-studio-chat-revealed="true"]'
+            ) as HTMLElement | null,
+            visibleCount: revealedFrameCount,
+            clearPx: clearPx ?? undefined,
+          });
+          return;
+        }
         const max = Math.max(0, column.scrollHeight - column.clientHeight);
         if (column.scrollTop >= max - 2) return;
-        // Instant top-up only — second ease after settle = visible stutter.
+        // Last-resort instant top-up — TRACE as CHOP so Save Log catches it.
         scrollCameraToHostEnd(column, {
           instant: true,
           reason: `composer clearance top-up (clearPx=${Math.round(clearPx)})`,
         });
-        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+        logChatRevealCameraTrace({
           tag: "composer-clearance-topup",
-          delta: 0,
-          clearPx: Math.round(clearPx),
+          el: column.querySelector(
+            '[data-studio-chat-revealed="true"]'
+          ) as HTMLElement | null,
           visibleCount: revealedFrameCount,
-          scrollTop: column.scrollTop,
-          scrollMax: max,
+          clearPx: Math.round(clearPx),
+          delta: 0,
         });
       }, 560);
     };

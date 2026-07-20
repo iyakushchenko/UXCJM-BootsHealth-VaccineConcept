@@ -26,6 +26,7 @@ vi.mock("@/app/shell/playbackDiag", () => ({
       samples: [],
       count: 0,
       jumps: 0,
+      chops: 0,
       maxAbsDeltaY: 0,
       maxAbsDeltaTransformY: 0,
       skippedPhaseNotes: [],

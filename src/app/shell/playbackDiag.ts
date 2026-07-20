@@ -130,6 +130,20 @@ export type PlaybackDiagEvent = {
     note?: string | null;
     jump?: boolean;
     jumpReason?: string | null;
+    chop?: boolean;
+    chopReason?: string | null;
+    /** Composer-exit TRACE — dock/clearPx/lock/scrollMax. */
+    trace?: {
+      scrollTop?: number | null;
+      scrollMax?: number | null;
+      scrollLock?: boolean;
+      composerDockTop?: number | null;
+      bubbleBottom?: number | null;
+      clearPx?: number | null;
+      underComposer?: boolean;
+      cameraTag?: string | null;
+      deltaScrollTop?: number | null;
+    } | null;
   };
   ok?: boolean;
 };
@@ -144,6 +158,7 @@ const bubblePrevTransformY = new Map<string, number>();
 
 export const CHAT_BUBBLE_JUMP_LAYOUT_PX = 10;
 export const CHAT_BUBBLE_JUMP_TRANSFORM_PX = 4.5;
+export const CHAT_BUBBLE_SCROLL_CHOP_PX = 18;
 
 const MAX_EVENTS = 400;
 const events: PlaybackDiagEvent[] = [];
@@ -654,11 +669,12 @@ export type PlaybackDiagBundle = {
     lastCompile?: PlaybackDiagEvent;
     lastReplay?: PlaybackDiagEvent;
   };
-  /** Gate-open chat bubble motion series + jump summary. */
+  /** Gate-open chat bubble motion series + jump/chop summary. */
   chatBubbleMotion: {
     samples: PlaybackDiagEvent[];
     count: number;
     jumps: number;
+    chops: number;
     maxAbsDeltaY: number;
     maxAbsDeltaTransformY: number;
     skippedPhaseNotes: string[];
@@ -681,6 +697,19 @@ export function playbackDiagChatBubbleMotion(options: {
   shouldAnimate?: boolean;
   visibleCount?: number | null;
   note?: string | null;
+  trace?: {
+    scrollTop?: number | null;
+    scrollMax?: number | null;
+    scrollLock?: boolean;
+    composerDockTop?: number | null;
+    bubbleBottom?: number | null;
+    clearPx?: number | null;
+    underComposer?: boolean;
+    cameraTag?: string | null;
+    deltaScrollTop?: number | null;
+  } | null;
+  chop?: boolean;
+  chopReason?: string | null;
 }): PlaybackDiagEvent | null {
   if (!isQaDiagGateOpen()) return null;
 
@@ -717,6 +746,18 @@ export function playbackDiagChatBubbleMotion(options: {
       : `layout ΔY=${deltaY}`;
   }
 
+  let chop = options.chop === true;
+  let chopReason = options.chopReason ?? null;
+  const dScroll = options.trace?.deltaScrollTop;
+  if (
+    typeof dScroll === "number" &&
+    Math.abs(dScroll) > CHAT_BUBBLE_SCROLL_CHOP_PX
+  ) {
+    chop = true;
+    chopReason = chopReason ?? `scrollTop Δ=${dScroll}`;
+  }
+  // underComposer on frames is expected during rise-from-dock — TRACE only, not CHOP.
+
   let skippedNote: string | null = null;
   if (phase === "animate-end") {
     if (!phases.has("animate-start") && !phases.has("mount")) {
@@ -726,22 +767,23 @@ export function playbackDiagChatBubbleMotion(options: {
     }
     bubblePrevTransformY.delete(id);
   }
-  if (phase === "mount" || phase === "animate-start") {
-    /* keep tracking */
-  }
 
   const detail =
     jump
       ? `Bubble JUMP ${id} ${phase} ΔY=${deltaY ?? "?"} ${jumpReason ?? ""}`.trim()
-      : phase === "frame"
-        ? `Bubble ${id} frame y=${options.y ?? "?"} op=${options.opacity ?? "?"}`
-        : phase === "thinking-handoff"
-          ? `Bubble ${id} thinking→reply`
-          : phase === "animate-start" || phase === "mount"
-            ? `Bubble ${id} pull-up`
-            : phase === "animate-end"
-              ? `Bubble ${id} settle`
-              : `Bubble ${id} ${phase}`;
+      : chop
+        ? `Bubble CHOP ${id} ${phase} ${chopReason ?? ""}`.trim()
+        : phase === "frame"
+          ? `Bubble ${id} frame y=${options.y ?? "?"} op=${options.opacity ?? "?"} scroll=${options.scrollTop ?? options.trace?.scrollTop ?? "?"}`
+          : phase === "trace"
+            ? `Bubble TRACE ${id} ${options.note ?? options.trace?.cameraTag ?? "camera"}`
+            : phase === "thinking-handoff"
+              ? `Bubble ${id} thinking→reply`
+              : phase === "animate-start" || phase === "mount"
+                ? `Bubble ${id} pull-up`
+                : phase === "animate-end"
+                  ? `Bubble ${id} settle`
+                  : `Bubble ${id} ${phase}`;
 
   const bubble = {
     id,
@@ -751,12 +793,15 @@ export function playbackDiagChatBubbleMotion(options: {
     layoutY: options.layoutY ?? null,
     deltaY,
     deltaTransformY,
-    scrollTop: options.scrollTop ?? null,
+    scrollTop: options.scrollTop ?? options.trace?.scrollTop ?? null,
     shouldAnimate: options.shouldAnimate ?? true,
     visibleCount: options.visibleCount ?? null,
     note: options.note ?? skippedNote,
     jump,
     jumpReason,
+    chop,
+    chopReason,
+    trace: options.trace ?? null,
   };
 
   const full: PlaybackDiagEvent = {
@@ -765,11 +810,10 @@ export function playbackDiagChatBubbleMotion(options: {
     surface: "chat",
     detail,
     screenAfter: readScreenId(),
-    ok: !jump && !skippedNote,
+    ok: !jump && !chop && !skippedNote,
     bubble,
   };
 
-  // Full frame series → dedicated dump ring (not every rAF into main events).
   bubbleSamples.push(full);
   if (bubbleSamples.length > MAX_BUBBLE_SAMPLES) bubbleSamples.shift();
 
@@ -777,14 +821,15 @@ export function playbackDiagChatBubbleMotion(options: {
     console.info("[PLAYBACK_DIAG]", full.kind, consolePayload(full));
   }
 
-  // Lean visible ring / overlay + main events: phase boundaries + jumps only.
   const summarize =
     jump ||
+    chop ||
     phase === "mount" ||
     phase === "animate-start" ||
     phase === "animate-end" ||
     phase === "thinking-handoff" ||
     phase === "exit" ||
+    phase === "trace" ||
     !!skippedNote;
 
   if (summarize) {
@@ -793,18 +838,22 @@ export function playbackDiagChatBubbleMotion(options: {
 
     const label = jump
       ? `Bubble JUMP ΔY=${deltaY ?? "?"} (${id})`
-      : phase === "thinking-handoff"
-        ? `Bubble ${id} thinking→reply`
-        : phase === "animate-start" || phase === "mount"
-          ? `Bubble ${id} pull-up`
-          : phase === "animate-end"
-            ? `Bubble ${id} settle${skippedNote ? " · SKIP" : ""}`
-            : `Bubble ${id} ${phase}`;
-    if (jump) {
+      : chop
+        ? `Bubble CHOP ${chopReason ?? id}`
+        : phase === "trace"
+          ? `Bubble TRACE ${options.note ?? id}`
+          : phase === "thinking-handoff"
+            ? `Bubble ${id} thinking→reply`
+            : phase === "animate-start" || phase === "mount"
+              ? `Bubble ${id} pull-up`
+              : phase === "animate-end"
+                ? `Bubble ${id} settle${skippedNote ? " · SKIP" : ""}`
+                : `Bubble ${id} ${phase}`;
+    if (jump || chop) {
       try {
         (
           window as Window & { __studioBeginQaFailHandoff?: (r: string) => void }
-        ).__studioBeginQaFailHandoff?.("bubble-jump");
+        ).__studioBeginQaFailHandoff?.(jump ? "bubble-jump" : "bubble-chop");
       } catch {
         /* hang-safe */
       }
@@ -835,9 +884,9 @@ export function playbackDiagChatBubbleMotion(options: {
             ).__studioAgentTestingOverlay
           : undefined;
       api?.logStep?.({
-        kind: "sequence",
+        kind: jump || chop ? "chat-bubble-motion" : "sequence",
         label,
-        outcome: jump || skippedNote ? "soft-fail" : "ok",
+        outcome: jump || chop || skippedNote ? "soft-fail" : "ok",
       });
     } catch {
       /* hang-safe */
@@ -941,6 +990,7 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
     chatBubbleMotion: (() => {
       const samples = [...bubbleSamples];
       let jumps = 0;
+      let chops = 0;
       let maxAbsDeltaY = 0;
       let maxAbsDeltaTransformY = 0;
       const ids = new Set<string>();
@@ -950,6 +1000,7 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
         if (!b) continue;
         ids.add(b.id);
         if (b.jump) jumps += 1;
+        if (b.chop) chops += 1;
         if (typeof b.deltaY === "number") {
           maxAbsDeltaY = Math.max(maxAbsDeltaY, Math.abs(b.deltaY));
         }
@@ -971,6 +1022,7 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
         samples,
         count: samples.length,
         jumps,
+        chops,
         maxAbsDeltaY,
         maxAbsDeltaTransformY,
         skippedPhaseNotes,
