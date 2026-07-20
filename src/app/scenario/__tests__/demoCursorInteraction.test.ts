@@ -279,6 +279,19 @@ describe("demoCursor interaction contract", () => {
     expect(document.querySelector(".proto-chat-demo-cursor")).toBeNull();
   });
 
+  it("cancelDemoCursorTravel settles even when FM stop leaves thenable pending", async () => {
+    const btn = mountButton();
+    const travel = moveDemoCursorTo(btn, {
+      applyHover: false,
+      syncPageScroll: false,
+    });
+    await vi.advanceTimersByTimeAsync(40);
+    cancelDemoCursorTravel();
+    // Must not hang — FM controls.stop() alone leaves await controls pending.
+    await vi.advanceTimersByTimeAsync(100);
+    await expect(travel).resolves.toBeNull();
+  });
+
   it("travel stays within start→end bounds (no bounce/overshoot)", async () => {
     const btn = mountButton();
     const leftSamples: number[] = [];

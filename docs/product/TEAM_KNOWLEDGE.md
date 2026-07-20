@@ -28,6 +28,7 @@
 | Studio URL (modal ids) | [../shell/URL.md](../shell/URL.md) | **Modal URL registry** before any dialog ship |
 | Doctrine | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) | Locked tech + process |
 | **Motion standard** | [MOTION.md](./MOTION.md) | `framer-motion` via `@/uxds/motion`; CSS for trivial + Accordion |
+| **Chat page rails (CJM on/off)** | [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md) | CJM-off = saved-chat load + scroll bottom; CJM-on = progressive; QA prove load/scroll |
 | Director rule | [../../.cursor/rules/ux-studio-director.mdc](../../.cursor/rules/ux-studio-director.mdc) | Always-on hard checklist |
 
 ---
@@ -93,6 +94,7 @@
 | Must re-read | Focus |
 |--------------|--------|
 | [../shell/PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · R13 | Type-in / step / retreat console prove before claiming CJM green |
+| [../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) | Play ≡ Step; type-in REQUIRED; per-char QA FORBIDDEN; FM stop hang; thinking camera |
 | [../shell/RECORDING.md](../shell/RECORDING.md) — MCP / overlay / page probe | `__studioRunMcpPageProbe`, sitrep, stay-on-page |
 | LESSONS: overlay eyes, MCP matrix, **scroll-into-view**, **overlay visible every probe**, false PROVEN, **fixed localhost / reuse tab** | Prove fail classes |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty — no PROVEN without MCP log |

@@ -28,6 +28,9 @@ export function beginTypeInCursorGuard(target: HTMLElement): void {
 /**
  * PO: stay PARKED during type-in — no caret-slide / travel while text lands.
  * Re-assert park only if missing/exiting; never move along the field.
+ * HARD: do NOT log cursor visibility every N chars (QA/perf flood).
+ * Animation itself is unchanged — only diag/QA emit is gated.
+ * Hidden latch still fires when cursor is missing on re-park.
  */
 export function tickTypeInCursorGuard(target: HTMLElement, chars: number): void {
   const existing = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
@@ -36,12 +39,11 @@ export function tickTypeInCursorGuard(target: HTMLElement, chars: number): void 
     existing.classList.contains("proto-chat-demo-cursor--exit")
   ) {
     parkDemoCursorForTypeIn(target);
+    // Log only when we had to re-park (cursor was gone) — not every typed char.
+    reportTypeInCursorVisibility("repark", target, chars);
   } else if (!existing.classList.contains("proto-chat-demo-cursor--parked")) {
     // Restore parked class without reseeding (parkDemoCursorForTypeIn holds pose).
     parkDemoCursorForTypeIn(target);
-  }
-  if (chars === 0 || chars % 16 === 0) {
-    reportTypeInCursorVisibility("progress", target, chars);
   }
 }
 

@@ -1,6 +1,5 @@
-import { MOTION_EASE_IN_OUT } from "@/uxds/motion";
+import { MOTION_EASE_IN_OUT, STUDIO_ENTER_MS } from "@/uxds/motion";
 import { playbackDiagChatBubbleMotion } from "@/app/shell/playbackDiag";
-import { cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
 
 /**
  * Make / sitePilotChat pull-up for progressive bubbles.
@@ -11,7 +10,10 @@ export const CHAT_PULL_UP = {
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: 4 },
-  transition: { duration: 0.34, ease: MOTION_EASE_IN_OUT },
+  transition: {
+    duration: STUDIO_ENTER_MS / 1000,
+    ease: MOTION_EASE_IN_OUT,
+  },
 } as const;
 
 /** Thinking leave — opacity only so in-slot reply pull-up isn’t undercut by height collapse. */
@@ -21,8 +23,8 @@ export const CHAT_THINKING_EXIT = {
   transition: { duration: 0.22, ease: MOTION_EASE_IN_OUT },
 } as const;
 
-/** Match sitePilotChat pull-up settle window (ms). */
-export const CHAT_PULL_UP_MS = Math.round(CHAT_PULL_UP.transition.duration * 1000);
+/** Match platform enter / camera co-travel (ms). */
+export const CHAT_PULL_UP_MS = STUDIO_ENTER_MS;
 
 /** Scroll lock while any bubble pull-up tween runs (prevents layoutY JUMP). */
 let chatPullUpScrollLocks = 0;
@@ -198,10 +200,11 @@ export function logChatRevealCameraTrace(options: {
     trace.underComposer = options.clearPx < 0;
   }
   const chop =
-    trace.underComposer ||
-    (typeof options.delta === "number" &&
-      Math.abs(options.delta) > SCROLL_CHOP_PX &&
-      /topup|clearance|instant/i.test(options.tag));
+    /topup/i.test(options.tag) &&
+    (trace.underComposer ||
+      (typeof options.clearPx === "number" && options.clearPx < 0));
+  // clearance-ok / near-miss top-up (clearPx 0..15) is TRACE forensics only —
+  // must NOT hard-CHOP / fail-handoff halt Play (PO: bubble-chop on q1).
   logChatBubbleMotion({
     id: options.id ?? "camera",
     phase: "trace",
@@ -210,10 +213,12 @@ export function logChatRevealCameraTrace(options: {
     scrollTop: trace.scrollTop,
     note: `camera:${options.tag}`,
     trace,
-    chop: /topup|clearance/i.test(options.tag) && (trace.underComposer || (typeof options.clearPx === "number" && options.clearPx < 16)),
-    chopReason: /topup|clearance/i.test(options.tag)
-      ? `clearance-topup clearPx=${options.clearPx ?? trace.clearPx}`
-      : null,
+    chop,
+    chopReason: chop
+      ? `clearance-topup underComposer clearPx=${options.clearPx ?? trace.clearPx}`
+      : /topup|clearance/i.test(options.tag)
+        ? `clearance clearPx=${options.clearPx ?? trace.clearPx}`
+        : null,
   });
 }
 
@@ -246,12 +251,8 @@ export function startChatBubbleMotionSample(options: {
 }): () => void {
   if (!options.el || !options.shouldAnimate) return () => {};
   const releaseScroll = acquireChatPullUpScrollLock();
-  // Kill any prior settle ease — competing camera = layoutY JUMP mid sample.
-  try {
-    cancelPlaybackScroll("replace");
-  } catch {
-    /* hang-safe */
-  }
+  // Do NOT cancel camera here — pull-up + host-end must co-travel so the
+  // bubble finishes appearing already on its target scroll position.
   const start = performance.now();
   const durationMs = options.durationMs ?? CHAT_PULL_UP_MS + 80;
   let prevLayoutY: number | null = null;
@@ -277,9 +278,11 @@ export function startChatBubbleMotionSample(options: {
       prevScrollTop,
     });
     prevScrollTop = trace.scrollTop;
+    // Co-travel scroll during lock is expected — don't flag as chop here.
     const scrollChop =
       typeof trace.deltaScrollTop === "number" &&
-      Math.abs(trace.deltaScrollTop) > SCROLL_CHOP_PX;
+      Math.abs(trace.deltaScrollTop) > SCROLL_CHOP_PX &&
+      !trace.scrollLock;
     const chop = scrollChop;
     const chopReason = scrollChop
       ? `scrollTop Δ=${trace.deltaScrollTop}`

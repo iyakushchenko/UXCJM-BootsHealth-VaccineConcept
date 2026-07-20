@@ -86,7 +86,7 @@ describe("plpCatalog filters", () => {
     const chips = collectPlpActiveFilterChips(dirty);
     expect(chips).toEqual([{ facet: "diseases", label: "Chickenpox" }]);
     expect(plpResultsNoun(dirty, 1)).toBe("jab");
-    expect(PLP_LISTING_LOAD_MS).toBe(450);
+    expect(PLP_LISTING_LOAD_MS).toBe(1500);
     const cleared = removePlpActiveFilterChip(
       dirty,
       "diseases",
@@ -183,5 +183,24 @@ describe("plp loading count source contract", () => {
     );
     // Idle/reveal path still has real count copy.
     expect(code).toMatch(/\$\{displayItems\.length\} \$\{noun\} available/);
+  });
+
+  it("keeps listing loader sticky inside the tiles host (not fixed to document)", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const css = fs.readFileSync(
+      path.resolve(__dirname, "../plp.css"),
+      "utf8"
+    );
+    const loaderBlock = css.match(
+      /\.plp__listing-loader\s*\{[^}]*\}/
+    )?.[0];
+    const innerBlock = css.match(
+      /\.plp__listing-loader__inner\s*\{[^}]*\}/
+    )?.[0];
+    expect(loaderBlock).toMatch(/position:\s*absolute/);
+    expect(loaderBlock).not.toMatch(/position:\s*fixed/);
+    expect(innerBlock).toMatch(/position:\s*sticky/);
+    expect(innerBlock).toMatch(/top:\s*var\(--sticky-top/);
   });
 });

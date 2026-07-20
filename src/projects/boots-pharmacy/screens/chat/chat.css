@@ -1,3 +1,21 @@
+/*
+ * When Availability Tool is open, skip painting React chat underlay.
+ * Chat observers stay mounted but content-visibility:hidden stops layout/paint
+ * thrash (~15fps → smooth). Prove: open avail after chat with QA paused.
+ */
+html:has([data-studio-modal="choose-pharmacy"])
+  .studio-react-screen-host[data-studio-react-screen="chat"],
+html:has([data-studio-modal="choose-pharmacy"])
+  .proto-chat-screen[data-studio-react-screen="chat"]
+  > .studio-react-screen-host,
+html:has([data-studio-modal="choose-pharmacy"])
+  .proto-chat-screen[data-studio-react-screen="chat"]
+  .chat {
+  content-visibility: hidden !important;
+  contain: strict !important;
+  pointer-events: none !important;
+}
+
 /* Agentic Site Pilot Chat — React (NOT PAGE FINAL PASS / NOT PROVEN). */
 
 /*
@@ -263,6 +281,9 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
 }
+
+/* Content-load interim is timing-only on chat (empty hold → full thread).
+ * No spinner/skeleton — PO rejected inventing a chat preloader. */
 
 .chat__column.studio-scroll--overflow,
 .chat__column[data-studio-scroll-overflow="true"] {

@@ -9,6 +9,7 @@ import {
   deriveMcpConnectionStatus,
   type McpConnectionStatus,
 } from "@/app/shell/agent-testing/agentTestingMcpStatus";
+import { peekQaAgentPresence } from "@/app/shell/agent-testing/agentTestingPresence";
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
 import type { AgentControlKind } from "@/app/shell/agent-testing/agentTestingControlKind";
 
@@ -113,28 +114,43 @@ export function paintMcpChromeDom(
     .forEach((el) => el.remove());
 
   const show = live && !!status.label && status.phase !== "idle";
+  const presence = peekQaAgentPresence();
+  const presenceAttr = presence.online
+    ? "online"
+    : presence.lastSeenAt > 0
+      ? "stale"
+      : "offline";
   if (chip) {
     if (!show) {
       chip.hidden = true;
       chip.textContent = "";
       delete chip.dataset.phase;
-      if (wrap) wrap.hidden = true;
+      delete chip.dataset.presence;
+      if (wrap) {
+        wrap.hidden = true;
+        delete wrap.dataset.presence;
+      }
       if (diode) {
         diode.hidden = true;
         delete diode.dataset.phase;
+        delete diode.dataset.presence;
       }
     } else {
       chip.hidden = false;
       chip.textContent = status.label;
       chip.dataset.phase = status.phase;
+      chip.dataset.presence = presenceAttr;
       chip.title = `${status.label} — ${AGENT_LATCH_STATUS_TITLE}`;
       if (wrap) {
         wrap.hidden = false;
         wrap.title = AGENT_LATCH_STATUS_TITLE;
+        wrap.dataset.presence = presenceAttr;
       }
       if (diode) {
         diode.hidden = false;
         diode.dataset.phase = status.phase;
+        // Green glow only when agent is actually present — never while stale.
+        diode.dataset.presence = presenceAttr;
         diode.title = `${status.label} — ${AGENT_LATCH_STATUS_TITLE}`;
       }
     }

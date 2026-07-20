@@ -818,56 +818,60 @@ export async function runTraditionalScript(
   activeRunGeneration = playbackGeneration;
   playbackAborted = false;
   traditionalScriptInFlight = true;
-  if (options?.syncState) {
-    return syncTraditionalTabState(scriptId, runtime, options);
-  }
-
-  let result: PlaybackScriptResult;
-  switch (scriptId) {
-    case "plp-open-pdp":
-      result = await runPlpOpenPdp(options);
-      break;
-    case "pdp-book-now":
-      result = await wrapBool(
-        () => runPdpBookNow(runtime, options),
-        "runPdpBookNow: PDP screen or Book now button not ready"
-      );
-      break;
-    case "login-sign-in":
-      result = await wrapBool(
-        () => runLoginSignIn(runtime, options),
-        "runLoginSignIn: login popup flow failed"
-      );
-      break;
-    case "book-location-pick":
-      result = await wrapBool(
-        () => runBookLocationPick(runtime, options),
-        "runBookLocationPick: book step 1 location flow failed"
-      );
-      break;
-    case "confirmation-open-appointments":
-      result = await wrapBool(
-        () => runConfirmationOpenAppointments(runtime, options),
-        "runConfirmationOpenAppointments: open appointment control not found"
-      );
-      break;
-    case "history-view-details":
-      result = await wrapBool(
-        () => runHistoryViewDetails(runtime, options),
-        "runHistoryViewDetails: view details control not found"
-      );
-      break;
-    default:
-      result = scriptFail(`unknown tab script: ${String(scriptId)}`);
-  }
-
-  if (!shouldAbort()) {
-    await releaseDemoCursorAfterScript();
-    clearSimulatedClickRipples();
-    if (!isDemoCursorJourneyModePinned()) {
-      resetDemoCursorTravelOrigin();
+  try {
+    if (options?.syncState) {
+      return await syncTraditionalTabState(scriptId, runtime, options);
     }
-  }
 
-  return result;
+    let result: PlaybackScriptResult;
+    switch (scriptId) {
+      case "plp-open-pdp":
+        result = await runPlpOpenPdp(options);
+        break;
+      case "pdp-book-now":
+        result = await wrapBool(
+          () => runPdpBookNow(runtime, options),
+          "runPdpBookNow: PDP screen or Book now button not ready"
+        );
+        break;
+      case "login-sign-in":
+        result = await wrapBool(
+          () => runLoginSignIn(runtime, options),
+          "runLoginSignIn: login popup flow failed"
+        );
+        break;
+      case "book-location-pick":
+        result = await wrapBool(
+          () => runBookLocationPick(runtime, options),
+          "runBookLocationPick: book step 1 location flow failed"
+        );
+        break;
+      case "confirmation-open-appointments":
+        result = await wrapBool(
+          () => runConfirmationOpenAppointments(runtime, options),
+          "runConfirmationOpenAppointments: open appointment control not found"
+        );
+        break;
+      case "history-view-details":
+        result = await wrapBool(
+          () => runHistoryViewDetails(runtime, options),
+          "runHistoryViewDetails: view details control not found"
+        );
+        break;
+      default:
+        result = scriptFail(`unknown tab script: ${String(scriptId)}`);
+    }
+
+    if (!shouldAbort()) {
+      await releaseDemoCursorAfterScript();
+      clearSimulatedClickRipples();
+      if (!isDemoCursorJourneyModePinned()) {
+        resetDemoCursorTravelOrigin();
+      }
+    }
+
+    return result;
+  } finally {
+    traditionalScriptInFlight = false;
+  }
 }

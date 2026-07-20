@@ -43,7 +43,122 @@ export function isPlaybackScrollAnimating(): boolean {
 
 let scrollReplacePending = false;
 
+/**
+ * PO: clicks must not instantly yank the camera — global hold before SSoT scroll.
+ * Armed by demo-click + product clicks; honored by host-end / target / animate paths.
+ */
+export const POST_CLICK_CAMERA_HOLD_MS = 480;
+let lastCameraHoldInteractionAt = Number.NaN;
+let postClickHoldGeneration = 0;
+let postClickHoldArmInstalled = false;
+
+export function noteCameraHoldInteraction(source = "click"): void {
+  lastCameraHoldInteractionAt = performance.now();
+  postClickHoldGeneration += 1;
+  try {
+    playbackDiagScroll({
+      detail: `post-click camera hold armed (${source}, ${POST_CLICK_CAMERA_HOLD_MS}ms)`,
+    });
+  } catch {
+    /* hang-safe */
+  }
+}
+
+export function msUntilPostClickCameraHoldClears(): number {
+  if (!Number.isFinite(lastCameraHoldInteractionAt)) return 0;
+  return Math.max(
+    0,
+    POST_CLICK_CAMERA_HOLD_MS - (performance.now() - lastCameraHoldInteractionAt)
+  );
+}
+
+export function resetPostClickCameraHoldForTests(): void {
+  lastCameraHoldInteractionAt = Number.NaN;
+  postClickHoldGeneration += 1;
+}
+
+function ensurePostClickCameraHoldArm(): void {
+  if (postClickHoldArmInstalled || typeof document === "undefined") return;
+  postClickHoldArmInstalled = true;
+  document.addEventListener("studio-demo-click", () => {
+    noteCameraHoldInteraction("demo-click");
+  });
+  document.addEventListener(
+    "click",
+    (e) => {
+      const t = e.target as Element | null;
+      if (!t?.closest) return;
+      if (
+        t.closest(
+          "#agent-testing-overlay, .studio-agent-testing-overlay, [data-studio-chrome], .studio-nav, .studio-control-room"
+        )
+      ) {
+        return;
+      }
+      if (
+        !t.closest(
+          "[data-studio-react-screen], [data-studio-prototype-root], [data-studio-prototype-scroll], main.chat, main.plp, main.pdp, .proto-prototype"
+        )
+      ) {
+        return;
+      }
+      noteCameraHoldInteraction("product-click");
+    },
+    true
+  );
+}
+
+function delayMs(ms: number): Promise<void> {
+  return new Promise((r) => window.setTimeout(r, ms));
+}
+
+/** @returns true when the caller should return (work was scheduled for later). */
+function deferForPostClickCameraHold(
+  run: () => void,
+  options?: { skipHold?: boolean; force?: boolean; retreat?: boolean }
+): boolean {
+  ensurePostClickCameraHoldArm();
+  if (options?.skipHold || options?.force || options?.retreat) return false;
+  const wait = msUntilPostClickCameraHoldClears();
+  if (wait <= 0) return false;
+  const gen = postClickHoldGeneration;
+  try {
+    playbackDiagScroll({
+      detail: `post-click camera hold wait ${Math.round(wait)}ms`,
+    });
+  } catch {
+    /* hang-safe */
+  }
+  window.setTimeout(() => {
+    if (gen !== postClickHoldGeneration) return;
+    run();
+  }, wait);
+  return true;
+}
+
+async function awaitPostClickCameraHold(options?: {
+  skipHold?: boolean;
+  force?: boolean;
+  retreat?: boolean;
+}): Promise<void> {
+  ensurePostClickCameraHoldArm();
+  if (options?.skipHold || options?.force || options?.retreat) return;
+  const wait = msUntilPostClickCameraHoldClears();
+  if (wait <= 0) return;
+  const gen = postClickHoldGeneration;
+  try {
+    playbackDiagScroll({
+      detail: `post-click camera hold await ${Math.round(wait)}ms`,
+    });
+  } catch {
+    /* hang-safe */
+  }
+  await delayMs(wait);
+  if (gen !== postClickHoldGeneration) return;
+}
+
 export function cancelPlaybackScroll(reason: "replace" | "abort" = "abort"): void {
+  postClickHoldGeneration += 1;
   if (reason === "abort") {
     playbackScrollMonitor.onAnimationCancelled();
   } else {
@@ -227,8 +342,12 @@ export async function animateDemoTargetIntoView(
     align?: PlaybackScrollAlign;
     padding?: number;
     retreat?: boolean;
+    skipHold?: boolean;
+    force?: boolean;
   }
 ): Promise<void> {
+  await awaitPostClickCameraHold(options);
+  if (isAborted(options)) return;
   const scrollEl = options?.scrollEl ?? getPrototypeScrollRoot(target);
   if (!scrollEl || shouldSkipPrototypePageScroll(target, scrollEl)) {
     playbackDiagScroll({
@@ -292,8 +411,18 @@ export function snapDemoTargetIntoView(
     align?: PlaybackScrollAlign;
     padding?: number;
     retreat?: boolean;
+    skipHold?: boolean;
+    force?: boolean;
   }
 ): void {
+  if (
+    deferForPostClickCameraHold(
+      () => snapDemoTargetIntoView(target, { ...options, skipHold: true }),
+      options
+    )
+  ) {
+    return;
+  }
   const scrollEl = options?.scrollEl ?? getPrototypeScrollRoot(target);
   if (!scrollEl || shouldSkipPrototypePageScroll(target, scrollEl)) {
     playbackDiagScroll({
@@ -718,7 +847,7 @@ export type ScrollCameraOptions = PlaybackScrollOptions & {
  */
 export async function scrollCameraToTarget(
   target: HTMLElement,
-  options?: ScrollCameraOptions
+  options?: ScrollCameraOptions & { skipHold?: boolean }
 ): Promise<void> {
   if (!target?.isConnected) return;
   if (options?.instant) {
@@ -727,6 +856,8 @@ export async function scrollCameraToTarget(
       align: options.align,
       padding: options.padding,
       retreat: options.retreat,
+      skipHold: options.skipHold,
+      force: options.force,
     });
     return;
   }
@@ -772,6 +903,7 @@ export function scrollCameraToHostEnd(
     instant?: boolean;
     reason?: string;
     force?: boolean;
+    skipHold?: boolean;
   }
 ): void {
   try {
@@ -781,6 +913,14 @@ export function scrollCameraToHostEnd(
     if (frozen && !options?.force) return;
   } catch {
     /* hang-safe */
+  }
+  if (
+    deferForPostClickCameraHold(
+      () => scrollCameraToHostEnd(scrollEl, { ...options, skipHold: true }),
+      options
+    )
+  ) {
+    return;
   }
   const el = scrollEl ?? getPrototypeScrollRoot();
   if (!el) return;

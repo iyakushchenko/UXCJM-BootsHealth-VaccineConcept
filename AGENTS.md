@@ -44,6 +44,8 @@ Engine repo. **Boots Pharmacy** (`src/projects/boots-pharmacy/`) is the first re
 **When the task touches that surface:**  
 CSS layers / DS → [CSS_BASE_THEME.md](docs/product/CSS_BASE_THEME.md) · [DS_STRICTNESS.md](docs/product/DS_STRICTNESS.md) · [FE_STANDARDS.md](docs/product/FE_STANDARDS.md) · [VISUAL_FIDELITY.md](docs/product/VISUAL_FIDELITY.md) · [FE_UI_UX_AUDIT.md](docs/product/FE_UI_UX_AUDIT.md)  
 Pages / kits → [PAGE_BUILD_CONTRACT.md](docs/product/PAGE_BUILD_CONTRACT.md) · [COMPONENT_LIBRARY.md](docs/product/COMPONENT_LIBRARY.md) · [INTERACTION_FIDELITY.md](docs/product/INTERACTION_FIDELITY.md) · [docs/uxds/README.md](docs/uxds/README.md)  
+Chat (`screen=chat`, CJM on/off load/scroll) → [CHAT_PAGE_RAILS.md](docs/projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md) · [MOTION.md](docs/product/MOTION.md)  
+Playback / QA overlay / type-in → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) · [PLAYBACK.md](docs/shell/PLAYBACK.md) · [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md)  
 URL / REC / CI → [docs/shell/URL.md](docs/shell/URL.md) · [docs/shell/RECORDING.md](docs/shell/RECORDING.md) · [CI_ACTIONS_BUDGET.md](docs/product/CI_ACTIONS_BUDGET.md)  
 PO / intake → [PRODUCT_OWNER_BRIEF.md](docs/product/PRODUCT_OWNER_BRIEF.md) · [CONCEPT_INTAKE.md](docs/product/CONCEPT_INTAKE.md) · [SOLUTION_REQUIREMENTS.md](docs/product/SOLUTION_REQUIREMENTS.md)  
 Catalog → [docs/README.md](docs/README.md)
@@ -59,6 +61,10 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 ```
 
 **Canonical localhost (HARD — Auto-Rule `fixed-localhost-reuse-tab`):** agents MUST use **`http://localhost:5173/`** only (`127.0.0.1:5173` = same server). **One** `npm run dev` — if 5173 is busy, reuse that server or stop the stray Vite; do **not** start a second instance. Chrome DevTools MCP: `list_pages` → `select_page` / `navigate_page` on the existing Studio tab; **`new_page` only if zero pages**. → [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R11 · [docs/shell/URL.md](docs/shell/URL.md)
+
+**Reset QA before every test (ALWAYS CLEAR):** `__studioForceClearAgentTestingOverlay()` / overlay `forceClear`, then fresh `start` — never reuse a dirty AGENT TESTING session. Smokes (`withMcpTestSession`) force-clear before arm. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
+
+**Full agentic continuous Play prove (HARD):** call only `await window.__studioRunAgenticFullPlayProve?.()` (alias `__protoRunAgenticFullPlayProve`) — not ad-hoc Play / not `__protoRunAgenticPlaySmoke` (tears down overlay). Returns `{ pass, peak, end, errors }`; keeps QA open for Save Log. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
 
 **Studio URL params:** `project` · `screen` · `persona` · `cjm=on|off` · `experience=agentic|traditional` · `modal` — **not** `mode=agentic-cjm` (legacy alias only). Example: `http://localhost:5173/?project=boots-pharmacy&screen=chat&persona=sarah-jenkins&cjm=on&experience=agentic`. → [docs/shell/URL.md](docs/shell/URL.md)
 
@@ -89,6 +95,7 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 
 ```javascript
 window.__studioRunMcpSanityCheck?.()          // preferred — safe default, no transport
+window.__studioRunAgenticFullPlayProve?.()    // FULL agentic Play prove (keep QA overlay)
 window.__studioExportJourneyBundle?.()        // journey.json
 window.__studioSaveRecordingAsJourney?.()     // REC → ephemeral CJM journey
 window.__studioApplyJourneyBundle?.(json)     // runtime import
@@ -97,10 +104,13 @@ window.__studioStartRecording?.()             // recording session
 window.__studioAgentTestingTakeover           // peek live latch (null | { type, code, beat, screen, diagSnapshot })
 window.__studioConsumePoSignal?.()            // consume + clear — branch on Alarm (sequence mismatch)
 window.__studioDownloadAgentTestingDump?.()   // secondary postmortem dump
+// QA leave / return (HARD — pause while gone; Message on arrival):
+window.__studioAgentTestingOverlay?.pauseForAgentLeave?.()
+window.__studioAgentTestingOverlay?.resumeForAgentReturn?.()  // consume Message latch first
 // Legacy stable aliases (same functions): window.__proto*
 ```
 
-Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates. **R15 overlay process:** PO Alarm/Cursor/Scroll = **STOP → understand diagSnapshot (ask PO if unclear — do not invent) → FIX → RESTART + prove that issue gone**. → [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R15 · [agent-testing/README.md](src/app/shell/agent-testing/README.md).
+Full transport smokes require `__studioRun*` / `__protoRun*` helpers — use sparingly. Day-to-day chrome QA = local MCP/agent + unit XOR gates. **R15 overlay process:** PO Alarm/Cursor/Scroll = **STOP → understand diagSnapshot (ask PO if unclear — do not invent) → FIX → RESTART + prove that issue gone**. **Leave/return:** pause via `pauseForAgentLeave` when leaving the QA session; on return call `resumeForAgentReturn` and handle `messagePendingWork` / `consumedSignal` before continuing. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) · [PLAYBACK_DIAG.md](docs/shell/PLAYBACK_DIAG.md) · [STUDIO_AUTO_RULES.md](docs/product/STUDIO_AUTO_RULES.md) R15 · [agent-testing/README.md](src/app/shell/agent-testing/README.md).
 
 ## CI
 

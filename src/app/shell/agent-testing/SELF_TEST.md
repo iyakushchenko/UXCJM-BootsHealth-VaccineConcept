@@ -56,7 +56,7 @@ window.__studioForceClearAgentTestingOverlay?.()
 | control-room-interactive-only | Y | Empty-space nav ignored; buttons/toggles/tabs → `Control room: …` |
 | session-origin-active | Y | Session line `Session: Localhost:5173 - Active` (origin probe) |
 | fail-handoff-freeze | Y | Handing off → `__studioIsQaProgressFrozen` + block Play until confirm |
-| presence-online-linked | Y | CONTROL label includes `ONLINE · linked` |
+| presence-online-linked | Y | CONTROL label includes `ONLINE` (fresh touch; never ONLINE + Last seen) |
 | message-rtt-helpers | Y | Send→consume RTT; PENDING floor uses measured latency |
 | control-kind-stepped-vs-playback | Y | Agent+CJM+Play → PLAYBACK; parked → STEPPED PLAYBACK |
 | message-midplay-latch | Y | Play on → Send Message → halt + latch; `__studioConsumePoSignal().code === 'USER_MESSAGE_RECEIVED'` |

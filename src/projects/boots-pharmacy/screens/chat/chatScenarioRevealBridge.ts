@@ -55,6 +55,28 @@ export function clearChatScenarioReveal(): void {
   notify();
 }
 
+/**
+ * CJM-on chat mount — kill stale inactive full-thread hold (CJM-off browse /
+ * prior journey end) before first paint. Silent by default (no notify): call
+ * from first render so useSyncExternalStore getSnapshot sees q0. Pass
+ * `notify: true` from useLayoutEffect so sibling roots / diag catch up.
+ * Overlay hold is unaffected — ChatScreen does not remount under avail.
+ * Returns true when a stale hold was reset to progressive entry (q0).
+ */
+export function seedCjmOnProgressiveEntryFromStaleHold(options?: {
+  notify?: boolean;
+}): boolean {
+  if (state.active || state.visibleCount <= 1) return false;
+  state = { active: true, visibleCount: 1 };
+  if (options?.notify) notify();
+  return true;
+}
+
+/** Flush reveal listeners after a silent seed (same state — publish is no-op). */
+export function flushChatScenarioRevealListeners(): void {
+  notify();
+}
+
 /** Clamp engine count onto scripted content frames (never blank on CJM entry). */
 export function resolveChatRevealedFrameCount(
   engineVisibleCount: number,

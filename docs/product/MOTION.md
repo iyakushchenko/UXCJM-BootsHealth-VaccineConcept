@@ -13,9 +13,13 @@
 | Accordion expand/collapse (height) | Motion `height: 0` ↔ `"auto"` | Functional reveal — keep tween so collapse/expand stays visible; always-mounted panel; `initial={false}`; cancels on unmount |
 | Enter / exit presence (menus, diagnostic overlays, modal pilots) | Motion (`AnimatePresence` / `motion.*`) | Opacity (+ tiny y) only; hang-safe; sync-mount XOR panels when `mode="wait"` stranded empty |
 | Imperative position tweens (robo-cursor travel) | Motion `animate(0, 1, { ease: "easeInOut", … })` | Stoppable via `.stop()` |
+| **Content load interim (refresh / first paint / listing)** | `STUDIO_CONTENT_LOAD_MS` (**1500**) via `@/uxds/motion` | Real-life feel — **not** instant dump. PLP + CJM-off chat existing-thread load share this. Do **not** invent per-page timers. Chat rails: [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md). |
+| **Enter + camera co-travel** | `STUDIO_ENTER_MS` (**340**) + scroll SSoT | Appear and scroll finish together on target. Default unless PO asks to remove a transition. CJM-off chat: post-paint `scrollCameraToHostEnd` with this duration. |
 | Trivial hover color/opacity; Accordion chevron mute/rotate | CSS | One property / kit chevron; chevron honors `prefers-reduced-motion` |
 
 **Do not** drive Accordion with CSS `grid-template-rows: 0fr` ↔ `1fr` anymore — OS `prefers-reduced-motion: reduce` zeroed those transitions (`transition: none !important`), so expand looked instant. Motion height is the kit path.
+
+**Do not** add one-off load/scroll timers per screen when PO asks for “less abrupt” — extend `@/uxds/motion` defaults, then consume them.
 
 No React Spring. No bespoke `@keyframes` zoos unless registered in [DEVIATIONS.md](../uxds/DEVIATIONS.md).
 

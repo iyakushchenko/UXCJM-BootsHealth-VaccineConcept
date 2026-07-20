@@ -7,6 +7,7 @@ import {
   resolveChatFrameRevealed,
   resolveChatPullUpAnimateIds,
   resolveChatRevealedFrameCount,
+  seedCjmOnProgressiveEntryFromStaleHold,
 } from "../chatScenarioRevealBridge";
 
 // logChatReveal / dumpChatThreadDomOrder are console helpers — covered live on :5173.
@@ -40,8 +41,10 @@ describe("chatScenarioRevealBridge", () => {
       active: false,
       visibleCount: 0,
     });
-    // ChatScreen maps inactive+0 → engine count 1 (q0 only).
+    // ChatScreen maps inactive+0 → engine count 1 (q0 only) for CJM cold start.
     expect(resolveChatRevealedFrameCount(1, 8, 1)).toBe(1);
+    // CJM-off existing-chat load interim: minVisible 0 honors blank hold.
+    expect(resolveChatRevealedFrameCount(0, 8, 0)).toBe(0);
     // Explicit idle full-thread publish still paints all.
     publishChatScenarioReveal({ active: false, visibleCount: 8 });
     expect(resolveChatRevealedFrameCount(8, 8, 1)).toBe(8);
@@ -55,6 +58,21 @@ describe("chatScenarioRevealBridge", () => {
       visibleCount: 7,
     });
     expect(resolveChatRevealedFrameCount(7, 8, 1)).toBe(7);
+  });
+
+  it("seeds CJM-on progressive entry from stale inactive full-thread hold", () => {
+    publishChatScenarioReveal({ active: false, visibleCount: 8 });
+    expect(seedCjmOnProgressiveEntryFromStaleHold()).toBe(true);
+    expect(getChatScenarioRevealState()).toEqual({
+      active: true,
+      visibleCount: 1,
+    });
+    // Idempotent once progressive entry is seeded.
+    expect(seedCjmOnProgressiveEntryFromStaleHold()).toBe(false);
+    // Active progressive mid-thread must not be reset (overlay remount N/A).
+    publishChatScenarioReveal({ active: true, visibleCount: 4 });
+    expect(seedCjmOnProgressiveEntryFromStaleHold()).toBe(false);
+    expect(getChatScenarioRevealState().visibleCount).toBe(4);
   });
 
   it("holds agent reply paint while playback thinking is anchored", () => {

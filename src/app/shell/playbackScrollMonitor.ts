@@ -9,6 +9,7 @@ import {
   type ScrollAnomaly,
   type ScrollSample,
 } from "@/app/shell/playbackScrollAnomalies";
+import { isChatPullUpScrollLocked } from "@/projects/boots-pharmacy/screens/chat/chatMotion";
 
 /** Tab / screen changes — eased camera mid-flight must not FAIL path deviation. */
 const NAVIGATION_SCROLL_GRACE_MS = 1200;
@@ -250,7 +251,14 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
       const now = performance.now();
       // Suppress during director scripts AND screen/retreat grace (confirmation→history
       // click scroll must not FAIL when the host swaps mid-ease).
-      if (!inScriptWatch && !inPassiveScrollGrace() && animation === anim) {
+      // Also suppress while chat bubble pull-up holds scrollLock — PO co-travel
+      // (pull-up + host-end) intentionally diverges from a single eased path.
+      if (
+        !inScriptWatch &&
+        !inPassiveScrollGrace() &&
+        animation === anim &&
+        !isChatPullUpScrollLocked()
+      ) {
         const deviation = detectScrollPathDeviation({
           startTop: anim.startTop,
           targetTop: anim.targetTop,

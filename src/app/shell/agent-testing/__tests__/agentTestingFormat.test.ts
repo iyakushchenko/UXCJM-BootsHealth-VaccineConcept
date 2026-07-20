@@ -28,6 +28,7 @@ describe("agentTestingFormat", () => {
 
   it("infers outcome colors from text", () => {
     expect(inferOutcomeFromText("PASS  overlay-arm")).toBe("ok");
+    expect(inferOutcomeFromText("RESULT · PASS — all checks ok")).toBe("pass");
     expect(inferOutcomeFromText("FAIL  click")).toBe("fail");
     expect(inferOutcomeFromText("soft-fail unexpected dwell")).toBe("soft-fail");
     expect(inferOutcomeFromText("cursor issue detected")).toBe("soft-fail");

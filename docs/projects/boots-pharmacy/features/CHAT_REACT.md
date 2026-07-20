@@ -24,7 +24,7 @@ Erase-Make sequence: PLP → PDP (**HARD-GREEN**) → Site Pilot Home → **Chat
 | Agent CTAs | Book / catalog / slot / date / pharmacy — wire maps to PDP, PLP, Availability Tool |
 | CJM agentic | Beat `agentic-chat` → scenario `site-pilot-chat` with thinking + demo cursor + finale date CTA |
 | CJM traditional | No chat beat — PLP → PDP → book path only |
-| Browse (CJM off) | Land on chat → browse reveal (thinking pause → full thread at bottom) |
+| Browse (CJM off) | Land on chat → **saved-chat load** (blank `STUDIO_CONTENT_LOAD_MS` → full thread → smooth scroll bottom). Rails: [CHAT_PAGE_RAILS.md](./CHAT_PAGE_RAILS.md) |
 | Helpful UI | Per-reply + conversation feedback bands — conversation band hidden until wire shows |
 | Disclaimer | Fixed below dock — “SitePilot can make mistakes…” |
 

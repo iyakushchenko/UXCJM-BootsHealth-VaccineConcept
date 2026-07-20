@@ -26,6 +26,10 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "DiagnosticFlashes",
   "ControlPanelLog",
   "DismissPlaybackDiagnostic",
+  // Pollable playback-diag peeks — agents tick these; MUST NOT log/re-arm every peek.
+  "PeekPlaybackDiagnostic",
+  "IsPlaybackDiagnosticOpen",
+  "ConsumePlaybackDiagnostic",
   "ExportRecording",
   "ExportJourney",
   "ExportJourneyBundle",
@@ -68,6 +72,8 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   // start() and leaves stop() stuck at nest>0 (no sitrep / flaky panel).
   "RunMcpPageProbe",
   "RunMcpSanityCheck",
+  // Full agentic Play prove — owns forceClear/arm/leave; must not double-touch wrap.
+  "RunAgenticFullPlayProve",
   // Auto-Rule agent-teardown-clean asserts — must not re-arm overlay while proving clear.
   "AssertAgentTeardownClean",
   "WaitAgentTeardownClean",

@@ -150,11 +150,19 @@ export type PlaybackDiagEvent = {
 
 /** Cap full bubble frame series for Save Log (gate-open sampling). */
 const MAX_BUBBLE_SAMPLES = 720;
+/** Keep every Nth pull-up rAF in dump — still detect JUMP/CHOP every frame. */
+const BUBBLE_FRAME_SAMPLE_EVERY = 4;
+/** Dedupe routine camera TRACE into dump (same tag within this window). */
+const BUBBLE_TRACE_SAMPLE_MS = 280;
 const bubbleSamples: PlaybackDiagEvent[] = [];
 /** Per-id phase set — detect skipped mount→start→end. */
 const bubblePhasesById = new Map<string, Set<string>>();
 /** Per-id last transform y for jump detection across frames. */
 const bubblePrevTransformY = new Map<string, number>();
+/** Per-id frame counter for dump sampling (not for JUMP Δ — that stays consecutive). */
+const bubbleFrameCounters = new Map<string, number>();
+/** Last kept routine TRACE key → timestamp (perf — avoid overlay/console flood). */
+const bubbleTraceLastKept = new Map<string, number>();
 
 export const CHAT_BUBBLE_JUMP_LAYOUT_PX = 10;
 export const CHAT_BUBBLE_JUMP_TRANSFORM_PX = 4.5;
@@ -162,6 +170,8 @@ export const CHAT_BUBBLE_SCROLL_CHOP_PX = 18;
 
 const MAX_EVENTS = 400;
 const events: PlaybackDiagEvent[] = [];
+/** Completed type-in char samples (in-memory only — never per-char events). */
+let completedTypeInSamples: number[] = [];
 let typeInActive: {
   surface: string;
   startedAt: number;
@@ -218,12 +228,60 @@ function consolePayload(full: PlaybackDiagEvent): Record<string, unknown> {
   };
 }
 
+/** Lean console — FAIL/chop/JUMP + milestones; not every cursor/scroll/beat tick. */
+function shouldConsolePlaybackDiag(full: PlaybackDiagEvent): boolean {
+  if (full.ok === false || full.clickOk === false) return true;
+  if (full.kind === "type-in-progress") return false;
+  if (
+    full.kind === "type-in-start" ||
+    full.kind === "type-in-end" ||
+    full.kind === "type-in-skip" ||
+    full.kind === "skip" ||
+    full.kind === "play-end" ||
+    full.kind === "journey-reset" ||
+    full.kind === "hub-nav" ||
+    full.kind === "nav-cross"
+  ) {
+    return true;
+  }
+  if (full.kind === "click") return true;
+  if (full.kind === "cursor") {
+    return (
+      full.cursor?.onTarget === false ||
+      /HIDDEN|OFF-TARGET|FAIL|suppressed|hotspot miss/i.test(full.detail ?? "")
+    );
+  }
+  if (full.kind === "scroll") {
+    return /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted|FAIL/i.test(
+      full.detail ?? ""
+    );
+  }
+  if (
+    full.kind === "step-forward" ||
+    full.kind === "step-back" ||
+    full.kind === "transport" ||
+    full.kind === "retreat-sync"
+  ) {
+    return (
+      full.ok === false ||
+      /fail|warn|error|no-op|blocked|stall|mismatch|unexpected/i.test(
+        full.detail ?? ""
+      )
+    );
+  }
+  if (full.kind === "info" || full.kind === "rec-capture" || full.kind === "rec-replay") {
+    return /fail|warn|error|JUMP|CHOP|FAIL|clear/i.test(full.detail ?? "");
+  }
+  // beat / target / page-jiggle — dump only; too chatty for Live console.
+  return false;
+}
+
 function push(event: Omit<PlaybackDiagEvent, "t">): PlaybackDiagEvent {
   const full: PlaybackDiagEvent = { t: now(), ...event };
   events.push(full);
   if (events.length > MAX_EVENTS) events.shift();
   // Heavy console only while QA diag gate is open (version-chip logger / agent overlay).
-  if (isQaDiagGateOpen()) {
+  if (isQaDiagGateOpen() && shouldConsolePlaybackDiag(full)) {
     console.info("[PLAYBACK_DIAG]", full.kind, consolePayload(full));
   }
   // Lean QA mirror — monitor/error family rows (not every sample).
@@ -240,7 +298,10 @@ export function playbackDiagClear(): void {
   bubbleSamples.length = 0;
   bubblePhasesById.clear();
   bubblePrevTransformY.clear();
+  bubbleFrameCounters.clear();
+  bubbleTraceLastKept.clear();
   typeInActive = null;
+  completedTypeInSamples = [];
   if (isQaDiagGateOpen()) {
     console.info("[PLAYBACK_DIAG]", "clear");
   }
@@ -562,23 +623,31 @@ export function playbackDiagTypeInStart(
   });
 }
 
-/** Sample current typed length during animation. */
+/**
+ * Sample typed length during animation — sparse in-memory only.
+ * HARD: never push per-char events (QA overlay + console flood).
+ * HARD: never store every char in samples either (dump smell: samples=249
+ * with starts/ends=2). Keep ≤ start + every 16 + final for assertTypeIn.
+ */
 export function playbackDiagTypeInProgress(chars: number): void {
   if (!typeInActive) return;
-  typeInActive.samples.push(chars);
-  // Throttle console noise — log every 16 chars or completion-ish.
-  if (chars % 16 === 0 || chars === typeInActive.targetChars) {
-    push({
-      kind: "type-in-progress",
-      surface: typeInActive.surface,
-      chars,
-      targetChars: typeInActive.targetChars,
-    });
-  }
+  const samples = typeInActive.samples;
+  const last = samples[samples.length - 1];
+  const atCheckpoint =
+    chars === 0 ||
+    chars % 16 === 0 ||
+    chars === typeInActive.targetChars;
+  if (!atCheckpoint && last === chars) return;
+  if (!atCheckpoint && last != null && chars - last < 16) return;
+  if (last === chars) return;
+  samples.push(chars);
 }
 
 export function playbackDiagTypeInEnd(ok: boolean, detail?: string): void {
   const active = typeInActive;
+  if (active?.samples.length) {
+    completedTypeInSamples.push(...active.samples);
+  }
   typeInActive = null;
   push({
     kind: "type-in-end",
@@ -723,6 +792,7 @@ export function playbackDiagChatBubbleMotion(options: {
   let jumpReason: string | null = null;
   const deltaY = options.deltaY ?? null;
   let deltaTransformY: number | null = null;
+  const dScroll = options.trace?.deltaScrollTop;
 
   if (typeof options.y === "number" && Number.isFinite(options.y)) {
     const prevY = bubblePrevTransformY.get(id);
@@ -740,21 +810,30 @@ export function playbackDiagChatBubbleMotion(options: {
     typeof deltaY === "number" &&
     Math.abs(deltaY) > CHAT_BUBBLE_JUMP_LAYOUT_PX
   ) {
-    jump = true;
-    jumpReason = jumpReason
-      ? `${jumpReason}; layout ΔY=${deltaY}`
-      : `layout ΔY=${deltaY}`;
+    // Camera co-travel during pull-up moves layoutY with scrollTop — not a JUMP.
+    const camTravel =
+      typeof dScroll === "number" && Math.abs(dScroll) > 0.5;
+    if (!camTravel) {
+      jump = true;
+      jumpReason = jumpReason
+        ? `${jumpReason}; layout ΔY=${deltaY}`
+        : `layout ΔY=${deltaY}`;
+    }
   }
 
   let chop = options.chop === true;
   let chopReason = options.chopReason ?? null;
-  const dScroll = options.trace?.deltaScrollTop;
   if (
     typeof dScroll === "number" &&
     Math.abs(dScroll) > CHAT_BUBBLE_SCROLL_CHOP_PX
   ) {
-    chop = true;
-    chopReason = chopReason ?? `scrollTop Δ=${dScroll}`;
+    // Pull-up scroll lock = intentional camera co-travel (any Δ). Large host-end
+    // steps on tall threads (r1+) are expected — must not hard-CHOP / halt Play.
+    const easedCoTravel = options.trace?.scrollLock === true;
+    if (!easedCoTravel) {
+      chop = true;
+      chopReason = chopReason ?? `scrollTop Δ=${dScroll}`;
+    }
   }
   // underComposer on frames is expected during rise-from-dock — TRACE only, not CHOP.
 
@@ -766,6 +845,45 @@ export function playbackDiagChatBubbleMotion(options: {
       skippedNote = `${id}: animate-end without animate-start`;
     }
     bubblePrevTransformY.delete(id);
+    bubbleFrameCounters.delete(id);
+  }
+
+  const cameraTag =
+    options.trace?.cameraTag ??
+    (typeof options.note === "string"
+      ? options.note.replace(/^camera:/, "")
+      : null);
+  const isMilestonePhase =
+    phase === "mount" ||
+    phase === "animate-start" ||
+    phase === "animate-end" ||
+    phase === "thinking-handoff" ||
+    phase === "exit";
+  /** Routine co-travel TRACE — dump-sampled only; never flood console/overlay. */
+  const isRoutineTrace =
+    phase === "trace" &&
+    !jump &&
+    !chop &&
+    !/topup|fail|JUMP|CHOP|error/i.test(
+      `${options.note ?? ""} ${cameraTag ?? ""} ${options.chopReason ?? ""}`
+    );
+
+  let keepInSamples = true;
+  if (jump || chop || skippedNote || isMilestonePhase) {
+    keepInSamples = true;
+  } else if (phase === "frame") {
+    const n = (bubbleFrameCounters.get(id) ?? 0) + 1;
+    bubbleFrameCounters.set(id, n);
+    keepInSamples = n === 1 || n % BUBBLE_FRAME_SAMPLE_EVERY === 0;
+  } else if (phase === "trace") {
+    const tagKey = `${id}:${cameraTag ?? options.note ?? "camera"}`;
+    const last = bubbleTraceLastKept.get(tagKey) ?? 0;
+    const tNow = now();
+    if (isRoutineTrace && tNow - last < BUBBLE_TRACE_SAMPLE_MS) {
+      keepInSamples = false;
+    } else {
+      bubbleTraceLastKept.set(tagKey, tNow);
+    }
   }
 
   const detail =
@@ -814,22 +932,28 @@ export function playbackDiagChatBubbleMotion(options: {
     bubble,
   };
 
-  bubbleSamples.push(full);
-  if (bubbleSamples.length > MAX_BUBBLE_SAMPLES) bubbleSamples.shift();
+  if (keepInSamples) {
+    bubbleSamples.push(full);
+    if (bubbleSamples.length > MAX_BUBBLE_SAMPLES) bubbleSamples.shift();
+  }
 
-  if (isQaDiagGateOpen()) {
+  // Never console every pull-up rAF / routine camera TRACE — JUMP/CHOP + milestones only.
+  const emitConsole =
+    jump ||
+    chop ||
+    !!skippedNote ||
+    isMilestonePhase ||
+    (phase === "trace" && !isRoutineTrace);
+  if (isQaDiagGateOpen() && emitConsole) {
     console.info("[PLAYBACK_DIAG]", full.kind, consolePayload(full));
   }
 
+  // Overlay / event ring: milestones + FAIL class — not routine TRACE waterfall.
   const summarize =
     jump ||
     chop ||
-    phase === "mount" ||
-    phase === "animate-start" ||
-    phase === "animate-end" ||
-    phase === "thinking-handoff" ||
-    phase === "exit" ||
-    phase === "trace" ||
+    isMilestonePhase ||
+    (phase === "trace" && !isRoutineTrace) ||
     !!skippedNote;
 
   if (summarize) {
@@ -893,7 +1017,7 @@ export function playbackDiagChatBubbleMotion(options: {
     }
   }
 
-  return full;
+  return keepInSamples || summarize ? full : null;
 }
 
 export function getPlaybackDiagBundle(): PlaybackDiagBundle {
@@ -910,9 +1034,16 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
   const scrollEvents = events.filter((e) => e.kind === "scroll");
   const clickEvents = events.filter((e) => e.kind === "click");
   const skipEvents = events.filter((e) => e.kind === "skip");
-  const progressSamples = events
+  // Prefer in-memory samples (per-char, no event spam). Legacy type-in-progress
+  // events (if any) still count so old dumps stay assertable.
+  const legacyProgress = events
     .filter((e) => e.kind === "type-in-progress" && typeof e.chars === "number")
     .map((e) => e.chars as number);
+  const liveSamples = typeInActive?.samples ?? [];
+  const progressSamples =
+    completedTypeInSamples.length || liveSamples.length
+      ? [...completedTypeInSamples, ...liveSamples]
+      : legacyProgress;
 
   return {
     events: [...events],

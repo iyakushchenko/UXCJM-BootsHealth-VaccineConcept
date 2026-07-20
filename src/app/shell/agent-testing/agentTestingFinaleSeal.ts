@@ -43,7 +43,8 @@ export function isQuietDiagDismissSource(source: string): boolean {
     s === "qa-stop" ||
     s === "qa-stop-force" ||
     s === "force-clear" ||
-    s.startsWith("qa-soft") ||
+    s === "qa-overlay-start" ||
+    s.startsWith("qa-") ||
     s.includes("finale")
   );
 }

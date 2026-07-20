@@ -35,7 +35,7 @@ const ALLOWLIST = {
   "src/app/shell/agent-testing/agentTestingOverlay.ts": 4120, // PP-13 expand + stale-green + diag mirror hooks + prior A–E
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth
-  "src/app/scenario/demoCursor.ts": 1680, // on-target click gate; hit-test in demoCursorOnTarget.ts
+  "src/app/scenario/demoCursor.ts": 1740, // FM stop≠settle hang-guard; on-target click gate; demoCursorOnTarget.ts
   "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4810, // + React chat sticky skip; shrink by screen migrate
   "src/projects/boots-pharmacy/data/plpListing.ts": 2000, // Make PLP DOM; retire with PLP React
 };

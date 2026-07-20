@@ -2,9 +2,19 @@
 
 How the Proto Studio journey engine works, how to change scripts safely, and what to verify after every playback-related change.
 
-See also: [SHELL.md](./SHELL.md) (architecture), [PROJECTS.md](./PROJECTS.md) (registering projects/personas), **[PLAYBACK_DIAG.md](./PLAYBACK_DIAG.md)** (console type-in / step / retreat contract — Auto-Rule R13).
+See also: [SHELL.md](./SHELL.md) (architecture), [PROJECTS.md](./PROJECTS.md) (registering projects/personas), **[PLAYBACK_DIAG.md](./PLAYBACK_DIAG.md)** (console type-in / step / retreat contract — Auto-Rule R13), **[QA_LOGGING_AND_PLAYBACK_RECIPE.md](./QA_LOGGING_AND_PLAYBACK_RECIPE.md)** (Play ≡ Step · type-in REQUIRED · per-char QA FORBIDDEN · FM `stop()` hang · thinking camera).
 
 ---
+
+## Play ≡ Step
+
+Continuous **Play** uses the **same** beat/script runners as **Step Forward** (automated). Do not invent a dump-all / skip-type-in Play path. CJM-on chat enter = q0 then progressive; CJM-off = saved-chat load — [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md).
+
+**Type-in:** page composers must still animate letter-by-letter. Gate **QA/diag logging** of per-character progress only — never kill the animation to quiet the overlay. Dump smell: `typeIn.samples ≫ starts` (e.g. 249 vs 2).
+
+**Cursor travel:** never `await` FM controls after `stop()` alone — settles on onComplete/abort/ceiling (`demoCursor.ts`) or Play dies with `script-timeout` at confirmation.
+
+**Chat camera:** thinking paints `revealed=false` — settle via `resolveChatCameraTarget` (thinking first).
 
 ## Architecture (30-second map)
 

@@ -24,12 +24,16 @@ describe("agentTestingDiagMirror", () => {
     );
   });
 
-  it("formats lean label", () => {
+  it("formats human label (same as QA chat)", () => {
     expect(
       formatDiagMirrorLabel(
-        ev({ kind: "scroll", beatId: "b1", detail: "into-view" })
+        ev({
+          kind: "scroll",
+          detail: "camera",
+          scroll: { beforeTop: 400, afterTop: 200, retreat: false },
+        })
       )
-    ).toContain("scroll");
+    ).toMatch(/wrong way/i);
   });
 
   it("getDiagMirrorRows returns array", () => {

@@ -326,7 +326,11 @@ export function cancelDemoCursorTravel(): void {
   travelGeneration += 1;
   cursorPosLocked = false;
   if (activeTravelControls) {
-    activeTravelControls.stop();
+    try {
+      activeTravelControls.stop();
+    } catch {
+      /* hang-safe */
+    }
     activeTravelControls = null;
   }
 }
@@ -618,41 +622,65 @@ async function animateCursorTravel(
   noteCursorPathSample("travel", startX, startY);
   if (aborted()) return false;
 
-  // Motion tween — ease-in-out only (light touch). No spring / back / overshoot.
-  // Hover is applied AFTER settle (not mid-travel) so CTA layout shifts cannot re-aim.
+  // HARD: FM `controls.stop()` does NOT settle `await controls` (hangs forever).
+  // Abort mid-travel stranded scripts until 45s timeout (confirmation-open-appointments).
+  const travelMs = Math.max(1, durationMs);
   let controls!: AnimationPlaybackControls;
-  controls = animate(0, 1, {
-    duration: Math.max(0.001, durationMs / 1000),
-    ease: MOTION_EASE_IN_OUT,
-    onUpdate: (progress) => {
-      if (aborted()) {
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      if (activeTravelControls === controls) activeTravelControls = null;
+      resolve();
+    };
+    const stopAndSettle = () => {
+      try {
         controls.stop();
+      } catch {
+        /* hang-safe */
+      }
+      settle();
+    };
+    controls = animate(0, 1, {
+      duration: travelMs / 1000,
+      ease: MOTION_EASE_IN_OUT,
+      onUpdate: (progress) => {
+        if (aborted()) {
+          stopAndSettle();
+          return;
+        }
+        if (progress >= 0.9) tracking = false;
+        const end = resolveEnd();
+        const x = startX + (end.x - startX) * progress;
+        const y = startY + (end.y - startY) * progress;
+        if (cursor.isConnected) writeDemoCursorPos(cursor, x, y, { force: true });
+        noteCursorPathSample("travel", x, y);
+      },
+      onComplete: settle,
+    });
+    activeTravelControls = controls;
+    // Abort poll — stop() alone never settles FM's thenable.
+    const guard = window.setInterval(() => {
+      if (settled) {
+        window.clearInterval(guard);
         return;
       }
-      // Freeze tracking before the last segment so hover/layout cannot chase the tip.
-      if (progress >= 0.9) tracking = false;
-      const end = resolveEnd();
-      const x = startX + (end.x - startX) * progress;
-      const y = startY + (end.y - startY) * progress;
-      if (cursor.isConnected) {
-        writeDemoCursorPos(cursor, x, y, { force: true });
+      if (aborted()) {
+        window.clearInterval(guard);
+        stopAndSettle();
       }
-      noteCursorPathSample("travel", x, y);
-    },
+    }, 32);
+    // Natural complete path (thenable resolves). Keep ceiling tight so tests
+    // still observe press within their sampling windows.
+    Promise.resolve(controls).then(settle, settle);
+    window.setTimeout(() => {
+      window.clearInterval(guard);
+      if (!settled) stopAndSettle();
+    }, travelMs + 80);
   });
-  activeTravelControls = controls;
 
-  try {
-    await controls;
-  } finally {
-    if (activeTravelControls === controls) {
-      activeTravelControls = null;
-    }
-  }
-
-  if (aborted()) {
-    return false;
-  }
+  if (aborted()) return false;
 
   const finalEnd = resolveEnd();
   if (cursor.isConnected) {

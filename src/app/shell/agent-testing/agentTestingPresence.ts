@@ -1,15 +1,34 @@
 /**
  * Live "online with agent" presence — last-seen heartbeat for QA CONTROL.
+ *
+ * Agents SHOULD call `__studioAgentTestingOverlay.pauseForAgentLeave()` /
+ * `resumeForAgentReturn()` when leaving/returning the QA session.
+ *
+ * HARD guard rail: when last touch exceeds `QA_AGENT_AUTO_PAUSE_MS`, the
+ * overlay heartbeat auto-pauses capture + Play (same leave path, no
+ * DIAGNOSTIC_ACK_STOP / QA_PAUSE_HALT latch). Return via
+ * `resumeForAgentReturn` / touch unpauses + reads Message latch.
+ *
+ * Label XOR (PO): either **ONLINE** (recently touched) **or**
+ * **Last seen Xs ago** when stale — never both. Green diode = present only.
  */
 
 const MEMORY_KEY = "__studioQaPresenceMemory";
 const HEARTBEAT_MS = 2_000;
+/** Agent counts as present when last touch ≤ this age (align resume-card stale). */
+export const QA_AGENT_PRESENT_MS = 8_000;
+/**
+ * Auto-pause capture + Play when last touch exceeds this age.
+ * Same window as present TTL so green ONLINE never pairs with a live session.
+ */
+export const QA_AGENT_AUTO_PAUSE_MS = QA_AGENT_PRESENT_MS;
 
 type Memory = {
   online: boolean;
   lastSeenAt: number;
   linkedAt: number;
   timer: ReturnType<typeof setInterval> | null;
+  onTick: ((ageMs: number) => void) | null;
 };
 
 function memory(): Memory {
@@ -21,6 +40,7 @@ function memory(): Memory {
         lastSeenAt: 0,
         linkedAt: 0,
         timer: null,
+        onTick: null,
       };
     }
     return g[MEMORY_KEY]!;
@@ -32,6 +52,7 @@ function memory(): Memory {
       lastSeenAt: 0,
       linkedAt: 0,
       timer: null,
+      onTick: null,
     };
   }
   return w[MEMORY_KEY]!;
@@ -55,44 +76,65 @@ export function clearQaAgentPresence(): void {
     clearInterval(m.timer);
     m.timer = null;
   }
+  m.onTick = null;
 }
 
-/** Start heartbeat while agent CONTROL is live (idempotent). */
+/**
+ * Start heartbeat while agent CONTROL is live (idempotent).
+ * Re-arming replaces `onTick` so auto-pause + MCP chrome stay wired after HMR.
+ */
 export function armQaAgentPresenceHeartbeat(
   onTick?: (ageMs: number) => void
 ): void {
   const m = memory();
   touchQaAgentPresence("arm");
+  if (onTick) m.onTick = onTick;
   if (m.timer != null) return;
   m.timer = setInterval(() => {
-    if (!m.online) return;
+    // Keep ticking while session is linked — stale age drives auto-pause + Last seen.
+    if (!m.online || !m.lastSeenAt) return;
     const age = Date.now() - m.lastSeenAt;
     try {
-      onTick?.(age);
+      m.onTick?.(age);
     } catch {
       /* hang-safe */
     }
   }, HEARTBEAT_MS);
 }
 
+/** True when last touch is past the auto-pause TTL (guard rail). */
+export function isQaAgentPresenceStaleForAutoPause(
+  ageMs = peekQaAgentPresence().ageMs
+): boolean {
+  const m = memory();
+  if (!m.online || !m.lastSeenAt) return false;
+  return ageMs > QA_AGENT_AUTO_PAUSE_MS;
+}
+
 export function peekQaAgentPresence(): {
+  /** True only when agent session is linked AND recently touched. */
   online: boolean;
   lastSeenAt: number;
   linkedAt: number;
   ageMs: number;
+  /** `ONLINE` | `Last seen Ns ago` | `` — never combine. */
   label: string;
 } {
   const m = memory();
   const now = Date.now();
   const ageMs = m.lastSeenAt ? Math.max(0, now - m.lastSeenAt) : 0;
   const ageSec = Math.round(ageMs / 1000);
-  const label = !m.online
-    ? ""
-    : ageSec <= 3
-      ? "ONLINE · linked"
-      : `ONLINE · seen ${ageSec}s ago`;
+  const present = Boolean(
+    m.online && m.lastSeenAt > 0 && ageMs <= QA_AGENT_PRESENT_MS
+  );
+  let label = "";
+  if (present) {
+    label = "ONLINE";
+  } else if (m.lastSeenAt > 0) {
+    label = `Last seen ${ageSec}s ago`;
+  }
   return {
-    online: m.online,
+    online: present,
     lastSeenAt: m.lastSeenAt,
     linkedAt: m.linkedAt,
     ageMs,

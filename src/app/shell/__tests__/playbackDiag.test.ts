@@ -83,6 +83,57 @@ describe("playbackDiag", () => {
     expect(getPlaybackDiagBundle().chatBubbleMotion.count).toBe(0);
   });
 
+  it("samples bubble frames / routine TRACE — no per-rAF console or overlay flood", () => {
+    const spy = vi.spyOn(console, "info").mockImplementation(() => {});
+    playbackDiagChatBubbleMotion({
+      id: "r2",
+      phase: "animate-start",
+      y: 14,
+      opacity: 0,
+      shouldAnimate: true,
+    });
+    for (let i = 0; i < 12; i++) {
+      playbackDiagChatBubbleMotion({
+        id: "r2",
+        phase: "frame",
+        y: 12 - i,
+        opacity: 0.2,
+        deltaY: 1,
+        shouldAnimate: true,
+        trace: { scrollLock: true, deltaScrollTop: 2, cameraTag: "pull-up-raf" },
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      playbackDiagChatBubbleMotion({
+        id: "r2",
+        phase: "trace",
+        note: "camera:pull-up-co-travel",
+        shouldAnimate: true,
+        trace: {
+          scrollLock: true,
+          cameraTag: "pull-up-co-travel",
+          clearPx: 20,
+          underComposer: false,
+        },
+      });
+    }
+    const bundle = getPlaybackDiagBundle();
+    // Sparse frames (every 4th + first) — not 12.
+    expect(bundle.chatBubbleMotion.count).toBeLessThan(12);
+    expect(bundle.chatBubbleMotion.count).toBeGreaterThanOrEqual(4);
+    // Routine TRACE must not flood the event ring / QA summarize path.
+    const traceEvents = bundle.events.filter(
+      (e) =>
+        e.kind === "chat-bubble-motion" && e.bubble?.phase === "trace"
+    );
+    expect(traceEvents.length).toBeLessThan(3);
+    // Console: milestone start only — not every frame/routine TRACE.
+    const bubbleConsole = spy.mock.calls.filter(
+      (c) => c[1] === "chat-bubble-motion"
+    );
+    expect(bubbleConsole.length).toBeLessThan(4);
+  });
+
   it("records type-in progress and asserts PASS", () => {
     const spy = vi.spyOn(console, "info").mockImplementation(() => {});
     playbackDiagTypeInStart("site-pilot", 20);
@@ -94,6 +145,14 @@ describe("playbackDiag", () => {
     expect(bundle.typeIn.ends).toBe(1);
     expect(bundle.typeIn.skips).toBe(0);
     expect(bundle.typeIn.progressSamples.length).toBeGreaterThanOrEqual(2);
+    // Sparse samples only (not one per char) — dump smell was samples≈249.
+    expect(bundle.typeIn.progressSamples.length).toBeLessThan(10);
+    // HARD: no per-char (or throttled) type-in-progress events — samples in-memory only.
+    expect(bundle.events.filter((e) => e.kind === "type-in-progress")).toHaveLength(
+      0
+    );
+    expect(bundle.events.filter((e) => e.kind === "type-in-start")).toHaveLength(1);
+    expect(bundle.events.filter((e) => e.kind === "type-in-end")).toHaveLength(1);
 
     const assert = assertPlaybackTypeIn({ minSamples: 2, minChars: 8 });
     expect(assert.pass).toBe(true);
@@ -177,17 +236,27 @@ describe("playbackDiag", () => {
     expect(bundle.skip.count).toBe(1);
     expect(bundle.step.forwards).toBe(1);
     expect(bundle.step.backs).toBe(1);
-    expect(
-      spy.mock.calls.some(
-        (c) => c[0] === "[PLAYBACK_DIAG]" && String(c[1]).includes("cursor")
-      )
-    ).toBe(true);
+    // Lean console: healthy park / step ticks stay out of DevTools.
     expect(
       spy.mock.calls.some(
         (c) =>
           c[0] === "[PLAYBACK_DIAG]" &&
           String(c[2]?.detail ?? "").includes("PARKED")
       )
+    ).toBe(false);
+    expect(
+      spy.mock.calls.some(
+        (c) => c[0] === "[PLAYBACK_DIAG]" && c[1] === "step-forward"
+      )
+    ).toBe(false);
+    // Keep real product signals: click + skip still emit.
+    expect(
+      spy.mock.calls.some(
+        (c) => c[0] === "[PLAYBACK_DIAG]" && c[1] === "click"
+      )
+    ).toBe(true);
+    expect(
+      spy.mock.calls.some((c) => c[0] === "[PLAYBACK_DIAG]" && c[1] === "skip")
     ).toBe(true);
   });
 

@@ -20,6 +20,11 @@ import {
   readChatBubbleComposerTrace,
   startChatBubbleMotionSample,
 } from "./chatMotion";
+import { STUDIO_ENTER_MS } from "@/uxds/motion";
+import {
+  bumpChatBrowseEntryReveal,
+  runChatBrowseEntryReveal,
+} from "./chatBrowseEntryReveal";
 import {
   endSitePilotChatThinking,
   isSitePilotChatSendThinking,
@@ -30,10 +35,15 @@ import {
   STUDIO_SCROLL_OVERFLOW_CLASS,
   syncStudioScrollOverflowGutter,
 } from "@/app/scenario/studioScrollOverflow";
-import { scrollCameraToHostEnd, cancelPlaybackScroll } from "@/app/scenario/playbackScroll";
+import {
+  resolveChatCameraTarget,
+  scrollCameraToHostEnd,
+  scrollCameraToTarget,
+} from "@/app/scenario/playbackScroll";
 import { CHAT_REACT_SCREEN_ID } from "./chatContract";
 import { ChatSitePilotBar } from "./ChatSitePilotBar";
 import {
+  clearChatThinkingBridge,
   getChatThinkingBridgeState,
   subscribeChatThinkingBridge,
 } from "./chatThinkingBridge";
@@ -46,6 +56,8 @@ import {
   resolveChatFrameRevealed,
   resolveChatPullUpAnimateIds,
   resolveChatRevealedFrameCount,
+  seedCjmOnProgressiveEntryFromStaleHold,
+  flushChatScenarioRevealListeners,
   subscribeChatScenarioReveal,
 } from "./chatScenarioRevealBridge";
 import { ChatThinkingBubble } from "./ChatThinkingBubble";
@@ -296,8 +308,7 @@ function useChatBubbleMotionDiag(
         requestAnimationFrame(armSample);
         return;
       }
-      // Intentional handoff to chat pull-up — must NOT flag scroll-interrupted.
-      cancelPlaybackScroll("replace");
+      // Co-travel with settle camera — do not cancel host-end ease mid pull-up.
       sampleCancelRef.current = startChatBubbleMotionSample({
         id: options.id,
         el,
@@ -627,6 +638,14 @@ function useChatComposerScrollPad(
   }, [columnRef, dockRef, suppressed]);
 }
 
+function isChatCjmOff(): boolean {
+  try {
+    return new URLSearchParams(location.search).get("cjm") === "off";
+  } catch {
+    return false;
+  }
+}
+
 export function ChatScreen({
   onSend,
   onChip,
@@ -635,6 +654,19 @@ export function ChatScreen({
 }: ChatScreenProps) {
   const [query, setQuery] = useState("");
   const [sendThinking, setSendThinking] = useState(false);
+  /** CJM-off: hold empty column until existing-thread load paints full list. */
+  const [existingChatLoadHold, setExistingChatLoadHold] = useState(isChatCjmOff);
+  // CJM-on: sync-seed before bridge subscription — first paint must be q0 only
+  // when stale inactive full-thread hold leaked from CJM-off / prior end (PO).
+  const cjmOnEntrySeededRef = useRef(false);
+  const cjmOnStaleSeededRef = useRef(false);
+  if (!cjmOnEntrySeededRef.current) {
+    cjmOnEntrySeededRef.current = true;
+    if (!isChatCjmOff() && seedCjmOnProgressiveEntryFromStaleHold()) {
+      clearChatThinkingBridge();
+      cjmOnStaleSeededRef.current = true;
+    }
+  }
   const composerSuppressed = useComposerSuppressed();
   const columnRef = useRef<HTMLDivElement | null>(null);
   const dockRef = useRef<HTMLFooterElement | null>(null);
@@ -672,19 +704,22 @@ export function ChatScreen({
   );
 
   /**
-   * Engine visibleCount — progressive paint; default min until publish lands.
+   * Engine visibleCount — progressive paint when CJM scenario active.
    * Cold / cleared bridge (active=false, count=0) → paint q0 only — never dump
    * the full thread (PO flash of r0 on chat open). Explicit idle full-thread
    * publish keeps visibleCount > 0 while inactive (overlay / browse).
+   * CJM-off existing-chat load: honor blank interim (min 0) until full paint.
    */
   const revealedFrameCount = resolveChatRevealedFrameCount(
     scenarioReveal.active
       ? scenarioReveal.visibleCount
       : scenarioReveal.visibleCount > 0
         ? scenarioReveal.visibleCount
-        : 1,
+        : existingChatLoadHold
+          ? 0
+          : 1,
     CHAT_THREAD_FRAMES.length,
-    1
+    existingChatLoadHold && scenarioReveal.visibleCount <= 0 ? 0 : 1
   );
 
   /**
@@ -732,56 +767,59 @@ export function ChatScreen({
   ): boolean => frameRevealed && pullUpAnimateIds.has(frameId);
 
   /**
-   * CJM OFF browse — paint full thread, then scroll past composer.
-   * Note: bridge `active` stays true while site-pilot-chat scenario is mounted
-   * even in browse — key off URL `cjm=off`, not `!scenarioReveal.active`.
+   * CJM ON — progressive entry = Sarah q0 only until transport advances.
+   * Render path seeds silently; layout notifies other roots / diag.
+   * Overlay hold is safe: ChatScreen stays mounted (no remount seed).
    */
-  useEffect(() => {
-    let cjmOff = false;
-    try {
-      cjmOff = new URLSearchParams(location.search).get("cjm") === "off";
-    } catch {
-      cjmOff = false;
+  useLayoutEffect(() => {
+    if (isChatCjmOff()) {
+      return;
     }
-    if (!cjmOff) return;
-
-    let cancelled = false;
-    const total = CHAT_THREAD_FRAMES.length;
-    publishChatScenarioReveal({ active: false, visibleCount: total });
-
-    const ensureEnd = (instant: boolean) => {
-      if (cancelled) return;
-      const col = columnRef.current;
-      if (!col) return;
-      if (getChatScenarioRevealState().visibleCount < total) {
-        publishChatScenarioReveal({ active: false, visibleCount: total });
-      }
-      const max = Math.max(0, col.scrollHeight - col.clientHeight);
-      if (max < 8) return;
-      scrollCameraToHostEnd(col, {
-        instant,
-        reason: instant
-          ? "cjm-off browse snap — clear composer"
-          : "cjm-off browse ease — clear composer",
-      });
-    };
-
-    const timers = [180, 1500, 2000, 2600, 3400].map((ms, i) =>
-      window.setTimeout(() => ensureEnd(i !== 1), ms)
-    );
-    return () => {
-      cancelled = true;
-      timers.forEach((t) => window.clearTimeout(t));
-    };
-    // Mount / URL only — ignore bridge visibleCount flaps from browse reveal.
+    setExistingChatLoadHold(false);
+    if (cjmOnStaleSeededRef.current) {
+      cjmOnStaleSeededRef.current = false;
+      flushChatScenarioRevealListeners();
+      return;
+    }
+    if (seedCjmOnProgressiveEntryFromStaleHold({ notify: true })) {
+      clearChatThinkingBridge();
+    }
   }, []);
 
   /**
-   * Scroll: never snap mid pull-up (layoutY JUMP vs Motion). Thinking→reply
-   * + progressive reveal defer to post settle only.
-   *
-   * Under scenarioReveal (CJM Play/SF): do **not** instant-snap here.
-   * Instant snap + eased settle = visible stutter. Settle camera owns the move.
+   * CJM OFF browse — existing saved-chat load only.
+   * Blank content-load interim → paint full thread together.
+   * No creation sim, thinking bubbles, or progressive r0→list build.
+   */
+  useLayoutEffect(() => {
+    if (!isChatCjmOff()) {
+      setExistingChatLoadHold(false);
+      return;
+    }
+
+    // Clear stale progressive/thinking state before first paint.
+    clearChatThinkingBridge();
+    setExistingChatLoadHold(true);
+    publishChatScenarioReveal({ active: false, visibleCount: 0 });
+
+    let cancelled = false;
+    void runChatBrowseEntryReveal({
+      getColumn: () => columnRef.current,
+      shouldAbort: () => cancelled,
+    }).then(() => {
+      if (!cancelled) setExistingChatLoadHold(false);
+    });
+    return () => {
+      cancelled = true;
+      bumpChatBrowseEntryReveal();
+      setExistingChatLoadHold(false);
+    };
+  }, []);
+
+  /**
+   * Scroll co-travels with pull-up: start host-end the same beat the bubble
+   * appears, same duration — finish appearing already on target position.
+   * (Old path waited CHAT_PULL_UP_MS+120 then scrolled = appear-then-yank.)
    */
   const prevThinkingModeRef = useRef(thinking.mode);
   useLayoutEffect(() => {
@@ -804,17 +842,17 @@ export function ChatScreen({
         visibleCount: revealedFrameCount,
         delta: 0,
       });
-      return;
+      // Still start co-travel below — defer tag is TRACE only.
+    } else {
+      logChatRevealCameraTrace({
+        tag: "reveal-snap-skipped-settle-owns",
+        el: column.querySelector(
+          '[data-studio-chat-revealed="true"]'
+        ) as HTMLElement | null,
+        visibleCount: revealedFrameCount,
+        delta: 0,
+      });
     }
-    // CJM progressive reveal — skip instant snap (settle ease below owns camera).
-    logChatRevealCameraTrace({
-      tag: "reveal-snap-skipped-settle-owns",
-      el: column.querySelector(
-        '[data-studio-chat-revealed="true"]'
-      ) as HTMLElement | null,
-      visibleCount: revealedFrameCount,
-      delta: 0,
-    });
   }, [
     scenarioReveal.active,
     revealedFrameCount,
@@ -824,112 +862,122 @@ export function ChatScreen({
 
   useEffect(() => {
     const column = columnRef.current;
-    if (!column || !scenarioReveal.active) return;
+    if (!column || existingChatLoadHold) return;
+    // Progressive CJM settle OR browse send/playback thinking pull-up.
+    // Thinking is not data-studio-chat-revealed — must still camera.
+    const thinkingNeedsCamera =
+      thinking.mode === "playback" || thinking.mode === "send";
+    if (!scenarioReveal.active && !thinkingNeedsCamera) return;
 
-    /** Last thread extent under dock? (frame or CTA — not only camera target). */
+    /**
+     * Latest content under dock? Prefer thinking (held reply is
+     * revealed=false) → CTA → last revealed — same as resolveChatCameraTarget.
+     */
     const measureComposerClearPx = (): number | null => {
       const dock = dockRef.current;
       if (!dock || dock.hidden) return null;
       const dockTop = dock.getBoundingClientRect().top;
-      const revealed = column.querySelectorAll(
-        '[data-studio-chat-revealed="true"]'
-      );
-      const lastFrame = revealed[revealed.length - 1] as HTMLElement | undefined;
-      const ctas = lastFrame
-        ? lastFrame.querySelectorAll("button.chat__cta")
-        : column.querySelectorAll("button.chat__cta");
-      let bottom = lastFrame?.getBoundingClientRect().bottom ?? 0;
-      ctas.forEach((btn) => {
-        const r = (btn as HTMLElement).getBoundingClientRect();
-        if (r.height > 0) bottom = Math.max(bottom, r.bottom);
-      });
+      const target = resolveChatCameraTarget(column);
+      if (!target) return null;
+      const bottom = target.getBoundingClientRect().bottom;
       if (!bottom) return null;
       return dockTop - bottom;
     };
 
-    let poll: number | null = null;
     let topUp: number | null = null;
-    const runSettleCamera = () => {
-      const settleMax = Math.max(0, column.scrollHeight - column.clientHeight);
+    const runCoTravelCamera = () => {
       const before = column.scrollTop;
-      // One eased host-end settle — avoids scrollChatCamera undershoot + instant
-      // clearance top-up double-move (composer-exit chop).
-      scrollCameraToHostEnd(column, {
-        instant: false,
-        reason: "pull-up-settle host-end (composer clearance)",
-      });
+      // Thinking mounts with revealed=false on the reply slot — must not
+      // camera to last revealed (q0) or thinking stays under the composer.
+      const target = resolveChatCameraTarget(column);
+      // Same duration as pull-up — bubble/thinking lands already on target.
+      if (target) {
+        void scrollCameraToTarget(target, {
+          scrollEl: column,
+          align: "end",
+          padding: 24,
+          instant: false,
+          durationMs: STUDIO_ENTER_MS,
+          skipHold: true,
+          force: true,
+        });
+      } else {
+        scrollCameraToHostEnd(column, {
+          instant: false,
+          durationMs: STUDIO_ENTER_MS,
+          skipHold: true,
+          force: true,
+          reason: "pull-up co-travel host-end",
+        });
+      }
       const delta = column.scrollTop - before;
       logChatRevealCameraTrace({
-        tag: "pull-up-settle",
-        el: column.querySelector(
-          '[data-studio-chat-revealed="true"]'
-        ) as HTMLElement | null,
+        tag: "pull-up-co-travel",
+        el: target ?? null,
         visibleCount: revealedFrameCount,
         delta,
       });
-      // Ease is async — after travel, top-up only if still under dock.
+      // After co-travel ends, tiny clearance check (no second long ease).
       if (topUp != null) window.clearTimeout(topUp);
       topUp = window.setTimeout(() => {
         topUp = null;
-        if (isChatPullUpScrollLocked()) return;
         const clearPx = measureComposerClearPx();
         if (clearPx == null || clearPx >= 16) {
           logChatRevealCameraTrace({
             tag: "composer-clearance-ok",
-            el: column.querySelector(
-              '[data-studio-chat-revealed="true"]'
-            ) as HTMLElement | null,
+            el: target ?? null,
             visibleCount: revealedFrameCount,
             clearPx: clearPx ?? undefined,
           });
           return;
         }
         const max = Math.max(0, column.scrollHeight - column.clientHeight);
-        if (column.scrollTop >= max - 2) return;
-        // Last-resort instant top-up — TRACE as CHOP so Save Log catches it.
+        if (column.scrollTop >= max - 2) {
+          logChatRevealCameraTrace({
+            tag: "composer-clearance-ok",
+            el: target ?? null,
+            visibleCount: revealedFrameCount,
+            clearPx: Math.round(clearPx),
+          });
+          return;
+        }
+        // Near-miss under dock — instant top-up; remeasure AFTER so QA does not
+        // hard-CHOP on the pre-top-up clearPx (halted Play on q1 — PO).
         scrollCameraToHostEnd(column, {
           instant: true,
+          skipHold: true,
+          force: true,
           reason: `composer clearance top-up (clearPx=${Math.round(clearPx)})`,
         });
+        const afterClearPx = measureComposerClearPx();
         logChatRevealCameraTrace({
-          tag: "composer-clearance-topup",
-          el: column.querySelector(
-            '[data-studio-chat-revealed="true"]'
-          ) as HTMLElement | null,
+          tag:
+            afterClearPx != null && afterClearPx < 0
+              ? "composer-clearance-topup"
+              : "composer-clearance-ok",
+          el: target ?? null,
           visibleCount: revealedFrameCount,
-          clearPx: Math.round(clearPx),
+          clearPx:
+            afterClearPx != null ? Math.round(afterClearPx) : Math.round(clearPx),
           delta: 0,
         });
-      }, 560);
+      }, STUDIO_ENTER_MS + 40);
     };
 
-    const tSettle = window.setTimeout(() => {
-      if (isChatPullUpScrollLocked()) {
-        const started = performance.now();
-        poll = window.setInterval(() => {
-          if (
-            !isChatPullUpScrollLocked() ||
-            performance.now() - started > 1200
-          ) {
-            if (poll != null) window.clearInterval(poll);
-            poll = null;
-            if (!isChatPullUpScrollLocked()) runSettleCamera();
-          }
-        }, 40);
-        return;
-      }
-      runSettleCamera();
-    }, CHAT_PULL_UP_MS + 120);
+    // Start on next frame so layout has the new bubble, then co-travel.
+    const raf = requestAnimationFrame(() => {
+      runCoTravelCamera();
+    });
     return () => {
-      window.clearTimeout(tSettle);
+      cancelAnimationFrame(raf);
       if (topUp != null) window.clearTimeout(topUp);
-      if (poll != null) window.clearInterval(poll);
     };
   }, [
     scenarioReveal.active,
     revealedFrameCount,
     thinking.mode,
     thinking.generation,
+    existingChatLoadHold,
   ]);
 
   // Bridge owns send/playback thinking end (Play fade-out). Clear local stop latch.
@@ -1081,9 +1129,10 @@ export function ChatScreen({
     }
 
     // Hint = idle "awaiting agent" after first user bubble only (not on send).
-    // Suppressed while scenario progressive reveal is driving (CJM owns steps).
+    // Suppressed while CJM progressive reveal OR CJM-off existing-chat load hold.
     if (
       !scenarioReveal.active &&
+      !existingChatLoadHold &&
       thinking.mode === "hint" &&
       (thinking.anchorFrameId === frame.id ||
         (!thinking.anchorFrameId && frame.id === "q0"))
@@ -1100,7 +1149,12 @@ export function ChatScreen({
 
   // Never paint send-thinking during progressive CJM — user send ≠ thinking.
   // (Legacy wire may still latch send mode; ignore while scenario is active.)
-  if (thinking.mode === "send" && !scenarioReveal.active) {
+  // Also suppress during CJM-off existing-chat load hold.
+  if (
+    thinking.mode === "send" &&
+    !scenarioReveal.active &&
+    !existingChatLoadHold
+  ) {
     threadNodes.push(
       <ChatThinkingBubble
         key={`think-${thinking.generation}`}

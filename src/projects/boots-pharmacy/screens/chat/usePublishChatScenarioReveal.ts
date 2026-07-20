@@ -4,9 +4,19 @@ import {
   publishChatScenarioReveal,
 } from "./chatScenarioRevealBridge";
 
+function isCjmOff(): boolean {
+  try {
+    return new URLSearchParams(location.search).get("cjm") === "off";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Wire `useScenarioPlayback.visibleCount` into the React Chat paint bridge.
  * Keeps App.tsx thin; engine remains the control point.
+ *
+ * CJM off: yield to `runChatBrowseEntryReveal` (existing-chat load only).
  */
 export function usePublishChatScenarioReveal(
   scenarioId: string | undefined,
@@ -23,6 +33,12 @@ export function usePublishChatScenarioReveal(
         Math.max(1, n),
         contentTotal > 0 ? contentTotal : Math.max(1, n)
       );
+
+    // CJM-off: browse entry owns existing-chat load — never engine dump-hold
+    // or progressive thinking (scenario may still be site-pilot-chat).
+    if (isCjmOff()) {
+      return;
+    }
 
     if (scenarioId !== "site-pilot-chat") {
       // Overlay / leave scenario: HOLD last paint count — never clear to 0

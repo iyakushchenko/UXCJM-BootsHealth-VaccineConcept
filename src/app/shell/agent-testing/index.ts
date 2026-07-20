@@ -50,8 +50,12 @@ export {
   isAgentTestingOverlaySettling,
   installAgentTestingOverlayApi,
   uninstallAgentTestingOverlayApi,
+  pauseForAgentLeave,
+  resumeForAgentReturn,
   type AgentTestingOverlayResult,
   type AgentTestingStepOutcome,
+  type AgentLeavePauseResult,
+  type AgentReturnResumeResult,
   type LogAgentTestingStepInput,
   type StopAgentTestingOverlayOptions,
 } from "@/app/shell/agent-testing/agentTestingOverlay";

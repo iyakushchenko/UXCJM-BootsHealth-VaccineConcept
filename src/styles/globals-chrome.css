@@ -350,56 +350,25 @@
   border: 2px solid #c53030;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
   padding: 20px 24px;
+  /* Match chat__column thin scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
 }
-.studio-playback-diagnostic__eyebrow {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #c53030;
+.studio-playback-diagnostic__card::-webkit-scrollbar {
+  width: 4px;
 }
-.studio-playback-diagnostic__title {
-  margin: 0 0 8px;
-  font-size: 20px;
-  line-height: 1.25;
-  color: #012169;
+.studio-playback-diagnostic__card::-webkit-scrollbar-track {
+  background: transparent;
 }
-.studio-playback-diagnostic__summary {
-  margin: 0 0 16px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: #333;
+.studio-playback-diagnostic__card::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(122, 125, 135, 0.32);
 }
-.studio-playback-diagnostic__section {
-  margin-bottom: 14px;
+.studio-playback-diagnostic__card::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 125, 135, 0.48);
 }
-.studio-playback-diagnostic__heading {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #012169;
-}
-.studio-playback-diagnostic__list {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #444;
-}
-.studio-playback-diagnostic__list li + li {
-  margin-top: 4px;
-}
-.studio-playback-diagnostic__details {
-  margin: 12px 0;
-  font-size: 13px;
-}
-.studio-playback-diagnostic__details-summary {
-  cursor: pointer;
-  color: #012169;
-  font-weight: 600;
+.studio-playback-diagnostic__card::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .studio-playback-diagnostic__pre {
   margin: 8px 0 0;
@@ -411,6 +380,24 @@
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 125, 135, 0.32) transparent;
+}
+.studio-playback-diagnostic__pre::-webkit-scrollbar {
+  width: 4px;
+}
+.studio-playback-diagnostic__pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+.studio-playback-diagnostic__pre::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(122, 125, 135, 0.32);
+}
+.studio-playback-diagnostic__pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 125, 135, 0.48);
+}
+.studio-playback-diagnostic__pre::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .studio-playback-diagnostic__actions {
   display: flex;

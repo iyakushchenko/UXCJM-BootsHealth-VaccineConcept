@@ -163,7 +163,7 @@ export const QA_SELF_TEST_SCENARIOS: QaSelfTestScenario[] = [
     id: "presence-online-linked",
     dualRole: "agent",
     trust: true,
-    summary: "Agent CONTROL shows ONLINE · linked presence suffix.",
+    summary: "Agent CONTROL shows ONLINE presence suffix when freshly touched.",
     helpers: ["peekQaAgentPresence", "formatMcpStatusLabel"],
   },
   {

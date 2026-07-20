@@ -389,7 +389,7 @@ function plpProbeSteps(): ProbeStep[] {
       selector:
         '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]',
       action: "click",
-      // Catch mid-load (~450ms) — stale jab count must already be gone.
+      // Catch mid-load (platform STUDIO_CONTENT_LOAD_MS) — stale jab count must already be gone.
       settleMs: 80,
       assert: () => {
         const host = document.querySelector<HTMLElement>(

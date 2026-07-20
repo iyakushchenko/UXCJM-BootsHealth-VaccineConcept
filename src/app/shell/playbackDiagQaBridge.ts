@@ -1,6 +1,6 @@
 /**
- * Lean bridge: PLAYBACK_DIAG / PlaybackDiagnostic → QA ring + overlay.
- * One monitor path — agents read Save Log / ring; popup optional for PO eyes.
+ * Lean bridge: PLAYBACK_DIAG / PlaybackDiagnostic → QA ring + overlay chat.
+ * One chronological sequence in the main QA log — human-readable, not a cryptic side pane.
  */
 
 import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
@@ -12,7 +12,8 @@ import {
   isQuietDiagDismissSource,
 } from "@/app/shell/agent-testing/agentTestingFinaleSeal";
 
-export type PlaybackDiagQaOutcome = "ok" | "soft-fail" | "fail";
+/** Align with QA chat row outcomes — ok = neutral info, not warn/fail paint. */
+export type PlaybackDiagQaOutcome = "ok" | "soft-fail" | "fail" | "pass";
 
 export type ConsumedPlaybackDiagnostic = {
   consumed: boolean;
@@ -95,124 +96,261 @@ function clip(s: string, n = 120): string {
   return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }
 
-/** Which PLAYBACK_DIAG events deserve a visible QA row (lean — not every rAF). */
+function detailOf(event: PlaybackDiagEvent): string {
+  return (event.detail ?? "").trim();
+}
+
+function isScrollReversal(event: PlaybackDiagEvent): boolean {
+  const before = event.scroll?.beforeTop;
+  const after = event.scroll?.afterTop;
+  return (
+    typeof before === "number" &&
+    typeof after === "number" &&
+    after < before - 48 &&
+    !event.scroll?.retreat
+  );
+}
+
+function isBubbleChopOrJump(event: PlaybackDiagEvent): boolean {
+  if (event.bubble?.jump || event.bubble?.chop) return true;
+  return /JUMP|CHOP|bubble-jump|bubble-chop/i.test(detailOf(event));
+}
+
+/**
+ * Which PLAYBACK_DIAG events deserve a visible QA chat row (lean — not every rAF).
+ * Mirrored: FAIL / JUMP / CHOP / script-timeout / scroll-reversal / alarms /
+ * type-in start|end|skip / play-end / journey-reset / hub-nav / click miss /
+ * cursor off-target / transport errors.
+ * Suppressed: type-in-progress, TRACE/frame bubble samples, routine cursor
+ * park/remove/abort chatter, healthy step-forward, camera origin nudges.
+ */
 export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean {
   const kind = event.kind;
+  const detail = detailOf(event);
+
+  // HARD (PO): never mirror per-char type-in progress. Start/end OK (≤1 each).
+  if (kind === "type-in-progress") return false;
+  if (kind === "type-in-start" || kind === "type-in-end") return true;
+  if (kind === "type-in-skip" || kind === "skip") return true;
+
   if (kind === "click" && event.clickOk === false) return true;
-  if (kind === "skip" || kind === "type-in-skip") return true;
-  if (kind === "cursor" && event.cursor?.onTarget === false) {
-    // Only hard off-target / click-suppressed — not routine travel/remove parks
-    return /OFF-TARGET|off-target|click suppressed|hotspot miss/i.test(
-      event.detail ?? ""
-    );
-  }
-  if (kind === "scroll") {
-    const before = event.scroll?.beforeTop;
-    const after = event.scroll?.afterTop;
-    if (
-      typeof before === "number" &&
-      typeof after === "number" &&
-      after < before - 48 &&
-      !event.scroll?.retreat
-    ) {
-      return true; // unexpected upward / reversal
+
+  if (kind === "cursor") {
+    // Only hard off-target / hidden-during-type-in / click-suppressed — not remove/park spam
+    if (event.cursor?.onTarget === false) {
+      return /OFF-TARGET|off-target|click suppressed|hotspot miss/i.test(detail);
     }
+    return /HIDDEN|cursor-hidden|FAIL|OFF-TARGET|click suppressed/i.test(detail);
+  }
+
+  if (kind === "scroll") {
+    if (isScrollReversal(event)) return true;
     if (
-      /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted/i.test(
-        event.detail ?? ""
+      /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted|script-timeout/i.test(
+        detail
       )
     ) {
       return true;
     }
     return false;
   }
-  if (kind === "info" || kind === "chat-reveal" || kind === "chat-bubble-motion") {
-    return /JUMP|stutter|competing|layoutY|fight/i.test(event.detail ?? "");
+
+  if (kind === "chat-bubble-motion" || kind === "chat-reveal" || kind === "info") {
+    if (isBubbleChopOrJump(event)) return true;
+    if (
+      /JUMP|CHOP|stutter|competing|layoutY|fight|script-timeout|FAIL|Alarm|ERROR/i.test(
+        detail
+      )
+    ) {
+      return true;
+    }
+    // Routine TRACE / frame / co-travel — dump only
+    if (kind === "chat-bubble-motion") {
+      const phase = event.bubble?.phase;
+      if (phase === "frame" || phase === "trace") return false;
+    }
+    if (kind === "info" && /diag|fail|warn|error|clear|po-signal/i.test(detail)) {
+      return true;
+    }
+    return false;
   }
+
   if (
     kind === "transport" ||
     kind === "step-forward" ||
     kind === "step-back"
   ) {
-    // Lean: monitor/error family only — not every SF beat
     return (
       event.ok === false ||
-      /fail|warn|error|no-op|blocked|stall|mismatch|clear|unexpected/i.test(
-        event.detail ?? ""
+      /fail|warn|error|no-op|blocked|stall|mismatch|clear|unexpected|script-timeout/i.test(
+        detail
       )
     );
   }
-  if (kind === "play-end" || kind === "journey-reset") {
+
+  if (kind === "play-end" || kind === "journey-reset" || kind === "hub-nav") {
     return true;
   }
-  if (kind === "info" && /diag|fail|warn|error|clear/i.test(event.detail ?? "")) {
-    return true;
-  }
+
   return false;
 }
 
 export function outcomeForPlaybackDiagEvent(
   event: PlaybackDiagEvent
 ): PlaybackDiagQaOutcome {
+  // Routine milestones — neutral info (never warn/fail paint).
+  if (
+    event.kind === "journey-reset" ||
+    event.kind === "play-end" ||
+    event.kind === "type-in-start"
+  ) {
+    return "ok";
+  }
+  if (event.kind === "type-in-end") {
+    return event.typeOk === false ? "fail" : "ok";
+  }
   if (event.clickOk === false) return "fail";
   if (event.ok === false) return "fail";
+  if (isBubbleChopOrJump(event)) return "fail";
   if (event.cursor?.onTarget === false) {
     if (
       /OFF-TARGET|off-target|click suppressed|hotspot miss/i.test(
-        event.detail ?? ""
+        detailOf(event)
       )
     ) {
       return "fail";
     }
   }
   if (event.kind === "skip" || event.kind === "type-in-skip") return "soft-fail";
+  if (event.kind === "hub-nav") return "fail";
   if (event.kind === "scroll") {
-    const before = event.scroll?.beforeTop;
-    const after = event.scroll?.afterTop;
-    if (
-      typeof before === "number" &&
-      typeof after === "number" &&
-      after < before - 48 &&
-      !event.scroll?.retreat
-    ) {
+    if (isScrollReversal(event)) return "soft-fail";
+    if (/SCROLL_ISSUE|fail|error|script-timeout/i.test(detailOf(event))) {
+      return "fail";
+    }
+    if (/warn|unexpected|reversal|stutter/i.test(detailOf(event))) {
       return "soft-fail";
     }
-    if (/SCROLL_ISSUE|fail|error/i.test(event.detail ?? "")) return "fail";
-    if (/warn|unexpected|reversal|stutter/i.test(event.detail ?? "")) {
-      return "soft-fail";
-    }
+    return "ok";
   }
-  if (/FAIL|error|OFF-TARGET/i.test(event.detail ?? "")) return "fail";
-  if (/warn|clear|monitor/i.test(event.detail ?? "")) return "soft-fail";
+  if (event.kind === "cursor") {
+    // Cleared / parked / abort = info; hard miss already handled above.
+    return "ok";
+  }
+  if (/FAIL|error|OFF-TARGET|script-timeout|CHOP|JUMP/i.test(detailOf(event))) {
+    return "fail";
+  }
+  // Soft attention only — not routine clear / po-signal chatter as "warn red-ish".
+  if (/warn|unexpected|monitor/i.test(detailOf(event))) return "soft-fail";
+  if (/po-signal/i.test(detailOf(event))) return "soft-fail";
   return "ok";
 }
 
+/**
+ * Plain-language QA chat label. Machine kind stays on ring `detail` / data attrs.
+ */
 export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
-  const detail = (event.detail ?? "").trim();
-  if (event.kind === "scroll") {
-    const before = event.scroll?.beforeTop;
-    const after = event.scroll?.afterTop;
-    const delta =
-      typeof before === "number" && typeof after === "number"
-        ? Math.round(after - before)
-        : null;
-    const rev =
-      delta != null && delta < -48 && !event.scroll?.retreat
-        ? " · scroll-reversal"
-        : "";
-    return `playback-diag · scroll${rev}${detail ? ` — ${clip(detail, 80)}` : ""}${
-      delta != null ? ` Δ=${delta}` : ""
-    }`;
+  const detail = detailOf(event);
+  const kind = event.kind;
+
+  if (kind === "type-in-start") return "Typing started";
+  if (kind === "type-in-end") {
+    return event.typeOk === false ? "Typing finished — FAIL" : "Typing finished";
   }
-  if (event.kind === "click") {
-    return `playback-diag · click ${event.clickOk === false ? "FAIL" : "ok"}${
-      detail ? ` — ${clip(detail, 80)}` : ""
-    }`;
+  if (kind === "type-in-skip") {
+    return `Typing skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
   }
-  return `playback-diag · ${event.kind}${detail ? ` — ${clip(detail, 90)}` : ""}`;
+  if (kind === "skip") {
+    return `Step skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
+  }
+
+  if (kind === "click") {
+    return event.clickOk === false
+      ? `Click missed${detail ? ` — ${clip(detail, 70)}` : ""}`
+      : `Click ok${detail ? ` — ${clip(detail, 70)}` : ""}`;
+  }
+
+  if (kind === "cursor") {
+    if (/type-in-park|type-in park/i.test(detail)) {
+      return "Cursor parked for typing";
+    }
+    if (/HIDDEN|cursor-hidden/i.test(detail)) {
+      return "Cursor hidden during typing — FAIL";
+    }
+    if (/OFF-TARGET|off-target|hotspot miss/i.test(detail)) {
+      return "Cursor missed the target";
+    }
+    if (/click suppressed/i.test(detail)) {
+      return "Click blocked — cursor off target";
+    }
+    if (/^remove\b|cursor remove|\bremove$/i.test(detail)) {
+      return "Cursor cleared";
+    }
+    if (/PARKED|park/i.test(detail)) {
+      return "Cursor parked";
+    }
+    if (/abort/i.test(detail)) {
+      return "Cursor travel cancelled";
+    }
+    return `Cursor — ${clip(detail || "update", 70)}`;
+  }
+
+  if (kind === "scroll") {
+    if (isScrollReversal(event) || /reversal/i.test(detail)) {
+      const before = event.scroll?.beforeTop;
+      const after = event.scroll?.afterTop;
+      const delta =
+        typeof before === "number" && typeof after === "number"
+          ? Math.round(after - before)
+          : null;
+      return `Scroll jumped the wrong way${delta != null ? ` (Δ${delta})` : ""}`;
+    }
+    if (/SCROLL_ISSUE/i.test(detail)) {
+      return `Scroll problem — ${clip(detail, 70)}`;
+    }
+    if (/interrupted/i.test(detail)) {
+      return "Scroll was interrupted";
+    }
+    return `Scroll — ${clip(detail || "moved", 70)}`;
+  }
+
+  if (kind === "chat-bubble-motion" || kind === "chat-reveal") {
+    if (event.bubble?.chop || /CHOP|chop/i.test(detail)) {
+      return "Chat bubble motion cut short";
+    }
+    if (event.bubble?.jump || /JUMP|jump/i.test(detail)) {
+      return "Chat bubble jumped";
+    }
+    return `Chat motion — ${clip(detail || kind, 70)}`;
+  }
+
+  if (kind === "play-end") return "Play finished — back at journey start";
+  if (kind === "journey-reset") return "Journey reset to start";
+  if (kind === "hub-nav") {
+    return `Unexpected hub navigation${detail ? ` — ${clip(detail, 60)}` : ""}`;
+  }
+
+  if (kind === "transport" || kind === "step-forward" || kind === "step-back") {
+    if (/script-timeout/i.test(detail)) return "Script timed out";
+    if (event.ok === false || /fail|error|blocked|stall/i.test(detail)) {
+      return `Playback issue — ${clip(detail || kind, 70)}`;
+    }
+    return clip(detail || kind, 90);
+  }
+
+  if (kind === "info") {
+    if (/script-timeout/i.test(detail)) return "Script timed out";
+    if (/po-signal/i.test(detail)) {
+      return `PO signal — ${clip(detail.replace(/^po-signal\s*/i, ""), 70)}`;
+    }
+    if (/clear/i.test(detail)) return "Playback diagnostics cleared";
+    return clip(detail || "Info", 90);
+  }
+
+  return clip(detail || kind, 90);
 }
 
-/** Mirror a diag event into ring + overlay when gate open. */
+/** Mirror a diag event into ring + overlay chat when gate open. */
 export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
   if (!isQaDiagGateOpen()) return;
   if (isAgentTestingFinaleSealed()) return;
@@ -246,7 +384,7 @@ export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
 export function mirrorPlaybackDiagClearToQa(): void {
   if (!isQaDiagGateOpen()) return;
   if (isAgentTestingFinaleSealed()) return;
-  const label = "playback-diag · clear";
+  const label = "Playback diagnostics cleared";
   try {
     appendQaDiagRing({ kind: "playback-diag", label, text: "clear" });
   } catch {
@@ -256,7 +394,7 @@ export function mirrorPlaybackDiagClearToQa(): void {
     overlayApi()?.logStep?.({
       kind: "playback-diag",
       label,
-      outcome: "soft-fail",
+      outcome: "ok",
     });
   } catch {
     /* hang-safe */
@@ -278,7 +416,11 @@ export function ingestPlaybackDiagnosticToQa(
       detail: ctx.detail,
     },
   };
-  const label = `playback-diag · DIAGNOSTIC — ${clip(error.message, 100)}`;
+  const phase = ctx.phase ?? "";
+  const label =
+    phase === "script-timeout"
+      ? `Script timed out — ${clip(error.message, 80)}`
+      : `Playback diagnostic — ${clip(error.message, 100)}`;
   try {
     appendQaDiagRing({
       kind: "playback-diag",
@@ -403,7 +545,7 @@ export function clearStalePlaybackDiagnostic(
     try {
       appendQaDiagRing({
         kind: "playback-diag",
-        label: `playback-diag · auto-dismiss (${source})`,
+        label: `Diagnostic auto-dismissed (${source})`,
         text: source,
       });
     } catch {

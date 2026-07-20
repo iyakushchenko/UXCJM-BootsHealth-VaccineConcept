@@ -7,7 +7,12 @@ import {
   easeInOutCubic,
   getPrototypeScrollRoot,
   isPrototypePageScrollLocked,
+  msUntilPostClickCameraHoldClears,
+  noteCameraHoldInteraction,
+  POST_CLICK_CAMERA_HOLD_MS,
   readScrollPaddingBottom,
+  resetPostClickCameraHoldForTests,
+  scrollCameraToHostEnd,
 } from "@/app/scenario/playbackScroll";
 
 function mockRect(top: number, height: number) {
@@ -365,5 +370,58 @@ describe("prototype page scroll lock", () => {
     const result = await beginDemoTargetPageScroll(target, { scrollEl });
     expect(result.durationMs).toBe(0);
     expect(isPrototypePageScrollLocked(scrollEl)).toBe(false);
+  });
+});
+
+describe("post-click camera hold", () => {
+  afterEach(() => {
+    resetPostClickCameraHoldForTests();
+    vi.useRealTimers();
+  });
+
+  it("arms hold and defers host-end until clear", () => {
+    vi.useFakeTimers();
+    noteCameraHoldInteraction("test");
+    expect(msUntilPostClickCameraHoldClears()).toBe(POST_CLICK_CAMERA_HOLD_MS);
+
+    const el = {
+      scrollTop: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToHostEnd(el, { instant: true, reason: "hold-test" });
+    expect(el.scrollTop).toBe(0);
+
+    vi.advanceTimersByTime(POST_CLICK_CAMERA_HOLD_MS + 10);
+    expect(el.scrollTop).toBe(1600);
+  });
+
+  it("skipHold bypasses defer", () => {
+    noteCameraHoldInteraction("test");
+    const el = {
+      scrollTop: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToHostEnd(el, {
+      instant: true,
+      reason: "skip",
+      skipHold: true,
+    });
+    expect(el.scrollTop).toBe(1600);
   });
 });

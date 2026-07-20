@@ -79,6 +79,11 @@ import {
   runPlayJourneyToStartSmoke,
   type PlayJourneySmokeResult,
 } from "@/app/shell/playJourneySmoke";
+import {
+  runAgenticFullPlayProve,
+  type AgenticFullPlayProveOptions,
+  type AgenticFullPlayProveResult,
+} from "@/app/shell/agenticFullPlayProve";
 import type { AgentTestingPoSignal } from "@/app/shell/agent-testing/agentTestingPoSignal";
 import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
 
@@ -226,6 +231,16 @@ declare global {
       timeoutMs?: number;
       softFailPoAlarm?: boolean;
     }) => Promise<PlayJourneySmokeResult>;
+    /**
+     * Full agentic continuous Play prove (KEEP overlay for Save Log).
+     * Prefer this over ad-hoc Play / `__protoRunAgenticPlaySmoke` for agent proves.
+     */
+    __studioRunAgenticFullPlayProve?: (
+      options?: AgenticFullPlayProveOptions
+    ) => Promise<AgenticFullPlayProveResult>;
+    __protoRunAgenticFullPlayProve?: (
+      options?: AgenticFullPlayProveOptions
+    ) => Promise<AgenticFullPlayProveResult>;
     /** Jump-to-end then step-back — traditional book / confirmation / browse baselines. */
     __protoRunTraditionalRetreatSmoke?: (options?: {
       timeoutMs?: number;
@@ -1163,6 +1178,10 @@ export function registerStudioMcpHelpers(options: {
       { resetToJourneyStart: true }
     );
 
+  // Prove path — forceClear + arm + Play + peak 21/21 + leave; keeps QA overlay.
+  window.__studioRunAgenticFullPlayProve = runAgenticFullPlayProve;
+  window.__protoRunAgenticFullPlayProve = runAgenticFullPlayProve;
+
   window.__protoRunTraditionalRetreatSmoke = (smokeOptions) =>
     withMcpTestSession(
       "traditional-retreat-smoke",
@@ -1314,6 +1333,8 @@ export function registerStudioMcpHelpers(options: {
     delete window.__protoRunTraditionalStepForwardSmoke;
     delete window.__protoRunTraditionalPlaySmoke;
     delete window.__protoRunAgenticPlaySmoke;
+    delete window.__studioRunAgenticFullPlayProve;
+    delete window.__protoRunAgenticFullPlayProve;
     delete window.__protoRunTraditionalRetreatSmoke;
     delete window.__protoRunTraditionalControlRoomRobotQa;
     delete window.__protoAbortAll;

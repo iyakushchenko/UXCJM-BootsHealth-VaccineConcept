@@ -399,17 +399,9 @@ export function PlpScreen({
     onFiltersDirtyChange?.(dirty);
   }, [dirty, onFiltersDirtyChange]);
 
-  // Make plpListing: first sync instant; later filter changes simulate load.
+  // Platform content-load interim on first paint / refresh — not instant dump.
   useEffect(() => {
     const next = filterPlpCatalog(filters);
-
-    if (syncPassRef.current === 0) {
-      syncPassRef.current = 1;
-      setDisplayItems(next);
-      setListingPhase("idle");
-      setLoadHostMinHeight(null);
-      return;
-    }
 
     if (loadTimerRef.current != null) {
       clearTimeout(loadTimerRef.current);
@@ -426,17 +418,33 @@ export function PlpScreen({
     }
 
     setListingPhase("loading");
+    try {
+      document.body.setAttribute("data-studio-content-loading", "plp");
+    } catch {
+      /* hang-safe */
+    }
     loadTimerRef.current = setTimeout(() => {
       loadTimerRef.current = null;
       setDisplayItems(next);
       setListingPhase("reveal");
       setLoadHostMinHeight(null);
+      try {
+        document.body.removeAttribute("data-studio-content-loading");
+      } catch {
+        /* hang-safe */
+      }
+      syncPassRef.current = Math.max(1, syncPassRef.current + 1);
     }, PLP_LISTING_LOAD_MS);
 
     return () => {
       if (loadTimerRef.current != null) {
         clearTimeout(loadTimerRef.current);
         loadTimerRef.current = null;
+      }
+      try {
+        document.body.removeAttribute("data-studio-content-loading");
+      } catch {
+        /* hang-safe */
       }
     };
   }, [filters]);
@@ -853,6 +861,7 @@ export function PlpScreen({
                     Make preloader (child 9): hide tiles + in-band spinner overlay.
                     ONE “Updating results…” under spinner — never also in count line.
                     Host min-height locked to prior band height (no collapse jump).
+                    Sticky inner pin keeps spinner in the visible listing scrollport.
                   */}
                   {listingPhase === "loading" ? (
                     <div

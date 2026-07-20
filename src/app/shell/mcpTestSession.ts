@@ -67,6 +67,8 @@ export async function withMcpTestSession<T>(
   const resetToJourneyStart = sessionOptions?.resetToJourneyStart === true;
   const resetToHub =
     !resetToJourneyStart && sessionOptions?.resetToHub === true;
+  // HARD — always wipe prior QA before a new smoke/prove session.
+  forceClearAgentTestingOverlay();
   startAgentTestingOverlay("AGENT TESTING — preparing…");
   try {
     await preArmAgentTestingOverlay({

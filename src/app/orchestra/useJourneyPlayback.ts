@@ -1378,23 +1378,35 @@ export function useJourneyPlayback({
       !scenarioBrowseMode &&
       pendingManualScreenHandoffRef.current === currentBeat.id;
 
+    const resumeContinuousPlay = () => {
+      // Continuous Play ≡ SF progressive path (prelude + camera) — never a
+      // separate dump-all transport. Always land jumpToStart before play.
+      if (isPlayingRef.current && !screenPlayback.isPlaying) {
+        screenPlayback.play();
+      }
+    };
+
+    let scheduledLandPlay = false;
     if (scenarioBrowseMode) {
       screenBeatReadyRef.current = readyKey;
     } else if (screenBeatReadyRef.current !== readyKey) {
       screenBeatReadyRef.current = readyKey;
       // Handoff path owns jump→step (must not race jumpToStart mid-thinking).
       if (!handoffPending) {
-        const scheduleJumpToStart = () => {
+        scheduledLandPlay = true;
+        const landThenPlay = () => {
           if (
             currentBeat.protoTab != null &&
             currentTabIndexRef.current !== studioTabToIndex(currentBeat.protoTab)
           ) {
-            requestAnimationFrame(scheduleJumpToStart);
+            requestAnimationFrame(landThenPlay);
             return;
           }
+          // PO: chat enter shows Sarah q0 only — jump before Play advances.
           screenPlayback.jumpToStart();
+          resumeContinuousPlay();
         };
-        scheduleJumpToStart();
+        landThenPlay();
       }
     }
 
@@ -1421,16 +1433,17 @@ export function useJourneyPlayback({
         if (screenPlayback.canStepForward) {
           screenPlayback.stepForward();
         }
+        // After first SF handoff step, keep continuous Play ≡ SF auto-advance.
+        resumeContinuousPlay();
       };
       outerHandoffRaf = requestAnimationFrame(() => {
         innerHandoffRaf = requestAnimationFrame(() => {
           tryHandoffStep(0);
         });
       });
-    }
-
-    if (isPlayingRef.current && !screenPlayback.isPlaying) {
-      screenPlayback.play();
+    } else if (!scheduledLandPlay) {
+      // Already on this beat (effect re-fire) — resume Play if journey is on air.
+      resumeContinuousPlay();
     }
 
     return () => {

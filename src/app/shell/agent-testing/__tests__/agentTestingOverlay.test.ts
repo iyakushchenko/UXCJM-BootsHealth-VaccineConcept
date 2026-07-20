@@ -17,6 +17,7 @@ import {
   formatSitrepHint,
   formatSitrepHeldHint,
   formatSitrepTitle,
+  holdSettleOpen,
   IDLE_MS,
   installAgentTestingOverlayApi,
   isAgentTestingOverlayActive,
@@ -30,8 +31,10 @@ import {
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
+  appendAgentTestingUserMessage,
 } from "@/app/shell/agent-testing";
 import { formatActivityStatus } from "@/app/shell/agent-testing/agentTestingActivity";
+import { peekQaAgentPresence } from "@/app/shell/agent-testing/agentTestingPresence";
 
 describe("agentTestingOverlay", () => {
   afterEach(() => {
@@ -173,6 +176,21 @@ describe("agentTestingOverlay", () => {
     expect(isAgentTestingOverlaySettling()).toBe(true);
     forceClearAgentTestingOverlay();
     expect(isAgentTestingOverlayActive()).toBe(false);
+    expect(isAgentTestingOverlaySettling()).toBe(false);
+  });
+
+  it("Keep open holds settle open (Wrapping up… → Complete tip)", () => {
+    startAgentTestingOverlay();
+    stopAgentTestingOverlay({ result: "pass" });
+    expect(isAgentTestingOverlaySettling()).toBe(true);
+    expect(holdSettleOpen("unit")).toBe(true);
+    // Still settling (held), not auto-cleared — Complete tip is formatActivityStatus.
+    expect(isAgentTestingOverlaySettling()).toBe(true);
+    expect(formatActivityStatus("settling", "complete-pass")).toBe(
+      "Complete — PASS"
+    );
+    expect(holdSettleOpen("unit")).toBe(true); // idempotent when already held
+    forceClearAgentTestingOverlay();
     expect(isAgentTestingOverlaySettling()).toBe(false);
   });
 
@@ -369,6 +387,14 @@ describe("agentTestingOverlay", () => {
     expect(formatActivityStatus("running")).toBe("Agent running");
     expect(formatActivityStatus("waiting")).toBe("Awaiting reply");
     expect(formatActivityStatus("settling", "pass")).toBe("Wrapping up…");
+    expect(formatActivityStatus("settling")).toBe("Wrapping up…");
+    expect(formatActivityStatus("settling", "complete")).toBe("Complete");
+    expect(formatActivityStatus("settling", "complete-pass")).toBe(
+      "Complete — PASS"
+    );
+    expect(formatActivityStatus("settling", "complete-fail")).toBe(
+      "Complete — FAIL"
+    );
     expect(formatActivityStatus("paused", undefined, "manual")).toBe("Paused");
     expect(formatActivityStatus("running", "logger", "manual")).toBe(
       "Capturing"
@@ -474,5 +500,153 @@ describe("agentTestingOverlay", () => {
 
     vi.advanceTimersByTime(DEFAULT_SETTLE_MS + 500);
     expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("pauseForAgentLeave pauses capture and clears presence", () => {
+    vi.stubGlobal("window", {
+      __studioAgentTestingTakeover: null as unknown,
+      setTimeout: (fn: TimerHandler, ms?: number) =>
+        globalThis.setTimeout(fn as () => void, ms),
+      clearTimeout: (id: ReturnType<typeof setTimeout>) =>
+        globalThis.clearTimeout(id),
+      setInterval: (fn: TimerHandler, ms?: number) =>
+        globalThis.setInterval(fn as () => void, ms),
+      clearInterval: (id: ReturnType<typeof setInterval>) =>
+        globalThis.clearInterval(id),
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => true,
+      location: {
+        href: "http://localhost:5173/",
+        pathname: "/",
+        search: "",
+        hash: "",
+      },
+      history: { state: null, replaceState: vi.fn(), pushState: vi.fn() },
+    });
+    installAgentTestingOverlayApi();
+    startAgentTestingOverlay("leave-return");
+    const api = window.__studioAgentTestingOverlay!;
+    expect(api.isCapturePaused()).toBe(false);
+
+    const left = api.pauseForAgentLeave();
+    expect(left.ok).toBe(true);
+    expect(left.capturePaused).toBe(true);
+    expect(left.presenceOnline).toBe(false);
+    expect(api.isCapturePaused()).toBe(true);
+    expect(peekPoSignal()).toBeNull(); // leave does not latch QA_PAUSE_HALT
+
+    const back = api.resumeForAgentReturn();
+    expect(back.ok).toBe(true);
+    expect(back.presenceOnline).toBe(true);
+    expect(back.messagePendingWork).toBe(false);
+    expect(back.captureResumed).toBe(true);
+    expect(api.isCapturePaused()).toBe(false);
+    stopAgentTestingOverlay({ force: true });
+  });
+
+  it("resumeForAgentReturn consumes Message and keeps pause", () => {
+    vi.stubGlobal("window", {
+      __studioAgentTestingTakeover: null as unknown,
+      setTimeout: (fn: TimerHandler, ms?: number) =>
+        globalThis.setTimeout(fn as () => void, ms),
+      clearTimeout: (id: ReturnType<typeof setTimeout>) =>
+        globalThis.clearTimeout(id),
+      setInterval: (fn: TimerHandler, ms?: number) =>
+        globalThis.setInterval(fn as () => void, ms),
+      clearInterval: (id: ReturnType<typeof setInterval>) =>
+        globalThis.clearInterval(id),
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => true,
+      location: {
+        href: "http://localhost:5173/",
+        pathname: "/",
+        search: "",
+        hash: "",
+      },
+      history: { state: null, replaceState: vi.fn(), pushState: vi.fn() },
+    });
+    if (typeof globalThis.CustomEvent === "undefined") {
+      vi.stubGlobal(
+        "CustomEvent",
+        class CustomEvent extends Event {
+          detail: unknown;
+          constructor(type: string, init?: CustomEventInit) {
+            super(type, init);
+            this.detail = init?.detail;
+          }
+        }
+      );
+    }
+    installAgentTestingOverlayApi();
+    startAgentTestingOverlay("message-on-return");
+    const api = window.__studioAgentTestingOverlay!;
+    api.pauseForAgentLeave();
+    // PO Message while agent gone
+    appendAgentTestingUserMessage("fix the composer type-in");
+    expect(peekPoSignal()?.code).toBe("USER_MESSAGE_RECEIVED");
+
+    const back = api.resumeForAgentReturn();
+    expect(back.messagePendingWork).toBe(true);
+    expect(back.captureResumed).toBe(false);
+    expect(back.consumedSignal?.note).toContain("composer type-in");
+    expect(api.isCapturePaused()).toBe(true);
+    expect(peekPoSignal()).toBeNull();
+    stopAgentTestingOverlay({ force: true });
+  });
+
+  it("stale presence auto-pauses capture without QA_PAUSE_HALT", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("window", {
+      __studioAgentTestingTakeover: null as unknown,
+      setTimeout: (fn: TimerHandler, ms?: number) =>
+        globalThis.setTimeout(fn as () => void, ms),
+      clearTimeout: (id: ReturnType<typeof setTimeout>) =>
+        globalThis.clearTimeout(id),
+      setInterval: (fn: TimerHandler, ms?: number) =>
+        globalThis.setInterval(fn as () => void, ms),
+      clearInterval: (id: ReturnType<typeof setInterval>) =>
+        globalThis.clearInterval(id),
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => true,
+      location: {
+        href: "http://localhost:5173/",
+        pathname: "/",
+        search: "",
+        hash: "",
+      },
+      history: { state: null, replaceState: vi.fn(), pushState: vi.fn() },
+      requestAnimationFrame: (cb: FrameRequestCallback) =>
+        globalThis.setTimeout(() => cb(Date.now()), 16) as unknown as number,
+      cancelAnimationFrame: (id: number) => globalThis.clearTimeout(id),
+    });
+    installAgentTestingOverlayApi();
+    startAgentTestingOverlay("auto-pause");
+    const api = window.__studioAgentTestingOverlay!;
+    expect(api.isCapturePaused()).toBe(false);
+
+    const mem = (
+      window as Window & {
+        __studioQaPresenceMemory?: { lastSeenAt: number; online: boolean };
+      }
+    ).__studioQaPresenceMemory;
+    expect(mem).toBeTruthy();
+    if (mem) mem.lastSeenAt = Date.now() - 12_000;
+
+    vi.advanceTimersByTime(2_500);
+    expect(api.isCapturePaused()).toBe(true);
+    expect(peekPoSignal()).toBeNull();
+    expect(peekQaAgentPresence().online).toBe(false);
+    expect(peekQaAgentPresence().label).toMatch(/^Last seen/);
+
+    const back = api.resumeForAgentReturn();
+    expect(back.ok).toBe(true);
+    expect(back.presenceOnline).toBe(true);
+    expect(back.captureResumed).toBe(true);
+    expect(api.isCapturePaused()).toBe(false);
+    stopAgentTestingOverlay({ force: true });
+    vi.useRealTimers();
   });
 });

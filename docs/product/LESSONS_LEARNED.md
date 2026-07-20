@@ -8,6 +8,27 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ---
 
+## 2026-07-21
+
+### Per-char type-in → QA log flood — do NOT kill composer animation (PO / Arch + Finn)
+
+- **Symptom / class:** Huge perf drop / QA overlay noise during continuous Play — one log line (or diag event) per typed character while Site Pilot / Chat composers animate. Dump fingerprint: `typeIn.samples=249` with `starts/ends=2`.
+- **Wrong fix:** Disable / skip / instant-fill type-in animation on page composers.
+- **Right fix:** Gate **logging only** — `playbackDiagTypeInProgress` = in-memory samples; no `type-in-progress` push; QA mirror ≤ start+end; cursor guard no per-N-char visibility spam. Animation loops in `sitePilotHome` / `sitePilotChat` stay letter-by-letter.
+- **Recipe:** [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) · Play ≡ Step · prove on `:5173` with QA visible + console.
+
+### FM `controls.stop()` hangs Play at confirmation (PO / Finn)
+
+- **Symptom / class:** Full agentic Play `script-timeout` 45s on book-step-3 confirmation — mid-travel abort stranded director scripts.
+- **Root cause:** framer-motion `controls.stop()` does **not** settle `await controls`.
+- **Gate:** `demoCursor.ts` travel await settles on onComplete / abort poll / ceiling. Also skip `scroll-path-deviation` while chat pull-up `scrollLock`. Prove: continuous Play 21/21.
+- **Recipe:** [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md).
+
+### Thinking bubble not camera’d — settle used last revealed only (PO / Finn)
+
+- **Symptom / class:** Thinking dots stay under composer dock; settle scrolled to last `data-studio-chat-revealed="true"` while thinking paints `revealed=false`.
+- **Gate:** `ChatScreen` settle uses `resolveChatCameraTarget` (thinking first). Rail: any new content including thinking must camera into view. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md).
+
 ## 2026-07-20
 
 ### Chat tall-bubble start-scroll fights bottom pin → scroll-reversal (PO / Finn + Quinn)

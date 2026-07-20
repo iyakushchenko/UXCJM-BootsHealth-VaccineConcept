@@ -24,7 +24,10 @@ import {
 import {
   clearQaAgentPresence,
   formatPresenceSuffix,
+  isQaAgentPresenceStaleForAutoPause,
   peekQaAgentPresence,
+  QA_AGENT_AUTO_PAUSE_MS,
+  QA_AGENT_PRESENT_MS,
   touchQaAgentPresence,
 } from "@/app/shell/agent-testing/agentTestingPresence";
 
@@ -69,7 +72,34 @@ describe("A–E interrupt primitives", () => {
     touchQaAgentPresence("test");
     const p = peekQaAgentPresence();
     expect(p.online).toBe(true);
-    expect(p.label).toMatch(/^ONLINE/);
-    expect(formatPresenceSuffix(p.label)).toMatch(/ · ONLINE/);
+    expect(p.label).toBe("ONLINE");
+    expect(formatPresenceSuffix(p.label)).toBe(" · ONLINE");
+  });
+
+  it("D: stale presence is Last seen only — never ONLINE + seen", () => {
+    touchQaAgentPresence("test");
+    const mem = (
+      window as Window & {
+        __studioQaPresenceMemory?: {
+          online: boolean;
+          lastSeenAt: number;
+          linkedAt: number;
+        };
+      }
+    ).__studioQaPresenceMemory;
+    expect(mem).toBeTruthy();
+    if (mem) mem.lastSeenAt = Date.now() - 68_000;
+    const p = peekQaAgentPresence();
+    expect(p.online).toBe(false);
+    expect(p.label).toMatch(/^Last seen \d+s ago$/);
+    expect(p.label).not.toMatch(/ONLINE/i);
+  });
+
+  it("D: auto-pause TTL aligns with present window (8s)", () => {
+    expect(QA_AGENT_AUTO_PAUSE_MS).toBe(QA_AGENT_PRESENT_MS);
+    expect(QA_AGENT_AUTO_PAUSE_MS).toBe(8_000);
+    touchQaAgentPresence("test");
+    expect(isQaAgentPresenceStaleForAutoPause(7_999)).toBe(false);
+    expect(isQaAgentPresenceStaleForAutoPause(8_001)).toBe(true);
   });
 });

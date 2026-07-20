@@ -62,7 +62,7 @@ export function formatActivityStatus(
       case "running":
         return tip ? `Capturing — ${tip}` : "Capturing";
       case "settling":
-        return "Closing…";
+        return tip?.startsWith("complete") ? "Complete" : "Closing…";
       default:
         return "Idle";
     }
@@ -74,7 +74,7 @@ export function formatActivityStatus(
       case "running":
         return tip ? `Observing — ${tip}` : "Observing";
       case "settling":
-        return "Closing…";
+        return tip?.startsWith("complete") ? "Complete" : "Closing…";
       default:
         return "Idle";
     }
@@ -87,6 +87,9 @@ export function formatActivityStatus(
     case "waiting":
       return tip ? `Waiting — ${tip}` : "Awaiting reply";
     case "settling":
+      if (tip === "complete-pass") return "Complete — PASS";
+      if (tip === "complete-fail") return "Complete — FAIL";
+      if (tip === "complete") return "Complete";
       return "Wrapping up…";
     case "paused":
       return "Paused";

@@ -1336,9 +1336,9 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(33, 43, 65, 0.45);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(33, 43, 65, 0.55);
+  /* Blur over a live chat underlay was a main-thread killer (~15fps). Solid scrim
+   * + content-visibility freeze on chat (chat.css) keeps avail open smooth. */
   animation: proto-avail-fade 0.28s cubic-bezier(0, 0, 0.2, 1);
 }
 .studio-avail-scrim--closing {

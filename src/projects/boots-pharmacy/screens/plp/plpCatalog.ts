@@ -3,6 +3,13 @@ import {
   getPlpCountryCandidates,
   type PlpBundleItem,
 } from "@/projects/boots-pharmacy/data/plpListing";
+import {
+  STUDIO_CONTENT_LOAD_MS,
+  STUDIO_ENTER_MS,
+} from "@/uxds/motion";
+
+/** Listing / refresh preloader — platform content-load interim (not a one-off). */
+export const PLP_LISTING_LOAD_MS = STUDIO_CONTENT_LOAD_MS;
 
 export type PlpListingKind = "jab" | "bundle";
 
@@ -534,6 +541,3 @@ export function plpResultsNoun(
   }
   return visible === 1 ? "jab" : "jabs";
 }
-
-/** Make `PLP_LISTING_LOAD_MS` — filter-change listing preloader. */
-export const PLP_LISTING_LOAD_MS = 450;

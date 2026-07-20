@@ -48,6 +48,10 @@ Dump includes `sessionKind` (+ `gateMode` alias).
 Prove only at **`http://127.0.0.1:5173/`** (or `localhost:5173` — same Vite). One tab; reuse via Chrome DevTools MCP `list_pages` → `select_page`.
 
 ```js
+// 0) ALWAYS CLEAR before a new prove/test (mandatory)
+window.__studioForceClearAgentTestingOverlay?.()
+// or: window.__studioAgentTestingOverlay?.forceClear()
+
 // 1) Open CONTROL session (wipe → green field)
 window.__studioOpenQaLogger?.({ kind: "agent" })
 // or handoff from manual without keeping notes:
@@ -67,9 +71,25 @@ window.__studioPeekPoSignal?.()
 window.__studioMcpConnectionStatus?.() // CONTROL | OBSERVE | PENDING | …
 window.__studioConsumePlaybackDiagnostic?.() // if diag modal / ingest
 
+// 4b) Leave / return (HARD) — pause while in Cursor chat; Message on arrival
+window.__studioAgentTestingOverlay?.pauseForAgentLeave?.()
+const back = window.__studioAgentTestingOverlay?.resumeForAgentReturn?.()
+// if back.messagePendingWork → handle back.consumedSignal.note before continue
+
 // 5) Cleanup
 window.__studioForceClearAgentTestingOverlay?.()
 ```
+
+### Agent leave / return (HARD)
+
+Agents **SHOULD** call leave/return. **Guard rail:** presence TTL (`QA_AGENT_AUTO_PAUSE_MS` = 8s) auto-pauses capture + Play when last touch goes stale (keeps Last seen; no `QA_PAUSE_HALT` / no `DIAGNOSTIC_ACK_STOP`).
+
+1. **`pauseForAgentLeave()`** — halt Play + pause capture + presence OFFLINE (no `QA_PAUSE_HALT` latch).
+2. **Stale auto-pause** — if you forget leave, heartbeat pauses after ~8s without touch.
+3. On return: **`resumeForAgentReturn()`** — presence ONLINE + **consume Message/latch** + resume only if no Message work (`messagePendingWork`).
+4. If Message arrived while gone → stay paused; follow User Message procedure below.
+
+→ [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../../../../docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) § Agent leave / return.
 
 ### User Message → agent procedure (HARD)
 
@@ -113,13 +133,15 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Stale-green (PP-07):** snap≠URL (screen/cjm/experience) → amber Session + one `stale-green · …` sitrep line (no spam).
 
-**PLAYBACK_DIAG mirror (PP-15):** when gate open, lean last-N events under Session (severity colors).
+**PLAYBACK_DIAG → QA chat (PP-15):** lean events append into the **main QA chat** as human-readable rows (unified chronology). Old side-pane PLAYBACK_DIAG mirror stays **hidden**. Mirror keep: FAIL/JUMP/CHOP/scroll-reversal/type-in start+end/play-end/alarms. Suppress: TRACE frames, cursor park/remove chatter, type-in-progress.
 
 **Agent intervene:** takeover confirm / wipe handoff / observe escalate → **fresh AGENT SESSION** (elapsed reset + boundary log). Old manual elapsed does not continue.
 
 **FAIL handoff freeze:** while `Caught error. Handing off to agent….` is open, Play/SF/jump/camera are hard-frozen (`__studioIsQaProgressFrozen()`). Confirm takeover starts a new session **and lifts freeze** so agent can drive; Resume also clears any leftover freeze.
 
-**Message RTT:** Send → `Message delivered · awaiting agent consume`; consume → `Message consumed · RTT Nms`. PENDING timeout floors via measured RTT (`__studioQaMessageRttStats()`). Presence: `ONLINE · linked` / `seen Ns ago` on CONTROL status.
+**Message RTT:** Send → `Message delivered · awaiting agent consume`; consume → `Message consumed · RTT Nms`. PENDING timeout floors via measured RTT (`__studioQaMessageRttStats()`). **Presence XOR:** `ONLINE` when agent recently touched (≤8s) **or** `Last seen Ns ago` when stale — never both. Green diode only when `data-presence=online`. **Auto-pause guard rail:** stale ≥8s → pause capture + halt Play (same as leave, no `QA_PAUSE_HALT`); return via `resumeForAgentReturn()`.
+
+**QA chat colors (industry norms):** red = hard FAIL / chop / script-timeout / Play-stopping alarms; amber = soft-fail attention; neutral = routine milestones (journey reset, play-end, typing started, cursor cleared, stepped notes); green = explicit `RESULT · PASS` only. Timestamps only — no 1/2/3 list numbering.
 
 **Full chat bubble motion (restartable):** `await window.__studioRunChatBubbleMotionSelfTest?.()` — opens QA, SF agentic q0…r3, asserts samples / thinking-handoff / jumps=0. See [SELF_TEST.md](./SELF_TEST.md).
 

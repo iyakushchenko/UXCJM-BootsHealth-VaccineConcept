@@ -2,6 +2,33 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+- **shell:** One prove entrypoint `__studioRunAgenticFullPlayProve` — forceClear + arm + full agentic Play + peak 21/21 + play-end assert + pauseForAgentLeave; keeps QA overlay for Save Log (not smoke teardown)
+- **shell:** Global post-click camera hold (~480ms) before SSoT scroll so clicks do not yank camera (CJM on/off).
+- **shell:** CJM-off chat = existing saved-thread load (content-load interim → full paint); QA dump-all watch; agent-offline Message→resume card; playback-diag scrollbar=chat; post-click camera hold
+- **shell:** CJM-off: yield reveal bridge to browse entry (fix dump-hold race)
+- **shell:** Chat bubble pull-up co-travels with camera (appear+scroll same 340ms; land on target)
+- **shell:** Platform STUDIO_CONTENT_LOAD_MS=1500 + STUDIO_ENTER_MS; CJM-off=existing-chat load (no creation thinking); PLP refresh uses same interim
+- **shell:** Keep open: Wrapping up → Complete status
+- **project:** chat: remove invented content-load spinning preloader (PO rejected); keep STUDIO_CONTENT_LOAD_MS empty hold only, no spinner chrome
+- **shell:** Keep open on AGENT DONE sitrep flips status Wrapping up… → Complete (PASS/FAIL); forceClear hang-safe in Node (chat-loading watch + settleHeld reset)
+- **project:** PLP listing loader sticky within tiles host scrollport (not absolute mid-band / not fixed to document)
+- **project:** CJM-off chat: existing saved-thread load only (blank STUDIO_CONTENT_LOAD_MS interim then full paint; no creation/thinking/progressive)
+- **project:** CJM-off saved-chat load: wait React paint before smooth host-end scroll (restore camera-to-bottom)
+- **docs:** Chat page rails doc: CJM-off saved-chat load vs CJM-on progressive (CHAT_PAGE_RAILS.md); linked from AGENTS + MOTION.
+- **project:** CJM-on continuous Play chat enter = Sarah q0 only (Play≡SF); seed stale hold + jump before play
+- **project:** chat bubble-chop: clearance-topup near-miss + scrollLock co-travel no longer hard-halt Play
+- **project:** Play hang: FM controls.stop() never settles await (confirmation 45s timeout); suppress scroll-path-deviation during chat pull-up co-travel
+- **project:** Chat thinking settle: camera uses resolveChatCameraTarget (thinking first) so pull-up brings thinking above composer; STUDIO_ENTER_MS co-travel kept.
+- **shell:** Gate per-letter type-in QA samples (keep composer animation); recipe Play≡Step + FM stop hang + thinking camera; dump typeIn.samples=249 smell
+- **shell:** QA Play perf: sample bubble TRACE/frames, rAF-coalesce overlay log DOM, read-only peek/is-open helpers; recipe PERF section
+- **shell:** Prove recipe: Reset QA (forceClear + fresh start/keepOpen) before every playback test — never reuse dirty overlay session.
+- **shell:** Save Log stays enabled on Keep-open Complete; ALWAYS CLEAR QA (forceClear + start wipe) before each prove/smoke.
+- **shell:** QA chat: human playback-diag labels (unified sequence); hide cryptic diag pane; CHOP/JUMP mirrored; quiet qa-overlay-start dismiss; Save Log on Keep-open Complete; ALWAYS CLEAR on smoke/start.
+- **shell:** QA leave/return: pauseForAgentLeave + resumeForAgentReturn (Message on arrival); recipe + AGENTS
+- **shell:** QA overlay: industry log colors (neutral milestones, amber soft-fail, red hard-fail, green PASS only); timestamps without list numbers; presence ONLINE XOR Last seen + green diode only when present
+- **shell:** CJM-on Play: CHAT_LOADING_DUMP_ALL watch is CJM-off-only (false positive vs progressive reveal); rails+QA recipe updated
+- **shell:** QA auto-pause on presence TTL (8s) as leave guard rail; avail after chat FPS: freeze chat underlay + drop scrim backdrop-filter
+
 ## v0.0.100 - 200726
 - **shell:** PP-13 self-test expand + stale-green detector + PLAYBACK_DIAG mirror
 

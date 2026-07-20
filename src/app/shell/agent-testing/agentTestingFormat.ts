@@ -41,6 +41,14 @@ export function formatDurationMs(ms: number | undefined): string {
 
 export function inferOutcomeFromText(text: string): AgentTestingStepOutcome {
   const t = text.toLowerCase();
+  // Explicit prove / finale green only — never paint routine "ok" as success.
+  if (
+    /\bresult\s*·\s*pass\b/.test(t) ||
+    /\bprove\s+green\b/.test(t) ||
+    /\bself-?test\s+pass\b/.test(t)
+  ) {
+    return "pass";
+  }
   if (
     /\bfail\b/.test(t) ||
     /\berror\b/.test(t) ||

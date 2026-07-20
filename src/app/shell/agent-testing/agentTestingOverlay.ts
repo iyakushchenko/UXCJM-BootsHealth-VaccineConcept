@@ -117,8 +117,18 @@ import {
 import {
   armQaAgentPresenceHeartbeat,
   clearQaAgentPresence,
+  isQaAgentPresenceStaleForAutoPause,
+  peekQaAgentPresence,
   touchQaAgentPresence,
 } from "@/app/shell/agent-testing/agentTestingPresence";
+import {
+  armQaChatLoadingWatch,
+  disarmQaChatLoadingWatch,
+} from "@/app/shell/agent-testing/agentTestingChatLoadingWatch";
+import {
+  buildQaAgentResumeCard,
+  isQaAgentOfflineForMessage,
+} from "@/app/shell/agent-testing/agentTestingResumeCard";
 import { registerQaDiagnosticOpenHandler } from "@/app/shell/playbackDiagQaBridge";
 import {
   clearStalePlaybackDiagnostic,
@@ -152,12 +162,10 @@ import {
   armOriginProbe,
   disarmOriginProbe,
 } from "@/app/shell/agent-testing/agentTestingOriginProbe";
-import { renderDiagMirrorDom } from "@/app/shell/agent-testing/agentTestingDiagMirror";
 import {
   isStaleGreenActive,
   noteStaleGreenIfChanged,
 } from "@/app/shell/agent-testing/agentTestingStaleGreen";
-import { isQaDiagGateOpen } from "@/app/shell/qaDiagGate";
 import {
   deriveAgentControlKind,
   isCjmCassetteOn,
@@ -289,6 +297,18 @@ type OverlayApi = {
   peekPoSignal: () => AgentTestingPoSignal | null;
   /** Consume + clear live PO latch. */
   consumePoSignal: () => AgentTestingPoSignal | null;
+  /**
+   * Agent leaves QA session (Cursor chat / elsewhere) — HARD.
+   * Pause capture + halt Play + presence OFFLINE. Does not latch QA_PAUSE_HALT
+   * (keeps Message latch free for PO while agent is gone).
+   */
+  pauseForAgentLeave: () => AgentLeavePauseResult;
+  /**
+   * Agent returns to QA — HARD.
+   * Presence ONLINE → consume Message/latch if any → resume capture only when
+   * no Message work remains. Always inspect `consumedSignal` / `messagePendingWork`.
+   */
+  resumeForAgentReturn: () => AgentReturnResumeResult;
   setTimeline: (keys: string[]) => void;
   markTimeline: (key: string, outcome: AgentTestingStepOutcome) => void;
   downloadDump: () => boolean;
@@ -299,10 +319,32 @@ type OverlayApi = {
   isDiagnosticBlocking: () => boolean;
 };
 
+/** Result of `pauseForAgentLeave`. */
+export type AgentLeavePauseResult = {
+  ok: boolean;
+  capturePaused: boolean;
+  presenceOnline: boolean;
+  reason: string;
+};
+
+/** Result of `resumeForAgentReturn`. */
+export type AgentReturnResumeResult = {
+  ok: boolean;
+  captureResumed: boolean;
+  presenceOnline: boolean;
+  /** Latch consumed on arrival (Message / Alarm / …). Null if none. */
+  consumedSignal: AgentTestingPoSignal | null;
+  /** True when Message must be handled before continuing prove work. */
+  messagePendingWork: boolean;
+  reason: string;
+};
+
 let active = false;
 let settling = false;
 /** Pause freezes capture + clock (all kinds). */
 let capturePaused = false;
+/** Dedupes auto-pause log spam while presence stays stale. */
+let autoPausedForStalePresence = false;
 /**
  * True after real capture progress in this session.
  * False after reset / fresh open → Capture CTA shows CAPTURE (not Resume).
@@ -311,6 +353,8 @@ let sessionHadProgress = false;
 /** True when log has events after last Reset (Reset CTA gated until dirty). */
 let logDirty = false;
 let logEntries: AgentTestingLogEntry[] = [];
+/** Coalesce rapid log pushes into one DOM rebuild per animation frame. */
+let logDomFlushRaf = 0;
 let sessionTitle = DEFAULT_TITLE;
 let nest = 0;
 let safetyTimer: ReturnType<typeof setTimeout> | null = null;
@@ -565,15 +609,12 @@ function refreshStaleGreenAndDiagMirror(): void {
     /* hang-safe */
   }
   try {
+    // Unified sequence lives in the main QA chat (playback-diag rows).
+    // Keep the old PLAYBACK_DIAG side pane hidden — agents miss it / cryptic.
     const wrap = document.querySelector<HTMLElement>(
       ".studio-agent-testing-overlay__diag-mirror-wrap"
     );
-    const list = document.querySelector<HTMLElement>(
-      ".studio-agent-testing-overlay__diag-mirror"
-    );
-    const gateOpen = isQaDiagGateOpen();
-    if (wrap) wrap.hidden = !gateOpen;
-    if (gateOpen && list) renderDiagMirrorDom(list);
+    if (wrap) wrap.hidden = true;
   } catch {
     /* hang-safe */
   }
@@ -861,14 +902,9 @@ function startFreshAgentInterventionSession(source: string): void {
   setAwaitingUserReply(false);
   clearMcpPending();
   signalMcpConnect();
+  autoPausedForStalePresence = false;
   touchQaAgentPresence(source);
-  armQaAgentPresenceHeartbeat(() => {
-    try {
-      refreshMcpStatusDom();
-    } catch {
-      /* hang-safe */
-    }
-  });
+  armPresenceHeartbeatWithAutoPause();
   pushLogEntry({
     atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
@@ -886,6 +922,7 @@ function startFreshAgentInterventionSession(source: string): void {
 
 function confirmAgentHandshake(source: string): boolean {
   if (!isFailHandoffPending()) {
+    autoPausedForStalePresence = false;
     touchQaAgentPresence(source);
     return false;
   }
@@ -970,7 +1007,7 @@ export function appendAgentTestingSessionFinale(
     atMs: Date.now(),
     timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
     label: `RESULT · ${result.toUpperCase()} — ${clean}`,
-    outcome: result === "pass" ? "ok" : "fail",
+    outcome: result === "pass" ? "pass" : "fail",
     kind: "system",
   });
   settleResult = result;
@@ -1596,20 +1633,36 @@ function setKeepOpenVisible(show: boolean): void {
 
 /** Cancel Auto-closes countdown — PO keeps sitrep/log context. */
 export function holdSettleOpen(reason = "keep-open"): boolean {
-  if (!settling || settleHeld) return settleHeld;
+  if (!settling || settleHeld) {
+    if (settleHeld) syncSessionChrome();
+    return settleHeld;
+  }
   settleHeld = true;
   settleReload = false;
   clearSettleTimer();
   clearEnsureClearTimer();
   setHint(formatSitrepHeldHint(settleResult));
   setKeepOpenVisible(false);
+  // Status: Wrapping up… → Complete (PASS/FAIL when known).
+  setActivityPhase(
+    "settling",
+    settleResult === "pass"
+      ? "complete-pass"
+      : settleResult === "fail"
+        ? "complete-fail"
+        : "complete"
+  );
   try {
     logQaToolbarAction(`Keep open · ${reason}`);
   } catch {
     /* hang-safe */
   }
-  const root = document.getElementById(ROOT_ID);
-  if (root) root.dataset.settleHeld = "true";
+  if (hasDomQuery()) {
+    const root = document.getElementById(ROOT_ID);
+    if (root) root.dataset.settleHeld = "true";
+  }
+  // Keep open Complete must still allow Save Log dump (active=false while settling).
+  syncSessionChrome();
   return true;
 }
 
@@ -1760,14 +1813,17 @@ function syncSessionChrome(): void {
     ".studio-agent-testing-overlay__dump"
   );
   if (saveBtn) {
-    // Snapshot anytime while session active — does not require Pause.
-    const enabled = active && !settling;
+    // Snapshot while capturing, OR while Keep open holds Complete sitrep.
+    // (enterSettle sets active=false + settling=true — do not disable dump then.)
+    const enabled = (active && !settling) || settleHeld;
     saveBtn.disabled = !enabled;
     saveBtn.textContent = "Save Log";
     saveBtn.title = enabled
-      ? capturePaused
-        ? "Download lean dump JSON (current session)"
-        : "Snapshot dump while capturing (does not pause)"
+      ? settleHeld
+        ? "Download lean dump JSON (Complete — Keep open)"
+        : capturePaused
+          ? "Download lean dump JSON (current session)"
+          : "Snapshot dump while capturing (does not pause)"
       : "Open a QA session to save log";
   }
 
@@ -2202,77 +2258,311 @@ function ensureOverlayChrome(root: HTMLElement): void {
  */
 function toggleCapturePause(): void {
   if (!active || settling) return;
-  const next = !capturePaused;
-  if (next) {
-    try {
-      haltPlaybackForPoSignal("po-pause");
-    } catch {
-      /* hang-safe */
-    }
-    try {
-      latchPoSignal({
-        type: "pause",
-        code: "QA_PAUSE_HALT",
-        note: "QA Pause — progress halted; consume before proceed",
-        sitrepLine: lastSitrepLine,
-        timeline: timelineKeys,
-      });
-    } catch {
-      /* hang-safe */
-    }
+  if (!capturePaused) {
+    applyPoCapturePause(/* latchHalt */ true);
+  } else {
+    applyCaptureResume("po-resume");
+  }
+}
+
+/** Shared pause path — PO Pause button latches; agent-leave does not. */
+function applyPoCapturePause(latchHalt: boolean): void {
+  if (!active || settling) return;
+  try {
+    haltPlaybackForPoSignal(latchHalt ? "po-pause" : "agent-leave");
+  } catch {
+    /* hang-safe */
+  }
+  if (!capturePaused) {
+    pauseElapsedClock();
+    capturePaused = true;
+    sessionHadProgress = true;
+  }
+  if (!latchHalt) {
+    // Agent leave: halt + pause only — leave Message latch free; caller logs.
+    armElapsedTimer();
+    setActivityPhase("paused", "agent-leave");
+    syncCaptureWatch();
+    syncSessionChrome();
+    return;
+  }
+  try {
+    latchPoSignal({
+      type: "pause",
+      code: "QA_PAUSE_HALT",
+      note: "QA Pause — progress halted; consume before proceed",
+      sitrepLine: lastSitrepLine,
+      timeline: timelineKeys,
+    });
+  } catch {
+    /* hang-safe */
   }
   const kind = getSessionKind();
   const label =
-    kind === "agent"
-      ? next
+    kind === "agent" || kind === "observe"
+      ? "QA · Pause (Play halted)"
+      : sessionHadProgress
         ? "QA · Pause (Play halted)"
-        : "QA · Resume (capture on)"
-      : kind === "observe"
-        ? next
-          ? "QA · Pause (Play halted)"
-          : "QA · Resume (capture on)"
-        : next
-          ? sessionHadProgress
-            ? "QA · Pause (Play halted)"
-            : "QA · CAPTURE off"
-          : sessionHadProgress
-            ? "QA · Resume (capture on)"
-            : "QA · CAPTURE on";
-  // Status row must land even when pausing (gate would otherwise drop it).
-  if (next) {
-    pauseElapsedClock();
-    pushLogEntry({
-      atMs: Date.now(),
-      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-      label,
-      outcome: "ok",
-      kind: "system",
-    });
-    capturePaused = true;
-  } else {
-    capturePaused = false;
-    sessionHadProgress = true;
-    resumeElapsedClock();
+        : "QA · CAPTURE off";
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label,
+    outcome: "ok",
+    kind: "system",
+  });
+  armElapsedTimer();
+  setActivityPhase("paused");
+  syncCaptureWatch();
+  syncSessionChrome();
+}
+
+function applyCaptureResume(source: string): void {
+  if (!active || settling) return;
+  const kind = getSessionKind();
+  const label =
+    kind === "agent" || kind === "observe"
+      ? "QA · Resume (capture on)"
+      : sessionHadProgress
+        ? "QA · Resume (capture on)"
+        : "QA · CAPTURE on";
+  capturePaused = false;
+  sessionHadProgress = true;
+  resumeElapsedClock();
+  try {
+    clearFailHandoffFromSession();
+    clearFailHandoff();
+    clearQaProgressFreeze();
+  } catch {
+    /* hang-safe */
+  }
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: source === "agent-return" ? `${label} · agent return` : label,
+    outcome: "ok",
+    kind: "system",
+  });
+  armElapsedTimer();
+  setActivityPhase("running");
+  syncCaptureWatch();
+  syncSessionChrome();
+}
+
+/**
+ * Wire presence heartbeat: MCP chrome refresh + hard auto-pause on stale TTL.
+ * Replaces onTick on every arm so HMR / re-entry cannot drop the guard rail.
+ */
+function armPresenceHeartbeatWithAutoPause(): void {
+  armQaAgentPresenceHeartbeat((ageMs) => {
     try {
-      clearFailHandoffFromSession();
-      clearFailHandoff();
-      clearQaProgressFreeze();
+      refreshMcpStatusDom();
     } catch {
       /* hang-safe */
+    }
+    try {
+      maybeAutoPauseOnStalePresence(ageMs);
+    } catch {
+      /* hang-safe */
+    }
+  });
+}
+
+/**
+ * HARD guard rail — stale presence (≥ QA_AGENT_AUTO_PAUSE_MS) pauses capture +
+ * Play like leave, without clearing Last seen and without QA_PAUSE_HALT /
+ * DIAGNOSTIC_ACK_STOP latch. Agents should still call pauseForAgentLeave.
+ */
+function maybeAutoPauseOnStalePresence(ageMs: number): void {
+  if (!isQaAgentPresenceStaleForAutoPause(ageMs)) {
+    autoPausedForStalePresence = false;
+    return;
+  }
+  if (!active || settling) return;
+  if (capturePaused) {
+    // Still halt Play if transport somehow restarted while capture paused.
+    if (!autoPausedForStalePresence) {
+      autoPausedForStalePresence = true;
+      try {
+        haltPlaybackForPoSignal("agent-stale-auto");
+      } catch {
+        /* hang-safe */
+      }
+    }
+    return;
+  }
+  autoPausedForStalePresence = true;
+  // Keep lastSeenAt — paint Last seen (not OFFLINE wipe). No halt latch.
+  applyPoCapturePause(/* latchHalt */ false);
+  const ageSec = Math.round(ageMs / 1000);
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `Agent stale · auto-pause · capture paused · Last seen ${ageSec}s ago`,
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase("paused", "agent-stale-auto");
+  syncSessionChrome();
+}
+
+/**
+ * Agent disconnects from QA tool → pause session + presence OFFLINE.
+ * Prefer explicit leave; stale heartbeat also auto-pauses as guard rail.
+ */
+export function pauseForAgentLeave(): AgentLeavePauseResult {
+  clearQaAgentPresence();
+  autoPausedForStalePresence = true;
+  if (!active || settling) {
+    return {
+      ok: false,
+      capturePaused,
+      presenceOnline: false,
+      reason: !active ? "overlay-inactive" : "settling",
+    };
+  }
+  // Do not latch QA_PAUSE_HALT — leave Message latch free for PO while gone.
+  applyPoCapturePause(/* latchHalt */ false);
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: "Agent leave · capture paused · presence OFFLINE",
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase("paused", "agent-leave");
+  syncSessionChrome();
+  return {
+    ok: true,
+    capturePaused: true,
+    presenceOnline: false,
+    reason: "paused-for-leave",
+  };
+}
+
+/**
+ * Agent returns to QA → presence ONLINE, consume Message/latch, resume when safe.
+ */
+export function resumeForAgentReturn(): AgentReturnResumeResult {
+  if (typeof window === "undefined") {
+    return {
+      ok: false,
+      captureResumed: false,
+      presenceOnline: false,
+      consumedSignal: null,
+      messagePendingWork: false,
+      reason: "no-window",
+    };
+  }
+  autoPausedForStalePresence = false;
+  touchQaAgentPresence("agent-return");
+  armPresenceHeartbeatWithAutoPause();
+
+  // Hide offline resume card if still visible.
+  try {
+    const box = document
+      .getElementById(ROOT_ID)
+      ?.querySelector<HTMLTextAreaElement>(
+        ".studio-agent-testing-overlay__resume-card"
+      );
+    if (box) box.style.display = "none";
+  } catch {
+    /* hang-safe */
+  }
+
+  const peeked = peekPoSignal();
+  const consumedSignal = peeked ? consumePoSignalWithAck() : null;
+
+  const messagePendingWork =
+    consumedSignal?.type === "user-message" ||
+    consumedSignal?.code === "USER_MESSAGE_RECEIVED";
+
+  if (!active || settling) {
+    return {
+      ok: Boolean(consumedSignal) || peekQaAgentPresence().online,
+      captureResumed: false,
+      presenceOnline: true,
+      consumedSignal,
+      messagePendingWork: Boolean(messagePendingWork),
+      reason: !active ? "overlay-inactive" : "settling",
+    };
+  }
+
+  if (messagePendingWork) {
+    // Message procedure: stay paused until agent handles note + Resume.
+    if (!capturePaused) {
+      applyPoCapturePause(/* latchHalt */ false);
     }
     pushLogEntry({
       atMs: Date.now(),
       timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-      label,
+      label:
+        "Agent return · Message on arrival — handle note before continue (capture stays paused)",
       outcome: "ok",
       kind: "system",
     });
+    setActivityPhase("paused", "agent-return-message");
+    syncSessionChrome();
+    return {
+      ok: true,
+      captureResumed: false,
+      presenceOnline: true,
+      consumedSignal,
+      messagePendingWork: true,
+      reason: "message-pending",
+    };
   }
-  if (next) sessionHadProgress = true;
-  armElapsedTimer();
-  setActivityPhase(capturePaused ? "paused" : "running");
-  syncCaptureWatch();
-  syncSessionChrome();
+
+  const wasPaused = capturePaused;
+  if (wasPaused) {
+    applyCaptureResume("agent-return");
+  } else {
+    pushLogEntry({
+      atMs: Date.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: "Agent return · presence ONLINE (capture already on)",
+      outcome: "ok",
+      kind: "system",
+    });
+    syncSessionChrome();
+  }
+
+  return {
+    ok: true,
+    captureResumed: wasPaused && !capturePaused,
+    presenceOnline: true,
+    consumedSignal,
+    messagePendingWork: false,
+    reason: consumedSignal ? "resumed-after-latch" : "resumed",
+  };
+}
+
+/** Consume latch + Message RTT / fail-handoff confirm (shared by API + return). */
+function consumePoSignalWithAck(): AgentTestingPoSignal | null {
+  const signal = consumePoSignal();
+  if (signal) {
+    confirmAgentHandshake(`consume:${signal.code}`);
+    if (
+      signal.type === "user-message" ||
+      signal.code === "USER_MESSAGE_RECEIVED"
+    ) {
+      const rtt = noteQaMessageConsumed();
+      touchQaAgentPresence("message-consumed");
+      pushLogEntry({
+        atMs: Date.now(),
+        timeLabel: new Date().toLocaleTimeString("en-GB", {
+          hour12: false,
+        }),
+        label:
+          rtt != null
+            ? `Message consumed · RTT ${rtt}ms`
+            : "Message consumed · agent ack",
+        outcome: "ok",
+        kind: "system",
+      });
+    }
+  }
+  return signal;
 }
 
 function ensureRoot(): HTMLElement | null {
@@ -2330,7 +2620,7 @@ function ensureRoot(): HTMLElement | null {
         <button type="button" class="studio-agent-testing-overlay__scroll-flag" title="Flag scroll problem — latches live PO signal">Scroll</button>
         <button type="button" class="studio-agent-testing-overlay__diag-ack" hidden title="Ack playback diagnostic — consume latch + clear">Ack diag</button>
       </div>
-      <ol class="studio-agent-testing-overlay__log" data-empty="true"></ol>
+      <ul class="studio-agent-testing-overlay__log" data-empty="true"></ul>
       <form class="studio-agent-testing-overlay__note" autocomplete="off">
         <input type="text" class="studio-agent-testing-overlay__note-input" name="user-message" maxlength="280" placeholder="Message" aria-label="Message" />
         <button type="submit" class="studio-agent-testing-overlay__note-submit">Send</button>
@@ -2468,8 +2758,7 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
       existingInit.atMs = entry.atMs;
       existingInit.timeLabel = entry.timeLabel;
       existingInit.label = "Initializing…";
-      renderLog();
-      refreshSitrepDom();
+      scheduleLogDomFlush();
       if (active) noteActivity();
       return;
     }
@@ -2526,15 +2815,45 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
       setActivityPhase("running", snippet || undefined);
     }
   }
+  scheduleLogDomFlush();
+  // Auto-pause must not extend idle — otherwise stale@8s fights IDLE_MS abandon.
+  if (active && !/^Agent stale · auto-pause/i.test(visible.label || "")) {
+    noteActivity();
+  }
+}
+
+/** One rAF flush for log list + sitrep — avoids N full rebuilds per diag burst. */
+function scheduleLogDomFlush(): void {
+  if (logDomFlushRaf) return;
+  const schedule =
+    typeof requestAnimationFrame === "function"
+      ? requestAnimationFrame
+      : (cb: FrameRequestCallback) =>
+          setTimeout(() => cb(Date.now()), 16) as unknown as number;
+  logDomFlushRaf = schedule(() => {
+    logDomFlushRaf = 0;
+    renderLog();
+    refreshSitrepDom();
+  });
+}
+
+function flushLogDomNow(): void {
+  if (logDomFlushRaf) {
+    if (typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(logDomFlushRaf);
+    } else {
+      clearTimeout(logDomFlushRaf as unknown as ReturnType<typeof setTimeout>);
+    }
+    logDomFlushRaf = 0;
+  }
   renderLog();
   refreshSitrepDom();
-  if (active) noteActivity();
 }
 
 function renderLog(): void {
   if (!hasDomQuery()) return;
   const root = document.getElementById(ROOT_ID);
-  const list = root?.querySelector<HTMLOListElement>(
+  const list = root?.querySelector<HTMLUListElement>(
     ".studio-agent-testing-overlay__log"
   );
   if (!list) return;
@@ -2842,8 +3161,28 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
 
 export function startAgentTestingOverlay(title?: string): void {
   confirmAgentHandshake("start");
+  // Fresh arm (idle / settle / Keep-open Complete) always wipes prior session —
+  // agents must not inherit dirty log/ring/latches. Nested start (already active) keeps nest.
+  const freshArm = !active || settling || settleHeld || nest === 0;
   if (settling) {
     abandonSettleForRearch();
+  }
+  if (freshArm) {
+    try {
+      // Quiet source (qa-*) — must NOT latch DIAGNOSTIC_ACK_STOP / abort Play.
+      dismissStaleDiagForSession("qa-overlay-start");
+    } catch {
+      /* hang-safe */
+    }
+    try {
+      clearFailHandoffFromSession();
+    } catch {
+      /* hang-safe */
+    }
+    wipeSessionContext();
+    nest = 0;
+    settleHeld = false;
+    settleResult = "neutral";
   }
   nest += 1;
   active = true;
@@ -2858,6 +3197,9 @@ export function startAgentTestingOverlay(title?: string): void {
   capturePaused = false;
   clearEnsureClearTimer();
   signalMcpConnect();
+  autoPausedForStalePresence = false;
+  touchQaAgentPresence("overlay-start");
+  armPresenceHeartbeatWithAutoPause();
   const resolved = resolveAgentTestingOverlayTitle(
     title ?? titleForSessionKind("agent")
   );
@@ -2868,6 +3210,7 @@ export function startAgentTestingOverlay(title?: string): void {
     root.dataset.settling = "false";
     delete root.dataset.result;
     delete root.dataset.logger;
+    delete root.dataset.settleHeld;
     root.querySelector(".studio-agent-testing-overlay__history")?.remove();
     syncAgentTestingNavClearance(ROOT_ID, root);
   }
@@ -2889,8 +3232,7 @@ export function startAgentTestingOverlay(title?: string): void {
   bindVisibility();
   noteActivity();
   if (nest === 1) {
-    logEntries = [];
-    timelineKeys = [];
+    wipeSessionContext();
     lastUnexpectedDwellCount = 0;
     lastAutoScrollFlagKey = "";
     sessionStartedAt = Date.now();
@@ -3147,14 +3489,9 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
     sessionStartedAt = Date.now();
     lastStepAt = sessionStartedAt;
     resetElapsedClock(true);
+    autoPausedForStalePresence = false;
     touchQaAgentPresence("handoff-wipe");
-    armQaAgentPresenceHeartbeat(() => {
-      try {
-        refreshMcpStatusDom();
-      } catch {
-        /* hang-safe */
-      }
-    });
+    armPresenceHeartbeatWithAutoPause();
   }
 
   setSessionKind(target, { escalatedFromObserve: false });
@@ -3417,6 +3754,30 @@ export function openAgentTestingLogger(
     bindMessageListen(qaListenDeps(), root);
     focusMessageInput(ROOT_ID, root);
   }
+  try {
+    const params = new URLSearchParams(location.search);
+    // CJM-off saved-chat dump-all watch only — never gate CJM-on Play/SF progressive.
+    if (params.get("screen") === "chat" && params.get("cjm") === "off") {
+      armQaChatLoadingWatch({
+        onFail: (detail) => {
+          pushLogEntry({
+            atMs: Date.now(),
+            timeLabel: new Date().toLocaleTimeString("en-GB", {
+              hour12: false,
+            }),
+            label: `FAIL · ${detail}`,
+            outcome: "fail",
+            kind: "system",
+          });
+          beginFailHandoffFromOverlay(detail);
+        },
+      });
+    } else {
+      disarmQaChatLoadingWatch();
+    }
+  } catch {
+    /* hang-safe */
+  }
 }
 
 /** Soft dismiss — close gate, stop capture, hide panel, keep DOM (no remount flash). */
@@ -3449,6 +3810,7 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   nest = 0;
   active = false;
   settling = false;
+  settleHeld = false;
   settleResult = "neutral";
   logEntries = [];
   timelineKeys = [];
@@ -3477,6 +3839,7 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
     delete root.dataset.owner;
     delete root.dataset.kind;
     delete root.dataset.mcp;
+    delete root.dataset.settleHeld;
   }
   setQaSessionLock(null);
   setActivityPhase("idle");
@@ -3553,17 +3916,59 @@ export function appendAgentTestingUserMessage(text: string): boolean {
     outcome: "ok",
     kind: "user-message",
   });
-  pushLogEntry({
-    atMs: Date.now(),
-    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    label: awaiting
-      ? "Reply delivered · awaiting agent consume"
-      : "Message delivered · awaiting agent consume",
-    outcome: "ok",
-    kind: "system",
-  });
   markAgentTestingTimeline(`user-message:${Date.now()}`, "ok");
-  touchQaAgentPresence("message-sent");
+  // Do NOT mark agent online on PO send — that lied. Check presence instead.
+  if (isQaAgentOfflineForMessage()) {
+    const card = buildQaAgentResumeCard(trimmed);
+    pushLogEntry({
+      atMs: Date.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label:
+        "Agent OFFLINE — not linked. Copy resume card below → paste into Cursor chat to resume.",
+      outcome: "fail",
+      kind: "system",
+    });
+    pushLogEntry({
+      atMs: Date.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: `Resume · ${card.studioUrl}`,
+      outcome: "soft-fail",
+      kind: "system",
+    });
+    try {
+      const rootEl = document.getElementById(ROOT_ID);
+      let box = rootEl?.querySelector<HTMLTextAreaElement>(
+        ".studio-agent-testing-overlay__resume-card"
+      );
+      if (!box && rootEl) {
+        box = document.createElement("textarea");
+        box.className = "studio-agent-testing-overlay__resume-card";
+        box.readOnly = true;
+        box.rows = 8;
+        box.setAttribute("aria-label", "Agent resume card for Cursor");
+        rootEl
+          .querySelector(".studio-agent-testing-overlay__log")
+          ?.insertAdjacentElement("afterend", box);
+      }
+      if (box) {
+        box.value = card.copyText;
+        box.style.display = "block";
+      }
+      void navigator.clipboard?.writeText?.(card.copyText);
+    } catch {
+      /* hang-safe */
+    }
+  } else {
+    pushLogEntry({
+      atMs: Date.now(),
+      timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+      label: awaiting
+        ? "Reply delivered · awaiting agent consume"
+        : "Message delivered · awaiting agent consume",
+      outcome: "ok",
+      kind: "system",
+    });
+  }
   clearQaMessageDraft();
   try {
     const root = document.getElementById(ROOT_ID);
@@ -3636,12 +4041,25 @@ export function isAgentTestingOverlayDomPresent(): boolean {
  */
 export function forceClearAgentTestingOverlay(): void {
   try {
+    if (logDomFlushRaf) {
+      if (typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(logDomFlushRaf);
+      } else {
+        clearTimeout(logDomFlushRaf as unknown as ReturnType<typeof setTimeout>);
+      }
+      logDomFlushRaf = 0;
+    }
     logQaToolbarAction("forceClear · wipe session");
     dismissStaleDiagForSession("force-clear");
     clearFailHandoffFromSession();
     clearFailHandoff();
     clearQaProgressFreeze();
     clearQaAgentPresence();
+    try {
+      disarmQaChatLoadingWatch();
+    } catch {
+      /* hang-safe — never abort wipe before settling flags clear */
+    }
     clearAgentTestingFinaleSeal();
     try {
       disarmOriginProbe();
@@ -3651,6 +4069,7 @@ export function forceClearAgentTestingOverlay(): void {
     nest = 0;
     active = false;
     settling = false;
+    settleHeld = false;
     settleReload = false;
     settleResult = "neutral";
     setSessionKind("manual");
@@ -3701,6 +4120,19 @@ export function forceClearAgentTestingOverlay(): void {
     clearNavMcpHint();
     refreshMcpStatusDom();
   } catch {
+    // Always clear settle latches even when a helper throws mid-wipe.
+    nest = 0;
+    active = false;
+    settling = false;
+    settleHeld = false;
+    settleReload = false;
+    settleResult = "neutral";
+    try {
+      clearSettleTimer();
+      clearEnsureClearTimer();
+    } catch {
+      /* ignore */
+    }
     try {
       closeQaDiagGate({ reason: "force-clear" });
       try {
@@ -3808,29 +4240,9 @@ export function installAgentTestingOverlayApi(): void {
     flagCursorWeird: flagAgentTestingCursorWeird,
     flagScrollIssue: flagAgentTestingScrollIssue,
     peekPoSignal,
-    consumePoSignal: () => {
-      const signal = consumePoSignal();
-      if (signal) {
-        confirmAgentHandshake(`consume:${signal.code}`);
-        if (signal.type === "user-message" || signal.code === "USER_MESSAGE_RECEIVED") {
-          const rtt = noteQaMessageConsumed();
-          touchQaAgentPresence("message-consumed");
-          pushLogEntry({
-            atMs: Date.now(),
-            timeLabel: new Date().toLocaleTimeString("en-GB", {
-              hour12: false,
-            }),
-            label:
-              rtt != null
-                ? `Message consumed · RTT ${rtt}ms`
-                : "Message consumed · agent ack",
-            outcome: "ok",
-            kind: "system",
-          });
-        }
-      }
-      return signal;
-    },
+    consumePoSignal: () => consumePoSignalWithAck(),
+    pauseForAgentLeave,
+    resumeForAgentReturn,
     setTimeline: setAgentTestingTimeline,
     markTimeline: markAgentTestingTimeline,
     downloadDump: () => downloadCurrentAgentTestingLog(),

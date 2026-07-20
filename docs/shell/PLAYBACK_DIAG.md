@@ -58,6 +58,8 @@ Filter DevTools console: `[PLAYBACK_DIAG]`.
 
 Console noise is **gated**. Detailed `[PLAYBACK_DIAG]` console emit runs **only while** `qaDiagGateOpen` is true.
 
+**Type-in (HARD — PO 2026-07-21):** page composer letter-by-letter animation is **required**. `playbackDiagTypeInProgress` keeps **in-memory samples only** — **no** per-char `type-in-progress` events into the ring/overlay/console. QA may show **start + end** at most. Full recipe: [QA_LOGGING_AND_PLAYBACK_RECIPE.md](./QA_LOGGING_AND_PLAYBACK_RECIPE.md).
+
 **Session kinds (SSoT):** `manual` | `agent` | `observe` — see [`agent-testing/README.md`](../../src/app/shell/agent-testing/README.md) · `agentTestingSession.ts`.
 
 | Action | Gate / UX |
@@ -91,11 +93,12 @@ Code: `playbackDiagChatBubbleMotion` · `chatMotion.ts` · dump: `agentTestingDu
 
 ### QA bridge (PLAYBACK_DIAG ↔ overlay) — Arch 2026-07-20
 
-**Decision:** One monitor path. Agents do **not** depend on the PlaybackDiagnostic **popup**. Capture lean monitor/error events into QA ring + overlay (`kind: playback-diag`, amber warn / deep-red fail) and Save Log (`recentPlaybackDiagEvents`, `diagnosticFlashes`, `lastPlaybackDiagnostic`). Popup remains for PO eyes; `__studioConsumePlaybackDiagnostic()` dismisses after ingest.
+**Decision:** One monitor path. Agents do **not** depend on the PlaybackDiagnostic **popup**. Capture lean monitor/error events into QA ring + overlay (`kind: playback-diag`; color from outcome: neutral info / amber soft-fail / deep-red fail) and Save Log (`recentPlaybackDiagEvents`, `diagnosticFlashes`, `lastPlaybackDiagnostic`). Popup remains for PO eyes; `__studioConsumePlaybackDiagnostic()` dismisses after ingest.
 
 | Event | Console | QA |
 |-------|---------|-----|
-| clear | `[PLAYBACK_DIAG] clear` | amber `playback-diag · clear` |
+| clear | `[PLAYBACK_DIAG] clear` | neutral `playback-diag · clear` |
+| journey-reset / play-end / type-in-start | diag event | neutral info row |
 | click FAIL / OFF-TARGET | click event | fail row |
 | unexpected scroll Δ↑ | scroll | soft-fail + `scroll-reversal` |
 | PlaybackDiagnostic open | control-panel + flash | fail `playback-diag · DIAGNOSTIC — …` + dump flashes |
@@ -221,6 +224,7 @@ if (sig?.type === "alarm") {
 | Agentic step-forward | `__protoRunAgenticStepForwardSmoke` |
 | Traditional step-forward | `__protoRunTraditionalStepForwardSmoke` |
 | Agentic Play → start | `__protoRunAgenticPlaySmoke` |
+| **Full agentic Play prove (KEEP overlay)** | `__studioRunAgenticFullPlayProve` / `__protoRunAgenticFullPlayProve` |
 | Traditional Play → start | `__protoRunTraditionalPlaySmoke` |
 | Home Play (chat handoff) | `__protoRunHomePlaySmoke` |
 
