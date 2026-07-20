@@ -4,7 +4,11 @@
  * Page stays visible; clicks on the concept UI are blocked.
  */
 
-/* Above concept lightboxes (.studio-avail-scrim ~10200). Max safe int32-ish. */
+/*
+ * Above concept lightboxes (.studio-avail-scrim ~10200). Max safe int32-ish.
+ * Capture leaves Studio nav chrome clickable via --studio-agent-testing-nav-clearance
+ * (synced from .studio-nav-panel-host). Sitrep panel stays BR; PO transport always available.
+ */
 .studio-agent-testing-overlay {
   display: none;
   position: fixed;
@@ -21,10 +25,14 @@
   display: block;
 }
 
-/* Transparent click sink — blocks page interaction without a lightbox */
+/* Transparent click sink — blocks page interaction without a lightbox.
+ * `top` clears nav chrome so Step/Play/REC stay reachable while page is guarded. */
 .studio-agent-testing-overlay__capture {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--studio-agent-testing-nav-clearance, 0px);
   z-index: 1;
   pointer-events: auto;
   background: transparent;

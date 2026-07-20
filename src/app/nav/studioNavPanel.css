@@ -10,8 +10,12 @@
   flex-shrink: 0;
   width: 100%;
   position: relative;
-  /* Above .studio-avail-scrim (10000) — lightboxes must not cover prototype nav */
-  z-index: 10001;
+  /*
+   * HARD (PO): Studio nav transport stays above concept lightboxes/modals/scrims.
+   * Above .studio-avail-scrim (10200), playback diagnostic (10100), composer docks (~10102).
+   * Agent-testing overlay lives on document.body — capture hole clears this band (see agent-testing-overlay).
+   */
+  z-index: 11000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 

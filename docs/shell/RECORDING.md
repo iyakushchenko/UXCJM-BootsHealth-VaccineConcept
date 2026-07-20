@@ -103,7 +103,7 @@ Manual console experiments should omit reload (default `false`). Journey/`__prot
 
 **Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 
-**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open.
+**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open. **Studio nav** (`.studio-nav-panel-host` z `11000`) stays above concept lightboxes; the agent-testing capture hole clears the nav band so Step/Play/REC stay clickable while page clicks stay blocked.
 
 ---
 
