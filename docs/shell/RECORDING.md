@@ -218,6 +218,15 @@ CJM picker: first option **CREATE NEW CJM**, separator, then built-ins + recorde
 | CREATE NEW idle + Replay with no session | Replay disabled (not hidden) |
 | REC STEPS while saved CJM selected | **Hidden** — STEPS counter only on CREATE NEW / live |
 | Playback transport while REC mode | **Hidden** — panel XOR (cassette vs journey STEPS/Play) |
+| **CREATE NEW selected + REC mode OFF** | **Forbidden (auto-correct)** — picking CREATE NEW **turns REC ON**; turning REC OFF while CREATE NEW is selected **snaps** the picker to the first saved CJM (see below). Never leave CREATE NEW gold outside Rec. |
+| CREATE NEW + CJM on | **Forbidden** — entering Rec (incl. via CREATE NEW) forces CJM off |
+| Gold CREATE NEW while Rec deck closed | **Forbidden** — live/paused session alone does **not** keep CREATE NEW selected when Rec is off |
+
+**CREATE NEW ↔ REC guiding (PO):**
+
+1. Select **CREATE NEW CJM** → REC mode **ON** automatically (create/record surface).
+2. Turn **REC OFF** while CREATE NEW is selected → snap away from CREATE NEW.
+3. **First-saved snap rule** (`resolveFirstSavedCjmModeId`): prefer the **last non–CREATE NEW** catalog selection still present; else **`modes[0]`** (menu order after the CREATE NEW separator — typically Agentic CJM, then Traditional, then recorded).
 
 **Future agent playbook:** [AGENTIC_RECORDING.md](./AGENTIC_RECORDING.md) — derive CJM from persona artifact links, record on available screens, name missing **UX CONCEPT(s)** (not shipped as full automation today).
 
@@ -340,6 +349,27 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 ### Hit targets (capture)
 
 Avail overlay + book-critical CTAs must expose stable `data-studio-action` (and `data-studio-avail-date` / `data-studio-avail-time` / `data-studio-avail-store` where needed) so REC never stores `#root` as the click leaf. Prefer climbing to the nearest studio action when the pointer hits a glyph inside the CTA.
+
+**Browse vs CJM beat stamp:** While REC is on and CJM is **off**, demo-clicks omit `beatId` / `touchpointKey` from the parked journey snapshot (those fields only apply when `journeyMode`). Prevents STEPS/compile lying as `agentic-home` on book/PLP clicks.
+
+### PLAYBACK_DIAG for REC
+
+Recording/capture/compile/replay emit lean `[PLAYBACK_DIAG]` kinds (same ring buffer as CJM):
+
+| kind | When |
+|------|------|
+| `rec-capture` | demo-click stored / weak selector / chrome reject / scroll target |
+| `rec-compile` | `compileRecordingToJourney` summary (beat + click counts, gaps) |
+| `rec-replay` | ↺ major steps (screen / click / scroll / typed-text / transport) |
+
+```js
+window.__studioPlaybackDiagClear?.()
+// … REC … Stop … Add as CJM / Replay …
+window.__studioPlaybackDiag?.().rec
+// → { capture, compile, replay, lastCapture, lastCompile, lastReplay }
+```
+
+Full field contract: [PLAYBACK_DIAG.md](./PLAYBACK_DIAG.md).
 
 ### Beat-enter + scroll + typed-text replay (v3)
 

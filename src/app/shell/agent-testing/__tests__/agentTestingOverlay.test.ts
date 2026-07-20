@@ -30,6 +30,7 @@ import {
   touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/agent-testing";
+import { formatActivityStatus } from "@/app/shell/agent-testing/agentTestingActivity";
 
 describe("agentTestingOverlay", () => {
   afterEach(() => {
@@ -358,6 +359,10 @@ describe("agentTestingOverlay", () => {
     expect(formatSitrepTitle("fail")).toBe("AGENT DONE - FAIL");
     expect(formatSitrepTitle("neutral")).toBe("AGENT DONE - SITREP");
     expect(formatPreArmHint(3)).toBe("Preparing - starting in 3s");
+    expect(formatActivityStatus("preparing", "2s")).toBe("Preparing… 2s");
+    expect(formatActivityStatus("running")).toBe("Running script…");
+    expect(formatActivityStatus("waiting")).toBe("Waiting…");
+    expect(formatActivityStatus("settling", "pass")).toBe("Settling… pass");
     expect(DEFAULT_SETTLE_MS).toBeGreaterThanOrEqual(8000);
   });
 

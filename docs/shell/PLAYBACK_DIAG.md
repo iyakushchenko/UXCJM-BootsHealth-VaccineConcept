@@ -72,6 +72,13 @@ Filter DevTools console: `[PLAYBACK_DIAG]`.
 | `hub-nav` | `hubReason`, `hubStack`, `screenBefore`/`After` | **Every** hub open — reason + stack (PO leak forensics). Product = user Hub click only |
 | `screen-enter` | `surface` (screenId), `remountCount`, `renderCount`, `createdRoot`, `opacity`, `visibility`, `motionPresence` | React screen host mount / re-render (book-step-2/3 blink forensics) |
 | `nav-cross` | `navCross`, `instant`, `sameTab`, `screenBefore`/`After` | Wire-mount opacity crossfade **RUN** vs **SKIP** — same-tab journey steps must SKIP |
+| `rec-capture` | `beatKind` (event kind), `selector`, `found`, `clickOk` (usable chain), `beatId`, `screenAfter`, `skipReason=chrome-target` | REC live capture — demo-click / scroll / chrome reject |
+| `rec-compile` | `beatId` (journeyId), `counter=beats:N;clicks:M`, `skipReason` (gap CSV) | Compile → journey summary |
+| `rec-replay` | `beatKind`, `selector`, `found`/`clickOk`, `counter=i/N`, `skipReason` (error) | REC ↺ step outcome |
+
+Helpers: `playbackDiagRecCapture` / `playbackDiagRecCompile` / `playbackDiagRecReplay`. Bundle: `__studioPlaybackDiag().rec` → `{ capture, compile, replay, last* }`.
+
+Filter: `[PLAYBACK_DIAG] rec-capture` · `rec-compile` · `rec-replay`.
 
 ### Sample console line
 

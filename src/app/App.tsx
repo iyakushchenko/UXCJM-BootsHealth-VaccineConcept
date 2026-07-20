@@ -93,8 +93,13 @@ import {
   captureTouchpointChange,
   registerRecordingSnapshotProvider,
 } from "@/app/recording/recordingCapture";
+import {
+  isRecordingActive,
+  pauseRecording,
+} from "@/app/recording/recordingSession";
 import { replayRecordingSession } from "@/app/recording/recordingReplay";
 import { useRecordingReplayBridge } from "@/app/recording/useRecordingReplayBridge";
+import { isRecModeLocked } from "@/app/nav/studioModeXor";
 import { registerJourneyMcpHelpers } from "@/app/journey/journeyMcpHelpers";
 import {
   buildSavedJourneyDownload,
@@ -221,6 +226,8 @@ export default function App() {
   const [studioJourneyMode, setStudioJourneyMode] = useState(false);
   /** CJM picker CREATE NEW CJM (idle Import path / live REC forced). Not a playable mode id. */
   const [createNewCjmSelected, setCreateNewCjmSelected] = useState(false);
+  /** REC deck mode — owned here so CREATE NEW can auto-enter Rec (guiding UX). */
+  const [studioRecMode, setStudioRecMode] = useState(false);
   const [chatRetreatRestoreActive, setChatRetreatRestoreActive] = useState(false);
   const stopAllPlaybackRef = useRef<() => void>(() => {});
   const playbackSnapshotRef = useRef<PlaybackStudioSnapshot>({});
@@ -641,6 +648,56 @@ export default function App() {
   const transport = journeyPlayback;
   const navTransportLocked = transport.isOnAir;
   const navBrowseLocked = navTransportLocked || studioJourneyMode;
+  const studioRecModeLocked = isRecModeLocked({
+    isOnAir: transport.isOnAir,
+    isPlaying: transport.isPlaying,
+    journeyMode: studioJourneyMode,
+  });
+
+  const handleStudioRecModeChange = useCallback(
+    (enabled: boolean) => {
+      if (studioRecModeLocked && enabled) {
+        logControlPanel("studio:playback-rec-mode", {
+          enabled,
+          previous: studioRecMode,
+          blocked: true,
+          blockReason: "rec-mode-locked",
+        });
+        return;
+      }
+      logControlPanel("studio:playback-rec-mode", {
+        enabled,
+        previous: studioRecMode,
+        source: "app",
+      });
+      // Leaving Rec → Playback: pause a live capture; JourneyMenu snaps CREATE NEW away.
+      if (!enabled && isRecordingActive()) {
+        pauseRecording();
+      }
+      // Entering Rec → force CJM off (XOR both directions).
+      if (enabled && studioJourneyModeRef.current) {
+        handleStudioJourneyModeChangeRef.current(false);
+      }
+      setStudioRecMode(enabled);
+    },
+    [studioRecMode, studioRecModeLocked]
+  );
+
+  // CJM / AIR / play → force Playback deck (REC unavailable).
+  useEffect(() => {
+    if (!studioRecModeLocked || !studioRecMode) return;
+    logControlPanel("studio:playback-rec-mode", {
+      enabled: false,
+      previous: true,
+      forced: true,
+      reason: "rec-mode-locked",
+      source: "app",
+    });
+    if (isRecordingActive()) {
+      pauseRecording();
+    }
+    setStudioRecMode(false);
+  }, [studioRecModeLocked, studioRecMode]);
   navPlaybackLockedRef.current = navBrowseLocked;
   navTransportLockedRef.current = navTransportLocked;
   studioJourneyModeRef.current = studioJourneyMode;
@@ -1865,10 +1922,15 @@ export default function App() {
                     isPlaying={transport.isPlaying}
                     controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
                     onCreateNewSelectedChange={setCreateNewCjmSelected}
+                    recMode={studioRecMode}
+                    onRequestRecMode={handleStudioRecModeChange}
+                    recModeLocked={studioRecModeLocked}
                   />
                 </div>
               }
               createNewCjmSelected={createNewCjmSelected}
+              recMode={studioRecMode}
+              onRecModeChange={handleStudioRecModeChange}
               deleteRecordedCjm={deleteRecordedCjmControl}
               segmentLabel={
                 studioJourneyMode ? studioTouchpoint.label : undefined

@@ -33,6 +33,7 @@ import {
   screenIdToProtoTab,
 } from "@/app/recording/recordedJourneyNavHeal";
 import type { PersonaId, ProjectId } from "@/projects/types";
+import { playbackDiagRecCompile } from "@/app/shell/playbackDiag";
 
 /** Match STEPS coalescing — screen after click is navigation, not a new beat. */
 const SCREEN_AFTER_CLICK_MS = 1000;
@@ -663,7 +664,18 @@ export function compileRecordingToJourney(
   );
 
   const uniqueGaps = [...new Set(gaps)];
-  return { journey, timeline, warnings, gaps: uniqueGaps };
+  const result = { journey, timeline, warnings, gaps: uniqueGaps };
+  const clickBeats = beats.filter(
+    (b) => (b as JourneyBeatRecordedClick).recordedClick != null
+  ).length;
+  playbackDiagRecCompile({
+    detail: `compile ${journeyId} beats=${beats.length} clicks=${clickBeats} gaps=${uniqueGaps.length}`,
+    journeyId,
+    beatCount: beats.length,
+    clickBeats,
+    gaps: uniqueGaps,
+  });
+  return result;
 }
 
 /**

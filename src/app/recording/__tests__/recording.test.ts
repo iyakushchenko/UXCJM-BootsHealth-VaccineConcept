@@ -36,6 +36,7 @@ import {
   captureTypedText,
   captureScreenChange,
   ensureRecordingDomCapture,
+  notifyRecordingDemoClick,
   registerRecordingSnapshotProvider,
   seedRecordingStartScreen,
 } from "@/app/recording/recordingCapture";
@@ -435,6 +436,45 @@ describe("recording human click capture", () => {
         target: btn,
       } as unknown as Event)
     ).toBe(true);
+  });
+
+  it("omits journey beatId on browse REC demo-clicks", () => {
+    startRecording();
+    registerRecordingSnapshotProvider(() => ({
+      beatId: "agentic-home",
+      touchpointKey: "beat:agentic-home",
+      screenId: "book-step-1",
+      journeyMode: false,
+    }));
+    const btn = mockClickTarget({ action: "book-step-1-continue" });
+    notifyRecordingDemoClick(btn, 'data-studio-action="book-step-1-continue"');
+    const click = getActiveRecordingSession()?.events.find(
+      (e) => e.kind === "demo-click"
+    );
+    expect(click).toMatchObject({
+      kind: "demo-click",
+      selectorChain: ['[data-studio-action="book-step-1-continue"]'],
+    });
+    expect(click && "beatId" in click ? click.beatId : undefined).toBeUndefined();
+    expect(
+      click && "touchpointKey" in click ? click.touchpointKey : undefined
+    ).toBeUndefined();
+
+    registerRecordingSnapshotProvider(() => ({
+      beatId: "agentic-home",
+      touchpointKey: "beat:agentic-home",
+      screenId: "chat",
+      journeyMode: true,
+    }));
+    const btn2 = mockClickTarget({ action: "chat-avail-near-me" });
+    notifyRecordingDemoClick(btn2, 'data-studio-action="chat-avail-near-me"');
+    const click2 = getActiveRecordingSession()?.events.filter(
+      (e) => e.kind === "demo-click"
+    ).at(-1);
+    expect(click2).toMatchObject({
+      beatId: "agentic-home",
+      touchpointKey: "beat:agentic-home",
+    });
   });
 });
 

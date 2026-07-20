@@ -31,6 +31,33 @@ function resolveRecordingSession(
   return session ?? getActiveRecordingSession() ?? getLastRecordingSession();
 }
 
+/** MCP callers often pass `{ label }` as the sole arg — treat as compile options. */
+function resolveSessionOrCompileOptions(
+  sessionOrOptions?: RecordingSession | CompileRecordingJourneyOptions,
+  compileOptions?: CompileRecordingJourneyOptions
+): {
+  session: RecordingSession | null;
+  options?: CompileRecordingJourneyOptions;
+} {
+  if (
+    sessionOrOptions &&
+    typeof sessionOrOptions === "object" &&
+    !Array.isArray((sessionOrOptions as RecordingSession).events) &&
+    ("label" in sessionOrOptions ||
+      "journeyId" in sessionOrOptions ||
+      "addAsNew" in sessionOrOptions)
+  ) {
+    return {
+      session: resolveRecordingSession(undefined),
+      options: sessionOrOptions as CompileRecordingJourneyOptions,
+    };
+  }
+  return {
+    session: resolveRecordingSession(sessionOrOptions as RecordingSession | undefined),
+    options: compileOptions,
+  };
+}
+
 declare global {
   interface Window {
     __protoStartRecording?: (
@@ -114,21 +141,27 @@ export function registerRecordingMcpHelpers(options?: {
   };
 
   window.__protoCompileRecordingToJourney = (session, compileOptions) => {
-    const target = resolveRecordingSession(session);
+    const { session: target, options: opts } = resolveSessionOrCompileOptions(
+      session,
+      compileOptions
+    );
     if (!target) {
       throw new Error("No recording session to compile");
     }
-    return compileRecordingToJourney(target, compileOptions);
+    return compileRecordingToJourney(target, opts);
   };
 
   window.__protoSaveRecordingAsJourney = (session, compileOptions) => {
-    const target = resolveRecordingSession(session);
+    const { session: target, options: opts } = resolveSessionOrCompileOptions(
+      session,
+      compileOptions
+    );
     if (!target) {
       throw new Error("No recording session to save as journey");
     }
     const defaults = options?.getDefaultStartOptions?.() ?? {};
     const saved = saveRecordingAsJourney(target, {
-      ...compileOptions,
+      ...opts,
       projectId: (target.projectId ?? defaults.projectId) as string | undefined,
       personaId: (target.personaId ?? defaults.personaId) as string | undefined,
     });

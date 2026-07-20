@@ -31,7 +31,13 @@ export type PlaybackDiagKind =
   | "skip"
   | "screen-enter"
   | "nav-cross"
-  | "info";
+  | "info"
+  /** REC capture — demo-click / chrome-reject / screen seed */
+  | "rec-capture"
+  /** REC compile → journey summary */
+  | "rec-compile"
+  /** REC ↺ replay step outcome */
+  | "rec-replay";
 
 export type PlaybackDiagMode = "agentic" | "traditional" | "browse" | "unknown";
 
@@ -360,6 +366,81 @@ export function playbackDiagSkip(options: {
   });
 }
 
+/** REC capture step — filter console: `[PLAYBACK_DIAG] rec-capture`. */
+export function playbackDiagRecCapture(options: {
+  detail: string;
+  eventKind?: string;
+  selector?: string | null;
+  found?: boolean;
+  usable?: boolean;
+  beatId?: string | null;
+  screenId?: string | null;
+  chromeRejected?: boolean;
+}): void {
+  push({
+    kind: "rec-capture",
+    surface: "rec-capture",
+    detail: options.detail,
+    beatKind: options.eventKind,
+    selector: options.selector,
+    found: options.found,
+    clickOk: options.usable,
+    beatId: options.beatId,
+    screenAfter: options.screenId ?? readScreenId(),
+    skipReason: options.chromeRejected ? "chrome-target" : undefined,
+    mode: resolvePlaybackDiagMode(),
+  });
+}
+
+/** REC compile → journey — filter: `[PLAYBACK_DIAG] rec-compile`. */
+export function playbackDiagRecCompile(options: {
+  detail: string;
+  journeyId?: string;
+  beatCount?: number;
+  clickBeats?: number;
+  gaps?: string[];
+}): void {
+  push({
+    kind: "rec-compile",
+    surface: "rec-compile",
+    detail: options.detail,
+    beatId: options.journeyId,
+    counter:
+      options.beatCount != null
+        ? `beats:${options.beatCount};clicks:${options.clickBeats ?? 0}`
+        : undefined,
+    skipReason: options.gaps?.slice(0, 4).join(",") || undefined,
+    mode: resolvePlaybackDiagMode(),
+  });
+}
+
+/** REC ↺ replay step — filter: `[PLAYBACK_DIAG] rec-replay`. */
+export function playbackDiagRecReplay(options: {
+  detail: string;
+  eventKind?: string;
+  selector?: string | null;
+  ok?: boolean;
+  error?: string;
+  index?: number;
+  total?: number;
+}): void {
+  push({
+    kind: "rec-replay",
+    surface: "rec-replay",
+    detail: options.detail,
+    beatKind: options.eventKind,
+    selector: options.selector,
+    found: options.ok,
+    clickOk: options.ok,
+    skipReason: options.error,
+    counter:
+      options.index != null && options.total != null
+        ? `${options.index + 1}/${options.total}`
+        : undefined,
+    mode: resolvePlaybackDiagMode(),
+  });
+}
+
 export function playbackDiagJourneyReset(options: {
   startBeatId?: string | null;
   startScreenId?: string | null;
@@ -505,6 +586,14 @@ export type PlaybackDiagBundle = {
     skipped: number;
     last?: PlaybackDiagEvent;
   };
+  rec: {
+    capture: number;
+    compile: number;
+    replay: number;
+    lastCapture?: PlaybackDiagEvent;
+    lastCompile?: PlaybackDiagEvent;
+    lastReplay?: PlaybackDiagEvent;
+  };
 };
 
 export function getPlaybackDiagBundle(): PlaybackDiagBundle {
@@ -585,6 +674,19 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
         .length,
       last: navCrossEvents[navCrossEvents.length - 1],
     },
+    rec: (() => {
+      const captures = events.filter((e) => e.kind === "rec-capture");
+      const compiles = events.filter((e) => e.kind === "rec-compile");
+      const replays = events.filter((e) => e.kind === "rec-replay");
+      return {
+        capture: captures.length,
+        compile: compiles.length,
+        replay: replays.length,
+        lastCapture: captures[captures.length - 1],
+        lastCompile: compiles[compiles.length - 1],
+        lastReplay: replays[replays.length - 1],
+      };
+    })(),
   };
 }
 

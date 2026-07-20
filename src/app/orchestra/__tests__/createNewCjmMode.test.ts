@@ -4,6 +4,7 @@ import {
   CREATE_NEW_CJM_OPTION,
   isCreateNewCjmModeId,
   normalizeOrchestraModeId,
+  resolveFirstSavedCjmModeId,
 } from "@/app/orchestra/orchestraModes";
 
 describe("CREATE NEW CJM picker sentinel", () => {
@@ -16,5 +17,33 @@ describe("CREATE NEW CJM picker sentinel", () => {
 
   it("is not accepted as a stored / URL orchestra mode", () => {
     expect(normalizeOrchestraModeId(CREATE_NEW_CJM_MODE_ID)).toBeUndefined();
+  });
+});
+
+describe("resolveFirstSavedCjmModeId", () => {
+  const modes = [
+    { id: "agentic-cjm" as const, label: "Agentic CJM" },
+    { id: "traditional-cjm" as const, label: "Traditional CJM" },
+    { id: "rec-trad-x" as const, label: "Recorded" },
+  ];
+
+  it("prefers last non-CREATE NEW when still in catalog", () => {
+    expect(resolveFirstSavedCjmModeId(modes, "traditional-cjm")).toBe(
+      "traditional-cjm"
+    );
+  });
+
+  it("falls back to modes[0] when preferred missing", () => {
+    expect(resolveFirstSavedCjmModeId(modes, "rec-gone")).toBe("agentic-cjm");
+    expect(resolveFirstSavedCjmModeId(modes)).toBe("agentic-cjm");
+  });
+
+  it("never returns CREATE NEW", () => {
+    expect(
+      resolveFirstSavedCjmModeId(
+        [{ id: CREATE_NEW_CJM_MODE_ID, label: "CREATE NEW CJM" }, ...modes],
+        CREATE_NEW_CJM_MODE_ID
+      )
+    ).toBe("agentic-cjm");
   });
 });

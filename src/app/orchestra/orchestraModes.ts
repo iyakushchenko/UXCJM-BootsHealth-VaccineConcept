@@ -19,6 +19,24 @@ export function isCreateNewCjmModeId(
   return value === CREATE_NEW_CJM_MODE_ID;
 }
 
+/**
+ * First-saved CJM snap rule (CREATE NEW ↔ REC guiding UX):
+ * 1. Prefer `preferredId` when it is still in the saved catalog (last non–CREATE NEW).
+ * 2. Else the first catalog entry (`modes[0]` — built-ins first as registered, then recorded).
+ * Never returns CREATE NEW.
+ */
+export function resolveFirstSavedCjmModeId(
+  modes: readonly OrchestraModeOption[],
+  preferredId?: OrchestraModeId | null
+): OrchestraModeId | undefined {
+  const saved = modes.filter((m) => !isCreateNewCjmModeId(m.id));
+  if (preferredId && !isCreateNewCjmModeId(preferredId)) {
+    const hit = saved.find((m) => m.id === preferredId);
+    if (hit) return hit.id;
+  }
+  return saved[0]?.id;
+}
+
 export const ORCHESTRA_MODE_OPTIONS: OrchestraModeOption[] = [
   { id: "agentic-cjm", label: "Agentic CJM" },
   { id: "traditional-cjm", label: "Traditional CJM" },

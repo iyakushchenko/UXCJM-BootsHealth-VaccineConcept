@@ -23,6 +23,10 @@ import {
   formatLogRowText,
 } from "@/app/shell/agent-testing/agentTestingFormat";
 import {
+  formatActivityStatus,
+  type AgentTestingActivityPhase,
+} from "@/app/shell/agent-testing/agentTestingActivity";
+import {
   buildAgentTestingDump,
   consoleSeparator,
   downloadAgentTestingDump,
@@ -706,6 +710,48 @@ export function formatPreArmHint(secondsLeft: number): string {
   return s <= 0 ? "Starting probe..." : `Preparing - starting in ${s}s`;
 }
 
+/** Live activity line — Preparing / Running / Waiting / Settling (PO mid-flight pulse). */
+export type { AgentTestingActivityPhase } from "@/app/shell/agent-testing/agentTestingActivity";
+export { formatActivityStatus } from "@/app/shell/agent-testing/agentTestingActivity";
+
+let activityPhase: AgentTestingActivityPhase = "idle";
+let activityDetail = "";
+
+function refreshActivityDom(): void {
+  if (!hasDomQuery()) return;
+  const root = document.getElementById(ROOT_ID);
+  const el = root?.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__activity"
+  );
+  if (!el || !root) return;
+  const label = formatActivityStatus(activityPhase, activityDetail);
+  el.textContent = label;
+  el.dataset.phase = activityPhase;
+  root.dataset.phase = activityPhase;
+  const live =
+    activityPhase === "preparing" ||
+    activityPhase === "running" ||
+    activityPhase === "waiting";
+  el.dataset.live = live ? "true" : "false";
+  const badge = root.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__badge"
+  );
+  if (badge) badge.dataset.live = live ? "true" : "false";
+  const elapsed = root.querySelector<HTMLElement>(
+    ".studio-agent-testing-overlay__elapsed"
+  );
+  if (elapsed) elapsed.dataset.live = live ? "true" : "false";
+}
+
+function setActivityPhase(
+  phase: AgentTestingActivityPhase,
+  detail?: string
+): void {
+  activityPhase = phase;
+  activityDetail = detail?.trim() ?? "";
+  refreshActivityDom();
+}
+
 function armSafetyTimer(): void {
   clearSafetyTimer();
   safetyTimer = setTimeout(() => {
@@ -743,6 +789,9 @@ function noteActivity(): void {
   if (!active || settling) return;
   armSafetyTimer();
   armIdleTimer();
+  if (activityPhase === "idle" || activityPhase === "waiting") {
+    setActivityPhase("running");
+  }
 }
 
 function clampSettleMs(ms?: number): number {
@@ -878,6 +927,7 @@ function ensureRoot(): HTMLElement | null {
         <button type="button" class="studio-agent-testing-overlay__dismiss">Dismiss</button>
       </div>
       <p class="studio-agent-testing-overlay__hint">Page visible - clicks blocked. Mid-flight QA below.</p>
+      <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
       <p class="studio-agent-testing-overlay__sitrep">sitrep — waiting for control panel</p>
       <div class="studio-agent-testing-overlay__timeline" hidden aria-label="Script timeline"></div>
       <div class="studio-agent-testing-overlay__actions">
@@ -944,6 +994,10 @@ function pushLogEntry(entry: AgentTestingLogEntry): void {
   }
   if (entry.touchpointKey) {
     markAgentTestingTimeline(entry.touchpointKey, entry.outcome);
+  }
+  if (active && !settling) {
+    const snippet = (entry.label || entry.kind || "").trim().slice(0, 48);
+    setActivityPhase("running", snippet || undefined);
   }
   renderLog();
   refreshSitrepDom();
@@ -1037,6 +1091,8 @@ function removeOverlayDom(): void {
 }
 
 function teardownDom(hard = false): void {
+  activityPhase = "idle";
+  activityDetail = "";
   if (hard) removeOverlayDom();
   else hideOverlayDom();
 }
@@ -1182,6 +1238,7 @@ function enterSettle(options?: StopAgentTestingOverlayOptions): void {
   safeResetStudio();
   setTitle(formatSitrepTitle(settleResult));
   setResultBadge(settleResult);
+  setActivityPhase("settling", settleResult === "neutral" ? undefined : settleResult);
   clearElapsedTimer();
   setElapsedLabel(formatElapsed(Date.now() - sessionStartedAt));
   refreshSitrepDom();
@@ -1238,6 +1295,7 @@ export function startAgentTestingOverlay(title?: string): void {
   setTitle(resolved);
   setResultBadge("neutral");
   setHint("Page visible - clicks blocked. Mid-flight QA below.");
+  setActivityPhase("running");
   writePersist(resolved);
   bindBeforeUnload();
   bindVisibility();
@@ -1285,12 +1343,17 @@ export async function preArmAgentTestingOverlay(options?: {
     if (!active || settling) return;
     const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
     setHint(formatPreArmHint(left));
+    setActivityPhase(
+      "preparing",
+      left <= 0 ? "starting" : `${left}s`
+    );
     await new Promise<void>((resolve) => {
       setTimeout(resolve, 200);
     });
   }
   if (!active || settling) return;
   setHint("Page visible - clicks blocked. Mid-flight QA below.");
+  setActivityPhase("running", "ready");
   logAgentTestingOverlay("pre-arm: ready");
 }
 

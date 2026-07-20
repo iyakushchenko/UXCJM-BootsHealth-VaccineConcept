@@ -6,6 +6,7 @@ import type {
   RecordingReplayResult,
   RecordingSession,
 } from "@/app/recording/recordingTypes";
+import { playbackDiagRecReplay } from "@/app/shell/playbackDiag";
 
 const TRANSPORT_KIND = "transport" as const;
 const SCREEN_KIND = "screen" as const;
@@ -169,6 +170,40 @@ export async function replayRecordingSession(
     const next = events[i + 1];
     const holdAfter = () =>
       delay(resolveRecordingReplayHoldMs(event, next, stepDelayMs));
+    const noteReplay = (ok: boolean, error?: string, selector?: string | null) => {
+      if (
+        event.kind !== "demo-click" &&
+        event.kind !== "screen" &&
+        event.kind !== "scroll" &&
+        event.kind !== "typed-text" &&
+        event.kind !== "transport"
+      ) {
+        return;
+      }
+      playbackDiagRecReplay({
+        detail: ok
+          ? `replay ${event.kind}`
+          : `replay FAIL ${event.kind}${error ? `: ${error}` : ""}`,
+        eventKind: event.kind,
+        selector:
+          selector ??
+          (event.kind === "demo-click"
+            ? event.selectorChain?.[0]
+            : event.kind === "screen"
+              ? event.screenId
+              : event.kind === "scroll"
+                ? event.anchorSelector ?? event.selectorChain?.[0]
+                : event.kind === "typed-text"
+                  ? event.selectorChain?.[0]
+                  : event.kind === "transport"
+                    ? event.action
+                    : null) ?? null,
+        ok,
+        error,
+        index: i,
+        total: events.length,
+      });
+    };
 
     if (shouldAbort()) {
       result.errors.push("replay aborted");
@@ -178,16 +213,18 @@ export async function replayRecordingSession(
     if (event.kind === TRANSPORT_KIND) {
       if (!trigger) {
         result.errors.push(`transport ${event.action}: triggerTransport missing`);
+        noteReplay(false, "triggerTransport missing", event.action);
         continue;
       }
       try {
         await trigger(event.action);
         result.replayed += 1;
+        noteReplay(true, undefined, event.action);
         await holdAfter();
       } catch (err) {
-        result.errors.push(
-          `transport ${event.action}: ${err instanceof Error ? err.message : String(err)}`
-        );
+        const msg = err instanceof Error ? err.message : String(err);
+        result.errors.push(`transport ${event.action}: ${msg}`);
+        noteReplay(false, msg, event.action);
       }
       continue;
     }
@@ -195,6 +232,7 @@ export async function replayRecordingSession(
     if (event.kind === SCREEN_KIND) {
       if (!applyScreen) {
         result.unsupported += 1;
+        noteReplay(false, "applyScreen missing", event.screenId);
         continue;
       }
       try {
@@ -206,14 +244,16 @@ export async function replayRecordingSession(
         if (applied === false) {
           result.skipped += 1;
           result.errors.push(`screen ${event.screenId}: apply returned false`);
+          noteReplay(false, "apply returned false", event.screenId);
           continue;
         }
         result.replayed += 1;
+        noteReplay(true, undefined, event.screenId);
         await holdAfter();
       } catch (err) {
-        result.errors.push(
-          `screen ${event.screenId}: ${err instanceof Error ? err.message : String(err)}`
-        );
+        const msg = err instanceof Error ? err.message : String(err);
+        result.errors.push(`screen ${event.screenId}: ${msg}`);
+        noteReplay(false, msg, event.screenId);
       }
       continue;
     }
@@ -227,6 +267,7 @@ export async function replayRecordingSession(
     if (event.kind === DEMO_CLICK_KIND) {
       if (!applyDemoClick) {
         result.unsupported += 1;
+        noteReplay(false, "applyDemoClick missing", event.selectorChain?.[0]);
         continue;
       }
       try {
@@ -241,14 +282,20 @@ export async function replayRecordingSession(
           result.errors.push(
             `demo-click ${event.element}: target not found or click failed`
           );
+          noteReplay(
+            false,
+            "target not found or click failed",
+            event.selectorChain?.[0]
+          );
           continue;
         }
         result.replayed += 1;
+        noteReplay(true, undefined, event.selectorChain?.[0]);
         await holdAfter();
       } catch (err) {
-        result.errors.push(
-          `demo-click ${event.element}: ${err instanceof Error ? err.message : String(err)}`
-        );
+        const msg = err instanceof Error ? err.message : String(err);
+        result.errors.push(`demo-click ${event.element}: ${msg}`);
+        noteReplay(false, msg, event.selectorChain?.[0]);
       }
       continue;
     }
@@ -341,8 +388,11 @@ export async function replayRecordingSession(
     }
 
     if (event.kind === "scroll") {
+      const scrollSel =
+        event.anchorSelector ?? event.selectorChain?.[0] ?? null;
       if (!applyScroll) {
         result.unsupported += 1;
+        noteReplay(false, "applyScroll missing", scrollSel);
         continue;
       }
       try {
@@ -354,14 +404,16 @@ export async function replayRecordingSession(
         if (applied === false) {
           result.skipped += 1;
           result.errors.push("scroll: apply returned false");
+          noteReplay(false, "apply returned false", scrollSel);
           continue;
         }
         result.replayed += 1;
+        noteReplay(true, undefined, scrollSel);
         await holdAfter();
       } catch (err) {
-        result.errors.push(
-          `scroll: ${err instanceof Error ? err.message : String(err)}`
-        );
+        const msg = err instanceof Error ? err.message : String(err);
+        result.errors.push(`scroll: ${msg}`);
+        noteReplay(false, msg, scrollSel);
       }
       continue;
     }
@@ -369,6 +421,7 @@ export async function replayRecordingSession(
     if (event.kind === "typed-text") {
       if (!applyTypedText) {
         result.unsupported += 1;
+        noteReplay(false, "applyTypedText missing", event.selectorChain?.[0]);
         continue;
       }
       try {
@@ -383,16 +436,22 @@ export async function replayRecordingSession(
           result.errors.push(
             `typed-text ${event.element ?? "field"}: target not found or apply failed`
           );
+          noteReplay(
+            false,
+            "target not found or apply failed",
+            event.selectorChain?.[0]
+          );
           continue;
         }
         result.replayed += 1;
+        noteReplay(true, undefined, event.selectorChain?.[0]);
         await holdAfter();
       } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
         result.errors.push(
-          `typed-text ${event.element ?? "field"}: ${
-            err instanceof Error ? err.message : String(err)
-          }`
+          `typed-text ${event.element ?? "field"}: ${msg}`
         );
+        noteReplay(false, msg, event.selectorChain?.[0]);
       }
       continue;
     }

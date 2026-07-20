@@ -9,11 +9,13 @@ import type {
   RecordedEvent,
   RecordingSnapshot,
 } from "@/app/recording/recordingTypes";
+import { isUsablePlaybackSelectorChain } from "@/app/recording/recordingCompile";
 import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
 import type {
   ManualTransportAction,
   PlaybackInteractionRecord,
 } from "@/app/shell/playbackInteractionContext";
+import { playbackDiagRecCapture } from "@/app/shell/playbackDiag";
 
 let snapshotProvider: (() => RecordingSnapshot | undefined) | null = null;
 let lastTouchpointKey: string | undefined;
@@ -25,6 +27,8 @@ let scrollCaptureTimer: ReturnType<typeof setTimeout> | null = null;
 let typedTextCaptureTimer: ReturnType<typeof setTimeout> | null = null;
 /** Dedupe key for last emitted scroll **target** (not scrollTop). */
 let lastCapturedScrollTargetKey: string | undefined;
+/** Rate-limit chrome-reject diag so panel mashing does not spam the ring. */
+let lastChromeRejectDiagAtMs = 0;
 
 const SCROLL_CAPTURE_DEBOUNCE_MS = 120;
 const TYPED_TEXT_CAPTURE_DEBOUNCE_MS = 280;
@@ -469,13 +473,31 @@ export function notifyRecordingDemoClick(
 ): void {
   if (!getActiveRecordingSession()) return;
   const snapshot = snapshotProvider?.();
+  const selectorChain = buildPlaybackSelectorChain(target);
+  // Browse REC must not inherit parked CJM beatId — that lies on STEPS / compile.
+  const journeyMode = snapshot?.journeyMode === true;
+  const beatId = journeyMode ? snapshot?.beatId : undefined;
+  const touchpointKey = journeyMode ? snapshot?.touchpointKey : undefined;
 
   captureRecordingEvent({
     kind: "demo-click",
     element: elementDescriptor,
-    selectorChain: buildPlaybackSelectorChain(target),
-    beatId: snapshot?.beatId,
-    touchpointKey: snapshot?.touchpointKey,
+    selectorChain,
+    beatId,
+    touchpointKey,
+  });
+
+  const usable = isUsablePlaybackSelectorChain(selectorChain);
+  playbackDiagRecCapture({
+    detail: usable
+      ? `demo-click ${elementDescriptor}`
+      : `demo-click WEAK ${elementDescriptor}`,
+    eventKind: "demo-click",
+    selector: selectorChain[0] ?? null,
+    found: true,
+    usable,
+    beatId: beatId ?? null,
+    screenId: snapshot?.screenId ?? null,
   });
 }
 
@@ -553,11 +575,39 @@ function describeRecordingClickTarget(el: HTMLElement): string {
 }
 
 function onRecordingHumanClick(event: Event): void {
+  if (!isRecordingActive()) return;
+  if (!("isTrusted" in event) || event.isTrusted !== true) return;
+  const raw = event.target;
+  if (raw && typeof (raw as Element).closest === "function") {
+    const el = raw as Element;
+    if (isRecordingChromeTarget(el)) {
+      const now = performance.now();
+      if (now - lastChromeRejectDiagAtMs >= 800) {
+        lastChromeRejectDiagAtMs = now;
+        playbackDiagRecCapture({
+          detail: "chrome-reject (hub/panel/overlay)",
+          eventKind: "demo-click",
+          chromeRejected: true,
+          found: false,
+          usable: false,
+        });
+      }
+      return;
+    }
+  }
   if (!shouldCaptureRecordingHumanClick(event)) return;
   const target = resolveRecordingHumanClickTarget(event.target);
   if (!target) return;
   const chain = buildPlaybackSelectorChain(target);
-  if (chain.length === 0) return;
+  if (chain.length === 0) {
+    playbackDiagRecCapture({
+      detail: "demo-click no-selector",
+      eventKind: "demo-click",
+      found: true,
+      usable: false,
+    });
+    return;
+  }
   notifyRecordingDemoClick(target, describeRecordingClickTarget(target));
 }
 
@@ -582,6 +632,13 @@ function flushRecordingScrollCapture(): void {
   captureScroll({
     selectorChain: described.selectorChain,
     anchorSelector: described.anchorSelector,
+  });
+  playbackDiagRecCapture({
+    detail: `scroll → ${described.anchorSelector ?? described.selectorChain[0] ?? "?"}`,
+    eventKind: "scroll",
+    selector: described.anchorSelector ?? described.selectorChain[0] ?? null,
+    found: true,
+    usable: isUsablePlaybackSelectorChain(described.selectorChain),
   });
 }
 
@@ -782,6 +839,7 @@ export function resetRecordingCaptureForTests(): void {
   scrollCaptureInstalled = false;
   typedTextCaptureInstalled = false;
   lastCapturedScrollTargetKey = undefined;
+  lastChromeRejectDiagAtMs = 0;
   domCaptureUnsubSession?.();
   domCaptureUnsubSession = null;
 }

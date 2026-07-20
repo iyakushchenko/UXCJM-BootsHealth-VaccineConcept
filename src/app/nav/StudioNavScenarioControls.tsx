@@ -75,6 +75,12 @@ export type StudioNavScenarioControlsProps = {
    */
   createNewCjmSelected?: boolean;
   /**
+   * Controlled REC mode (App owns CREATE NEW ↔ REC guiding). When omitted,
+   * ScenarioControls keeps internal state (legacy / tests).
+   */
+  recMode?: boolean;
+  onRecModeChange?: (enabled: boolean) => void;
+  /**
    * REC-mode only: delete the selected recorded CJM (hidden for built-ins).
    * Parent supplies target when the current orchestra mode is deletable.
    */
@@ -240,6 +246,8 @@ export function StudioNavScenarioControls({
   recordingControls,
   createNewCjmSelected = false,
   deleteRecordedCjm = null,
+  recMode: recModeControlled,
+  onRecModeChange,
 }: StudioNavScenarioControlsProps) {
   const STEP_DIODE_MS = CONTROL_ROOM_TAP_MS;
   const CLICK_DIODE_MS = CONTROL_ROOM_TAP_MS;
@@ -249,7 +257,18 @@ export function StudioNavScenarioControls({
   const [clickBlinkActive, setClickBlinkActive] = useState(false);
   const [stepBlinkToken, setStepBlinkToken] = useState(0);
   /** Session-only: left = playback transport, right = recording controls (mutually exclusive). */
-  const [recMode, setRecMode] = useState(false);
+  const [recModeUncontrolled, setRecModeUncontrolled] = useState(false);
+  const recModeControlledActive = typeof recModeControlled === "boolean";
+  const recMode = recModeControlledActive
+    ? recModeControlled
+    : recModeUncontrolled;
+  const setRecMode = (enabled: boolean) => {
+    if (recModeControlledActive) {
+      onRecModeChange?.(enabled);
+    } else {
+      setRecModeUncontrolled(enabled);
+    }
+  };
   const recordingArmed = useSyncExternalStore(
     subscribeRecordingSession,
     () => getActiveRecordingSession() != null,
@@ -300,6 +319,11 @@ export function StudioNavScenarioControls({
       });
       return;
     }
+    // Controlled: App owns pause / CJM XOR / CREATE NEW snap.
+    if (recModeControlledActive) {
+      setRecMode(enabled);
+      return;
+    }
     logControlPanel("studio:playback-rec-mode", {
       enabled,
       previous: recMode,
@@ -317,6 +341,7 @@ export function StudioNavScenarioControls({
 
   // CJM / AIR / play → force Playback deck (REC switch + recording controls unavailable).
   useEffect(() => {
+    if (recModeControlledActive) return;
     if (!recModeLocked || !recMode) return;
     logControlPanel("studio:playback-rec-mode", {
       enabled: false,
@@ -328,7 +353,7 @@ export function StudioNavScenarioControls({
       pauseRecording();
     }
     setRecMode(false);
-  }, [recModeLocked, recMode, recLockReason]);
+  }, [recModeControlledActive, recModeLocked, recMode, recLockReason]);
 
   useEffect(() => {
     return () => {

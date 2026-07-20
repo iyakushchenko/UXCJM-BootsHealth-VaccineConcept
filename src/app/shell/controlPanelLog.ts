@@ -20,6 +20,8 @@ export type ControlPanelAction =
   | "studio:project"
   | "studio:persona"
   | "studio:orchestra-mode"
+  | "studio:create-new-cjm"
+  | "studio:cjm-snap-first-saved"
   | "studio:select-open"
   | "studio:select-close"
   | "recording:start"

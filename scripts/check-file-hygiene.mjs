@@ -31,8 +31,8 @@ const ALLOWLIST = {
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 2010, // + recordedClick SF/Play wiring; core play in recordedClickPlayback.ts
-  "src/app/App.tsx": 1990, // + embed persisted REC session on saved CJM Download
-  "src/app/shell/agent-testing/agentTestingOverlay.ts": 1640, // sitrep + nav-clearance calls; helpers in agentTestingNavClearance.ts
+  "src/app/App.tsx": 2050, // + CREATE NEW ↔ REC guiding (controlled studioRecMode)
+  "src/app/shell/agent-testing/agentTestingOverlay.ts": 1700, // + mid-flight activity pulse DOM; format in agentTestingActivity.ts
   "src/app/nav/studioNavPanel.css": 1600, // PANEL chrome + version chip; keep one stylesheet
   "src/app/shell/studioMcpHelpers.ts": 1350, // MCP surface + R15 PO poll in step/play; extract stepForwardSmoke when next growth
   "src/app/scenario/demoCursor.ts": 1680, // on-target click gate; hit-test in demoCursorOnTarget.ts

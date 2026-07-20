@@ -13,6 +13,7 @@ export {
   formatSitrepTitle,
   clampPreArmMs,
   formatPreArmHint,
+  formatActivityStatus,
   startAgentTestingOverlay,
   preArmAgentTestingOverlay,
   isAgentTestingOverlayDomVisible,
