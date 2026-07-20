@@ -1,14 +1,15 @@
 {
   "version": 1,
   "projectId": "boots-pharmacy",
-  "updatedAt": "2026-07-19",
+  "updatedAt": "2026-07-20",
   "note": "Hard gate before NEXT page. npm run check:page-final-pass (via npm test) fails unless each required screen has status=proven, full checklist keys true, stampedAt, and source contracts (main/header, BEM=screenId, data-studio-react-screen, make-retired, kits). Policy: docs/product/PAGE_FINAL_PASS.md. Quinn MCP proves after stamp → mcpFinalPass HARD-GREEN opens next page.",
   "requiredScreens": [
     "book-step-1",
     "book-step-2",
     "book-step-3",
     "plp",
-    "pdp"
+    "pdp",
+    "site-pilot"
   ],
   "screens": [
     {
@@ -166,6 +167,61 @@
         ],
         "landmarks": {
           "header": true,
+          "main": true,
+          "section": true,
+          "aside": false,
+          "makeRetired": true
+        }
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "site-pilot",
+      "status": "proven",
+      "hardGreen": true,
+      "stampedAt": {
+        "sha": "963b493",
+        "date": "2026-07-20",
+        "note": "Uma+Finn structure + SitePilotComposer DS hover; main landmark; dual class site-pilot home; make-retired; header waived (Make Body10). Quinn MCP 15/15."
+      },
+      "mcpFinalPass": {
+        "status": "HARD-GREEN",
+        "pass": true,
+        "stampedAt": {
+          "sha": "963b493",
+          "date": "2026-07-20",
+          "version": "0.0.59",
+          "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN",
+          "note": "Quinn __studioRunMcpPageProbe({ screenId:\"site-pilot\", reload:false }) 15/15 PASS on 127.0.0.1:5173. Auth heading SSoT; send/chip→chat+restore; DS hover mic/send/chip. Audit: FE_AUDIT_SITE_PILOT_PAGE_FINAL_PASS_2026-07-20.md"
+        },
+        "url": "http://127.0.0.1:5173/?project=boots-pharmacy&screen=site-pilot",
+        "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_SITE_PILOT_PAGE_FINAL_PASS_2026-07-20.md",
+        "matrix": [
+          { "id": "overlay-arm", "pass": true },
+          { "id": "site-pilot-host", "pass": true },
+          { "id": "site-pilot-make-retired", "pass": true },
+          { "id": "site-pilot-landmarks", "pass": true },
+          { "id": "site-pilot-heading-logged-out", "pass": true },
+          { "id": "site-pilot-heading-logged-in", "pass": true },
+          { "id": "site-pilot-query", "pass": true },
+          { "id": "site-pilot-ds-hover-send", "pass": true },
+          { "id": "site-pilot-ds-hover-mic", "pass": true },
+          { "id": "site-pilot-ds-hover-chip", "pass": true },
+          { "id": "site-pilot-send-to-chat", "pass": true },
+          { "id": "site-pilot-return-after-send", "pass": true },
+          { "id": "site-pilot-chip-to-chat", "pass": true },
+          { "id": "site-pilot-return-after-chip", "pass": true },
+          { "id": "url-screen", "pass": true }
+        ],
+        "landmarks": {
+          "header": false,
           "main": true,
           "section": true,
           "aside": false,

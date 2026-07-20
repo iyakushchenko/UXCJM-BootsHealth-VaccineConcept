@@ -24,6 +24,7 @@ const REACT_MIGRATED_SCREENS = [
   "book-step-3",
   "plp",
   "pdp",
+  "site-pilot",
 ];
 
 const CHECKLIST_KEYS = [
@@ -39,6 +40,7 @@ const CHECKLIST_KEYS = [
 const SCREEN_SOURCES = {
   plp: "src/projects/boots-pharmacy/screens/plp/PlpScreen.tsx",
   pdp: "src/projects/boots-pharmacy/screens/pdp/PdpScreen.tsx",
+  "site-pilot": "src/projects/boots-pharmacy/screens/home/HomeScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx",
   "book-step-2":
@@ -50,6 +52,7 @@ const SCREEN_SOURCES = {
 const SCREEN_MOUNTS = {
   plp: "src/projects/boots-pharmacy/screens/plp/mountPlpScreen.tsx",
   pdp: "src/projects/boots-pharmacy/screens/pdp/mountPdpScreen.tsx",
+  "site-pilot": "src/projects/boots-pharmacy/screens/home/mountHomeScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen.tsx",
   "book-step-2":
@@ -57,6 +60,12 @@ const SCREEN_MOUNTS = {
   "book-step-3":
     "src/projects/boots-pharmacy/screens/book-step-3/mountBookStep3Screen.tsx",
 };
+
+/**
+ * Make frames without in-page crumbs header — engine mounts shared chrome.
+ * Do not invent <header> crumbs on these screens (PO / Make truth).
+ */
+const HEADER_LANDMARK_OPTIONAL = new Set(["site-pilot"]);
 
 /** Screens that must use SearchField or stamp search-icon markers. */
 const SEARCH_REQUIRED = new Set(["plp", "book-step-1"]);
@@ -69,6 +78,7 @@ const BUTTON_PRIMARY_REQUIRED = new Set([
   "book-step-2",
   "book-step-3",
 ]);
+/** Site Pilot uses Make component.input.button (mic/send), not ButtonPrimary. */
 
 const errors = [];
 const fail = (msg) => errors.push(msg);
@@ -204,9 +214,11 @@ for (const screenId of required) {
       ? /PLP_REACT_SCREEN_ID|["']plp["']/.test(src)
       : screenId === "pdp"
         ? /PDP_REACT_SCREEN_ID|["']pdp["']/.test(src)
-        : new RegExp(
-            `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
-          ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
+        : screenId === "site-pilot"
+          ? /HOME_REACT_SCREEN_ID|["']site-pilot["']/.test(src)
+          : new RegExp(
+              `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
+            ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
 
   if (!hasReactScreenAttr || !screenIdConst) {
     fail(
@@ -247,7 +259,10 @@ for (const screenId of required) {
       `${screenId}: missing <main> landmark (PAGE_FINAL_PASS semanticHtml)`
     );
   }
-  if (!/<header[\s>]/.test(code)) {
+  if (
+    !HEADER_LANDMARK_OPTIONAL.has(screenId) &&
+    !/<header[\s>]/.test(code)
+  ) {
     fail(
       `${screenId}: missing <header> landmark for crumbs band (PAGE_FINAL_PASS semanticHtml)`
     );

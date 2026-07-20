@@ -1,4 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  isStudioLoggedIn,
+  subscribeStudioLoggedIn,
+} from "@/app/shell/studioAuthSession";
 import {
   HOME_CHIP_LABELS,
   HOME_QUERY_DEFAULT,
@@ -14,7 +18,8 @@ import { SitePilotComposer } from "../shared/SitePilotComposer";
 import "./home.css";
 
 export type HomeScreenProps = {
-  loggedIn: boolean;
+  /** @deprecated Prefer Studio auth SSoT — kept for mount/wire parity. */
+  loggedIn?: boolean;
   /** Pending query from session / goSitePilotHome — restores once on mount. */
   initialQuery?: string;
   onSend: (query: string) => void;
@@ -74,12 +79,19 @@ function HomeLogo() {
 }
 
 export function HomeScreen({
-  loggedIn,
+  loggedIn: loggedInProp = false,
   initialQuery,
   onSend,
   onChip,
   onQueryDirtyChange,
 }: HomeScreenProps) {
+  const sessionLoggedIn = useSyncExternalStore(
+    subscribeStudioLoggedIn,
+    isStudioLoggedIn,
+    () => false
+  );
+  /** Quinn SSoT: `isStudioLoggedIn` / `__studioSetLoggedIn` — wire prop is OR'd. */
+  const loggedIn = loggedInProp || sessionLoggedIn;
   const [query, setQuery] = useState(
     () => initialQuery ?? HOME_QUERY_DEFAULT
   );
@@ -101,7 +113,7 @@ export function HomeScreen({
 
   return (
     <main
-      className="home"
+      className="site-pilot home"
       data-studio-react-screen={HOME_REACT_SCREEN_ID}
       data-name="body"
       aria-label="Agentic Site Pilot home"

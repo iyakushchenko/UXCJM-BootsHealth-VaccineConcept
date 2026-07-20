@@ -1,14 +1,15 @@
 {
   "version": 1,
   "projectId": "boots-pharmacy",
-  "updatedAt": "2026-07-19",
+  "updatedAt": "2026-07-20",
   "note": "Hard gate for React-migrated screens. npm run check:parity-proven (via npm test) fails unless each required screen has status=proven, a live auditPath with PROVEN + MCP matrix evidence, and mcpMatrixAt. No merge without this.",
   "requiredScreens": [
     "book-step-1",
     "book-step-2",
     "book-step-3",
     "plp",
-    "pdp"
+    "pdp",
+    "site-pilot"
   ],
   "screens": [
     {
@@ -60,6 +61,17 @@
         "sha": "5c1d90f",
         "date": "2026-07-19",
         "note": "Quinn MCP 23/23 PASS @ tip 5c1d90f / v0.0.37 Accordion Motion height (prove cdf5c5f; Arch restore f93ade5; reload:false ~29s, teardown clean); Motion mid-tween 0→~111→144 assertable; Uma §0a PROVEN @ 76e2433; Arch PAGE FINAL PASS HARD-GREEN restored @ 5c1d90f."
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "site-pilot",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_SITE_PILOT_PAGE_FINAL_PASS_2026-07-20.md",
+      "mcpMatrixAt": {
+        "sha": "963b493",
+        "date": "2026-07-20",
+        "note": "Quinn MCP 15/15 PASS __studioRunMcpPageProbe site-pilot reload:false on 127.0.0.1:5173; Uma PROVEN; PAGE FINAL PASS HARD-GREEN v0.0.59"
       },
       "requireMcp": true
     }

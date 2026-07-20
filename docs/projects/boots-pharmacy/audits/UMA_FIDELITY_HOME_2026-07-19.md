@@ -3,14 +3,15 @@
 **Surface:** Boots Pharmacy Site Pilot (`screenId: site-pilot`, Frame child **11**, Make `Body10`)  
 **Date:** 2026-07-19  
 **Owner:** Uma (UI/UX)  
-**Status:** **IN PROGRESS** — first React mount visible; **NOT PROVEN**  
-**Code tip:** kickoff tip (post-mount commit)  
+**Status:** **PROVEN** — PAGE FINAL PASS HARD-GREEN 2026-07-20  
+**Code tip:** ship tip v0.0.59 (Site Pilot Final Pass)  
 **React target:** `src/projects/boots-pharmacy/screens/home/*` (**mounted**)  
 **Make truth:** `frame/index.tsx` `Body10` · `ComponentCoOrderSummary9` · `Subtotal11` · `ComponentInputButton4` (mic) · `ComponentInputButton5` (send) · `Frame351`/`Frame352` (suggested chips) · `globals-screens` child-11 · `globals-chrome` primary/mic hover  
 **Register:** [../features/HOME_MAKE_PARITY_REGISTER.md](../features/HOME_MAKE_PARITY_REGISTER.md) — align H-bands → L-bands  
-**Checklist:** [../../../product/UMA_FIDELITY_NOTES.md](../../../product/UMA_FIDELITY_NOTES.md) · [VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md)
+**Checklist:** [../../../product/UMA_FIDELITY_NOTES.md](../../../product/UMA_FIDELITY_NOTES.md) · [VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md)  
+**Final Pass audit:** [FE_AUDIT_SITE_PILOT_PAGE_FINAL_PASS_2026-07-20.md](./FE_AUDIT_SITE_PILOT_PAGE_FINAL_PASS_2026-07-20.md)
 
-**Gate:** PDP PAGE FINAL PASS **HARD-GREEN** @ tip `53da33f` / v0.0.38 — Home kickoff after PO `+` ([NEXT_STEPS.md](../../../product/NEXT_STEPS.md) §5). **Do not demote PDP.**
+**Gate:** PDP PAGE FINAL PASS **HARD-GREEN** retained. Site Pilot **HARD-GREEN** unlocks Chat Final Pass sequencing.
 
 ---
 
@@ -18,20 +19,17 @@
 
 | Field | Value |
 |-------|-------|
-| **Overall** | **IN PROGRESS** — checklist seeded only |
-| **§0a typical DS / pointer matrix** | **PENDING** — mic · send · suggested chips · textarea focus (no rest-state sign-off) |
-| **§0b section vertical rhythm** | **N/A** (no RTB/purchase stack) — hero stack gap **72px** + card internal **32px** still require MCP measure before PARTIAL layout claim |
-| **loading / empty / updating** | **N/A** — Make Home has no page loader / empty list / updating overlay (do **not** invent) |
-| **checkbox / radio hover** | **N/A** — no checkbox/radio on Home |
-| **TertiaryCta reuse** | **N/A** — Make Home uses `component.input.button` (mic circle + send primary), not `TertiaryCta` |
-| **PromoMessageStrip / Advantage bar** | **N/A** — verified: `Body10` frame = **header + body only**; no `module.breadcrumbs`, no footer, no `component.gse.system.message` Advantage strip (unlike PLP L5 / PDP L13) |
-| **PO green-light allowed?** | **No** — IN PROGRESS only; Quinn MCP matrix + Arch Final Pass after PROVEN |
-| **PAGE FINAL PASS** | **Not started** — blocked until this stamp → PROVEN + Quinn prove |
+| **Overall** | **PROVEN** |
+| **§0a typical DS / pointer matrix** | **PASS** — mic · send · chips · textarea (Make CSS in `site-pilot-composer.css`; Quinn MCP hover steps) |
+| **§0b section vertical rhythm** | **PASS** — hero stack `gap: 72px` + card `p/gap 32` under-matched atmosphere signed |
+| **loading / empty / updating** | **N/A — PASS** (absent; no invent) |
+| **checkbox / radio hover** | **N/A** |
+| **TertiaryCta reuse** | **N/A** |
+| **PromoMessageStrip / Advantage bar** | **N/A** — must not invent |
+| **PO green-light allowed?** | **Yes** for Site Pilot close — Chat still separate Final Pass |
+| **PAGE FINAL PASS** | **HARD-GREEN** |
 
-**Honest scope (Make frame child 11):**
-
-- **Present in Make:** navy header · full-bleed hero body · Site Pilot logo · hero heading · query card · mic + send · three suggested chips · chip row label.  
-- **Absent in Make (must not invent on React Home):** breadcrumbs · footer · Advantage Card banner · AI promo strip · listing loader.
+**Honest scope (Make frame child 11):** unchanged — no footer / crumbs / Advantage invent.
 
 ---
 

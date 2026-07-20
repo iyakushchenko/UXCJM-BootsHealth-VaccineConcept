@@ -41,6 +41,7 @@ import {
   getMcpTestSession,
   requestMcpTestAbort,
 } from "@/app/shell/mcpTestGuard";
+import { sitePilotMcpProbeSteps } from "@/projects/boots-pharmacy/screens/home/sitePilotMcpProbeSteps";
 import { chatMcpProbeSteps } from "@/projects/boots-pharmacy/screens/chat/chatMcpProbeSteps";
 import {
   disableCursorQaEyes,
@@ -1014,30 +1015,11 @@ function pdpProbeSteps(): ProbeStep[] {
 }
 
 /**
- * Site Pilot (Agentic Home) probe stub (Quinn criteria 2026-07-19).
- * Minimal recipe — asserts `[data-studio-react-screen="site-pilot"]` (kickoff mount).
- * Overlay-arm + url-screen are injected by runMcpPageProbe.
- * Full matrix (heading auth / send / chips / DS hover) not stubbed yet — no false PROVEN.
- * Auth heading personalization: `isStudioLoggedIn` / `__studioIsLoggedIn` only
- * (see docs/projects/boots-pharmacy/audits/QUINN_HOME_PROBE_CRITERIA_2026-07-19.md).
+ * Site Pilot (Agentic Home) — full matrix in sitePilotMcpProbeSteps.ts.
+ * Overlay-arm + url-screen injected by runMcpPageProbe.
  */
 function sitePilotProbeSteps(): ProbeStep[] {
-  return [
-    {
-      id: "site-pilot-host",
-      selector: '[data-studio-react-screen="site-pilot"]',
-      action: "assert",
-      assert: () => {
-        const host = document.querySelector(
-          '[data-studio-react-screen="site-pilot"]'
-        );
-        if (host == null) {
-          return 'missing React Site Pilot host — expected [data-studio-react-screen="site-pilot"]';
-        }
-        return true;
-      },
-    },
-  ];
+  return sitePilotMcpProbeSteps() as ProbeStep[];
 }
 
 function bookStepProbeSteps(screenId: string): ProbeStep[] {
