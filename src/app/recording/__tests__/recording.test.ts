@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   appendRecordingEvent,
+  countRecordingSteps,
   deserializeRecordingSession,
   getActiveRecordingSession,
   getLastRecordingSession,
@@ -187,6 +188,18 @@ describe("recordingSession", () => {
     expect(listener).toHaveBeenCalled();
     expect(getActiveRecordingSession()?.events).toHaveLength(1);
     unsubscribe();
+  });
+
+  it("countRecordingSteps excludes scroll events", () => {
+    expect(
+      countRecordingSteps([
+        { kind: "screen" },
+        { kind: "scroll" },
+        { kind: "scroll" },
+        { kind: "demo-click" },
+      ])
+    ).toBe(2);
+    expect(countRecordingSteps([{ kind: "scroll" }])).toBe(0);
   });
 
   it("seeds current screen as step 1 once per session", () => {

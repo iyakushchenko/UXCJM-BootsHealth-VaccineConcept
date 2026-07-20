@@ -1,5 +1,10 @@
+import { useSyncExternalStore } from "react";
 import type { OrchestraModeOption, OrchestraModeId } from "@/app/orchestra/types";
 import { StudioNavStudioSelect } from "@/app/nav/StudioNavStudioSelect";
+import {
+  getActiveRecordingSession,
+  subscribeRecordingSession,
+} from "@/app/recording/recordingSession";
 
 type Props = {
   modes: OrchestraModeOption[];
@@ -10,6 +15,14 @@ type Props = {
   controlsLocked?: boolean;
 };
 
+function useRecordingSessionLive(): boolean {
+  return useSyncExternalStore(
+    subscribeRecordingSession,
+    () => getActiveRecordingSession() != null,
+    () => false
+  );
+}
+
 export function StudioNavJourneyMenu({
   modes,
   value,
@@ -17,6 +30,9 @@ export function StudioNavJourneyMenu({
   isPlaying,
   controlsLocked = false,
 }: Props) {
+  /** REC ● start → live/paused session: show NEW CJM (not overwrite selected). */
+  const recordingNewCjm = useRecordingSessionLive();
+
   return (
     <StudioNavStudioSelect
       options={modes}
@@ -26,6 +42,8 @@ export function StudioNavJourneyMenu({
       logAction="studio:orchestra-mode"
       isPlaying={isPlaying}
       controlsLocked={controlsLocked}
+      displayLabelOverride={recordingNewCjm ? "NEW CJM" : null}
+      highlightGold={recordingNewCjm}
     />
   );
 }

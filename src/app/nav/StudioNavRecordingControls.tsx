@@ -5,6 +5,7 @@ import { StudioPlaybackRecSwitch } from "@/app/nav/StudioPlaybackRecSwitch";
 import { studioPanelTransition } from "@/app/nav/studioMotion";
 import { saveRecordingAsJourney } from "@/app/recording/recordingCompile";
 import {
+  countRecordingSteps,
   getActiveRecordingSession,
   getLastRecordingSession,
   isRecordingActive,
@@ -38,6 +39,7 @@ type RecordingUiSnapshot = {
   hasLive: boolean;
   isRecording: boolean;
   isPaused: boolean;
+  /** Journey STEPS — excludes scroll (replay targets, not counted steps). */
   eventCount: number;
   canExport: boolean;
   canReplay: boolean;
@@ -52,6 +54,8 @@ let cachedRecordingUiSnapshot: RecordingUiSnapshot = {
   canReplay: false,
 };
 
+export { countRecordingSteps } from "@/app/recording/recordingSession";
+
 function readRecordingUiSnapshot(): RecordingUiSnapshot {
   const live = getActiveRecordingSession();
   const last = getLastRecordingSession();
@@ -60,7 +64,7 @@ function readRecordingUiSnapshot(): RecordingUiSnapshot {
     hasLive: live != null,
     isRecording: isRecordingActive(),
     isPaused: isRecordingPaused(),
-    eventCount: live?.events.length ?? last?.events.length ?? 0,
+    eventCount: countRecordingSteps(exportTarget?.events),
     canExport: exportTarget != null,
     canReplay: last != null && live == null,
   };

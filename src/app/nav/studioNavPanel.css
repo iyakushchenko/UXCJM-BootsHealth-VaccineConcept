@@ -265,6 +265,31 @@
   );
 }
 
+/* REC live — closed trigger reads as NEW CJM (same gold as active option). */
+.studio-nav-journey-menu--new-cjm .studio-nav-journey-menu__trigger {
+  color: #3d3018;
+  background: linear-gradient(
+    180deg,
+    #faf0d4 0%,
+    #ead9ad 18%,
+    #dcc796 46%,
+    #ccb57f 72%,
+    #bfa56e 100%
+  );
+  padding: 0 6px;
+  border-radius: 3px;
+}
+
+.studio-nav-journey-menu--new-cjm .studio-nav-journey-menu__label {
+  color: #3d3018;
+  max-width: 7.5rem;
+}
+
+.studio-nav-journey-menu--new-cjm .studio-nav-journey-menu__chevron {
+  opacity: 0.75;
+  color: #3d3018;
+}
+
 .studio-nav-scenario--on-air .studio-nav-journey-menu__trigger {
   /* Gold panel language — stale mint/green accents removed (PO 2026-07-20). */
   color: rgba(234, 217, 173, 0.88);

@@ -18,6 +18,13 @@ type Props<T extends string> = {
   liveLabel?: string;
   isPlaying?: boolean;
   controlsLocked?: boolean;
+  /**
+   * Force closed-trigger label (e.g. REC live → "NEW CJM").
+   * Wins over the selected option / liveLabel.
+   */
+  displayLabelOverride?: string | null;
+  /** Gold trigger chrome — Studio active-option language (REC new path). */
+  highlightGold?: boolean;
 };
 
 /** Compact studio dropdown — project, persona, or journey mode. */
@@ -30,6 +37,8 @@ export function StudioNavStudioSelect<T extends string>({
   liveLabel,
   isPlaying = false,
   controlsLocked = false,
+  displayLabelOverride = null,
+  highlightGold = false,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -135,12 +144,21 @@ export function StudioNavStudioSelect<T extends string>({
   };
 
   const displayLabel =
-    isPlaying && liveLabel
+    displayLabelOverride?.trim() ||
+    (isPlaying && liveLabel
       ? liveLabel
-      : (selected.shortLabel ?? selected.label);
+      : (selected.shortLabel ?? selected.label));
 
   return (
-    <div className="studio-nav-journey-menu" ref={rootRef}>
+    <div
+      className={
+        highlightGold
+          ? "studio-nav-journey-menu studio-nav-journey-menu--new-cjm"
+          : "studio-nav-journey-menu"
+      }
+      ref={rootRef}
+      data-studio-new-cjm={highlightGold ? "" : undefined}
+    >
       <button
         type="button"
         className="studio-nav-journey-menu__trigger"

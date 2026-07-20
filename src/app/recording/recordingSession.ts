@@ -88,6 +88,20 @@ export function isRecordingActive(): boolean {
   return activeSession != null && !paused;
 }
 
+/**
+ * Journey STEPS for REC UI — excludes `scroll` (engine replay targets only).
+ * Screens / clicks / transport / … still count.
+ */
+export function countRecordingSteps(
+  events: ReadonlyArray<{ kind: string }> | undefined
+): number {
+  if (!events?.length) return 0;
+  return events.reduce(
+    (n, event) => (event.kind === "scroll" ? n : n + 1),
+    0
+  );
+}
+
 export function isRecordingPaused(): boolean {
   return activeSession != null && paused;
 }

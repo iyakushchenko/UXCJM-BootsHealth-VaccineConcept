@@ -517,7 +517,7 @@ export function StudioNavScenarioControls({
       role="group"
     >
       {studioMenus}
-      {recMode && !recModeLocked && deleteRecordedCjm ? (
+      {recMode && !recModeLocked && !recordingArmed && deleteRecordedCjm ? (
         <StudioNavDeleteRecordedCjm
           journeyId={deleteRecordedCjm.journeyId}
           label={deleteRecordedCjm.label}

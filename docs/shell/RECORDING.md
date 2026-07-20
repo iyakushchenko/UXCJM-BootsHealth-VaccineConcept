@@ -204,9 +204,9 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 
 ### Product model — REC start + steps
 
-1. **● Start** seeds the **current tab/screen** as event 1 (`kind: "screen"`) — journey starting point.
-2. Later on-page interactions (human clicks → `demo-click`, scroll, typed-text, navigations → `screen`) append as further events. Each carries `atMs`; Play holds **≥4s** per major step (see pacing below).
-3. REC **STEPS** counter = live `session.events.length` (not a filtered subset) — UI re-renders on every append.
+1. **● Start** seeds the **current tab/screen** as event 1 (`kind: "screen"`) — journey starting point. CJM picker closed value shows **NEW CJM** (gold) while the session is live/paused — not an overwrite of the previously selected journey.
+2. Later on-page interactions (human clicks → `demo-click`, typed-text, navigations → `screen`) append as further events. Scroll is stored as a **replay target** only. Each carries `atMs`; Play holds **≥4s** per major step (see pacing below).
+3. REC **STEPS** counter = counted events **excluding `scroll`** (clicks/screens/… only) — UI re-renders on every append.
 
 ### Auto-play pacing (REC ↺)
 
