@@ -253,8 +253,14 @@ const THINKING_EXIT_MS = 360;
 /** Fade thinking bubble out before the agent reply frame reveals (same motion language). */
 export async function fadeOutSitePilotChatThinking(): Promise<void> {
   if (isChatReactMounted()) {
-    // React reply slot morphs thinking→reply in place (no exit wait / height gap).
-    endSitePilotChatThinking();
+    // Do NOT clear before beforeReveal returns — that left an empty agent slot
+    // until visibleCount advanced (then a 200–300px reveal-snap). Schedule
+    // clear after publish so thinking holds until the reply frame is in count.
+    queueMicrotask(() => {
+      requestAnimationFrame(() => {
+        endSitePilotChatThinking();
+      });
+    });
     return;
   }
 

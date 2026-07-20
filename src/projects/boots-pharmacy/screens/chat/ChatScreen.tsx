@@ -369,14 +369,16 @@ function QueryFrame({
 const REPLY_FRAME_CLASSES = ["chat__frame", "chat__frame--reply"];
 
 /**
- * Agent turn slot — thinking and reply share one frame so thinking teardown
- * cannot collapse height (Y jump). Handoff = in-place replace, no pull-up y.
+ * Agent turn slot — thinking LEFT then reply in the same slot (Make).
+ * AnimatePresence mode=sync: thinking opacity-exits while reply pull-ups —
+ * no sibling unmount collapse, no opacity-only flash swap.
  */
 function ReplyFrame({
   frame,
   revealed,
   showThinking,
   shouldAnimate,
+  thinkingGeneration,
   onAgentCta,
   onProductLink,
   visibleCount,
@@ -385,57 +387,43 @@ function ReplyFrame({
   revealed: boolean;
   showThinking: boolean;
   shouldAnimate: boolean;
+  thinkingGeneration: number;
   onAgentCta?: (label: string) => void;
   onProductLink?: (label: string) => void;
   visibleCount?: number;
 }) {
   const ref = useStaticFrameClasses(REPLY_FRAME_CLASSES);
   const bubbleRef = useRef<HTMLDivElement | null>(null);
-  const hadThinkingRef = useRef(false);
-  if (showThinking) hadThinkingRef.current = true;
-  // Thinking→reply: replace in place (opacity only). Fresh reply: pull-up.
-  const morphFromThinking = hadThinkingRef.current && revealed && !showThinking;
-  const pullAnimate = shouldAnimate && !morphFromThinking;
   const paint = revealed || showThinking;
+  const replyActive = revealed && !showThinking;
   useChatFrameRevealPaint(ref, paint);
-  const pullLive = useChatPullUpLive(revealed && !showThinking, pullAnimate);
+  const pullLive = useChatPullUpLive(replyActive, shouldAnimate);
   useChatBubbleMotionDiag(bubbleRef, {
     id: frame.id,
-    revealed: revealed && !showThinking,
-    shouldAnimate: pullAnimate,
+    revealed: replyActive,
+    shouldAnimate,
     pullLive,
     visibleCount,
   });
 
   const loggedHandoffRef = useRef(false);
   useEffect(() => {
-    if (!morphFromThinking || loggedHandoffRef.current) return;
+    if (!replyActive || !shouldAnimate || loggedHandoffRef.current) return;
     loggedHandoffRef.current = true;
-    const layoutY = bubbleRef.current
-      ? Math.round(bubbleRef.current.getBoundingClientRect().top * 100) / 100
-      : null;
     logChatBubbleMotion({
       id: frame.id,
-      phase: "animate-start",
-      y: 0,
-      opacity: 0,
-      layoutY,
-      deltaY: 0,
-      shouldAnimate: false,
-      visibleCount: visibleCount ?? null,
-    });
-    console.info("[PLAYBACK_DIAG] chat-bubble-motion", {
-      id: frame.id,
       phase: "thinking-handoff",
-      y: 0,
-      opacity: 1,
-      layoutY,
+      y: CHAT_PULL_UP.initial.y,
+      opacity: 0,
+      layoutY: bubbleRef.current
+        ? Math.round(bubbleRef.current.getBoundingClientRect().top * 100) / 100
+        : null,
       deltaY: 0,
-      shouldAnimate: false,
+      shouldAnimate: true,
       visibleCount: visibleCount ?? null,
-      note: "replace-in-place — no thinking unmount height loss",
+      note: "sync: thinking opacity-exit + reply pull-up in-slot",
     });
-  }, [morphFromThinking, frame.id, visibleCount]);
+  }, [replyActive, shouldAnimate, frame.id, visibleCount]);
 
   const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement | null;
@@ -477,50 +465,42 @@ function ReplyFrame({
       hidden={!paint}
       aria-hidden={!paint}
     >
-      {/* Stable agent slot — thinking/reply swap without sibling unmount gap. */}
-      <div className="chat__agent-slot" data-studio-chat-agent-slot={frame.id}>
-        {showThinking ? (
-          <ChatThinkingBubble mode="playback" generation={0} />
-        ) : revealed ? (
-          <motion.div
-            ref={bubbleRef}
-            className="chat__bubble chat__bubble--agent"
-            data-name="component.co.order.summary"
-            data-studio-chat-pull-up={
-              morphFromThinking ? "handoff" : pullLive ? "up" : "start"
-            }
-            initial={
-              morphFromThinking
-                ? { opacity: 0, y: 0 }
-                : pullAnimate
-                  ? CHAT_PULL_UP.initial
-                  : false
-            }
-            animate={
-              morphFromThinking || pullLive
-                ? { opacity: 1, y: 0 }
-                : pullAnimate
-                  ? CHAT_PULL_UP.initial
-                  : CHAT_PULL_UP.animate
-            }
-            transition={
-              morphFromThinking
-                ? { duration: 0.22, ease: "easeInOut" }
-                : CHAT_PULL_UP.transition
-            }
-          >
-            {bubbleBody}
-          </motion.div>
-        ) : (
-          <div
-            className="chat__bubble chat__bubble--agent"
-            data-name="component.co.order.summary"
-          >
-            {bubbleBody}
-          </div>
-        )}
-      </div>
-      {frame.helpful && revealed && !showThinking ? <HelpfulStrip /> : null}
+      <motion.div
+        className="chat__agent-slot"
+        data-studio-chat-agent-slot={frame.id}
+        layout="size"
+        transition={CHAT_PULL_UP.transition}
+      >
+        <AnimatePresence mode="sync" initial={false}>
+          {showThinking ? (
+            <ChatThinkingBubble
+              key={`think-${frame.id}-${thinkingGeneration}`}
+              mode="playback"
+              generation={thinkingGeneration}
+            />
+          ) : replyActive ? (
+            <motion.div
+              key={`reply-${frame.id}`}
+              ref={bubbleRef}
+              className="chat__bubble chat__bubble--agent"
+              data-name="component.co.order.summary"
+              data-studio-chat-pull-up={pullLive ? "up" : "start"}
+              initial={shouldAnimate ? CHAT_PULL_UP.initial : false}
+              animate={
+                pullLive
+                  ? CHAT_PULL_UP.animate
+                  : shouldAnimate
+                    ? CHAT_PULL_UP.initial
+                    : CHAT_PULL_UP.animate
+              }
+              transition={CHAT_PULL_UP.transition}
+            >
+              {bubbleBody}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </motion.div>
+      {frame.helpful && replyActive ? <HelpfulStrip /> : null}
     </div>
   );
 }
@@ -704,13 +684,26 @@ export function ChatScreen({
   ): boolean => frameRevealed && pullUpAnimateIds.has(frameId);
 
   /**
-   * Scroll chat down on progressive reveal so newest bubble clears above the
-   * sticky composer. Layout snap before paint + one post-tween settle
-   * (sitePilotChat: no mid-tween scrollIntoView / pad fight).
+   * Scroll: snap on count/user reveals; on thinking→reply release defer to
+   * post pull-up settle only (sitePilotChat — mid-handoff snap = 200–300px jank).
    */
+  const prevThinkingModeRef = useRef(thinking.mode);
   useLayoutEffect(() => {
     const column = columnRef.current;
     if (!column || !scenarioReveal.active) return;
+    const releasingThink =
+      prevThinkingModeRef.current === "playback" && thinking.mode === "none";
+    prevThinkingModeRef.current = thinking.mode;
+    if (releasingThink) {
+      console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+        tag: "handoff-defer-snap",
+        delta: 0,
+        visibleCount: revealedFrameCount,
+        scrollTop: column.scrollTop,
+        scrollMax: Math.max(0, column.scrollHeight - column.clientHeight),
+      });
+      return;
+    }
     const max = Math.max(0, column.scrollHeight - column.clientHeight);
     if (column.scrollTop < max) {
       const scrollBefore = column.scrollTop;
@@ -738,7 +731,18 @@ export function ChatScreen({
     if (!column || !scenarioReveal.active) return;
     const tSettle = window.setTimeout(() => {
       const settleMax = Math.max(0, column.scrollHeight - column.clientHeight);
+      const before = column.scrollTop;
       if (column.scrollTop < settleMax) column.scrollTop = settleMax;
+      const delta = column.scrollTop - before;
+      if (delta !== 0) {
+        console.info("[PLAYBACK_DIAG] chat-reveal-y-delta", {
+          tag: "pull-up-settle",
+          delta,
+          visibleCount: revealedFrameCount,
+          scrollTop: column.scrollTop,
+          scrollMax: settleMax,
+        });
+      }
     }, CHAT_PULL_UP_MS + 60);
     return () => window.clearTimeout(tSettle);
   }, [
@@ -888,6 +892,7 @@ export function ChatScreen({
           revealed={revealed}
           showThinking={showThinking}
           shouldAnimate={animate}
+          thinkingGeneration={thinking.generation}
           onAgentCta={onAgentCta}
           onProductLink={onProductLink}
           visibleCount={revealedFrameCount}

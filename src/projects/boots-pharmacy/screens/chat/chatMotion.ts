@@ -1,16 +1,21 @@
 import { MOTION_EASE_IN_OUT } from "@/uxds/motion";
 
 /**
- * Quality Motion pull-up for new bubbles / thinking → reply.
- * Modest y — progressive CJM rise, not a layout jump.
- * Exit short for leave-chat handoff.
- * Timing aligns with sitePilotChat CHAT_PULL_UP_MS / bottom-pin window.
+ * Make / sitePilotChat pull-up for progressive bubbles.
+ * User + agent reply enter the same way; thinking exits opacity-only (no y collapse).
  */
 export const CHAT_PULL_UP = {
   initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: 4 },
-  transition: { duration: 0.32, ease: MOTION_EASE_IN_OUT },
+  transition: { duration: 0.34, ease: MOTION_EASE_IN_OUT },
+} as const;
+
+/** Thinking leave — opacity only so in-slot reply pull-up isn’t undercut by height collapse. */
+export const CHAT_THINKING_EXIT = {
+  opacity: 0,
+  y: 0,
+  transition: { duration: 0.22, ease: MOTION_EASE_IN_OUT },
 } as const;
 
 /** Match sitePilotChat pull-up settle window (ms). */
@@ -21,6 +26,7 @@ export type ChatBubbleMotionPhase =
   | "animate-start"
   | "frame"
   | "animate-end"
+  | "thinking-handoff"
   | "exit";
 
 export type ChatBubbleMotionPayload = {
@@ -32,6 +38,7 @@ export type ChatBubbleMotionPayload = {
   deltaY?: number | null;
   shouldAnimate: boolean;
   visibleCount?: number | null;
+  note?: string;
 };
 
 /**
@@ -48,6 +55,7 @@ export function logChatBubbleMotion(payload: ChatBubbleMotionPayload): void {
     deltaY: payload.deltaY ?? null,
     shouldAnimate: payload.shouldAnimate,
     visibleCount: payload.visibleCount ?? null,
+    note: payload.note ?? null,
   });
 }
 

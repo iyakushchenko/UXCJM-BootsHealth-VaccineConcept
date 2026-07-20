@@ -1,6 +1,6 @@
 import { motion, MOTION_EASE_IN_OUT } from "@/uxds/motion";
 import type { ChatThinkingBridgeMode } from "./chatThinkingBridge";
-import { CHAT_PULL_UP } from "./chatMotion";
+import { CHAT_PULL_UP, CHAT_THINKING_EXIT } from "./chatMotion";
 
 export type ChatThinkingBubbleProps = {
   mode: Exclude<ChatThinkingBridgeMode, "none">;
@@ -13,16 +13,15 @@ export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps
 
   return (
     <motion.div
-      key={`thinking-${generation}-${mode}`}
       className={`chat__thinking${hint ? " chat__thinking--hint" : ""}`}
       data-studio-chat-thinking="true"
       data-studio-chat-thinking-side="agent"
+      data-studio-chat-thinking-gen={String(generation)}
       role="status"
       aria-live="polite"
-        // Enter pull-up OK; exit must not y-collapse — reply replaces in-slot.
       initial={CHAT_PULL_UP.initial}
       animate={CHAT_PULL_UP.animate}
-      exit={{ opacity: 0, y: 0 }}
+      exit={CHAT_THINKING_EXIT}
       transition={CHAT_PULL_UP.transition}
     >
       <div className="chat__thinking-inner">
