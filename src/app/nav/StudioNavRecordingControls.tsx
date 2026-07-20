@@ -34,6 +34,11 @@ export type StudioNavRecordingControlsProps = {
   ) => void;
   /** When true (AIR / play live), REC mode switch is locked — same gate as cassette transport. */
   recModeLocked?: boolean;
+  /**
+   * Show Import only when CREATE NEW CJM is selected (idle).
+   * Hidden for saved CJMs; never shown while a live REC session is armed.
+   */
+  importVisible?: boolean;
 };
 
 type RecordingUiSnapshot = {
@@ -252,6 +257,7 @@ export function StudioNavRecordingModeSlot({
   onReplay,
   onSaveAsJourney,
   recModeLocked = false,
+  importVisible = false,
 }: StudioNavRecordingControlsProps) {
   const [recMode, setRecMode] = useState(false);
 
@@ -335,6 +341,7 @@ export function StudioNavRecordingModeSlot({
                 getStartOptions={getStartOptions}
                 onReplay={onReplay}
                 onSaveAsJourney={onSaveAsJourney}
+                importVisible={importVisible}
               />
             </motion.div>
           ) : null}
@@ -353,6 +360,7 @@ export function StudioNavRecordingControls({
   getStartOptions,
   onReplay,
   onSaveAsJourney,
+  importVisible = false,
 }: StudioNavRecordingControlsProps) {
   const ui = useRecordingUiSnapshot();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -443,9 +451,10 @@ export function StudioNavRecordingControls({
   };
 
   const handleDownload = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const target = getActiveRecordingSession() ?? getLastRecordingSession();
+    // Live REC: Download locked (Stop first) — same idea as +.
+    const target = ui.hasLive ? null : getLastRecordingSession();
     logControlPanel("recording:download", {
-      blocked: !target,
+      blocked: !target || ui.hasLive,
       eventCount: target?.events.length ?? 0,
     });
     flashTap(event.currentTarget);
@@ -602,22 +611,29 @@ export function StudioNavRecordingControls({
         type="button"
         className="studio-nav-step-btn studio-nav-scenario__btn"
         aria-label="Download recording JSON"
-        title="Download .recording.json"
-        disabled={!ui.canExport || replaying}
+        title={
+          ui.hasLive
+            ? "Stop recording before downloading"
+            : "Download .recording.json"
+        }
+        disabled={ui.hasLive || !ui.canExport || replaying}
         onClick={handleDownload}
       >
         <DownloadIcon />
       </button>
-      <button
-        type="button"
-        className="studio-nav-step-btn studio-nav-scenario__btn"
-        aria-label="Import recording JSON"
-        title="Import .recording.json"
-        disabled={ui.hasLive || replaying}
-        onClick={handleImportClick}
-      >
-        <ImportIcon />
-      </button>
+      {importVisible && !ui.hasLive ? (
+        <button
+          type="button"
+          className="studio-nav-step-btn studio-nav-scenario__btn"
+          aria-label="Import recording JSON"
+          title="Import .recording.json into a new CJM path"
+          disabled={replaying}
+          onClick={handleImportClick}
+          data-studio-recording-import=""
+        >
+          <ImportIcon />
+        </button>
+      ) : null}
       <button
         type="button"
         className="studio-nav-step-btn studio-nav-scenario__btn"

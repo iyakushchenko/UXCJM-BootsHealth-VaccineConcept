@@ -213,6 +213,8 @@ export default function App() {
   const [playbackDiagnostic, setPlaybackDiagnostic] =
     useState<PlaybackDiagnosticError | null>(null);
   const [studioJourneyMode, setStudioJourneyMode] = useState(false);
+  /** CJM picker CREATE NEW CJM (idle Import path / live REC forced). Not a playable mode id. */
+  const [createNewCjmSelected, setCreateNewCjmSelected] = useState(false);
   const [chatRetreatRestoreActive, setChatRetreatRestoreActive] = useState(false);
   const stopAllPlaybackRef = useRef<() => void>(() => {});
   const playbackSnapshotRef = useRef<PlaybackStudioSnapshot>({});
@@ -1791,6 +1793,7 @@ export default function App() {
                     onChange={handleOrchestraModeChange}
                     isPlaying={transport.isPlaying}
                     controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
+                    onCreateNewSelectedChange={setCreateNewCjmSelected}
                   />
                 </div>
               }
@@ -1860,6 +1863,7 @@ export default function App() {
                     replayRecordingSession(session, replayRecordingOptions())
                   }
                   onSaveAsJourney={onRecordingAddedAsCjm}
+                  importVisible={createNewCjmSelected}
                 />
               }
             />
@@ -1873,6 +1877,7 @@ export default function App() {
                   replayRecordingSession(session, replayRecordingOptions())
                 }
                 onSaveAsJourney={onRecordingAddedAsCjm}
+                importVisible={createNewCjmSelected}
               />
             </div>
           )

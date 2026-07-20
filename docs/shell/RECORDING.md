@@ -195,17 +195,19 @@ Leaving Rec while a capture is live **pauses** the session (does not stop/destro
 | ● | Start recording (current project / persona / journey) |
 | ❚❚ / ► | Pause / resume |
 | ■ | Stop — keeps session for export / replay |
-| ✕ | Discard stopped session — clears STEPS / Download / + / NEW CJM (not a saved CJM) |
-| ↓ | **Download JSON** — export `.recording.json` only (recording file; not journey compile) |
-| ↑ | Import a saved `.recording.json` |
+| ✕ | Discard stopped session — clears STEPS / Download / + / CREATE NEW CJM (not a saved CJM) |
+| ↓ | **Download JSON** — export `.recording.json` only; **disabled while REC live** (Stop first) |
+| ↑ | Import a saved `.recording.json` — **visible only when CREATE NEW CJM** is selected (idle); hidden for saved CJMs |
 | ↺ | Replay last stopped or imported session (v3: transport + screen + demo/human-click + wire-intent + director-script + beat-enter + scroll + typed-text) |
 | + | **Add to project as CJM** — disabled while a recording is live/paused; after Stop, title popup → compile → **new** journey id (picker label). Separate from Download. |
+
+CJM picker (Studio menus): first option **CREATE NEW CJM**, then a separator, then built-ins + recorded. Picker **disabled while REC live**. Download also **disabled while live**.
 | 🗑 | **Delete recorded CJM** (REC mode only) — trash glyph (PLP reset filters); confirm popup DELETE/CANCEL. Built-in Agentic/Traditional hidden. Falls back to matching built-in path after delete. |
 | LED | Same playback diode chrome — **blinks red** while recording live; dim solid red when paused; idle graphite when REC ready / REC off restores green on-air |
 
 ### Product model — REC start + steps
 
-1. **● Start** seeds the **current tab/screen** as event 1 (`kind: "screen"`) — journey starting point. CJM picker closed value shows **NEW CJM** (gold) while the session is live/paused — not an overwrite of the previously selected journey.
+1. **● Start** seeds the **current tab/screen** as event 1 (`kind: "screen"`) — journey starting point. CJM picker selects **CREATE NEW CJM** (gold) while the session is live/paused — picker locked; prior selection restored on Stop/purge. Idle default stays Agentic/Traditional/last saved; **CREATE NEW CJM** is the first dropdown option (separator below), not the default.
 2. Later on-page interactions (human clicks → `demo-click`, typed-text, navigations → `screen`) append as further events. Scroll is stored as a **replay target** only. Each carries `atMs`; Play holds **≥4s** per major step (see pacing below).
 3. REC **STEPS** counter = counted events **excluding `scroll`** (clicks/screens/… only) — UI re-renders on every append.
 

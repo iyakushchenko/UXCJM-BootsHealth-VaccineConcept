@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 import type { StudioSelectOption } from "@/projects/types";
 import {
   logControlPanel,
@@ -25,6 +25,10 @@ type Props<T extends string> = {
   displayLabelOverride?: string | null;
   /** Gold trigger chrome — Studio active-option language (REC new path). */
   highlightGold?: boolean;
+  /** Draw a separator line after this option id (e.g. CREATE NEW CJM). */
+  separatorAfterId?: T | null;
+  /** Tooltip when the trigger is disabled. */
+  disabledTitle?: string;
 };
 
 /** Compact studio dropdown — project, persona, or journey mode. */
@@ -39,11 +43,14 @@ export function StudioNavStudioSelect<T extends string>({
   controlsLocked = false,
   displayLabelOverride = null,
   highlightGold = false,
+  separatorAfterId = null,
+  disabledTitle,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();
+  const triggerDisabled = isPlaying || controlsLocked;
 
   const selected =
     options.find((option) => option.id === value) ??
@@ -53,8 +60,8 @@ export function StudioNavStudioSelect<T extends string>({
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
-    if (isPlaying || controlsLocked) close();
-  }, [close, controlsLocked, isPlaying]);
+    if (triggerDisabled) close();
+  }, [close, triggerDisabled]);
 
   useEffect(() => {
     if (!open) return;
@@ -89,7 +96,7 @@ export function StudioNavStudioSelect<T extends string>({
   };
 
   const toggleOpen = () => {
-    if (isPlaying || controlsLocked) {
+    if (triggerDisabled) {
       if (logAction) {
         logControlPanel("studio:select-open", {
           blocked: true,
@@ -165,7 +172,8 @@ export function StudioNavStudioSelect<T extends string>({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        disabled={isPlaying || controlsLocked}
+        disabled={triggerDisabled}
+        title={triggerDisabled ? disabledTitle : undefined}
         onClick={toggleOpen}
         onKeyDown={onTriggerKeyDown}
       >
@@ -203,21 +211,29 @@ export function StudioNavStudioSelect<T extends string>({
             transition={studioPanelTransition}
           >
             {options.map((option, index) => (
-              <button
-                key={option.id}
-                type="button"
-                role="option"
-                aria-selected={option.id === value}
-                className={
-                  option.id === value
-                    ? "studio-nav-journey-menu__option studio-nav-journey-menu__option--active"
-                    : "studio-nav-journey-menu__option"
-                }
-                onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => selectOption(option.id)}
-              >
-                {option.label}
-              </button>
+              <Fragment key={option.id}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={option.id === value}
+                  className={
+                    option.id === value
+                      ? "studio-nav-journey-menu__option studio-nav-journey-menu__option--active"
+                      : "studio-nav-journey-menu__option"
+                  }
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onClick={() => selectOption(option.id)}
+                >
+                  {option.label}
+                </button>
+                {separatorAfterId != null && separatorAfterId === option.id ? (
+                  <div
+                    role="separator"
+                    className="studio-nav-journey-menu__separator"
+                    data-studio-cjm-separator=""
+                  />
+                ) : null}
+              </Fragment>
             ))}
           </motion.div>
         ) : null}

@@ -2,6 +2,23 @@ import type { OrchestraModeOption, OrchestraModeId } from "@/app/orchestra/types
 
 export const ORCHESTRA_DEFAULT_MODE: OrchestraModeId = "agentic-cjm";
 
+/**
+ * CJM picker sentinel — not a playable journey id.
+ * Idle: optional selection for Import / new path. Live REC: forced selection (gold).
+ */
+export const CREATE_NEW_CJM_MODE_ID = "create-new-cjm" as const;
+
+export const CREATE_NEW_CJM_OPTION: OrchestraModeOption = {
+  id: CREATE_NEW_CJM_MODE_ID,
+  label: "CREATE NEW CJM",
+};
+
+export function isCreateNewCjmModeId(
+  value: string | null | undefined
+): value is typeof CREATE_NEW_CJM_MODE_ID {
+  return value === CREATE_NEW_CJM_MODE_ID;
+}
+
 export const ORCHESTRA_MODE_OPTIONS: OrchestraModeOption[] = [
   { id: "agentic-cjm", label: "Agentic CJM" },
   { id: "traditional-cjm", label: "Traditional CJM" },
