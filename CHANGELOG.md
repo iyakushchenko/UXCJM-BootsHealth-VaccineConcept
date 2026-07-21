@@ -42,6 +42,7 @@
 - **shell:** REC compile: human labels + content camera anchors + tile CTA clicks; prove asserts rec-* playlist (not traditional 13); page-land only on screen change.
 - **shell:** Honest REC: degrade container clicks FAIL; REC capture live vs Play journey prove QA labels; prove catalog from imported store.
 - **shell:** REC robustness: __studioArmRecCapture + __studioRunRecNewCjmProve (NEW CJM only; never built-in Play as REC prove).
+- **shell:** Recorded CJM titles product-facing only; purge meta REC/QA prove labels from catalog.
 
 ## v0.0.100 - 200726
 - **shell:** PP-13 self-test expand + stale-green detector + PLAYBACK_DIAG mirror

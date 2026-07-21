@@ -49,10 +49,16 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-function mintProveLabel(experience: "agentic" | "traditional"): string {
-  const stamp = Date.now().toString(36);
-  const rand = Math.random().toString(36).slice(2, 6);
-  return `REC prove ${experience} ${stamp}-${rand}`;
+/** Product-facing CJM title — never agent-test / prove codenames. */
+function mintDemoJourneyLabel(experience: "agentic" | "traditional"): string {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const slug = Math.random().toString(36).slice(2, 6);
+  if (experience === "agentic") {
+    return `Sarah · Home→Chat · ${hh}:${mm} · ${slug}`;
+  }
+  return `Sarah · PLP→Book · ${hh}:${mm} · ${slug}`;
 }
 
 /** Honest click targets — never coarse shell / tiles container. */
@@ -201,7 +207,7 @@ export async function runRecNewCjmProve(
   stopRecording();
   await delay(settle);
 
-  const label = options?.label?.trim() || mintProveLabel(experience);
+  const label = options?.label?.trim() || mintDemoJourneyLabel(experience);
   const saveFn =
     (
       window as Window & {

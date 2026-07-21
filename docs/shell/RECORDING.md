@@ -343,7 +343,7 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 
 1. Record (or ↑ import a `.recording.json`). Use **Download JSON** only for the recording file.
 2. Stop ■ then **+** → enter a **CJM title** in the Studio nav popup → **Add** (or `__studioSaveRecordingAsJourney(session, { label })`).
-3. Studio mints a free id (`rec-trad-…` / `rec-agentic-…`), uses the title as journey `label` + picker text, merges into `journeyRuntimeStore`, persists in **localStorage** for that project+persona, and selects it in the nav CJM picker.
+3. Studio mints a free id (`rec-trad-…` / `rec-agentic-…`), uses the title as journey `label` + picker text, merges into `journeyRuntimeStore`, persists in **localStorage** for that project+persona, and selects it in the nav CJM picker. **Recorded CJM titles are product-facing** (e.g. `Sarah · PLP→Book · HH:MM`) — never agent-test codenames (`REC prove`, `QA REC`, …).
 4. Turn **CJM** on and play/step — best-effort beats from the recording.
 5. Optional: export journey JSON via MCP `saved.json` / `__studioExportJourneyBundle()` — not conflated with REC Download.
 6. Clear runtime overlay: `__studioClearImportedJourneys()` (localStorage recorded CJMs re-hydrate on next load unless cleared from storage).
