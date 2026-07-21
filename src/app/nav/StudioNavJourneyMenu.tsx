@@ -36,6 +36,8 @@ type Props = {
   recModeLocked?: boolean;
   onDeleteMode?: (modeId: OrchestraModeId) => void;
   metadataById?: Readonly<Record<string, CjmOptionMetadata>>;
+  /** File-backed project/persona catalog entries; never deletable in-browser. */
+  deployedJourneyIds?: readonly string[];
 };
 
 function useRecordingSessionLive(): boolean {
@@ -58,6 +60,7 @@ export function StudioNavJourneyMenu({
   recModeLocked = false,
   onDeleteMode,
   metadataById = {},
+  deployedJourneyIds = [],
 }: Props) {
   /** REC ● start → live/paused session while Rec deck is open. */
   const recordingLive = useRecordingSessionLive();
@@ -237,15 +240,14 @@ export function StudioNavJourneyMenu({
       renderOptionAction={(option) => {
         if (option.id === CREATE_NEW_CJM_MODE_ID) return null;
         const metadata = metadataById[option.id];
-        const protectedBuiltIn =
-          option.id === "agentic-cjm" || option.id === "traditional-cjm";
+        const deployed = deployedJourneyIds.includes(option.id);
         return <>
           {metadata ? <StudioNavCjmMetadata metadata={metadata} /> : null}
           <StudioNavDeleteRecordedCjm
               journeyId={option.id}
               label={option.label}
-              disabled={protectedBuiltIn || controlsLocked || (recordingLive && recMode)}
-              disabledTitle={protectedBuiltIn ? `${option.label} is a protected built-in CJM` : "Stop playback or recording before deleting this CJM"}
+              disabled={deployed || controlsLocked || (recordingLive && recMode)}
+              disabledTitle={deployed ? `${option.label} is a deployed project CJM` : "Stop playback or recording before deleting this CJM"}
               onConfirmDelete={() => onDeleteMode?.(option.id)}
             />
         </>;

@@ -1622,9 +1622,9 @@ export default function App() {
           studioProjectId,
           studioPersonaId,
           journeyId
-        )
+        ) ?? studioPersona.journeyRecordings?.[journeyId]
       ),
-    [studioJourneys, studioProjectId, studioPersonaId, cjmCompatibilityRevision]
+    [studioJourneys, studioProjectId, studioPersonaId, studioPersona, cjmCompatibilityRevision]
   );
 
   const refuseTransportForIncompatibleCjm = useCallback(
@@ -2013,6 +2013,7 @@ export default function App() {
                     recModeLocked={studioRecModeLocked}
                     onDeleteMode={handleDeleteRecordedCjm}
                     metadataById={cjmMetadataById}
+                    deployedJourneyIds={studioPersona.journeys.map((journey) => journey.id)}
                   />
                 </div>
               }

@@ -9,6 +9,7 @@
 import type { JourneyDefinition } from "@/app/orchestra/types";
 import {
   applyImportedJourneyFile,
+  clearImportedJourneys,
   getImportedJourneys,
   removeImportedJourney,
 } from "@/app/journey/journeyRuntimeStore";
@@ -173,6 +174,9 @@ export function hydrateRecordedJourneysFromStorage(
   personaId: PersonaId | string
 ): number {
   const journeys = readPersistedRecordedJourneys(projectId, personaId);
+  // Runtime imports are a view of the active owner only. Never leak a prior
+  // project's/persona's local catalog across a Studio selection change.
+  clearImportedJourneys();
   // Rewrite storage when heal stamps correct protoTabs (legacy all-1 journeys).
   persistRecordedJourneys(projectId, personaId, journeys);
   for (const journey of journeys) {
@@ -201,7 +205,8 @@ export function listRuntimeRecordedJourneys(): JourneyDefinition[] {
 
 /**
  * Delete a user-recorded CJM from localStorage + runtime catalog.
- * Built-in Agentic/Traditional slots are never removed.
+ * Built-in slots are never removed. The UI additionally protects every
+ * file-backed project/persona catalog entry.
  */
 export function removePersistedRecordedJourney(
   projectId: ProjectId | string,

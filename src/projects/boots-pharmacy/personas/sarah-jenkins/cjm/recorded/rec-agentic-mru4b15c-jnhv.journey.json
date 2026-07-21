@@ -1,0 +1,1918 @@
+{
+  "version": 1,
+  "exportedAt": "2026-07-21T19:51:25.608Z",
+  "projectId": "boots-pharmacy",
+  "personaId": "sarah-jenkins",
+  "journey": {
+    "id": "rec-agentic-mru4b15c-jnhv",
+    "label": "Recorded 2026-07-21 03:52",
+    "beats": [
+      {
+        "id": "plp",
+        "label": "Vaccinations",
+        "kind": "tab-landing",
+        "protoTab": 3
+      },
+      {
+        "id": "plp-book-now-camera",
+        "label": "Camera — Book Now",
+        "kind": "camera",
+        "protoTab": 3,
+        "camera": {
+          "dwellMs": 2030,
+          "selectorChain": [
+            "[data-name=\"boots-pharmacy.service.tile\"]",
+            "[data-name=\"component.plp.tile.title\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.plp.tile.title\"]"
+        }
+      },
+      {
+        "id": "plp-book-now",
+        "label": "Book Now",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"plp-book-now\"]"
+          ],
+          "element": "Book Now"
+        },
+        "protoTab": 3,
+        "dwellMs": 4000
+      },
+      {
+        "id": "pdp",
+        "label": "Vaccine details",
+        "kind": "tab-landing",
+        "protoTab": 4
+      },
+      {
+        "id": "pdp-faq-personal-data",
+        "label": "Faq Personal Data",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"pdp-faq-personal-data\"]"
+          ],
+          "element": "Faq Personal Data"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "pdp-faq-personal-data-2",
+        "label": "Faq Personal Data",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"pdp-faq-personal-data\"]"
+          ],
+          "element": "Faq Personal Data"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "pdp-book-now-camera",
+        "label": "Camera — Book Now",
+        "kind": "camera",
+        "protoTab": 4,
+        "camera": {
+          "dwellMs": 2067,
+          "selectorChain": [
+            "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+            "[data-name=\"component.product.image.basic\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.product.image.basic\"]"
+        }
+      },
+      {
+        "id": "pdp-book-now",
+        "label": "Book Now",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"pdp-book-now\"]"
+          ],
+          "element": "Book Now"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-1",
+        "label": "Book — location",
+        "kind": "tab-landing",
+        "protoTab": 5
+      },
+      {
+        "id": "search-for-city-postcode-location",
+        "label": "Search for City, Postcode, Location",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-name=\"Step 4\"]",
+            "[data-name=\"body\"]",
+            "[data-name=\"chosen location\"]",
+            "[data-name=\"component.input.field\"]"
+          ],
+          "element": "Search for City, Postcode, Location..."
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "avail-choose-location",
+        "label": "Choose Location",
+        "kind": "overlay",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"avail-choose-location\"]"
+          ],
+          "element": "Choose Location",
+          "modalId": "choose-pharmacy"
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-1-continue-camera",
+        "label": "Camera — Step 1 Continue",
+        "kind": "camera",
+        "protoTab": 5,
+        "camera": {
+          "dwellMs": 2043,
+          "selectorChain": [
+            "[data-name=\"Step 4\"]",
+            "[data-name=\"chosen location\"]",
+            "[data-name=\"boots-pharmacy.store\"]"
+          ],
+          "anchorSelector": "[data-name=\"Step 4\"]"
+        }
+      },
+      {
+        "id": "book-step-1-continue",
+        "label": "Step 1 Continue",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"book-step-1-continue\"]"
+          ],
+          "element": "Step 1 Continue"
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-2",
+        "label": "Book — date & time",
+        "kind": "tab-landing",
+        "protoTab": 6
+      },
+      {
+        "id": "15-30-camera",
+        "label": "Camera — 15:30",
+        "kind": "camera",
+        "protoTab": 6,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+          ],
+          "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+        }
+      },
+      {
+        "id": "15-30",
+        "label": "15:30",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"15:30\"]"
+          ],
+          "element": "15:30"
+        },
+        "protoTab": 6,
+        "dwellMs": 4000
+      },
+      {
+        "id": "july-4-camera",
+        "label": "Camera — July 4",
+        "kind": "camera",
+        "protoTab": 6,
+        "camera": {
+          "dwellMs": 2033,
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+          ],
+          "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+        }
+      },
+      {
+        "id": "july-4",
+        "label": "July 4",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"date\"][data-studio-cal-month=\"July\"][data-studio-cal-value=\"4\"]"
+          ],
+          "element": "July 4"
+        },
+        "protoTab": 6,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-2-reserve-camera",
+        "label": "Camera — Step 2 Reserve",
+        "kind": "camera",
+        "protoTab": 6,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+          ],
+          "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+        }
+      },
+      {
+        "id": "book-step-2-reserve",
+        "label": "Step 2 Reserve",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"book-step-2-reserve\"]"
+          ],
+          "element": "Step 2 Reserve"
+        },
+        "protoTab": 6,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-3",
+        "label": "Book — confirmation",
+        "kind": "tab-landing",
+        "protoTab": 7
+      },
+      {
+        "id": "open-appointments-camera",
+        "label": "Camera — Open Appointments",
+        "kind": "camera",
+        "protoTab": 7,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-studio-action=\"book-step-3-explore-more\"]"
+          ],
+          "anchorSelector": "[data-studio-action=\"book-step-3-explore-more\"]"
+        }
+      },
+      {
+        "id": "open-appointments",
+        "label": "Open Appointments",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-name=\"Step 6\"]",
+            "[data-name=\"body\"]",
+            "[data-name=\"component.appointment.summary\"]"
+          ],
+          "element": "Open Appointments"
+        },
+        "protoTab": 7,
+        "dwellMs": 4000
+      },
+      {
+        "id": "appointment-history",
+        "label": "Appointment history",
+        "kind": "tab-landing",
+        "protoTab": 8
+      },
+      {
+        "id": "view-details-camera",
+        "label": "Camera — View Details",
+        "kind": "camera",
+        "protoTab": 8,
+        "camera": {
+          "dwellMs": 2037,
+          "selectorChain": [
+            "[data-name=\"== Frame for UX ==\"]",
+            "[data-name=\"component.ma.navigation.menu\"]",
+            "[data-name=\"component.ma.navigation.menu.item\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.ma.navigation.menu.item\"]"
+        }
+      },
+      {
+        "id": "view-details",
+        "label": "View Details",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-name=\"body\"]",
+            "[data-name=\"Content\"]",
+            "[data-name=\"2 Columns\"]",
+            "[data-name=\"Left\"]",
+            "[data-name=\"boots-pharmacy.component.ma.acc.overview.recent.order\"]",
+            "[data-name=\"CTAs\"]"
+          ],
+          "element": "View Details"
+        },
+        "protoTab": 8,
+        "dwellMs": 4000
+      }
+    ]
+  },
+  "recording": {
+    "id": "c68742a6-a688-481f-a911-c2238b2c4a26",
+    "version": 1,
+    "startedAt": "2026-07-21T03:51:32.778Z",
+    "projectId": "boots-pharmacy",
+    "personaId": "sarah-jenkins",
+    "journeyId": "agentic-cjm",
+    "orchestraMode": "agentic-cjm",
+    "journeyCatalog": [
+      {
+        "id": "agentic-cjm",
+        "label": "Agentic CJM",
+        "beatCount": 14,
+        "beatIds": [
+          "agentic-home",
+          "agentic-chat",
+          "avail-location",
+          "avail-continue",
+          "avail-time",
+          "avail-book",
+          "book-step2",
+          "book-step2-date",
+          "book-step2-time",
+          "book-step2-reserve",
+          "book-step3-camera",
+          "confirmation",
+          "appointment-history",
+          "appointment-details"
+        ]
+      },
+      {
+        "id": "traditional-cjm",
+        "label": "Traditional CJM",
+        "beatCount": 12,
+        "beatIds": [
+          "traditional-plp",
+          "traditional-pdp",
+          "traditional-login",
+          "choose-location",
+          "book-step2",
+          "book-step2-date",
+          "book-step2-time",
+          "book-step2-reserve",
+          "book-step3-camera",
+          "confirmation",
+          "appointment-history",
+          "appointment-details"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "kind": "screen",
+        "screenId": "plp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic",
+        "atMs": 13495.800000000047,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 0"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 15380.800000000047,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 1"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2030,
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 18086.70000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 1"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Book Now",
+        "selectorChain": [
+          "[data-studio-action=\"plp-book-now\"]"
+        ],
+        "atMs": 19191.800000000047,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 2"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "pdp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 19382,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 3"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Faq Personal Data",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-faq-personal-data\"]"
+        ],
+        "atMs": 22052.400000000023,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 3"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Faq Personal Data",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-faq-personal-data\"]"
+        ],
+        "atMs": 24686.099999999977,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 4"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-gp-find-out-more\"]"
+        ],
+        "anchorSelector": "[data-studio-action=\"pdp-gp-find-out-more\"]",
+        "atMs": 25063,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-download-guide\"]"
+        ],
+        "anchorSelector": "[data-studio-action=\"pdp-download-guide\"]",
+        "atMs": 25836.20000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"body\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp\"]",
+        "atMs": 26308.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"module.pdp.rtb\"]",
+          "[data-name=\"component.product.image.basic\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp\"]",
+        "atMs": 26921.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2067,
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"module.pdp.rtb\"]",
+          "[data-name=\"component.product.image.basic\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp\"]",
+        "atMs": 28804.800000000047,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Book Now",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-book-now\"]"
+        ],
+        "atMs": 31922.800000000047,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 6"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 32085,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 7"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Search for City, Postcode, Location...",
+        "selectorChain": [
+          "[data-name=\"Step 4\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"chosen location\"]",
+          "[data-name=\"component.input.field\"]"
+        ],
+        "atMs": 37286.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 7"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=agentic&modal=choose-pharmacy",
+        "atMs": 37318.30000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic&modal=choose-pharmacy",
+          "touchpointKey": "popup:availability:list",
+          "touchpointLabel": "Choose pharmacy",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": true,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 8"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Choose Location",
+        "selectorChain": [
+          "[data-studio-action=\"avail-choose-location\"]"
+        ],
+        "atMs": 44120.30000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic&modal=choose-pharmacy",
+          "touchpointKey": "popup:availability:list",
+          "touchpointLabel": "Choose pharmacy",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": true,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 8"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 44145.80000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"Step 4\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"chosen location\"]",
+          "[data-name=\"boots-pharmacy.store\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 4\"]",
+        "atMs": 48011.70000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2043,
+        "selectorChain": [
+          "[data-name=\"Step 4\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"chosen location\"]",
+          "[data-name=\"boots-pharmacy.store\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 4\"]",
+        "atMs": 49891.90000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Step 1 Continue",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-1-continue\"]"
+        ],
+        "atMs": 52432.70000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 10"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-2",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 52592.70000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"Step 5\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"component.appointment.summary\"]",
+          "[data-name=\"Week Schedule\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 5\"]",
+        "atMs": 52736,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+        ],
+        "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]",
+        "atMs": 54172.20000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "15:30",
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"15:30\"]"
+        ],
+        "atMs": 55512.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2033,
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]"
+        ],
+        "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"09:20\"]",
+        "atMs": 56054.20000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 12"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "July 4",
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"date\"][data-studio-cal-month=\"July\"][data-studio-cal-value=\"4\"]"
+        ],
+        "atMs": 56483.59999999998,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 13"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+        ],
+        "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]",
+        "atMs": 57671.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 14"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Step 2 Reserve",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-2-reserve\"]"
+        ],
+        "atMs": 58662.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 14"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-3",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 58822.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 15"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"Step 6\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"component.appointment.summary\"]",
+          "[data-name=\"icon / accent / ok\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 6\"]",
+        "atMs": 58959.20000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 15"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"Step 6\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"component.appointment.summary\"]",
+          "[data-name=\"component.co.order.summary\"]",
+          "[data-name=\"Total\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 6\"]",
+        "atMs": 60492,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 15"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-3-explore-more\"]"
+        ],
+        "anchorSelector": "[data-studio-action=\"book-step-3-explore-more\"]",
+        "atMs": 61449.80000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 15"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Open Appointments",
+        "selectorChain": [
+          "[data-name=\"Step 6\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"component.appointment.summary\"]"
+        ],
+        "atMs": 61961.30000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 15"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "appointment-history",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 62122.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 16"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"== Frame for UX ==\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"Content\"]",
+          "[data-name=\"2 Columns\"]",
+          "[data-name=\"Left\"]",
+          "[data-name=\"boots-pharmacy.component.ma.acc.overview.recent.order\"]"
+        ],
+        "anchorSelector": "[data-name=\"Left\"]",
+        "atMs": 63373.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 16"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"== Frame for UX ==\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"module.ma.navigation\"]",
+          "[data-name=\"component.ma.navigation.content.slot\"]"
+        ],
+        "anchorSelector": "[data-name=\"component.ma.navigation.content.slot\"]",
+        "atMs": 65003.90000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 16"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"== Frame for UX ==\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"module.ma.navigation\"]",
+          "[data-name=\"component.ma.navigation.menu\"]",
+          "[data-name=\"component.ma.navigation.menu.item\"]"
+        ],
+        "anchorSelector": "[data-name=\"component.ma.navigation.menu.item\"]",
+        "atMs": 65570.20000000007,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 16"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2037,
+        "selectorChain": [
+          "[data-name=\"== Frame for UX ==\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"module.ma.navigation\"]",
+          "[data-name=\"component.ma.navigation.menu\"]",
+          "[data-name=\"component.ma.navigation.menu.item\"]"
+        ],
+        "anchorSelector": "[data-name=\"component.ma.navigation.menu.item\"]",
+        "atMs": 67449.30000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 16"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "View Details",
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"Content\"]",
+          "[data-name=\"2 Columns\"]",
+          "[data-name=\"Left\"]",
+          "[data-name=\"boots-pharmacy.component.ma.acc.overview.recent.order\"]",
+          "[data-name=\"CTAs\"]"
+        ],
+        "atMs": 68068.80000000005,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 8,
+          "currentTabIndex": 7,
+          "childIndex": 2,
+          "screenId": "appointment-history",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 17"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "appointment-details",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=appointment-details&persona=sarah-jenkins&cjm=off&experience=agentic",
+        "atMs": 68235.40000000002,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "agentic-cjm",
+          "journeyId": "agentic-cjm",
+          "beatIndex": 0,
+          "beatCount": 14,
+          "beatId": "agentic-home",
+          "beatLabel": "Agentic home",
+          "protoTab": 9,
+          "currentTabIndex": 8,
+          "childIndex": 1,
+          "screenId": "appointment-details",
+          "studioUrl": "?project=boots-pharmacy&screen=appointment-details&persona=sarah-jenkins&experience=agentic",
+          "touchpointKey": "beat:agentic-home",
+          "touchpointLabel": "Agentic home",
+          "scenarioProgress": "0/22",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "agentic-cjm",
+          "counter": "STEPS: 18"
+        }
+      }
+    ],
+    "metadata": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "recordedFrom": "ui",
+      "startScreenId": "plp",
+      "startStudioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=agentic"
+    },
+    "stoppedAt": "2026-07-21T03:52:29.444Z",
+    "paused": false
+  }
+}

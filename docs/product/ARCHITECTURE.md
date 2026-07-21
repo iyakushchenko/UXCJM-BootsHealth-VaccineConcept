@@ -36,7 +36,8 @@ Folders mimic **Studio verbs** people use — not a proto nickname.
 | `src/projects/<id>/` | Concept packages (screens, wire, DOM, theme) |
 | `src/uxds/` | Design system tokens + kits + interactions |
 | `src/styles/globals-*.css` | LEGACY Make dumps — **no new React page CSS** |
-| `data/journeys/` | Exported journey bundles |
+| `src/projects/<project>/personas/<persona>/cjm/` | Authoritative deployed CJMs: built-ins plus promoted recording files |
+| `data/journeys/` | Portable journey exports/interchange; not runtime ownership |
 | `docs/product/` | Engine doctrine |
 | `docs/projects/<id>/` | Per-concept briefs + FE audits |
 

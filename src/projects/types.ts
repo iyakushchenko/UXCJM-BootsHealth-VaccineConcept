@@ -18,6 +18,7 @@ import type {
   ChosenBookingSlot,
 } from "@/projects/boots-pharmacy/overlays/AvailabilityTool";
 import type { ScenarioScreenConfig } from "@/app/scenario/scenarioEngine";
+import type { RecordingSession } from "@/app/recording/recordingTypes";
 import type { PlaybackScriptResult } from "@/projects/playbackScriptResult";
 import type { PlaybackScriptOptions } from "@/projects/playbackScriptOptions";
 
@@ -49,6 +50,8 @@ export type PersonaDefinition = {
   /** Concise browser-title identity; full label remains dropdown/a11y truth. */
   shortLabel?: string;
   journeys: JourneyDefinition[];
+  /** Raw REC evidence bundled with promoted file-backed CJMs, keyed by journey id. */
+  journeyRecordings?: Readonly<Record<string, RecordingSession>>;
   journeyHooks?: JourneyPlaybackHooks;
 };
 

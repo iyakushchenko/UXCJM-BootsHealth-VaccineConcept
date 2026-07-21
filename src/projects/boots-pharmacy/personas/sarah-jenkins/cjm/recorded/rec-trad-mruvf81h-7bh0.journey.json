@@ -1,0 +1,1675 @@
+{
+  "version": 1,
+  "exportedAt": "2026-07-21T19:49:05.727Z",
+  "projectId": "boots-pharmacy",
+  "personaId": "sarah-jenkins",
+  "journey": {
+    "id": "rec-trad-mruvf81h-7bh0",
+    "label": "Sarah · Reserve vaccination appointment · Guest→Signed in",
+    "beats": [
+      {
+        "id": "plp",
+        "label": "Vaccinations",
+        "kind": "tab-landing",
+        "protoTab": 3
+      },
+      {
+        "id": "scroll-stop-camera",
+        "label": "Camera — Tile Title",
+        "kind": "camera",
+        "protoTab": 3,
+        "camera": {
+          "dwellMs": 2007,
+          "selectorChain": [
+            "[data-name=\"boots-pharmacy.service.tile\"]",
+            "[data-name=\"component.plp.tile.title\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.plp.tile.title\"]"
+        }
+      },
+      {
+        "id": "plp-book-now-camera",
+        "label": "Camera — Book Now",
+        "kind": "camera",
+        "protoTab": 3,
+        "camera": {
+          "dwellMs": 2006,
+          "selectorChain": [
+            "[data-name=\"boots-pharmacy.service.tile\"]",
+            "[data-name=\"component.plp.tile.title\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.plp.tile.title\"]"
+        }
+      },
+      {
+        "id": "plp-book-now",
+        "label": "Book Now",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"plp-book-now\"]"
+          ],
+          "element": "Book Now"
+        },
+        "protoTab": 3,
+        "dwellMs": 4000
+      },
+      {
+        "id": "scroll-stop-camera-2",
+        "label": "Camera — Pdp Rtb",
+        "kind": "camera",
+        "protoTab": 4,
+        "camera": {
+          "dwellMs": 2425,
+          "selectorChain": [
+            "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+            "[data-name=\"component.pdp.rtb\"]",
+            "[data-name=\"units\"]",
+            "[data-name=\"component.input.checkbox\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.pdp.rtb\"]"
+        }
+      },
+      {
+        "id": "scroll-stop-camera-3",
+        "label": "Camera — Bts Phrm Product Deal Details Page",
+        "kind": "camera",
+        "protoTab": 4,
+        "camera": {
+          "dwellMs": 2002,
+          "selectorChain": [
+            "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]"
+          ],
+          "anchorSelector": "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]"
+        }
+      },
+      {
+        "id": "pdp",
+        "label": "Vaccine details",
+        "kind": "tab-landing",
+        "protoTab": 4
+      },
+      {
+        "id": "pdp-book-now-camera",
+        "label": "Camera — Book Now",
+        "kind": "camera",
+        "protoTab": 4,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+            "[data-name=\"component.pdp.rtb\"]",
+            "[data-name=\"units\"]"
+          ],
+          "anchorSelector": "[data-name=\"component.pdp.rtb\"]"
+        }
+      },
+      {
+        "id": "pdp-book-now",
+        "label": "Book Now",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"pdp-book-now\"]"
+          ],
+          "element": "Book Now"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "login-sign-in",
+        "label": "Login Sign In",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"login-sign-in\"]"
+          ],
+          "element": "Login Sign In",
+          "modalId": "login"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "pdp-book-now-2",
+        "label": "Book Now",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"pdp-book-now\"]"
+          ],
+          "element": "Book Now"
+        },
+        "protoTab": 4,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-1",
+        "label": "Book — location",
+        "kind": "tab-landing",
+        "protoTab": 5
+      },
+      {
+        "id": "book-step-1-continue-camera",
+        "label": "Camera — Step 1 Continue",
+        "kind": "camera",
+        "protoTab": 5,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-studio-action=\"avail-near-me\"]"
+          ],
+          "anchorSelector": "[data-studio-action=\"avail-near-me\"]"
+        }
+      },
+      {
+        "id": "book-step-1-continue",
+        "label": "Step 1 Continue",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"book-step-1-continue\"]"
+          ],
+          "element": "Step 1 Continue"
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "avail-choose-location",
+        "label": "Choose Location",
+        "kind": "overlay",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"avail-choose-location\"]"
+          ],
+          "element": "Choose Location",
+          "modalId": "choose-pharmacy"
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "book-step-1-continue-camera-2",
+        "label": "Camera — Step 1 Continue",
+        "kind": "camera",
+        "protoTab": 5,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-name=\"Step 4\"]",
+            "[data-name=\"chosen location\"]",
+            "[data-name=\"boots-pharmacy.store\"]"
+          ],
+          "anchorSelector": "[data-name=\"Step 4\"]"
+        }
+      },
+      {
+        "id": "book-step-1-continue-2",
+        "label": "Step 1 Continue",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"book-step-1-continue\"]"
+          ],
+          "element": "Step 1 Continue"
+        },
+        "protoTab": 5,
+        "dwellMs": 4000
+      },
+      {
+        "id": "scroll-stop-camera-4",
+        "label": "Camera — Step 5",
+        "kind": "camera",
+        "protoTab": 6,
+        "camera": {
+          "dwellMs": 2631,
+          "selectorChain": [
+            "[data-name=\"Step 5\"]",
+            "[data-name=\"component.appointment.summary\"]"
+          ],
+          "anchorSelector": "[data-name=\"Step 5\"]"
+        }
+      },
+      {
+        "id": "book-step-2",
+        "label": "Book — date & time",
+        "kind": "tab-landing",
+        "protoTab": 6
+      },
+      {
+        "id": "book-step-2-reserve-camera",
+        "label": "Camera — Step 2 Reserve",
+        "kind": "camera",
+        "protoTab": 6,
+        "camera": {
+          "dwellMs": 1200,
+          "selectorChain": [
+            "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+          ],
+          "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+        }
+      },
+      {
+        "id": "book-step-2-reserve",
+        "label": "Step 2 Reserve",
+        "kind": "tab-landing",
+        "recordedClick": {
+          "selectorChain": [
+            "[data-studio-action=\"book-step-2-reserve\"]"
+          ],
+          "element": "Step 2 Reserve"
+        },
+        "protoTab": 6,
+        "dwellMs": 4000
+      }
+    ]
+  },
+  "recording": {
+    "id": "9db9bad9-11b3-45c6-af30-f009bd406593",
+    "version": 1,
+    "startedAt": "2026-07-21T16:30:38.681Z",
+    "projectId": "boots-pharmacy",
+    "personaId": "sarah-jenkins",
+    "journeyId": "traditional-cjm",
+    "orchestraMode": "traditional-cjm",
+    "journeyCatalog": [
+      {
+        "id": "agentic-cjm",
+        "label": "Agentic CJM",
+        "beatCount": 14,
+        "beatIds": [
+          "agentic-home",
+          "agentic-chat",
+          "avail-location",
+          "avail-continue",
+          "avail-time",
+          "avail-book",
+          "book-step2",
+          "book-step2-date",
+          "book-step2-time",
+          "book-step2-reserve",
+          "book-step3-camera",
+          "confirmation",
+          "appointment-history",
+          "appointment-details"
+        ]
+      },
+      {
+        "id": "traditional-cjm",
+        "label": "Traditional CJM",
+        "beatCount": 12,
+        "beatIds": [
+          "traditional-plp",
+          "traditional-pdp",
+          "traditional-login",
+          "choose-location",
+          "book-step2",
+          "book-step2-date",
+          "book-step2-time",
+          "book-step2-reserve",
+          "book-step3-camera",
+          "confirmation",
+          "appointment-history",
+          "appointment-details"
+        ]
+      },
+      {
+        "id": "rec-trad-mruuwtqo-l27x",
+        "label": "Sarah · Browse vaccines to booking · Guest",
+        "beatCount": 5,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2"
+        ]
+      },
+      {
+        "id": "rec-trad-mruuynro-z5zh",
+        "label": "Sarah · Product details to sign-in · Guest",
+        "beatCount": 10,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in"
+        ]
+      },
+      {
+        "id": "rec-trad-mruv143o-0s2s",
+        "label": "Sarah · Choose pharmacy · Guest",
+        "beatCount": 15,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in",
+          "pdp-book-now-2",
+          "book-step-1",
+          "book-step-1-continue-camera",
+          "book-step-1-continue",
+          "avail-choose-location"
+        ]
+      },
+      {
+        "id": "rec-trad-mruv3902-qm13",
+        "label": "Sarah · Select appointment schedule · Guest",
+        "beatCount": 18,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in",
+          "pdp-book-now-2",
+          "book-step-1",
+          "book-step-1-continue-camera",
+          "book-step-1-continue",
+          "avail-choose-location",
+          "book-step-1-continue-camera-2",
+          "book-step-1-continue-2",
+          "scroll-stop-camera-4"
+        ]
+      },
+      {
+        "id": "rec-trad-mruv5uu0-7r3u",
+        "label": "Sarah · Reserve vaccination appointment · Guest",
+        "beatCount": 21,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in",
+          "pdp-book-now-2",
+          "book-step-1",
+          "book-step-1-continue-camera",
+          "book-step-1-continue",
+          "avail-choose-location",
+          "book-step-1-continue-camera-2",
+          "book-step-1-continue-2",
+          "scroll-stop-camera-4",
+          "book-step-2",
+          "book-step-2-reserve-camera",
+          "book-step-2-reserve"
+        ]
+      },
+      {
+        "id": "rec-trad-mruv7ic8-u3rn",
+        "label": "Sarah · Browse vaccines to booking · Signed in",
+        "beatCount": 5,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2"
+        ]
+      },
+      {
+        "id": "rec-trad-mruv8prq-zqri",
+        "label": "Sarah · Product details to booking · Signed in",
+        "beatCount": 10,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in"
+        ]
+      },
+      {
+        "id": "rec-trad-mruval6f-43ky",
+        "label": "Sarah · Choose pharmacy · Signed in",
+        "beatCount": 15,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in",
+          "pdp-book-now-2",
+          "book-step-1",
+          "book-step-1-continue-camera",
+          "book-step-1-continue",
+          "avail-choose-location"
+        ]
+      },
+      {
+        "id": "rec-trad-mruvcsxm-u3nn",
+        "label": "Sarah · Select appointment schedule · Signed in",
+        "beatCount": 18,
+        "beatIds": [
+          "plp",
+          "scroll-stop-camera",
+          "plp-book-now-camera",
+          "plp-book-now",
+          "scroll-stop-camera-2",
+          "scroll-stop-camera-3",
+          "pdp",
+          "pdp-book-now-camera",
+          "pdp-book-now",
+          "login-sign-in",
+          "pdp-book-now-2",
+          "book-step-1",
+          "book-step-1-continue-camera",
+          "book-step-1-continue",
+          "avail-choose-location",
+          "book-step-1-continue-camera-2",
+          "book-step-1-continue-2",
+          "scroll-stop-camera-4"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "kind": "screen",
+        "screenId": "plp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+        "atMs": 3390.60000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 13"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 3532.7000000029802,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 1"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2007,
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 6523.70000000298,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 1"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.input.button\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 7048.80000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 2"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 8156.60000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 2"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2006,
+        "selectorChain": [
+          "[data-name=\"body\"]",
+          "[data-name=\"module.laptop.specs\"]",
+          "[data-name=\"module.plp.listing\"]",
+          "[data-name=\"module.plp.tiles\"]",
+          "[data-name=\"boots-pharmacy.service.tile\"]",
+          "[data-name=\"component.plp.tile.title\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.plp.tiles\"]",
+        "atMs": 10037.30000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 2"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Book Now",
+        "selectorChain": [
+          "[data-studio-action=\"plp-book-now\"]"
+        ],
+        "atMs": 13277.80000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 3,
+          "currentTabIndex": 2,
+          "childIndex": 9,
+          "screenId": "plp",
+          "studioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 3"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "pdp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 13449.40000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 4"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2425,
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"module.pdp.rtb\"]",
+          "[data-name=\"component.pdp.rtb\"]",
+          "[data-name=\"units\"]",
+          "[data-name=\"component.input.checkbox\"]"
+        ],
+        "anchorSelector": "[data-name=\"component.pdp.rtb\"]",
+        "atMs": 14010.90000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 4"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"module.pdp.rtb\"]",
+          "[data-name=\"component.gse.system.message\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp.rtb\"]",
+        "atMs": 17538.70000000298,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"body\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp\"]",
+        "atMs": 18643.10000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2002,
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"body\"]"
+        ],
+        "anchorSelector": "[data-name=\"module.pdp\"]",
+        "atMs": 20519.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 5"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"BTS-PHRM.Product - Deal Details Page\"]",
+          "[data-name=\"module.pdp\"]",
+          "[data-name=\"module.pdp.rtb\"]",
+          "[data-name=\"component.pdp.rtb\"]",
+          "[data-name=\"units\"]"
+        ],
+        "anchorSelector": "[data-name=\"component.pdp.rtb\"]",
+        "atMs": 22580.70000000298,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 6"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Book Now",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-book-now\"]"
+        ],
+        "atMs": 23083.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 6"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "pdp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&cjm=off&experience=traditional&modal=login",
+        "atMs": 23130.20000000298,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional&modal=login",
+          "touchpointKey": "popup:login",
+          "touchpointLabel": "Log in or register",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": true,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 7"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Login Sign In",
+        "selectorChain": [
+          "[data-studio-action=\"login-sign-in\"]"
+        ],
+        "atMs": 27382.10000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional&modal=login",
+          "touchpointKey": "popup:login",
+          "touchpointLabel": "Log in or register",
+          "scenarioProgress": "0/13",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": true,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 7"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "pdp",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 27434.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 8"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Book Now",
+        "selectorChain": [
+          "[data-studio-action=\"pdp-book-now\"]"
+        ],
+        "atMs": 32485.90000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 4,
+          "currentTabIndex": 3,
+          "childIndex": 8,
+          "screenId": "pdp",
+          "studioUrl": "?project=boots-pharmacy&screen=pdp&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 8"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 32657.90000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-studio-action=\"avail-near-me\"]"
+        ],
+        "anchorSelector": "[data-studio-action=\"avail-near-me\"]",
+        "atMs": 38275,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Step 1 Continue",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-1-continue\"]"
+        ],
+        "atMs": 38769.80000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 9"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=traditional&modal=choose-pharmacy",
+        "atMs": 38822.40000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional&modal=choose-pharmacy",
+          "touchpointKey": "popup:availability:list",
+          "touchpointLabel": "Choose pharmacy",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": true,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 10"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Choose Location",
+        "selectorChain": [
+          "[data-studio-action=\"avail-choose-location\"]"
+        ],
+        "atMs": 43236.90000000596,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional&modal=choose-pharmacy",
+          "touchpointKey": "popup:availability:list",
+          "touchpointLabel": "Choose pharmacy",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": true,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 10"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-1",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 43295.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": "list",
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"Step 4\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"chosen location\"]",
+          "[data-name=\"boots-pharmacy.store\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 4\"]",
+        "atMs": 49214.30000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Step 1 Continue",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-1-continue\"]"
+        ],
+        "atMs": 50250.30000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 5,
+          "currentTabIndex": 4,
+          "childIndex": 7,
+          "screenId": "book-step-1",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-1&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 11"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-2",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 50418.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 12"
+        }
+      },
+      {
+        "kind": "scroll-stop",
+        "durationMs": 2631,
+        "selectorChain": [
+          "[data-name=\"Step 5\"]",
+          "[data-name=\"body\"]",
+          "[data-name=\"component.appointment.summary\"]"
+        ],
+        "anchorSelector": "[data-name=\"Step 5\"]",
+        "atMs": 51093.5,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 12"
+        }
+      },
+      {
+        "kind": "scroll",
+        "selectorChain": [
+          "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]"
+        ],
+        "anchorSelector": "[data-name=\"calendar. date. cell\"][data-studio-cal-kind=\"time\"][data-studio-cal-value=\"12:15\"]",
+        "atMs": 56055.10000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 13"
+        }
+      },
+      {
+        "kind": "demo-click",
+        "element": "Step 2 Reserve",
+        "selectorChain": [
+          "[data-studio-action=\"book-step-2-reserve\"]"
+        ],
+        "atMs": 57143.80000000447,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 6,
+          "currentTabIndex": 5,
+          "childIndex": 4,
+          "screenId": "book-step-2",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-2&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:traditional-plp",
+          "touchpointLabel": "Vaccination listing",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 13"
+        }
+      },
+      {
+        "kind": "screen",
+        "screenId": "book-step-3",
+        "projectId": "boots-pharmacy",
+        "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&cjm=off&experience=traditional",
+        "atMs": 57315.60000000149,
+        "snapshot": {
+          "projectId": "boots-pharmacy",
+          "personaId": "sarah-jenkins",
+          "orchestraModeId": "traditional-cjm",
+          "journeyId": "traditional-cjm",
+          "beatIndex": 0,
+          "beatCount": 12,
+          "beatId": "traditional-plp",
+          "beatLabel": "Vaccination listing",
+          "protoTab": 7,
+          "currentTabIndex": 6,
+          "childIndex": 3,
+          "screenId": "book-step-3",
+          "studioUrl": "?project=boots-pharmacy&screen=book-step-3&persona=sarah-jenkins&experience=traditional",
+          "touchpointKey": "beat:confirmation",
+          "touchpointLabel": "Book — confirmed",
+          "scenarioProgress": "0/12",
+          "hubOpen": false,
+          "availabilityOpen": false,
+          "availStep": null,
+          "loginPopupOpen": false,
+          "vaccinePickerOpen": false,
+          "recipientPickerOpen": false,
+          "quickViewOpen": false,
+          "journeyMode": false,
+          "orchestraMode": "traditional-cjm",
+          "counter": "STEPS: 14"
+        }
+      }
+    ],
+    "metadata": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "recordedFrom": "ui",
+      "author": "agent",
+      "authStates": [
+        "guest",
+        "user"
+      ],
+      "studioVersion": "0.0.104",
+      "recordingContractVersion": 1,
+      "startScreenId": "plp",
+      "startStudioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional"
+    },
+    "stoppedAt": "2026-07-21T16:31:36.552Z",
+    "paused": false
+  }
+}

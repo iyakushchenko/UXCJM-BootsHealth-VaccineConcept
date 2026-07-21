@@ -5,6 +5,13 @@
 
 CJM is **not** an imperative director novel. It is a **tab script**: targets from the page fidelity pool + timing.
 
+## Project ownership and deployment
+
+- Every deployed CJM lives with its owner at `src/projects/<project-id>/personas/<persona-id>/cjm/`.
+- Built-in scripts and promoted `.journey.json` recordings share that one persona catalog. The project registry loads this catalog; `data/journeys/` is export/interchange, not runtime ownership.
+- Browser recordings remain origin-local drafts until promoted into the persona `cjm/` directory. Static GitHub Pages cannot write recordings back to the repository.
+- File-backed CJMs are deployed product data. Their IDs must be unique within the persona and their project/persona envelope must match the directory that owns them.
+
 | Mode | Rule |
 |------|------|
 | **Record** | PO clicks the product page. Capture **stable targets** (`data-studio-action`, `data-studio-cal-*`, avail attrs, …) + `atMs` / dwell. REC only captures what page fidelity allows. |
@@ -56,7 +63,7 @@ Same cursor for agentic / traditional / REC / chat — see [PLAYBACK.md](./PLAYB
 ## Exceptions (deeper, keep thin)
 
 - **Prebuilt chat / persona docks** — progressive frames, type-in, thinking camera. Prefer rails docs over inventing a second Play path. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)
-- **Prebuilt `bookScript` / `availScript` / `tabScript` directors** — still used by persona `journeys.ts`. Prefer **target resolution** (which cell + skip if already selected) over one-off force-click policies. Story-edits of **recorded** CJMs stay on `recordedClick` + dwell; do not require director surgery.
+- **Prebuilt `bookScript` / `availScript` / `tabScript` directors** — still used by the persona `cjm/` catalog. Prefer **target resolution** (which cell + skip if already selected) over one-off force-click policies. Story-edits of **recorded** CJMs stay on `recordedClick` + dwell; do not require director surgery.
 
 ## Book Step 2 bridge (compatibility)
 
