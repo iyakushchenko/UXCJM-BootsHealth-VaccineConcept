@@ -13,12 +13,15 @@ export const QA_DIAG_RING_MAX = 300;
 
 export type QaDiagRingEvent = {
   kind: string;
+  outcome?: "ok" | "soft-fail" | "fail" | "pass";
   text?: string;
   atMs: number;
   atIso?: string;
   beatId?: string | null;
   screenId?: string | null;
   detail?: string;
+  /** Full structured action/message retained independently of the visible label. */
+  action?: string;
   /** Overlay log row echo */
   label?: string;
 };
@@ -33,6 +36,8 @@ type GatePersist = {
   sessionKind?: QaDiagGateSessionKind;
   /** Agent was awaiting PO reply (PENDING) when refreshed. */
   awaitingReply?: boolean;
+  capturePaused?: boolean;
+  finaleSealed?: boolean;
   /** Elapsed clock across refresh while session still active. */
   elapsedAccumMs?: number;
   sessionStartedAt?: number;
@@ -45,6 +50,8 @@ type GateMemory = {
   ring: QaDiagRingEvent[];
   sessionKind: QaDiagGateSessionKind | null;
   awaitingReply: boolean;
+  capturePaused: boolean;
+  finaleSealed: boolean;
   elapsedAccumMs: number;
   sessionStartedAt: number;
 };
@@ -66,6 +73,8 @@ function memory(): GateMemory {
         ring: [],
         sessionKind: null,
         awaitingReply: false,
+        capturePaused: false,
+        finaleSealed: false,
         elapsedAccumMs: 0,
         sessionStartedAt: 0,
       };
@@ -80,6 +89,8 @@ function memory(): GateMemory {
       ring: [],
       sessionKind: null,
       awaitingReply: false,
+      capturePaused: false,
+      finaleSealed: false,
       elapsedAccumMs: 0,
       sessionStartedAt: 0,
     };
@@ -113,6 +124,8 @@ function writePersist(): void {
       logger: m.logger,
       sessionKind: m.sessionKind ?? undefined,
       awaitingReply: m.awaitingReply || undefined,
+      capturePaused: m.capturePaused || undefined,
+      finaleSealed: m.finaleSealed || undefined,
       elapsedAccumMs: m.elapsedAccumMs || undefined,
       sessionStartedAt: m.sessionStartedAt || undefined,
       updatedAt: Date.now(),
@@ -174,6 +187,8 @@ export function hydrateQaDiagGate(): {
   logger: boolean;
   sessionKind: QaDiagGateSessionKind | null;
   awaitingReply: boolean;
+  capturePaused: boolean;
+  finaleSealed: boolean;
   elapsedAccumMs: number;
   sessionStartedAt: number;
   ring: QaDiagRingEvent[];
@@ -185,6 +200,8 @@ export function hydrateQaDiagGate(): {
   m.logger = persist?.logger === true && m.open;
   m.sessionKind = m.open ? parseSessionKind(persist?.sessionKind) : null;
   m.awaitingReply = m.open && persist?.awaitingReply === true;
+  m.capturePaused = m.open && persist?.capturePaused === true;
+  m.finaleSealed = m.open && persist?.finaleSealed === true;
   m.elapsedAccumMs =
     m.open && typeof persist?.elapsedAccumMs === "number"
       ? Math.max(0, persist.elapsedAccumMs)
@@ -202,6 +219,8 @@ export function hydrateQaDiagGate(): {
     logger: m.logger,
     sessionKind: m.sessionKind,
     awaitingReply: m.awaitingReply,
+    capturePaused: m.capturePaused,
+    finaleSealed: m.finaleSealed,
     elapsedAccumMs: m.elapsedAccumMs,
     sessionStartedAt: m.sessionStartedAt,
     ring: [...m.ring],
@@ -212,6 +231,8 @@ export function hydrateQaDiagGate(): {
 export function setQaDiagSessionMeta(meta: {
   sessionKind?: QaDiagGateSessionKind | null;
   awaitingReply?: boolean;
+  capturePaused?: boolean;
+  finaleSealed?: boolean;
   elapsedAccumMs?: number;
   sessionStartedAt?: number;
 }): void {
@@ -222,6 +243,8 @@ export function setQaDiagSessionMeta(meta: {
   if (typeof meta.awaitingReply === "boolean") {
     m.awaitingReply = meta.awaitingReply;
   }
+  if (typeof meta.capturePaused === "boolean") m.capturePaused = meta.capturePaused;
+  if (typeof meta.finaleSealed === "boolean") m.finaleSealed = meta.finaleSealed;
   if (typeof meta.elapsedAccumMs === "number") {
     m.elapsedAccumMs = Math.max(0, meta.elapsedAccumMs);
   }
@@ -276,6 +299,8 @@ export function closeQaDiagGate(options?: { reason?: string }): void {
   m.logger = false;
   m.sessionKind = null;
   m.awaitingReply = false;
+  m.capturePaused = false;
+  m.finaleSealed = false;
   writePersist();
   notify();
 }
@@ -328,6 +353,8 @@ export function resetQaDiagGateForTests(): void {
   m.logger = false;
   m.sessionKind = null;
   m.awaitingReply = false;
+  m.capturePaused = false;
+  m.finaleSealed = false;
   m.ring = [];
   listeners.clear();
   try {

@@ -772,6 +772,7 @@ export function PlpScreen({
                   compact
                   className="plp__reset"
                   data-name="component.plp.reset-filters"
+                  data-studio-plp-reset-filters="true"
                   aria-label="Reset filters"
                   icon={<TrashGlyph />}
                   onClick={() => setFilters(DEFAULT_PLP_FILTERS)}

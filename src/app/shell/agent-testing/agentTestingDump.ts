@@ -18,11 +18,13 @@ import { peekPlaybackDiagnostic } from "@/app/shell/playbackDiagQaBridge";
 import { readAgentTestingSitrep } from "@/app/shell/agent-testing/agentTestingSitrep";
 import { getQaDiagRing } from "@/app/shell/qaDiagGate";
 import { buildQaPriorityHints } from "@/app/shell/agent-testing/agentTestingListen";
+import { humanizeQaLogLabel } from "@/app/shell/agent-testing/agentTestingFormat";
 
 export const AGENT_TESTING_DUMP_KEY = "studioAgentTestingDumps";
-export const AGENT_TESTING_DUMP_MAX = 5;
+export const AGENT_TESTING_DUMP_MAX = 20;
 /** Last-N PLAYBACK_DIAG events embedded in dump / alarm payload. */
 export const AGENT_TESTING_DUMP_DIAG_EVENTS = 40;
+const QA_GREEN_BASELINE_KEY = "studioQaGreenBaselineV1";
 const CONTROL_PANEL_CAP = 30;
 const RING_CAP = 80;
 const LABEL_CAP = 160;
@@ -113,6 +115,9 @@ export type AgentTestingDump = {
     outcome: string;
     count?: number;
     durationMs?: number;
+    durationKind?: "operation" | "since-previous";
+    /** Human-facing presentation; label remains the separate, safety-clipped raw evidence. */
+    displayLabel?: string;
     beatId?: string;
     action?: string;
     selector?: string;
@@ -337,6 +342,8 @@ export function buildAgentTestingDump(options: {
         atIso: e.atIso,
         beatId: e.beatId,
         screenId: e.screenId,
+        action: e.action,
+        detail: e.detail,
       }));
   } catch {
     ring = undefined;
@@ -393,6 +400,8 @@ export function buildAgentTestingDump(options: {
       outcome: e.outcome,
       count: e.count,
       durationMs: e.durationMs,
+      durationKind: e.durationKind,
+      displayLabel: humanizeQaLogLabel(e.label),
       beatId: e.beatId,
       action: e.action,
       selector: e.selector ? clip(e.selector, 120) : undefined,
@@ -448,6 +457,124 @@ export function downloadAgentTestingDump(dump?: AgentTestingDump): boolean {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function buildAgentTestingEvidencePack(dumps = readAgentTestingDumps()) {
+  const sessions = dumps.map((dump) => {
+    const qaDiagRows = dump.log.filter((row) => row.kind === "playback-diag").length;
+    const ringDiagRows = dump.ring.filter((row) => row.kind === "playback-diag").length;
+    const rawDiagRows = dump.recentPlaybackDiagEvents?.length ?? 0;
+    const issues: string[] = [];
+    if (rawDiagRows > 0 && qaDiagRows === 0 && ringDiagRows === 0) {
+      issues.push("Raw playback diagnostics exist but no human QA diagnostic row was preserved.");
+    }
+    if (dump.reason === "fail" && !dump.code && !(dump.priorityHints?.length)) {
+      issues.push("Failed session has no machine code or cause-first priority hint.");
+    }
+    return {
+      atIso: dump.atIso,
+      title: dump.title,
+      reason: dump.reason,
+      code: dump.code ?? null,
+      verdict: issues.length ? "review" : "pass",
+      counts: { qaRows: dump.log.length, qaDiagRows, ringDiagRows, rawDiagRows },
+      issues,
+      priorityHints: dump.priorityHints ?? [],
+      dump,
+    };
+  });
+  const clusterMap = new Map<string, { code: string; count: number; sessions: string[]; cue: string }>();
+  for (const session of sessions) {
+    const dump = session.dump;
+    const failRow = dump.log.find((row) => row.outcome === "fail" || row.outcome === "soft-fail");
+    const code = dump.code || failRow?.kind || (session.verdict === "review" ? "EVIDENCE_PARITY_REVIEW" : "PASS");
+    if (code === "PASS") continue;
+    const cue = dump.priorityHints?.[0] || failRow?.displayLabel || session.issues[0] || "Inspect structured diagnostic.";
+    const cluster = clusterMap.get(code) ?? { code, count: 0, sessions: [], cue };
+    cluster.count += 1;
+    cluster.sessions.push(dump.title);
+    clusterMap.set(code, cluster);
+  }
+  const clusters = [...clusterMap.values()].sort((a, b) => b.count - a.count);
+  const verdict = sessions.some((session) => session.verdict === "review") ? "review" : "pass";
+  const currentSignature = clusters.map((cluster) => cluster.code).sort();
+  let previousSignature: string[] = [];
+  let previousAverageElapsedMs: number | null = null;
+  try {
+    const baseline = JSON.parse(localStorage.getItem(QA_GREEN_BASELINE_KEY) || "null");
+    previousSignature = baseline?.signature ?? [];
+    previousAverageElapsedMs = typeof baseline?.averageElapsedMs === "number" ? baseline.averageElapsedMs : null;
+  } catch { /* unavailable baseline */ }
+  const averageElapsedMs = sessions.length
+    ? Math.round(sessions.reduce((sum, session) => sum + session.dump.elapsedMs, 0) / sessions.length)
+    : 0;
+  const comparison = {
+    newIssues: currentSignature.filter((code) => !previousSignature.includes(code)),
+    resolvedIssues: previousSignature.filter((code) => !currentSignature.includes(code)),
+    unchangedIssues: currentSignature.filter((code) => previousSignature.includes(code)),
+    averageElapsedMs,
+    previousAverageElapsedMs,
+    timingRegression:
+      previousAverageElapsedMs != null && averageElapsedMs > previousAverageElapsedMs * 1.2,
+  };
+  const lead = clusters[0];
+  const agentBrief = {
+    verdict,
+    rootCause: lead?.code ?? null,
+    affectedSessions: lead?.sessions ?? [],
+    cue: lead?.cue ?? "No actionable failure cluster detected.",
+    newIssues: comparison.newIssues,
+    nextCommand: lead
+      ? "Inspect sessions[0].dump.priorityHints and lastPlaybackDiagnostic; re-run only the affected route."
+      : "No fix required; retain as the next green baseline.",
+  };
+  return {
+    kind: "studio-qa-evidence-pack",
+    generatedAt: new Date().toISOString(),
+    verdict,
+    sessionCount: sessions.length,
+    agentBrief,
+    clusters,
+    comparison,
+    sessions,
+  };
+}
+
+export function persistQaGreenBaseline(pack = buildAgentTestingEvidencePack()): boolean {
+  if (pack.verdict !== "pass") return false;
+  try {
+    localStorage.setItem(QA_GREEN_BASELINE_KEY, JSON.stringify({
+      atIso: pack.generatedAt,
+      signature: pack.clusters.map((cluster) => cluster.code).sort(),
+      sessionCount: pack.sessionCount,
+      averageElapsedMs: pack.comparison.averageElapsedMs,
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function downloadAgentTestingEvidencePack(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const pack = buildAgentTestingEvidencePack();
+    persistQaGreenBaseline(pack);
+    const blob = new Blob([JSON.stringify(pack)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `qa-evidence-pack-${pack.generatedAt.replace(/[:.]/g, "-")}.json`;
+    anchor.rel = "noopener";
+    anchor.setAttribute("data-studio-agent-testing-ignore", "true");
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     return true;
   } catch {

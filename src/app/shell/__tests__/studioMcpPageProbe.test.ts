@@ -14,7 +14,7 @@ vi.mock("@/app/scenario/demoCursor", () => ({
     simulateDemoPointerHover(...args),
 }));
 
-vi.mock("@/app/shell/agent-testing", () => ({
+vi.mock("@/app/shell/agent-testing/agentTestingOverlay", () => ({
   DEFAULT_PREARM_MS: 0,
   DEFAULT_SETTLE_MS: 9000,
   startAgentTestingOverlay: vi.fn(),

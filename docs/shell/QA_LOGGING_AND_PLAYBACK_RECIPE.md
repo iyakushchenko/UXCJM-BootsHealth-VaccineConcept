@@ -6,6 +6,17 @@
 
 **Purpose:** Stop agents from “fixing” QA/perf by killing product type-in — or flooding the QA overlay with one log line / sample per typed character. Also capture Play≡Step + known hang/camera rails.
 
+## Human log vs technical evidence
+
+- **Engine rule:** formatters contain no project, screen, journey, or English CTA dictionaries. They title-case arbitrary IDs and use neutral `Activated` unless semantic DOM/recording metadata proves a stronger verb.
+- Projects/recordings own nouns and accessible labels; the Guitar-Tab engine owns generic verbs, ordering, counters, outcomes, and evidence.
+- The visible log is product-first: human action/screen names, failures, and one sealed completion result.
+- Healthy cursor state changes, camera traces, bubble settle frames, and reset plumbing remain in the downloaded JSON rather than the primary chronology.
+- Raw `label`, selector, action, beat, and touchpoint fields remain separate from `displayLabel`; long strings keep the dump's documented safety clipping.
+- Inferred time between rows is stored as `durationKind: "since-previous"` and is not presented as action duration.
+- A full Play prove must seal `RESULT · PASS — Completed N/N · returned to journey start`; the current post-reset `1/N` state must not replace that result.
+- Type-in start/end/skip totals are durable across the capped diagnostic event ring.
+
 ---
 
 ## Play ≡ Step (non-negotiable)
@@ -100,6 +111,7 @@ After fix: full Play **PASS 22/22**. Do not invent green past real timeouts.
 8. **Leave / return (HARD):** when the agent disconnects to Cursor chat / elsewhere, **pause** the QA session; on return **resume** and **read Message latch** before continuing. See § Agent leave / return below.  
 9. **Dump-on-FAIL habit:** on Alarm / hard FAIL / chop / script-timeout — **Save Log** immediately (Keep open → Complete still allows Save Log). Do not invent green from memory.  
 10. **Friendly diag in chat:** mirrored playback-diag rows use human labels in the main QA sequence (not a cryptic side pane).
+11. **Completed-session autosave:** every completed QA session enters the capped twenty-session evidence history. Manual **Save Log** remains the explicit single-session JSON download; `__studioDownloadQaEvidencePack()` exports the history plus parity verdict without requiring the agent to re-read raw logs.
 
 ### Playback diag → QA chat (mirrored vs suppressed)
 
@@ -286,6 +298,23 @@ if (back?.messagePendingWork) {
 **Do not:** invent green past unread Messages; treat auto-pause as optional (it is the default guard rail); resume without reading Message latch.
 
 ---
+
+## Autonomous QA suites (1–100 tests)
+
+Submit once; the in-product runner owns sequencing and stops on the first non-pass:
+
+```js
+window.__studioStartQaSuite?.([
+  "mcp-sanity",
+  "qa-self-test",
+  "play-agentic",
+  "play-traditional",
+], { suiteId: "release-core" })
+```
+
+Supported IDs include page probes, interaction maps, current/all-CJM playback, REC and QA self-tests; the product dropdown is the canonical catalog. Read compact state with `__studioGetQaSuiteStatus()`. Failure persists across refresh, latches QA, and stays on the failed test. After a fix, `__studioProceedQaSuite()` reruns that test before continuing. `__studioCancelQaSuite()` explicitly aborts. Never agent-loop individual cases.
+
+Global CJM warning **Run tests** and agent helper `window.__studioRunGlobalCompatibilityTests?.()` both start the canonical fail-fast `all-cjms` suite. The warning dialog supplies the static issue inventory and copy-ready aggregate diagnostic; the QA overlay remains execution evidence.
 
 ## Failure classes (LESSONS)
 

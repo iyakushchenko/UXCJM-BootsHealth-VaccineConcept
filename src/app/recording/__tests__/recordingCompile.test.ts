@@ -338,9 +338,85 @@ describe("compileRecordingToJourney", () => {
     expect(clickBeats[1]?.recordedClick?.selectorChain).toEqual([
       '[data-studio-action="avail-choose-location"]',
     ]);
+    expect(clickBeats[1]?.recordedClick?.modalId).toBe("choose-pharmacy");
     expect(clickBeats.every((b) => (b.dwellMs ?? 0) >= 4000)).toBe(true);
     expect(journey.beats.some((b) => b.id === "chat-2")).toBe(false);
     expect(gaps).toContain("demo-click:unusable-selector");
+  });
+
+  it("inherits any recorded modal URL for inside clicks and clears it on close", () => {
+    const session: RecordingSession = {
+      id: "generic-modal-compile",
+      version: 1,
+      startedAt: "2026-07-21T12:00:00.000Z",
+      projectId: "concept-project",
+      personaId: "persona",
+      events: [
+        {
+          kind: "screen",
+          screenId: "catalog",
+          atMs: 0,
+          studioUrl: "?project=concept-project&screen=catalog",
+        },
+        {
+          kind: "demo-click",
+          element: "Open details",
+          selectorChain: ['[data-studio-action="open-details"]'],
+          atMs: 100,
+        },
+        {
+          kind: "screen",
+          screenId: "catalog",
+          studioUrl: "?project=concept-project&screen=catalog&modal=details",
+          atMs: 200,
+        },
+        {
+          kind: "demo-click",
+          element: "Confirm details",
+          selectorChain: ['[data-studio-action="confirm-details"]'],
+          atMs: 300,
+        },
+        {
+          kind: "screen",
+          screenId: "catalog",
+          studioUrl: "?project=concept-project&screen=catalog",
+          atMs: 400,
+        },
+        {
+          kind: "demo-click",
+          element: "Continue browsing",
+          selectorChain: ['[data-studio-action="continue-browsing"]'],
+          atMs: 500,
+        },
+      ],
+    };
+
+    const { journey } = compileRecordingToJourney(session);
+    const clicks = journey.beats.filter((beat) => beat.recordedClick);
+
+    expect(clicks.map((beat) => beat.recordedClick?.modalId)).toEqual([
+      undefined,
+      "details",
+      undefined,
+    ]);
+  });
+
+  it("refuses to save a human recording when every product click is unplayable", () => {
+    const session: RecordingSession = {
+      id: "unplayable-clicks",
+      version: 1,
+      startedAt: "2026-07-21T12:00:00.000Z",
+      projectId: "concept-project",
+      metadata: { recordedFrom: "ui", startScreenId: "catalog" },
+      events: [
+        { kind: "screen", screenId: "catalog", atMs: 0 },
+        { kind: "demo-click", element: "Open dialog", selectorChain: [], atMs: 100 },
+      ],
+    };
+
+    expect(() => saveRecordingAsJourney(session)).toThrow(
+      "recorded interactions have no stable playback target"
+    );
   });
 
   it("scroll-stop ≥2s compiles to kind:camera beat (dwell + target)", () => {
@@ -578,6 +654,19 @@ describe("compileRecordingToJourney", () => {
     expect(saved.file.recording?.events.length).toBe(session.events.length);
     expect(saved.json).toContain('"kind": "touchpoint"');
     expect(saved.json).toContain('"recording"');
+  });
+
+  it("refuses placeholder titles for agent-created CJMs", () => {
+    const session = sessionWithTouchpoints();
+    session.metadata = { ...session.metadata, author: "agent" };
+    expect(() =>
+      saveRecordingAsJourney(session, { label: "QA Route 7" })
+    ).toThrow(/human journey|forbidden/i);
+    expect(() =>
+      saveRecordingAsJourney(session, {
+        label: "Sarah · Home→Chat vaccination advice",
+      })
+    ).not.toThrow();
   });
 
   it("adds a new CJM id without overwriting built-in slots", () => {

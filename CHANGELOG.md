@@ -2,7 +2,14 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.105 - 210726
 - **docs:** PP-14 reopen handoff + board 0e; docs-links gate + workflow/proof-router catalog
+- **shell:** UXML product cluster, About experience, responsive navigation polish, and global CJM compatibility diagnostics
+- **engine:** Project-owned content manifests, neutral empty-project foundation, and reusable interaction inventory contracts
+- **shell:** Autonomous project-agnostic QA suites with fail-fast handoff, compact evidence, and truthful user-facing logs
+- **shell:** REC/CJM metadata, semantic naming, compatibility preflight, modal-aware compilation, and new-recording playback proves
+- **project:** Boots chat, PLP, scrolling, and journey playback stabilized across agentic and traditional routes
+- **chore:** Form controls now expose stable browser identities, removing Chrome autofill diagnostic noise
 
 ## v0.0.104 - 210726
 - **shell:** Chat bubble appear north star + co-travel scroll re-anchor; self-test 8/8 hard-green (PP-14)

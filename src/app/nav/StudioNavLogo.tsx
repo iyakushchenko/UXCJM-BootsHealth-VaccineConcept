@@ -1,14 +1,15 @@
 type Props = {
   className?: string;
+  size?: number;
 };
 
 /** UX DPT hub mark — from ux-dpt-logo.svg (teal tile + white glyph). */
-export function StudioNavLogo({ className }: Props) {
+export function StudioNavLogo({ className, size = 20 }: Props) {
   return (
     <svg
       className={className ? `studio-nav-logo__svg ${className}` : "studio-nav-logo__svg"}
-      width={20}
-      height={20}
+      width={size}
+      height={size}
       viewBox="0 0 80 80"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

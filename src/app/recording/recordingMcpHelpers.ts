@@ -28,7 +28,7 @@ import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
 import { scrollCameraToTarget } from "@/app/scenario/playbackScroll";
 import {
   logAgentTestingStep,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { resolveUsableDemoClickTarget } from "@/app/recording/recordingCapture";
 import { describeRecordingClickTarget } from "@/app/recording/recordingCapture";
 import {
@@ -36,6 +36,8 @@ import {
   assertRecLive,
 } from "@/app/recording/recArmCapture";
 import { runRecNewCjmProve } from "@/app/recording/recNewCjmProve";
+import { removePersistedRecordedJourney } from "@/app/journey/recordedJourneyPersist";
+import { setStudioLoggedIn } from "@/app/shell/studioAuthSession";
 
 function resolveRecordingSession(
   session?: RecordingSession
@@ -142,6 +144,34 @@ declare global {
     ) => Promise<
       import("@/app/recording/recNewCjmProve").RecNewCjmProveResult
     >;
+    __studioRunTokenLeanRegressionMatrix?: (options?: {
+      keepJourneys?: boolean;
+    }) => Promise<{
+      pass: boolean;
+      created: string[];
+      removed: string[];
+      results: Array<{ label: string; pass: boolean; journeyId: string | null; errors: string[] }>;
+    }>;
+    __studioTokenLeanRegressionStatus?: {
+      phase: "idle" | "running" | "complete" | "failed";
+      completed: number;
+      total: number;
+      current?: string;
+      result?: unknown;
+    };
+    __studioStartTokenLeanRegressionMatrix?: (options?: { keepJourneys?: boolean }) => {
+      started: boolean;
+      reason?: string;
+      total: number;
+    };
+    __studioGetTokenLeanRegressionStatus?: () => {
+      phase: string;
+      completed: number;
+      total: number;
+      current?: string;
+      pass?: boolean;
+      failures?: Array<{ label: string; errors: string[] }>;
+    };
   }
 }
 
@@ -422,6 +452,74 @@ export function registerRecordingMcpHelpers(options?: {
       proveOpts
     );
   window.__protoRunRecNewCjmProve = window.__studioRunRecNewCjmProve;
+  window.__studioRunTokenLeanRegressionMatrix = async (matrixOptions) => {
+    const routes = [
+      ["plp-book", "Browse vaccines to booking"],
+      ["pdp-book", "Product details to booking"],
+      ["book-location", "Choose pharmacy"],
+      ["book-schedule", "Select appointment schedule"],
+      ["book-confirmation", "Reserve vaccination appointment"],
+    ] as const;
+    const results: Array<{ label: string; pass: boolean; journeyId: string | null; errors: string[] }> = [];
+    const created: string[] = [];
+    window.__studioTokenLeanRegressionStatus = { phase: "running", completed: 0, total: 10 };
+    for (const loggedIn of [false, true]) {
+      for (const [captureUntil, path] of routes) {
+        setStudioLoggedIn(loggedIn);
+        const label = `Sarah · ${path} · ${loggedIn ? "Signed in" : "Guest"}`;
+        window.__studioTokenLeanRegressionStatus = { phase: "running", completed: results.length, total: 10, current: label };
+        const result = await runRecNewCjmProve(
+          { ...armHooks(), setOrchestraMode: options?.setOrchestraMode },
+          { experience: "traditional", captureUntil, label, timeoutMs: 180_000 }
+        );
+        if (result.journeyId) created.push(result.journeyId);
+        results.push({ label, pass: result.pass, journeyId: result.journeyId, errors: result.errors });
+        window.__studioTokenLeanRegressionStatus = { phase: result.pass ? "running" : "failed", completed: results.length, total: 10, current: label };
+        if (!result.pass) break;
+      }
+      if (results.some((result) => !result.pass)) break;
+    }
+    const removed: string[] = [];
+    if (!matrixOptions?.keepJourneys) {
+      const start = options?.getDefaultStartOptions?.();
+      if (start?.projectId && start?.personaId) {
+        for (const journeyId of created) {
+          if (removePersistedRecordedJourney(start.projectId, start.personaId, journeyId)) removed.push(journeyId);
+        }
+        options?.onJourneySaved?.();
+      }
+    }
+    const result = { pass: results.length === 10 && results.every((item) => item.pass), created, removed, results };
+    window.__studioAgentTestingOverlay?.pauseForAgentLeave?.();
+    window.__studioTokenLeanRegressionStatus = { phase: result.pass ? "complete" : "failed", completed: results.length, total: 10, result };
+    return result;
+  };
+  window.__studioStartTokenLeanRegressionMatrix = (matrixOptions) => {
+    if (window.__studioTokenLeanRegressionStatus?.phase === "running") {
+      return { started: false, reason: "matrix already running", total: 10 };
+    }
+    void window.__studioRunTokenLeanRegressionMatrix?.(matrixOptions).catch((error) => {
+      window.__studioTokenLeanRegressionStatus = {
+        phase: "failed",
+        completed: window.__studioTokenLeanRegressionStatus?.completed ?? 0,
+        total: 10,
+        result: { pass: false, error: error instanceof Error ? error.message : String(error) },
+      };
+    });
+    return { started: true, total: 10 };
+  };
+  window.__studioGetTokenLeanRegressionStatus = () => {
+    const status = window.__studioTokenLeanRegressionStatus ?? { phase: "idle", completed: 0, total: 10 };
+    const result = status.result as { pass?: boolean; results?: Array<{ label: string; pass: boolean; errors: string[] }> } | undefined;
+    return {
+      phase: status.phase,
+      completed: status.completed,
+      total: status.total,
+      current: status.current,
+      pass: result?.pass,
+      failures: result?.results?.filter((item) => !item.pass).map(({ label, errors }) => ({ label, errors })),
+    };
+  };
 
   armOverlayOnStudioHelpers();
 
@@ -449,6 +547,10 @@ export function registerRecordingMcpHelpers(options?: {
     delete window.__protoAssertRecLive;
     delete window.__studioRunRecNewCjmProve;
     delete window.__protoRunRecNewCjmProve;
+    delete window.__studioRunTokenLeanRegressionMatrix;
+    delete window.__studioTokenLeanRegressionStatus;
+    delete window.__studioStartTokenLeanRegressionMatrix;
+    delete window.__studioGetTokenLeanRegressionStatus;
   };
 }
 

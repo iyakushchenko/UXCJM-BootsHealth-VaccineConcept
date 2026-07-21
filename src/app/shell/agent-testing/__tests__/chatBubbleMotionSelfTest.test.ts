@@ -97,4 +97,33 @@ describe("analyzeChatBubbleMotionSamples", () => {
     expect(r0?.jumps).toBeGreaterThan(0);
     expect(r0?.hasThinkingHandoff).toBe(false);
   });
+
+  it("FAIL on large layout movement even when co-travel owns the frame", () => {
+    const samples = cleanBubble("r1", true);
+    const frames = samples.filter((s) => s.bubble?.phase === "frame");
+    frames[0]!.bubble!.deltaY = -4;
+    frames[1]!.bubble!.deltaY = -32;
+    frames[1]!.bubble!.trace = {
+      ...frames[1]!.bubble!.trace,
+      scrollLock: true,
+      deltaScrollTop: 32,
+    };
+
+    const r = analyzeChatBubbleMotionSamples(samples, ["r1"]);
+    expect(r.ok).toBe(false);
+    expect(r.summary.maxAbsDeltaY).toBe(31);
+    expect(r.bubbles[0]?.detail).toMatch(/layoutΔΔY=31\.0>10/);
+  });
+
+  it("PASS on smooth high-speed layout co-travel", () => {
+    const samples = cleanBubble("r2", true);
+    const frames = samples.filter((s) => s.bubble?.phase === "frame");
+    [-22, -24, -23, -20, -16].forEach((velocity, index) => {
+      frames[index]!.bubble!.deltaY = velocity;
+      frames[index]!.bubble!.trace!.deltaScrollTop = -velocity;
+    });
+    const r = analyzeChatBubbleMotionSamples(samples, ["r2"]);
+    expect(r.ok).toBe(true);
+    expect(r.summary.maxAbsDeltaY).toBe(4);
+  });
 });

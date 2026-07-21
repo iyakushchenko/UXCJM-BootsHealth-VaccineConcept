@@ -5,12 +5,19 @@ type Props = {
 /** Shown when a registered project has no wire component yet. */
 export function ProjectPlaceholder({ projectLabel }: Props) {
   return (
-    <div className="studio-app-content flex flex-1 min-h-0 w-full flex-col items-center justify-center gap-3 bg-white p-8 text-center">
-      <p className="text-lg font-semibold text-[#012169]">{projectLabel}</p>
-      <p className="max-w-md text-sm text-[#333]">
-        This project is registered in the studio shell. Screen wiring and Figma export
-        are not connected yet.
-      </p>
+    <div className="studio-empty-project" data-studio-empty-project data-project-label={projectLabel}>
+      <div className="studio-empty-project__content">
+        <StudioNavLogo size={44} className="studio-empty-project__logo" />
+        <p className="studio-empty-project__eyebrow">UXML project</p>
+        <h1>{projectLabel}</h1>
+        <p className="studio-empty-project__message">
+          This project is ready. No pages are connected yet.
+        </p>
+        <p className="studio-empty-project__hint">
+          Add a page or connect a concept to begin.
+        </p>
+      </div>
     </div>
   );
 }
+import { StudioNavLogo } from "@/app/nav/StudioNavLogo";

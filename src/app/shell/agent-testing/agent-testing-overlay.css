@@ -10,6 +10,11 @@
  * (synced from .studio-nav-panel-host). Sitrep panel stays BR; PO transport always available.
  */
 .studio-agent-testing-overlay {
+  --qa-fg-neutral: #c7ccd5;
+  --qa-fg-info: #8ec5ff;
+  --qa-fg-success: #69d391;
+  --qa-fg-warning: #e0b85c;
+  --qa-fg-critical: #ff6b6b;
   display: none;
   position: fixed;
   inset: 0;
@@ -36,24 +41,20 @@
   box-sizing: border-box;
 }
 
-.studio-agent-testing-overlay[data-mcp="control"]:not([data-rec="live"])
-  .studio-agent-testing-overlay__frame {
+.studio-agent-testing-overlay[data-mcp="control"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
   box-shadow: inset 0 0 0 10px #e6b84d;
 }
 
-.studio-agent-testing-overlay[data-mcp="pending"]:not([data-rec="live"])
-  .studio-agent-testing-overlay__frame {
+.studio-agent-testing-overlay[data-mcp="pending"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
   box-shadow: inset 0 0 0 10px #8ec5ff;
 }
 
-.studio-agent-testing-overlay[data-mcp="error"]:not([data-rec="live"])
-  .studio-agent-testing-overlay__frame {
+.studio-agent-testing-overlay[data-mcp="error"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
   box-shadow: inset 0 0 0 10px #ff8a8a;
 }
 
 /* REC live — orange viewport frame (beats gold for visibility). */
-.studio-agent-testing-overlay[data-rec="live"]
-  .studio-agent-testing-overlay__frame {
+.studio-agent-testing-overlay[data-rec="live"] .studio-agent-testing-overlay__frame {
   box-shadow: inset 0 0 0 10px #ff8c1a;
 }
 
@@ -72,35 +73,30 @@
 }
 
 /* Legacy: keep capture free of competing inset frame (frame owns the ring). */
-.studio-agent-testing-overlay[data-mcp="control"]
-  .studio-agent-testing-overlay__capture,
-.studio-agent-testing-overlay[data-mcp="pending"]
-  .studio-agent-testing-overlay__capture,
-.studio-agent-testing-overlay[data-mcp="error"]
-  .studio-agent-testing-overlay__capture {
+.studio-agent-testing-overlay[data-mcp="control"] .studio-agent-testing-overlay__capture,
+.studio-agent-testing-overlay[data-mcp="pending"] .studio-agent-testing-overlay__capture,
+.studio-agent-testing-overlay[data-mcp="error"] .studio-agent-testing-overlay__capture {
   box-shadow: none;
 }
 
 /* DONE/SITREP: release click guard so PO can use the page while reading */
-.studio-agent-testing-overlay[data-settling="true"]
-  .studio-agent-testing-overlay__capture {
+.studio-agent-testing-overlay[data-settling="true"] .studio-agent-testing-overlay__capture {
   pointer-events: none;
 }
 
 /* Capture paused (incl. REC XOR) — product clicks must reach the page. */
-.studio-agent-testing-overlay[data-capture="paused"]
-  .studio-agent-testing-overlay__capture {
+.studio-agent-testing-overlay[data-capture="paused"] .studio-agent-testing-overlay__capture {
   pointer-events: none;
 }
 
 .studio-agent-testing-overlay__panel {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 2;
   width: min(400px, calc(100vw - 32px));
   /* Hug content — log scrolls internally; do not clip status/compose */
-  max-height: none;
+  max-height: calc(100dvh - var(--studio-agent-testing-nav-clearance, 0px) - 32px);
   padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
@@ -111,7 +107,28 @@
   gap: 8px;
   box-sizing: border-box;
   pointer-events: auto;
-  overflow: visible;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.studio-agent-testing-overlay__panel :is(button, input, textarea):focus-visible {
+  outline: 2px solid var(--qa-fg-info);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px), (max-height: 620px) {
+  .studio-agent-testing-overlay__panel {
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: min(400px, calc(100vw - 16px));
+    padding: 10px;
+  }
+
+  .studio-agent-testing-overlay__toolbar,
+  .studio-agent-testing-overlay__header-actions {
+    flex-wrap: wrap;
+    height: auto;
+  }
 }
 
 .studio-agent-testing-overlay__header {
@@ -123,11 +140,54 @@
 }
 
 .studio-agent-testing-overlay__toolbar {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  flex: 0 0 auto;
-  margin-left: auto;
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  margin-left: 0;
+}
+
+.studio-agent-testing-overlay__suite-picker {
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+
+.studio-agent-testing-overlay__suite-select {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0 22px 0 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+  background-color: #202226;
+  color: #c9cdd4;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.studio-agent-testing-overlay__suite-select:hover {
+  border-color: rgba(224, 184, 92, 0.42);
+  color: #e0b85c;
+  background-color: #191b1f;
+}
+
+.studio-agent-testing-overlay__suite-select:focus-visible {
+  outline: 2px solid rgba(224, 184, 92, 0.72);
+  outline-offset: 1px;
+}
+
+.studio-agent-testing-overlay__suite-select option {
+  background: #202226;
+  color: #c9cdd4;
 }
 
 /* Lean status bar under Message — diode + muted label (SSoT phase). */
@@ -169,13 +229,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 34% 28%,
-    #4a5568 0%,
-    #1a2030 36%,
-    #07090d 68%,
-    #151b28 100%
-  );
+  background: radial-gradient(circle at 34% 28%, #4a5568 0%, #1a2030 36%, #07090d 68%, #151b28 100%);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
@@ -185,12 +239,7 @@
 
 .studio-agent-testing-overlay__mcp-diode[data-phase="connecting"]::before,
 .studio-agent-testing-overlay__mcp-diode[data-phase="connected"]::before {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #c8d8f0 0%,
-    #8eb0e0 40%,
-    #5a84c4 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #c8d8f0 0%, #8eb0e0 40%, #5a84c4 100%);
   box-shadow:
     0 0 4px rgba(140, 180, 240, 0.7),
     0 0 8px rgba(140, 180, 240, 0.35);
@@ -198,13 +247,7 @@
 }
 
 .studio-agent-testing-overlay__mcp-diode[data-phase="control"][data-presence="online"]::before {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #b8ffd8 0%,
-    #74ffb3 36%,
-    #3dd68c 64%,
-    #1f9f5c 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #b8ffd8 0%, #74ffb3 36%, #3dd68c 64%, #1f9f5c 100%);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.72),
     0 0 5px rgba(93, 255, 138, 0.95),
@@ -214,25 +257,13 @@
 
 /* CONTROL latch but agent stale/offline — no green glow (PO trust). */
 .studio-agent-testing-overlay__mcp-diode[data-phase="control"]:not([data-presence="online"])::before {
-  background: radial-gradient(
-    circle at 34% 28%,
-    #4a5568 0%,
-    #1a2030 36%,
-    #07090d 68%,
-    #151b28 100%
-  );
+  background: radial-gradient(circle at 34% 28%, #4a5568 0%, #1a2030 36%, #07090d 68%, #151b28 100%);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9);
   animation: none;
 }
 
 .studio-agent-testing-overlay__mcp-diode[data-phase="observe"]::before {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #ffb8f5 0%,
-    #ff6ae8 36%,
-    #e03fd0 64%,
-    #a01a98 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #ffb8f5 0%, #ff6ae8 36%, #e03fd0 64%, #a01a98 100%);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.55),
     0 0 5px rgba(255, 76, 240, 0.9),
@@ -241,12 +272,7 @@
 }
 
 .studio-agent-testing-overlay__mcp-diode[data-phase="pending"]::before {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #d8ecff 0%,
-    #8ec5ff 40%,
-    #4a9ae0 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #d8ecff 0%, #8ec5ff 40%, #4a9ae0 100%);
   box-shadow:
     0 0 5px rgba(142, 197, 255, 0.95),
     0 0 10px rgba(142, 197, 255, 0.45);
@@ -254,12 +280,7 @@
 }
 
 .studio-agent-testing-overlay__mcp-diode[data-phase="error"]::before {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #ffd0d0 0%,
-    #ff8a8a 40%,
-    #e04545 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #ffd0d0 0%, #ff8a8a 40%, #e04545 100%);
   box-shadow:
     0 0 5px rgba(255, 100, 100, 0.95),
     0 0 10px rgba(255, 80, 80, 0.45);
@@ -406,15 +427,13 @@
 }
 
 .studio-agent-testing-overlay__badge[data-result="pass"],
-.studio-agent-testing-overlay[data-result="pass"]
-  .studio-agent-testing-overlay__badge {
+.studio-agent-testing-overlay[data-result="pass"] .studio-agent-testing-overlay__badge {
   color: #06280f;
   background: #3dd68c;
 }
 
 .studio-agent-testing-overlay__badge[data-result="fail"],
-.studio-agent-testing-overlay[data-result="fail"]
-  .studio-agent-testing-overlay__badge {
+.studio-agent-testing-overlay[data-result="fail"] .studio-agent-testing-overlay__badge {
   color: #1a0000;
   background: #e02020;
 }
@@ -429,23 +448,19 @@
   line-height: 1.35;
 }
 
-.studio-agent-testing-overlay[data-result="pass"]
-  .studio-agent-testing-overlay__title {
+.studio-agent-testing-overlay[data-result="pass"] .studio-agent-testing-overlay__title {
   color: #3dd68c;
 }
 
-.studio-agent-testing-overlay[data-result="fail"]
-  .studio-agent-testing-overlay__title {
+.studio-agent-testing-overlay[data-result="fail"] .studio-agent-testing-overlay__title {
   color: #ff8a8a;
 }
 
-.studio-agent-testing-overlay[data-result="pass"][data-settling="true"]
-  .studio-agent-testing-overlay__hint {
+.studio-agent-testing-overlay[data-result="pass"][data-settling="true"] .studio-agent-testing-overlay__hint {
   color: #9ee6c0;
 }
 
-.studio-agent-testing-overlay[data-result="fail"][data-settling="true"]
-  .studio-agent-testing-overlay__hint {
+.studio-agent-testing-overlay[data-result="fail"][data-settling="true"] .studio-agent-testing-overlay__hint {
   color: #ffb3b3;
 }
 
@@ -503,8 +518,7 @@
   cursor: pointer;
 }
 
-.studio-agent-testing-overlay__clock
-  .studio-agent-testing-overlay__capture-toggle:hover:not(:disabled) {
+.studio-agent-testing-overlay__clock .studio-agent-testing-overlay__capture-toggle:hover:not(:disabled) {
   color: #ffd27a;
   border-color: rgba(230, 170, 60, 0.75);
 }
@@ -515,7 +529,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(160, 166, 176, 0.75);
+  color: #aab0ba;
   line-height: 1.2;
 }
 
@@ -581,11 +595,11 @@
 }
 
 .studio-agent-testing-overlay__diag-mirror li[data-severity="warn"] {
-  color: #f0c674;
+  color: var(--qa-fg-warning);
 }
 
 .studio-agent-testing-overlay__diag-mirror li[data-severity="fail"] {
-  color: #f07178;
+  color: var(--qa-fg-critical);
 }
 
 .studio-agent-testing-overlay__diag-mirror-empty {
@@ -602,8 +616,7 @@
 }
 
 .studio-agent-testing-overlay__reset,
-.studio-agent-testing-overlay__header-actions
-  .studio-agent-testing-overlay__dump {
+.studio-agent-testing-overlay__header-actions .studio-agent-testing-overlay__dump {
   flex: 0 0 auto;
   margin: 0;
   padding: 0 8px;
@@ -622,15 +635,13 @@
 }
 
 .studio-agent-testing-overlay__reset:hover:not(:disabled),
-.studio-agent-testing-overlay__header-actions
-  .studio-agent-testing-overlay__dump:hover:not(:disabled) {
+.studio-agent-testing-overlay__header-actions .studio-agent-testing-overlay__dump:hover:not(:disabled) {
   color: #e8eaef;
   border-color: rgba(255, 255, 255, 0.35);
 }
 
 .studio-agent-testing-overlay__reset:disabled,
-.studio-agent-testing-overlay__header-actions
-  .studio-agent-testing-overlay__dump:disabled {
+.studio-agent-testing-overlay__header-actions .studio-agent-testing-overlay__dump:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
@@ -772,7 +783,7 @@
 }
 
 .studio-agent-testing-overlay__log-empty {
-  color: rgba(140, 146, 156, 0.7) !important;
+  color: #9aa0aa !important;
   font-style: italic;
   list-style: none;
 }
@@ -837,8 +848,7 @@
   border-color: #e25555;
 }
 
-.studio-agent-testing-overlay[data-logger="true"]
-  .studio-agent-testing-overlay__capture {
+.studio-agent-testing-overlay[data-logger="true"] .studio-agent-testing-overlay__capture {
   pointer-events: none;
 }
 
@@ -901,41 +911,49 @@
 
 /* Regular capture (click/nav/step/helper/info) — muted body via default outcome colors */
 
-.studio-agent-testing-overlay__log li[data-kind="system"] .studio-agent-testing-overlay__log-body {
+.studio-agent-testing-overlay__log li[data-kind="system"][data-outcome="ok"] .studio-agent-testing-overlay__log-body {
   color: #8ec5ff !important;
 }
 
 /* RESULT · PASS — green success only (sparingly) */
 .studio-agent-testing-overlay__log li[data-outcome="pass"] .studio-agent-testing-overlay__log-body {
-  color: #5dcc8a !important;
+  color: var(--qa-fg-success) !important;
   font-weight: 700;
 }
 
 /* RESULT · FAIL / hard fail — deep red wins over system blue */
 .studio-agent-testing-overlay__log li[data-kind="system"][data-outcome="fail"] .studio-agent-testing-overlay__log-body,
 .studio-agent-testing-overlay__log li[data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+  color: var(--qa-fg-critical) !important;
   font-weight: 700;
 }
 
 /* playback-diag: follow outcome — do NOT paint all diag rows as warn */
-.studio-agent-testing-overlay__log li[data-kind="playback-diag"][data-outcome="ok"] .studio-agent-testing-overlay__log-body {
+.studio-agent-testing-overlay__log
+  li[data-kind="playback-diag"][data-outcome="ok"]
+  .studio-agent-testing-overlay__log-body {
   color: rgba(210, 214, 222, 0.88) !important;
   font-weight: 400;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="playback-diag"][data-outcome="soft-fail"] .studio-agent-testing-overlay__log-body {
-  color: #ffb020 !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="playback-diag"][data-outcome="soft-fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-warning) !important;
   font-weight: 700;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="playback-diag"][data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="playback-diag"][data-outcome="fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-critical) !important;
   font-weight: 700;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="helper"][data-outcome="soft-fail"] .studio-agent-testing-overlay__log-body {
-  color: #ffb020 !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="helper"][data-outcome="soft-fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-warning) !important;
   font-weight: 600;
 }
 
@@ -945,17 +963,21 @@
   font-weight: 400;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="transport"][data-outcome="soft-fail"] .studio-agent-testing-overlay__log-body {
-  color: #ffb020 !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="transport"][data-outcome="soft-fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-warning) !important;
   font-weight: 600;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="transport"][data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="transport"][data-outcome="fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-critical) !important;
   font-weight: 700;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="agent-prompt"] .studio-agent-testing-overlay__log-body {
+.studio-agent-testing-overlay__log li[data-kind="agent-prompt"][data-outcome="ok"] .studio-agent-testing-overlay__log-body {
   color: #b8a0ff !important;
   font-weight: 600;
 }
@@ -965,19 +987,19 @@
   font-weight: 600;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="init"] .studio-agent-testing-overlay__log-body {
+.studio-agent-testing-overlay__log li[data-kind="init"][data-outcome="ok"] .studio-agent-testing-overlay__log-body {
   color: #9aa3c7 !important;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="po-note"] .studio-agent-testing-overlay__log-body,
-.studio-agent-testing-overlay__log li[data-kind="user-message"] .studio-agent-testing-overlay__log-body {
-  color: #e6c27a !important;
+.studio-agent-testing-overlay__log li[data-kind="po-note"][data-outcome="ok"] .studio-agent-testing-overlay__log-body,
+.studio-agent-testing-overlay__log li[data-kind="user-message"][data-outcome="ok"] .studio-agent-testing-overlay__log-body {
+  color: #b8a0ff !important;
   font-weight: 600;
 }
 
 /* Alarms that stop Play = red; soft scroll attention = amber via outcome */
 .studio-agent-testing-overlay__log li[data-kind="alarm"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+  color: var(--qa-fg-critical) !important;
   font-weight: 600;
 }
 
@@ -986,13 +1008,15 @@
   font-weight: 400;
 }
 
-.studio-agent-testing-overlay__log li[data-kind="scroll"][data-outcome="soft-fail"] .studio-agent-testing-overlay__log-body {
-  color: #ffb020 !important;
+.studio-agent-testing-overlay__log
+  li[data-kind="scroll"][data-outcome="soft-fail"]
+  .studio-agent-testing-overlay__log-body {
+  color: var(--qa-fg-warning) !important;
   font-weight: 600;
 }
 
 .studio-agent-testing-overlay__log li[data-kind="scroll"][data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+  color: var(--qa-fg-critical) !important;
   font-weight: 700;
 }
 
@@ -1022,10 +1046,8 @@
   border-color: rgba(230, 170, 60, 0.75);
 }
 
-.studio-agent-testing-overlay[data-owner="agent"]
-  .studio-agent-testing-overlay__close[hidden],
-.studio-agent-testing-overlay[data-owner="agent"]
-  .studio-agent-testing-overlay__reset[hidden] {
+.studio-agent-testing-overlay[data-owner="agent"] .studio-agent-testing-overlay__close[hidden],
+.studio-agent-testing-overlay[data-owner="agent"] .studio-agent-testing-overlay__reset[hidden] {
   display: none !important;
 }
 
@@ -1049,6 +1071,7 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 1.35;
+  min-height: 24px;
   cursor: pointer;
 }
 
@@ -1072,8 +1095,8 @@
 }
 
 .studio-agent-testing-overlay__cursor-flag {
-  border-color: rgba(255, 138, 138, 0.45);
-  color: #ffb3b3;
+  border-color: rgba(224, 184, 92, 0.5);
+  color: var(--qa-fg-warning);
 }
 
 .studio-agent-testing-overlay__scroll-flag {
@@ -1160,35 +1183,31 @@
 }
 
 .studio-agent-testing-overlay__log-time {
-  color: rgba(255, 255, 255, 0.28);
+  color: #9aa0aa;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
 }
 
 .studio-agent-testing-overlay__log-body {
-  color: rgba(210, 214, 222, 0.88);
+  color: var(--qa-fg-neutral);
   font-weight: 400;
 }
 
-.studio-agent-testing-overlay__log li:last-child .studio-agent-testing-overlay__log-body {
-  color: rgba(236, 238, 242, 0.95);
-}
-
 .studio-agent-testing-overlay__log li[data-outcome="ok"] .studio-agent-testing-overlay__log-body {
-  color: rgba(210, 214, 222, 0.88);
+  color: var(--qa-fg-neutral);
 }
 
 .studio-agent-testing-overlay__log li[data-outcome="pass"] .studio-agent-testing-overlay__log-body {
-  color: #5dcc8a !important;
+  color: var(--qa-fg-success) !important;
   font-weight: 700;
 }
 
 .studio-agent-testing-overlay__log li[data-outcome="soft-fail"] .studio-agent-testing-overlay__log-body {
-  color: #c9a43a;
+  color: var(--qa-fg-warning);
 }
 
 .studio-agent-testing-overlay__log li[data-outcome="fail"] .studio-agent-testing-overlay__log-body {
-  color: #ff2a2a !important;
+  color: var(--qa-fg-critical) !important;
   font-weight: 700;
 }
 

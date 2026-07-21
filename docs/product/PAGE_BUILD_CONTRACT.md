@@ -79,14 +79,16 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 
 1. Open PO concept URL; classify early strip vs structured page ([CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md)).
 2. Extract intent (flow, hypothesis) — do not require DS-perfect source.
-3. Map regions → UXDS tokens + closest `component.*` / `module.*`.
-4. Compose React screen; **match concept visuals**; use UXDS for structure/reuse, not a visual redesign. Apply [FE_STANDARDS.md](./FE_STANDARDS.md) (shell/logo column, icon+text nowrap, scoped CSS).
-5. **Audit prior Make/concept handlers** on that screen; migrate each to React props / shared kits (behavior parity). Mark React-owned controls so Make DOM mutators skip them.
-6. **Build anticipated interactivity** from page context (and CJM deck when provided) via shared kits — CTAs, filters, accordions, forms, etc. ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Prefer library reuse over one-off scripts.
-7. Register screen + `data-*` hooks for cursor, touchpoints, recording.
-8. Wire journey beats / scripts as needed (thin; not duplicate DS behavior).
-9. Smoke: browse + happy-path controls respond (including migrated Make behaviors) + one playback path that hits the screen.
-10. Only then treat the page as **record-ready**.
+3. Run the project interaction inventory before composition; reuse established target/component conventions. For a Make → React migration, save the current page map as the parity baseline ([INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md)).
+4. Map regions → UXDS tokens + closest `component.*` / `module.*`.
+5. Compose React screen; **match concept visuals**; use UXDS for structure/reuse, not a visual redesign. Apply [FE_STANDARDS.md](./FE_STANDARDS.md) (shell/logo column, icon+text nowrap, scoped CSS).
+6. **Audit prior Make/concept handlers** on that screen; migrate each to React props / shared kits (behavior parity). Mark React-owned controls so Make DOM mutators skip them.
+7. **Build anticipated interactivity** from page context (and CJM deck when provided) via shared kits — CTAs, filters, accordions, forms, etc. ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Prefer library reuse over one-off scripts.
+8. Register screen + stable `data-*` hooks for cursor, touchpoints, recording.
+9. Run **Map current page interactions**. Fix `invalid`; review every `semantic-ready`/`visual-candidate`; compare migrations against the legacy baseline and explain any retired target.
+10. Wire journey beats / scripts as needed (thin; not duplicate DS behavior).
+11. Smoke: browse + happy-path controls respond (including migrated Make behaviors) + one playback path that hits the screen.
+12. Only then treat the page as **record-ready**; attach/download the inventory result in the page handoff.
 
 ---
 

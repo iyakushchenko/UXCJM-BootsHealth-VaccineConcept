@@ -50,6 +50,20 @@ export type PersonaDefinition = {
   journeyHooks?: JourneyPlaybackHooks;
 };
 
+export type ProjectScreenDefinition = {
+  label: string;
+  childIndex: number;
+  screenId: string;
+};
+
+/** Engine-facing page manifest owned by one registered project. */
+export type ProjectContentDefinition = {
+  PROJECT_SCREENS: readonly ProjectScreenDefinition[];
+  HUB_LABEL: string;
+  SCENARIO_SCREENS: readonly ScenarioScreenConfig[];
+  studioTabToIndex: (tab: number) => number;
+};
+
 export type RetreatSyncOptions = {
   /** Beat-enter / step-back sync — snap scroll and DOM with no eased camera moves. */
   instant?: boolean;
@@ -245,6 +259,10 @@ export type ProjectDefinition = {
   subbrand?: string;
   /** Display label in studio project dropdown. */
   label: string;
+  /** Optional compact label for the closed project picker. */
+  shortLabel?: string;
+  /** Page/scenario manifest; empty projects use the engine empty contract. */
+  content: ProjectContentDefinition;
   personas: PersonaDefinition[];
   defaultPersonaId: PersonaId;
   /** Optional popup rows in the studio touchpoint timeline per journey + beat. */

@@ -160,6 +160,8 @@ const bubbleSamples: PlaybackDiagEvent[] = [];
 const bubblePhasesById = new Map<string, Set<string>>();
 /** Per-id last transform y for jump detection across frames. */
 const bubblePrevTransformY = new Map<string, number>();
+const bubblePrevLayoutDeltaY = new Map<string, number>();
+const bubblePrevScrollDelta = new Map<string, number>();
 /** Per-id frame counter for dump sampling (not for JUMP Δ — that stays consecutive). */
 const bubbleFrameCounters = new Map<string, number>();
 /** Last kept routine TRACE key → timestamp (perf — avoid overlay/console flood). */
@@ -179,6 +181,10 @@ let clickOkCount = 0;
 let clickFailCount = 0;
 /** Completed type-in char samples (in-memory only — never per-char events). */
 let completedTypeInSamples: number[] = [];
+/** Durable lifecycle tallies — event-ring rotation must not erase type-in proof. */
+let typeInStartCount = 0;
+let typeInEndCount = 0;
+let typeInSkipCount = 0;
 let typeInActive: {
   surface: string;
   startedAt: number;
@@ -305,10 +311,15 @@ export function playbackDiagClear(): void {
   bubbleSamples.length = 0;
   bubblePhasesById.clear();
   bubblePrevTransformY.clear();
+  bubblePrevLayoutDeltaY.clear();
+  bubblePrevScrollDelta.clear();
   bubbleFrameCounters.clear();
   bubbleTraceLastKept.clear();
   typeInActive = null;
   completedTypeInSamples = [];
+  typeInStartCount = 0;
+  typeInEndCount = 0;
+  typeInSkipCount = 0;
   clickOkCount = 0;
   clickFailCount = 0;
   if (isQaDiagGateOpen()) {
@@ -620,6 +631,7 @@ export function playbackDiagTypeInStart(
   targetChars: number,
   detail?: string
 ): void {
+  typeInStartCount += 1;
   typeInActive = {
     surface,
     startedAt: now(),
@@ -656,6 +668,7 @@ export function playbackDiagTypeInProgress(chars: number): void {
 }
 
 export function playbackDiagTypeInEnd(ok: boolean, detail?: string): void {
+  typeInEndCount += 1;
   const active = typeInActive;
   if (active?.samples.length) {
     completedTypeInSamples.push(...active.samples);
@@ -685,6 +698,7 @@ export function playbackDiagTypeInEnd(ok: boolean, detail?: string): void {
 
 /** Forbidden skip path — logged so regressions are obvious. */
 export function playbackDiagTypeInSkip(surface: string, reason: string): void {
+  typeInSkipCount += 1;
   push({
     kind: "type-in-skip",
     surface,
@@ -824,35 +838,29 @@ export function playbackDiagChatBubbleMotion(options: {
     bubblePrevTransformY.set(id, options.y);
   }
 
-  if (
-    typeof deltaY === "number" &&
-    Math.abs(deltaY) > CHAT_BUBBLE_JUMP_LAYOUT_PX
-  ) {
-    // Camera co-travel during pull-up moves layoutY with scrollTop — not a JUMP.
-    const camTravel =
-      typeof dScroll === "number" && Math.abs(dScroll) > 0.5;
-    if (!camTravel) {
-      jump = true;
-      jumpReason = jumpReason
-        ? `${jumpReason}; layout ΔY=${deltaY}`
-        : `layout ΔY=${deltaY}`;
-    }
+  const prevLayoutDelta = bubblePrevLayoutDeltaY.get(id);
+  const layoutDiscontinuity = typeof deltaY === "number" && prevLayoutDelta != null
+    ? deltaY - prevLayoutDelta
+    : null;
+  if (layoutDiscontinuity != null && Math.abs(layoutDiscontinuity) > CHAT_BUBBLE_JUMP_LAYOUT_PX) {
+    jump = true;
+    jumpReason = jumpReason
+      ? `${jumpReason}; layout ΔΔY=${layoutDiscontinuity}`
+      : `layout ΔΔY=${layoutDiscontinuity}`;
   }
+  if (typeof deltaY === "number") bubblePrevLayoutDeltaY.set(id, deltaY);
 
   let chop = options.chop === true;
   let chopReason = options.chopReason ?? null;
-  if (
-    typeof dScroll === "number" &&
-    Math.abs(dScroll) > CHAT_BUBBLE_SCROLL_CHOP_PX
-  ) {
-    // Pull-up scroll lock = intentional camera co-travel (any Δ). Large host-end
-    // steps on tall threads (r1+) are expected — must not hard-CHOP / halt Play.
-    const easedCoTravel = options.trace?.scrollLock === true;
-    if (!easedCoTravel) {
-      chop = true;
-      chopReason = chopReason ?? `scrollTop Δ=${dScroll}`;
-    }
+  const prevScrollDelta = bubblePrevScrollDelta.get(id);
+  const scrollDiscontinuity = typeof dScroll === "number" && prevScrollDelta != null
+    ? dScroll - prevScrollDelta
+    : null;
+  if (scrollDiscontinuity != null && Math.abs(scrollDiscontinuity) > CHAT_BUBBLE_SCROLL_CHOP_PX) {
+    chop = true;
+    chopReason = chopReason ?? `scrollTop ΔΔ=${scrollDiscontinuity}`;
   }
+  if (typeof dScroll === "number") bubblePrevScrollDelta.set(id, dScroll);
   // underComposer on frames is expected during rise-from-dock — TRACE only, not CHOP.
 
   let skippedNote: string | null = null;
@@ -863,6 +871,8 @@ export function playbackDiagChatBubbleMotion(options: {
       skippedNote = `${id}: animate-end without animate-start`;
     }
     bubblePrevTransformY.delete(id);
+    bubblePrevLayoutDeltaY.delete(id);
+    bubblePrevScrollDelta.delete(id);
     bubbleFrameCounters.delete(id);
   }
 
@@ -1066,9 +1076,9 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
     events: [...events],
     typeInActive,
     typeIn: {
-      starts: typeStarts.length,
-      ends: typeEnds.length,
-      skips: typeSkips.length,
+      starts: typeInStartCount,
+      ends: typeInEndCount,
+      skips: typeInSkipCount,
       lastStart: typeStarts[typeStarts.length - 1],
       lastEnd: typeEnds[typeEnds.length - 1],
       progressSamples,

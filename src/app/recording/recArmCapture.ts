@@ -13,13 +13,14 @@ import {
   isRecordingActive,
   isRecordingPaused,
   stopRecording,
+  stageNextRecordingAuthor,
 } from "@/app/recording/recordingSession";
 import {
   isStudioPlaybackPanelVisible,
   isStudioRecModeOnInDom,
   readStudioRecSwitch,
 } from "@/app/recording/studioRecModeDom";
-import { logAgentTestingStep } from "@/app/shell/agent-testing";
+import { logAgentTestingStep } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { requireFreshQaSession } from "@/app/shell/requireFreshQaSession";
 
 export type RecLiveAssert = {
@@ -48,6 +49,19 @@ export type RecArmCaptureHooks = {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function waitUntil(
+  predicate: () => boolean,
+  timeoutMs = 3_000,
+  intervalMs = 60
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    if (predicate()) return true;
+    await delay(intervalMs);
+  } while (Date.now() < deadline);
+  return predicate();
 }
 
 function isCreateNewSelectedInDom(): boolean {
@@ -128,7 +142,11 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
     if (!trigger || trigger.disabled) continue;
     if (trigger.getAttribute("aria-expanded") !== "true") {
       trigger.click();
-      await delay(settle);
+      await waitUntil(
+        () => trigger.getAttribute("aria-expanded") === "true",
+        3_000,
+        Math.max(40, Math.min(80, settle || 60))
+      );
     }
     const panel = menu.querySelector<HTMLElement>('[role="listbox"]');
     const label = panel?.getAttribute("aria-label") ?? "";
@@ -144,8 +162,13 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
       );
       if (createNew) {
         createNew.click();
-        await delay(settle);
-        if (isCreateNewSelectedInDom()) {
+        if (
+          await waitUntil(
+            isCreateNewSelectedInDom,
+            3_000,
+            Math.max(40, Math.min(80, settle || 60))
+          )
+        ) {
           return { ok: true, via: "menu-click" };
         }
       }
@@ -165,8 +188,13 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
 
   // Last resort: same handler as picker CREATE NEW (not a silent REC start).
   if (selectCreateNewCjm()) {
-    await delay(settle);
-    if (isCreateNewSelectedInDom()) {
+    if (
+      await waitUntil(
+        isCreateNewSelectedInDom,
+        3_000,
+        Math.max(40, Math.min(80, settle || 60))
+      )
+    ) {
       return {
         ok: true,
         via: "imperative",
@@ -248,6 +276,7 @@ export async function armRecCapture(
   hooks: RecArmCaptureHooks
 ): Promise<ArmRecCaptureResult> {
   const settle = hooks.settleMs ?? 120;
+  const transitionInterval = Math.max(40, Math.min(80, settle || 60));
   let recModeVia: ArmRecCaptureResult["recModeVia"] = "failed";
 
   // 0) UNSKIPPABLE — ALWAYS CLEAR QA then fresh visible session.
@@ -286,7 +315,7 @@ export async function armRecCapture(
     if (!clickCjmOff()) {
       hooks.setJourneyMode(false);
     }
-    await delay(settle);
+    await waitUntil(() => !isCjmOnInDom(), 3_000, transitionInterval);
   }
   if (isCjmOnInDom()) {
     const fail: ArmRecCaptureResult = {
@@ -341,13 +370,13 @@ export async function armRecCapture(
       return fail;
     }
     recSwitch.click();
-    await delay(settle);
+    await waitUntil(isStudioRecModeOnInDom, 3_000, transitionInterval);
     if (isStudioRecModeOnInDom()) {
       recModeVia = "dom-click";
     } else {
       // Last resort AFTER real click failed — report then try hook once.
       hooks.setRecMode(true);
-      await delay(settle);
+      await waitUntil(isStudioRecModeOnInDom, 3_000, transitionInterval);
       if (isStudioRecModeOnInDom()) {
         recModeVia = "hook-fallback";
       } else {
@@ -406,11 +435,12 @@ export async function armRecCapture(
 
   // 4) ● Start — real Start button only (no startRecording while chrome wrong).
   if (!(isRecordingActive() || isRecordingPaused())) {
-    let startBtn = startRecordingButton();
-    if (!startBtn || startBtn.disabled) {
-      await delay(settle * 2);
-      startBtn = startRecordingButton();
-    }
+    await waitUntil(
+      () => Boolean(startRecordingButton() && !startRecordingButton()?.disabled),
+      3_000,
+      transitionInterval
+    );
+    const startBtn = startRecordingButton();
     if (!startBtn) {
       const fail: ArmRecCaptureResult = {
         ok: false,
@@ -442,15 +472,15 @@ export async function armRecCapture(
       logArm(fail);
       return fail;
     }
+    // Guardrail: agent REC uses the visible human path but must retain provenance.
+    stageNextRecordingAuthor("agent");
     startBtn.click();
     // HARD: React Start handler must land before assert — poll, don't race 120ms.
-    for (
-      let i = 0;
-      i < 25 && !(isRecordingActive() || isRecordingPaused());
-      i += 1
-    ) {
-      await delay(Math.max(settle, 80));
-    }
+    await waitUntil(
+      () => isRecordingActive() || isRecordingPaused(),
+      3_000,
+      transitionInterval
+    );
   }
 
   const live = assertRecLive();

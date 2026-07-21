@@ -7,9 +7,28 @@
  */
 
 type StudioAuthListener = (loggedIn: boolean) => void;
+type StudioAuthAuditListener = (loggedIn: boolean) => void;
+const STUDIO_AUTH_SESSION_KEY = "studioAuthSessionV1";
 
-let loggedIn = false;
+function readPersistedAuth(): boolean {
+  try {
+    return sessionStorage.getItem(STUDIO_AUTH_SESSION_KEY) === "user";
+  } catch {
+    return false;
+  }
+}
+
+function persistAuth(value: boolean): void {
+  try {
+    sessionStorage.setItem(STUDIO_AUTH_SESSION_KEY, value ? "user" : "guest");
+  } catch {
+    /* runtime auth remains authoritative */
+  }
+}
+
+let loggedIn = typeof sessionStorage === "undefined" ? false : readPersistedAuth();
 const listeners = new Set<StudioAuthListener>();
+const auditListeners = new Set<StudioAuthAuditListener>();
 
 export function isStudioLoggedIn(): boolean {
   return loggedIn;
@@ -18,6 +37,7 @@ export function isStudioLoggedIn(): boolean {
 export function setStudioLoggedIn(next: boolean): void {
   if (loggedIn === next) return;
   loggedIn = next;
+  persistAuth(loggedIn);
   for (const listener of listeners) {
     try {
       listener(loggedIn);
@@ -25,6 +45,21 @@ export function setStudioLoggedIn(next: boolean): void {
       /* ignore subscriber errors */
     }
   }
+  for (const listener of auditListeners) {
+    try {
+      listener(loggedIn);
+    } catch {
+      /* auth state remains authoritative if an audit observer fails */
+    }
+  }
+}
+
+/** Engine audit hook (REC metadata); product projects must not fork auth state. */
+export function subscribeStudioAuthAudit(
+  listener: StudioAuthAuditListener
+): () => void {
+  auditListeners.add(listener);
+  return () => auditListeners.delete(listener);
 }
 
 /** Subscribe to auth changes. Returns unsubscribe. */

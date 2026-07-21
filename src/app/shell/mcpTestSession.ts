@@ -12,7 +12,7 @@ import {
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import {
   beginMcpTestSession,
   endMcpTestSession,

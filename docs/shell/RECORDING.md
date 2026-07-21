@@ -332,6 +332,15 @@ await window.__studioRunRecNewCjmProve?.({ experience: "traditional" })
 // REC robustness = human-paced NEW CJM + modal drain → Play that journeyId
 ```
 
+For broad engine coverage, vary `captureUntil` across `plp-book`, `pdp-book`,
+`book-location`, `book-schedule`, and `book-confirmation`, then repeat under
+guest and signed-in auth. This exercises reusable route prefixes without
+cloning a project-specific REC implementation.
+
+Token-lean disposable regression: `await window.__studioRunTokenLeanRegressionMatrix?.()` runs all five route depths under guest and signed-in auth, proves every new CJM, preserves QA evidence, then removes only the journeys it created. Pass `{ keepJourneys: true }` only when the resulting CJMs are product artifacts rather than test fixtures.
+
+For DevTools/MCP, prefer the non-blocking contract: `__studioStartTokenLeanRegressionMatrix()` returns immediately; poll the compact `__studioGetTokenLeanRegressionStatus()` instead of holding one long protocol call. Read `__studioGetQaAgentBrief()` before opening or downloading raw evidence.
+
 Import a saved session:
 
 ```javascript
@@ -356,6 +365,8 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 **Touchpoint labels:** REC stamps **short human labels** (visible text / aria-label / action slug) on `demo-click` → beat `label` — not long selectors. STEPS / Play nav must stay concise.
 
 **Persisted with Add as CJM:** the **full `.recording.json` session** is stored beside the compiled journey in localStorage (`studio-recorded-cjm:…` v2 `recordings` map) and embedded in Download `.journey.json` when available. Never discard the event log on compile (8.56 failure mode).
+
+**Metadata/provenance (engine-wide):** new sessions stamp `metadata.author`, first-seen `metadata.authStates`, `metadata.studioVersion`, and `metadata.recordingContractVersion`. Auth comes only from `studioAuthSession`; project packages consume that SSoT. Agent arm stages `author=agent` before clicking the real Start control. Agent saves require an explicit semantic user-journey title and reject QA/test/prove placeholders. The CJM picker derives compact metadata + compatibility diagnostics from the persisted raw session; legacy/missing sessions remain loadable but display an honest warning.
 
 **Not compiled (honest gaps — use REC ↺ replay for fidelity):** `demo-click` with unusable selectors (`#root` / empty — fix with `data-studio-action` on product CTAs), `typed-text`, unknown wire intents / unknown beat-enter ids, bare `scroll` without a following click **and** without `scroll-stop`. Built-in persona `journeys.ts` is not auto-edited.
 

@@ -12,10 +12,10 @@
  * STOP: window.__protoAbortAll?.()
  * Console: `[StudioControlPanel]` · `[PLAYBACK_DIAG]` · Eyes: `__protoMcpEyes()`
  */
-
 import type { OrchestraModeId } from "@/app/orchestra/types";
 import { isOrchestraModeId } from "@/app/orchestra/orchestraModes";
 import { runTraditionalControlRoomRobotQa } from "@/app/shell/controlRoomQaRunner";
+import { installAutonomousQaSuiteApi } from "@/app/shell/qaAutonomousSuite";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
 import {
   disableCursorQaEyes,
@@ -52,7 +52,7 @@ import {
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
 import {
   mcpDelay as delay,
@@ -705,7 +705,9 @@ export function registerStudioMcpHelpers(options: {
         ...cursor,
       };
     }
-    const playBtn = document.querySelector('[aria-label="Play journey"]');
+    const playBtn = document.querySelector(
+      '[data-studio-action="transport-play"], [aria-label="Play journey"]'
+    );
     const stepFwd = document.querySelector('[aria-label="Step forward"]');
     const stepBack = document.querySelector('[aria-label="Step back"]');
     return {
@@ -1331,10 +1333,12 @@ export function registerStudioMcpHelpers(options: {
     });
 
   armOverlayOnStudioHelpers();
+  const uninstallAutonomousQaSuite = installAutonomousQaSuiteApi();
   // Re-bind after overlay wrap so alias === retreat smoke (same reference).
   window.__protoRunAgenticRetreatSmoke = window.__protoRunRetreatSmoke;
 
   return () => {
+    uninstallAutonomousQaSuite();
     uninstallAgentTestingOverlayApi();
     uninstallStudioAgentTeardownContractApi();
     uninstallPlaybackDiagWindowApis();

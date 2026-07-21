@@ -330,7 +330,7 @@ export function StudioNavRecordingModeSlot({
           ) : null}
         </AnimatePresence>
       </span>
-      <div className="studio-nav-scenario__panel-swap" aria-live="polite">
+      <div className="studio-nav-scenario__panel-swap">
         <AnimatePresence initial={false} mode="wait">
           {recMode && !recModeLocked ? (
             <motion.div

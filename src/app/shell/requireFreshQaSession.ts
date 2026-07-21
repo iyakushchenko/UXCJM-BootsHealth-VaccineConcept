@@ -13,7 +13,7 @@ import {
   logAgentTestingStep,
   startAgentTestingOverlay,
   touchAgentTestingOverlay,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { beginQaProveMode } from "@/app/shell/agent-testing/agentTestingPresence";
 import { resetQaModalTrackForTests } from "@/app/shell/qaModalTrack";
 

@@ -1,0 +1,90 @@
+/* PANEL — shared Studio-nav dropdown option treatment. */
+
+.studio-nav-journey-menu__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 2px;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.78);
+  background: #242424;
+  cursor: default;
+}
+
+.studio-nav-journey-menu__option-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 2px;
+}
+
+.studio-nav-journey-menu__option-label {
+  overflow-wrap: anywhere;
+}
+
+.studio-nav-journey-menu__option-meta {
+  color: #8f949d;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.studio-nav-journey-menu__option--active .studio-nav-journey-menu__option-meta {
+  color: rgba(61, 48, 24, 0.74);
+}
+
+.studio-nav-journey-menu__option-action {
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.studio-nav-journey-menu__option:hover .studio-nav-journey-menu__option-action,
+.studio-nav-journey-menu__option:focus-within .studio-nav-journey-menu__option-action,
+.studio-nav-journey-menu__option--active .studio-nav-journey-menu__option-action {
+  opacity: 1;
+}
+
+.studio-nav-journey-menu__option-action .studio-nav-step-btn {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 3px;
+}
+
+.studio-nav-journey-menu__option:hover:not(.studio-nav-journey-menu__option--active) {
+  color: #ead9ad;
+  background: #181818;
+}
+
+.studio-nav-journey-menu__option--active {
+  color: #3d3018;
+  background: #ccb57f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.studio-nav-journey-menu__option--active .studio-nav-step-btn {
+  color: #3d3018;
+  background: rgba(61, 48, 24, 0.12);
+  border: 1px solid rgba(61, 48, 24, 0.42);
+}
+
+.studio-nav-journey-menu__option--active .studio-nav-step-btn:disabled {
+  opacity: 0.68;
+}
+
+.studio-nav-journey-menu__separator {
+  height: 1px;
+  margin: 3px 4px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}

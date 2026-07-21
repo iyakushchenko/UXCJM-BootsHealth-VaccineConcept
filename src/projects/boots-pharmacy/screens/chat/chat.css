@@ -1,3 +1,4 @@
+/* Chat screen composition — keep this module non-empty; visual source = Make child 10. */
 /*
  * When Availability Tool is open, skip painting React chat underlay.
  * Chat observers stay mounted but content-visibility:hidden stops layout/paint
@@ -426,6 +427,12 @@ html:has([data-studio-modal="choose-pharmacy"])
 }
 
 /* Make `component.gse.system.message` — centered under reply (PO / register L11). */
+.chat__helpful-arrival {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 .chat__helpful {
   display: flex;
   align-items: center;

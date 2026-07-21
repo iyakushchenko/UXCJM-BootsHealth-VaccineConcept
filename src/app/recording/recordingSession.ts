@@ -10,14 +10,97 @@ import {
   REC_MODE_OFF_REFUSE_MESSAGE,
 } from "@/app/recording/studioRecModeDom";
 import { ensureQaSessionForRecCapture } from "@/app/shell/requireFreshQaSession";
+import {
+  isStudioLoggedIn,
+  subscribeStudioAuthAudit,
+} from "@/app/shell/studioAuthSession";
+import { getStudioRelease } from "@/app/shell/studioRelease";
 
 const SESSION_VERSION = 1 as const;
 const DEDUPE_WINDOW_MS = 80;
+const RECORDING_RECOVERY_STORAGE_KEY = "studioRecordingRecoveryV1";
 
 let activeSession: RecordingSession | null = null;
 let lastSession: RecordingSession | null = null;
 let paused = false;
+let nextRecordingAuthor: "agent" | "user" | null = null;
 const listeners = new Set<() => void>();
+
+type PersistedRecordingRecovery = {
+  active: RecordingSession | null;
+  last: RecordingSession | null;
+};
+
+function isRestorableSession(value: unknown): value is RecordingSession {
+  if (!value || typeof value !== "object") return false;
+  const session = value as Partial<RecordingSession>;
+  return (
+    session.version === SESSION_VERSION &&
+    typeof session.id === "string" &&
+    typeof session.startedAt === "string" &&
+    Array.isArray(session.events)
+  );
+}
+
+function persistRecordingRecovery(): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    if (!activeSession && !lastSession) {
+      sessionStorage.removeItem(RECORDING_RECOVERY_STORAGE_KEY);
+      return;
+    }
+    const payload: PersistedRecordingRecovery = {
+      active: activeSession,
+      last: lastSession,
+    };
+    sessionStorage.setItem(RECORDING_RECOVERY_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // Storage may be unavailable or full; runtime recording remains authoritative.
+  }
+}
+
+function hydrateRecordingRecovery(): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    const raw = sessionStorage.getItem(RECORDING_RECOVERY_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Partial<PersistedRecordingRecovery>;
+    if (isRestorableSession(parsed.active)) {
+      activeSession = { ...parsed.active, paused: true };
+      paused = true;
+    }
+    if (isRestorableSession(parsed.last)) lastSession = parsed.last;
+    persistRecordingRecovery();
+  } catch {
+    try {
+      sessionStorage.removeItem(RECORDING_RECOVERY_STORAGE_KEY);
+    } catch {
+      // Storage can reject both reads and cleanup (privacy mode / denied access).
+    }
+  }
+}
+
+hydrateRecordingRecovery();
+if (typeof window !== "undefined") {
+  for (const delay of [0, 100, 300]) {
+    window.setTimeout(() => {
+      if (!activeSession && !lastSession) hydrateRecordingRecovery();
+    }, delay);
+  }
+}
+
+subscribeStudioAuthAudit((loggedIn) => {
+  if (!activeSession) return;
+  const state = loggedIn ? "user" : "guest";
+  const current = activeSession.metadata?.authStates ?? [];
+  if (current.includes(state)) return;
+  activeSession.metadata = {
+    ...activeSession.metadata,
+    authStates: [...current, state],
+  };
+  persistRecordingRecovery();
+  notifyRecordingListeners();
+});
 
 function notifyRecordingListeners(): void {
   for (const listener of listeners) {
@@ -40,6 +123,7 @@ export function getLastRecordingSession(): RecordingSession | null {
 /** Stage a stopped or imported session for export / replay. */
 export function stageRecordingSession(session: RecordingSession): void {
   lastSession = session;
+  persistRecordingRecovery();
   notifyRecordingListeners();
 }
 
@@ -168,6 +252,11 @@ export type StartRecordingOptions = {
   metadata?: RecordingSessionMetadata;
 };
 
+/** Agent-only REC helpers stage provenance before using the same visible Start button. */
+export function stageNextRecordingAuthor(author: "agent" | "user"): void {
+  nextRecordingAuthor = author;
+}
+
 export function startRecording(options: StartRecordingOptions = {}): RecordingSession {
   // HARD: impossible to arm a session while nav REC switch is OFF.
   // Same DOM truth the PO sees — no silent capture / fake orange frame.
@@ -181,6 +270,13 @@ export function startRecording(options: StartRecordingOptions = {}): RecordingSe
       throw new Error(qa.reason ?? "QA overlay required before REC capture");
     }
   }
+  const recordedFrom = options.metadata?.recordedFrom ?? "dev";
+  const stagedAuthor = nextRecordingAuthor;
+  nextRecordingAuthor = null;
+  const author =
+    recordedFrom === "mcp"
+      ? "agent"
+      : options.metadata?.author ?? stagedAuthor ?? "user";
   activeSession = {
     id: newSessionId(),
     version: SESSION_VERSION,
@@ -194,11 +290,18 @@ export function startRecording(options: StartRecordingOptions = {}): RecordingSe
     metadata: {
       userAgent:
         typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-      recordedFrom: options.metadata?.recordedFrom ?? "dev",
+      recordedFrom,
+      author,
+      authStates: [isStudioLoggedIn() ? "user" : "guest"],
+      studioVersion: getStudioRelease().version,
+      recordingContractVersion: 1,
       ...options.metadata,
+      // MCP provenance cannot be downgraded by caller metadata.
+      ...(recordedFrom === "mcp" ? { author: "agent" as const } : {}),
     },
   };
   paused = false;
+  persistRecordingRecovery();
   notifyRecordingListeners();
   return activeSession;
 }
@@ -207,6 +310,7 @@ export function pauseRecording(): boolean {
   if (!activeSession) return false;
   paused = true;
   activeSession.paused = true;
+  persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
 }
@@ -215,6 +319,7 @@ export function resumeRecording(): boolean {
   if (!activeSession) return false;
   paused = false;
   activeSession.paused = false;
+  persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
 }
@@ -227,6 +332,7 @@ export function stopRecording(): RecordingSession | null {
   activeSession = null;
   paused = false;
   lastSession = finished;
+  persistRecordingRecovery();
   notifyRecordingListeners();
   return finished;
 }
@@ -239,6 +345,7 @@ export function clearStagedRecordingSession(): boolean {
   if (activeSession != null) return false;
   if (lastSession == null) return false;
   lastSession = null;
+  persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
 }
@@ -252,6 +359,7 @@ export function appendRecordingEvent(
     return activeSession;
   }
   activeSession.events.push(event);
+  persistRecordingRecovery();
   // STEPS counter + REC UI subscribe via useSyncExternalStore — must notify.
   notifyRecordingListeners();
   return activeSession;

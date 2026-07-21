@@ -27,12 +27,10 @@ import {
   beatHasCameraStep,
   isDwellLandingBeat,
   prepareBeatIndexAdvance,
+  shouldAdvanceAfterChainedManualDirectorBeat,
   shouldChainManualDirectorStepOnAdvance,
 } from "@/app/orchestra/journeyBeatDirector";
-import {
-  clearCameraBeatUndo,
-  playCameraBeat,
-} from "@/app/orchestra/cameraBeatPlayback";
+import { clearCameraBeatUndo, playCameraBeat } from "@/app/orchestra/cameraBeatPlayback";
 import { shouldCompleteJourneyPlayAfterScript } from "@/app/orchestra/journeyPlayAdvance";
 import {
   shouldAdvanceCompletedDirectorStep,
@@ -72,7 +70,6 @@ import {
 import type { JourneyBeat, JourneyRuntime, JourneyDefinition } from "@/app/orchestra/types";
 import type { ProjectPlayback } from "@/projects/types";
 import type { StudioTouchpointEntry } from "@/projects/types";
-
 export type ScreenPlaybackApi = {
   totalFrames: number;
   visibleCount: number;
@@ -92,7 +89,6 @@ export type ScreenPlaybackApi = {
   resetToEnd: (options?: { smooth?: boolean; force?: boolean }) => void;
   retreatFromFinale: () => void;
 };
-
 type Options = {
   active: boolean;
   journey: JourneyDefinition | undefined;
@@ -477,7 +473,12 @@ export function useJourneyPlayback({
           }
           return false;
         }
-        if (wasBookPlaybackAborted() || wasTraditionalPlaybackAborted()) {
+        const followingIndex = Math.min(beats.findIndex((candidate) => candidate === nextBeat || candidate.id === nextBeat.id) + 1, beats.length - 1);
+        const expectedNavigationHandoff = shouldAdvanceAfterChainedManualDirectorBeat(nextBeat, beats[followingIndex]);
+        if (
+          (wasBookPlaybackAborted() || wasTraditionalPlaybackAborted()) &&
+          !expectedNavigationHandoff
+        ) {
           lastBookAutoRunRef.current = null;
           lastTabAutoRunRef.current = null;
           return false;
@@ -487,14 +488,18 @@ export function useJourneyPlayback({
         } else if (nextBeat.tabScript) {
           lastTabAutoRunRef.current = `${beatIndexRef.current}:${nextBeat.id}`;
         }
+        if (expectedNavigationHandoff) {
+          enteredBeatRef.current = null;
+          setBeatIndex(followingIndex);
+          beatIndexRef.current = followingIndex;
+        }
         return true;
       } finally {
         suppressBeatEnterSyncRef.current = false;
       }
     },
-    [invokeBeatScript, playback, studioTabToIndex, reportScriptFailure, runtime, setScriptingActive]
+    [beats, invokeBeatScript, playback, studioTabToIndex, reportScriptFailure, runtime, setBeatIndex, setScriptingActive]
   );
-
   const advanceBeatIndexForManualChain = useCallback(
     (
       fromBeat: JourneyBeat,

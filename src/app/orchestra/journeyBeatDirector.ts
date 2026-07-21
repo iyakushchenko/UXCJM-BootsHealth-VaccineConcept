@@ -210,6 +210,21 @@ export function shouldChainManualDirectorStepOnAdvance(
 }
 
 /**
+ * A chained Reserve click navigates the prototype to Book Step 3 immediately.
+ * Move transport to the following camera beat in the same gesture so the
+ * runtime screen/touchpoint cannot outrun the active journey beat.
+ */
+export function shouldAdvanceAfterChainedManualDirectorBeat(
+  completedBeat: JourneyBeat | undefined,
+  followingBeat: JourneyBeat | undefined
+): boolean {
+  return (
+    completedBeat?.bookScript === "reserve-appointment" &&
+    beatHasCameraStep(followingBeat)
+  );
+}
+
+/**
  * Viewport scroll follow applies only to in-page prototype scroll — not popups.
  */
 export function touchpointExpectsViewportFollow(

@@ -169,7 +169,8 @@ Engine-only bridges (`src/app/`) remain for playback/recording — not for reinv
 3. Wire CTAs/links to real Studio destinations or explicit non-interactive treatment.  
 4. Prefer React + UXDS modules over new imperative screen scripts.  
 5. Confirm browse + at least the happy-path controls respond.  
-6. Then record / ask PO to record.
+6. Run **Map current page interactions**; resolve invalid contracts and explicitly classify decorative candidates ([INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md)). For Make → React work, compare against the pre-migration inventory and reject unexplained target loss.
+7. Then record / ask PO to record.
 
 ---
 

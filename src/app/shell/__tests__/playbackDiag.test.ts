@@ -134,6 +134,44 @@ describe("playbackDiag", () => {
     expect(bubbleConsole.length).toBeLessThan(4);
   });
 
+  it("allows smooth high-speed camera co-travel", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    const events = [22, 24, 23, 20].map((velocity, index) =>
+      playbackDiagChatBubbleMotion({
+        id: "r1",
+        phase: "frame",
+        y: 8 - index,
+        deltaY: -velocity,
+        trace: { scrollLock: true, deltaScrollTop: velocity },
+      })
+    );
+    expect(events.every((event) => !event?.bubble?.jump && !event?.bubble?.chop)).toBe(true);
+  });
+
+  it("flags a discontinuous co-travel step", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    for (const velocity of [4, 5]) {
+      playbackDiagChatBubbleMotion({
+        id: "r2", phase: "frame", y: 8, deltaY: -velocity,
+        trace: { scrollLock: true, deltaScrollTop: velocity },
+      });
+    }
+    const event = playbackDiagChatBubbleMotion({
+      id: "r2",
+      phase: "frame",
+      y: 7,
+      deltaY: -32,
+      trace: { scrollLock: true, deltaScrollTop: 32 },
+    });
+
+    expect(event?.bubble?.jump).toBe(true);
+    expect(event?.bubble?.jumpReason).toMatch(/layout ΔΔY=-27/);
+    expect(event?.bubble?.chop).toBe(true);
+    expect(event?.bubble?.chopReason).toMatch(/scrollTop ΔΔ=27/);
+    expect(getPlaybackDiagBundle().chatBubbleMotion.jumps).toBe(1);
+    expect(getPlaybackDiagBundle().chatBubbleMotion.chops).toBe(1);
+  });
+
   it("records type-in progress and asserts PASS", () => {
     const spy = vi.spyOn(console, "info").mockImplementation(() => {});
     playbackDiagTypeInStart("site-pilot", 20);
@@ -334,6 +372,22 @@ describe("playbackDiag", () => {
     expect(bundle.hubNav.last?.screenAfter).toBe("hub");
     expect(warn).toHaveBeenCalled();
     expect(info).toHaveBeenCalled();
+  });
+
+  it("keeps type-in lifecycle totals after the diagnostic ring rotates", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    playbackDiagTypeInStart("site-pilot", 32);
+    playbackDiagTypeInProgress(16);
+    playbackDiagTypeInProgress(32);
+    playbackDiagTypeInEnd(true);
+    for (let i = 0; i < 450; i += 1) {
+      playbackDiagLog({ kind: "beat", beatId: `rotation-${i}` });
+    }
+    const bundle = getPlaybackDiagBundle();
+    expect(bundle.typeIn.starts).toBe(1);
+    expect(bundle.typeIn.ends).toBe(1);
+    expect(bundle.typeIn.skips).toBe(0);
+    expect(bundle.typeIn.progressSamples.length).toBeGreaterThan(0);
   });
 
   it("screen-enter + nav-cross track blink forensics", () => {

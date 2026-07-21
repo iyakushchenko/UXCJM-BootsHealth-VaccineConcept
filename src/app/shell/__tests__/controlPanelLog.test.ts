@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   dumpControlPanelLog,
+  getControlPanelLogEntries,
   logControlPanel,
   registerControlPanelSnapshotProvider,
   resetControlPanelLogForTests,
@@ -35,6 +36,14 @@ describe("controlPanelLog", () => {
       blockReason: "canStepBack=false",
     });
     expect(console.warn).toHaveBeenCalled();
+  });
+
+  it("never lets a stale snapshot provider break control logging", () => {
+    registerControlPanelSnapshotProvider(() => {
+      throw new Error("stale provider");
+    });
+    expect(() => logControlPanel("nav:hub")).not.toThrow();
+    expect(getControlPanelLogEntries().at(-1)?.action).toBe("nav:hub");
   });
 
   it("warns on diagnostic open and dismiss", () => {

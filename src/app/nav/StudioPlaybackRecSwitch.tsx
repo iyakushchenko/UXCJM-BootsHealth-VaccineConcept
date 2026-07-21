@@ -28,6 +28,7 @@ export function StudioPlaybackRecSwitch({
       role="switch"
       aria-checked={checked}
       aria-label={checked ? "REC on" : "REC off"}
+      data-studio-action="rec-toggle"
       title={
         disabled
           ? disabledTitle

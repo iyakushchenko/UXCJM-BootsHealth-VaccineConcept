@@ -1,0 +1,222 @@
+/* PANEL — deliberately quiet chrome legibility + product wordmark. */
+.studio-nav-panel {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.78);
+}
+
+.studio-nav-panel :is(
+    .studio-nav-tab,
+    .studio-nav-product-mark,
+    .studio-nav-status-bar__position,
+    .studio-nav-status-bar__title,
+    .studio-nav-journey-menu__trigger,
+    .studio-nav-scenario__label,
+    .studio-nav-scenario__counter,
+    .studio-nav-scenario__mode-label,
+    .studio-nav-zoom-label,
+    .studio-nav-version__semver,
+    .studio-nav-version__channel
+  ) {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.78);
+}
+
+.studio-nav-product-mark {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  flex: 0 0 auto;
+  min-height: 16px;
+  margin: 0 3px 0 0;
+  padding: 1px 7px;
+  border: 1px solid rgba(95, 157, 151, 0.38);
+  border-radius: 3px;
+  color: #9fcac3;
+  background: #213633;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 1px 1px rgba(0, 0, 0, 0.35);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.045em;
+  white-space: nowrap;
+  cursor: default;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.studio-nav-product-mark:hover:not(:disabled),
+.studio-nav-product-mark[aria-expanded="true"] {
+  color: #b9ddd7;
+  border-color: rgba(122, 190, 183, 0.58);
+  background: #29433f;
+}
+
+.studio-nav-product-mark:focus-visible {
+  outline: 2px solid #f4cf72;
+  outline-offset: 2px;
+}
+
+.studio-nav-product-mark:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.studio-nav-product-about__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483638;
+  background: rgba(5, 7, 8, 0.66);
+  backdrop-filter: blur(1px);
+}
+
+.studio-nav-product-about__panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 2147483639;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  padding: 14px;
+  border: 1px solid rgba(122, 190, 183, 0.24);
+  border-radius: 5px;
+  color: var(--studio-shell-text);
+  background: var(--studio-shell-panel);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  text-shadow: var(--studio-shell-text-shadow);
+}
+
+.studio-nav-product-about__panel:focus-visible {
+  outline: 2px solid rgba(159, 202, 195, 0.62);
+  outline-offset: 2px;
+}
+
+.studio-nav-product-about__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+  margin-bottom: 0;
+}
+
+.studio-nav-product-about__head { justify-content: flex-end; }
+
+.studio-nav-product-about__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: -14px 28px 13px;
+  text-align: center;
+}
+
+.studio-nav-product-about__logo { width: 38px; height: 38px; margin-bottom: 8px; }
+
+.studio-nav-product-about__identity h2 {
+  margin: 0;
+  color: #a9d4cd;
+  font-size: 15px;
+  line-height: 19px;
+  letter-spacing: 0.06em;
+}
+
+.studio-nav-product-about__name,
+.studio-nav-product-about__version { margin: 0; }
+.studio-nav-product-about__name { color: rgba(255,255,255,.72); font-size: 10px; line-height: 1.4; }
+.studio-nav-product-about__version { color: rgba(255,255,255,.42); font-size: 9px; line-height: 1.5; text-transform: capitalize; }
+
+.studio-nav-product-about__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.62);
+  background: #202423;
+  cursor: default;
+}
+
+.studio-nav-product-about__close:hover,
+.studio-nav-product-about__close:focus-visible {
+  color: #fff;
+  border-color: rgba(159, 202, 195, 0.38);
+  background: #292e2d;
+}
+
+.studio-nav-product-about__close:focus-visible {
+  outline: 2px solid #f4cf72;
+  outline-offset: 1px;
+}
+
+.studio-nav-product-about__intro,
+.studio-nav-product-about__body,
+.studio-nav-product-about__maintainer,
+.studio-nav-product-about__alpha,
+.studio-nav-product-about__copyright {
+  margin: 0 0 11px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.studio-nav-product-about__intro { color: rgba(255, 255, 255, 0.88); }
+.studio-nav-product-about__body { color: rgba(255, 255, 255, 0.68); }
+.studio-nav-product-about__maintainer { color: rgba(255, 255, 255, 0.62); }
+.studio-nav-product-about__alpha {
+  padding: 8px 9px;
+  border-left: 2px solid rgba(159, 202, 195, 0.5);
+  color: rgba(255,255,255,.7);
+  background: rgba(159, 202, 195, 0.06);
+}
+.studio-nav-product-about__copyright { margin-bottom: 0; color: rgba(255,255,255,.45); font-size: 9px; text-align: center; }
+.studio-nav-product-about__copyright span { color: #9fcac3; }
+.studio-nav-product-about__copyright a { color: rgba(185,221,215,.78); text-decoration: none; }
+.studio-nav-product-about__copyright a:hover { color: #fff; text-decoration: underline; }
+.studio-nav-product-about__copyright a:focus-visible { outline: 2px solid #f4cf72; outline-offset: 2px; }
+
+.studio-nav-product-about__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.studio-nav-product-about__list div {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+}
+
+.studio-nav-product-about__list dt,
+.studio-nav-product-about__list dd {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.studio-nav-product-about__list dt {
+  color: #9fcac3;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.studio-nav-product-about__list dd {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.studio-nav-product-about__panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.studio-app-root,
+:root {
+  --studio-shell-bg: #111514;
+  --studio-shell-panel: #151918;
+  --studio-shell-panel-raised: #202423;
+  --studio-shell-text: rgba(255, 255, 255, 0.82);
+  --studio-shell-muted: rgba(255, 255, 255, 0.62);
+  --studio-shell-accent: #9fcac3;
+  --studio-shell-border: rgba(122, 190, 183, 0.24);
+  --studio-shell-text-shadow: 0 1px 0 rgba(0, 0, 0, 0.72);
+}

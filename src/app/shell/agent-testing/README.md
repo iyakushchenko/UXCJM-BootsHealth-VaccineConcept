@@ -125,6 +125,12 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Do not:** invent hover/loader chrome; click under open modal (overlay eyes); claim PROVEN without MCP probe; await CI on routine ships (R12); DDOS yourself by re-reading the whole chat instead of consuming latches.
 
+**Autosave:** every normally completed session is saved to the capped twenty-session evidence history in `sessionStorage`; FAIL keeps its failure reason. This preserves green and red evidence without browser download spam.
+
+**Evidence pack:** `__studioDownloadQaEvidencePack()` downloads the complete capped history with an automatic console ↔ QA chronology ↔ raw diagnostic parity verdict and cause-first issues.
+
+**Token-lean read:** agents call `__studioGetQaAgentBrief()` first. It returns only verdict, clustered root cause, affected sessions, cause-first cue, baseline delta, and the next targeted command. Raw sessions remain available only when that brief requires them.
+
 **Save Log:** auto-pauses capture (halts Play) then downloads **current** session dump as `qa-{manual|agent|observe}-{iso}.json` (session kind in the name — not `agent-testing-dump-manual-…`). One timeline row.
 
 **Control room (manual/observe):** interactive controls only (buttons/toggles/tabs/inputs) → `Control room: …`. Empty-space nav clicks are ignored. Pause / CAPTURE off stops **all** interaction logging until Resume. One gesture → one line (click-canonical coalesce).

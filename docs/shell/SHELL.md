@@ -116,13 +116,13 @@ Add a new project by creating its folder and appending to this array. See [PROJE
 | Project / persona types + registry | Dynamic project import / code-splitting |
 | Journey beats + personas in `projects/boots-pharmacy/` | Generalise script ID types per project |
 | Generic `journeyUtils`, `shouldSkipBeat`, `playback.abortAll()` | Move `useScrollFill` into shell or project util |
-| Studio dropdowns; `StudioNavPanel` screens from project | Puma wire + Figma frame |
+| Studio dropdowns; `StudioNavPanel` screens from project | UXDS - Larkin wire + concept frame |
 | `useStudio` + `getProjectContent()` + `getProjectWire()` | Delete legacy duplicate trees under `src/app/hub/`, `src/app/popups/` (export script still references them) |
 | **2a–2f:** data, dom, screens, playback, chrome, hub, popups, overlays, Figma frame | |
 | **Phase 3:** `BootsPharmacyProjectView` wire + slim `App.tsx` shell host | |
 | **Phase 4:** Per-project nav/hub via `studioNavStorage.ts`; project switch resets tab | |
 | **Phase 5:** Playback abort imports point at `projects/boots-pharmacy/playback/`; shell keeps `scenarioEngine`, `demoCursor` | |
 
-`App.tsx` is the shell host: studio state, orchestra playback, `StudioNavPanel`, and `getProjectWire(projectId)`. Boots product DOM, popups, and effects live in `projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx`. Projects without `wireComponent` (e.g. Puma) render `ProjectPlaceholder`.
+`App.tsx` is the shell host: studio state, orchestra playback, `StudioNavPanel`, and `getProjectWire(projectId)`. Boots product DOM, popups, and effects live in `projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx`. Projects without `wireComponent` (e.g. UXDS - Larkin) render `ProjectPlaceholder`.
 
 **Playback changes:** see [PLAYBACK.md](./PLAYBACK.md). Run `npm run test` after editing beats or scripts.

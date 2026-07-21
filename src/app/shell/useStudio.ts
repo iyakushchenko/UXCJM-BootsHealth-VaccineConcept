@@ -219,27 +219,10 @@ export function personaSelectOptions(project: ProjectDefinition) {
   }));
 }
 
-function titleCaseProjectSlug(slug: string): string {
-  return slug.charAt(0).toUpperCase() + slug.slice(1);
-}
-
-/** Brand-only label for the collapsed project dropdown trigger. */
-function projectTriggerLabel(project: ProjectDefinition): string {
-  return titleCaseProjectSlug(project.brand);
-}
-
-/** Full project label for the dropdown panel (e.g. Boots - Pharmacy). */
-function projectMenuLabel(project: ProjectDefinition): string {
-  if (project.subbrand) {
-    return `${titleCaseProjectSlug(project.brand)} - ${titleCaseProjectSlug(project.subbrand)}`;
-  }
-  return project.label;
-}
-
 export function projectSelectOptions(projects: ProjectDefinition[]) {
   return projects.map((project) => ({
     id: project.id,
-    label: projectMenuLabel(project),
-    shortLabel: projectTriggerLabel(project),
+    label: project.label,
+    shortLabel: project.shortLabel ?? project.label,
   }));
 }

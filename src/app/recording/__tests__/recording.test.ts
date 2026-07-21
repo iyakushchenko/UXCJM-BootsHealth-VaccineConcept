@@ -15,10 +15,12 @@ import {
   resumeRecording,
   serializeRecordingSession,
   stageRecordingSession,
+  stageNextRecordingAuthor,
   startRecording,
   stopRecording,
   subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
+import { setStudioLoggedIn } from "@/app/shell/studioAuthSession";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import {
   compileRecordingToBeatTimeline,
@@ -138,12 +140,14 @@ function sampleSession(): RecordingSession {
 
 describe("recordingSession", () => {
   beforeEach(() => {
+    setStudioLoggedIn(false);
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
     mountRecModeOn();
   });
 
   afterEach(() => {
+    setStudioLoggedIn(false);
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
     document.body.innerHTML = "";
@@ -179,6 +183,21 @@ describe("recordingSession", () => {
     expect(finished?.stoppedAt).toBeDefined();
     expect(getActiveRecordingSession()).toBeNull();
     expect(getLastRecordingSession()?.id).toBe(finished?.id);
+  });
+
+  it("stamps agent provenance and every auth state used during REC", () => {
+    stageNextRecordingAuthor("agent");
+    const session = startRecording({ metadata: { recordedFrom: "ui" } });
+    expect(session.metadata).toMatchObject({
+      author: "agent",
+      authStates: ["guest"],
+      recordingContractVersion: 1,
+    });
+    setStudioLoggedIn(true);
+    expect(getActiveRecordingSession()?.metadata?.authStates).toEqual([
+      "guest",
+      "user",
+    ]);
   });
 
   it("stages imported sessions and notifies subscribers", () => {

@@ -54,6 +54,32 @@ describe("qaDiagGate", () => {
     expect(hydrated.logger).toBe(false);
   });
 
+  it("preserves paused/finale state and structured severity across refresh", () => {
+    openQaDiagGate({ sessionKind: "agent" });
+    setQaDiagSessionMeta({ capturePaused: true, finaleSealed: true });
+    const fullMessage = "m".repeat(280);
+    appendQaDiagRing({
+      kind: "alarm",
+      label: "Blocking failure",
+      outcome: "fail",
+      action: fullMessage,
+    });
+    appendQaDiagRing({ kind: "system", label: "Attention", outcome: "soft-fail" });
+
+    const gate = sessionStorage.getItem("studioQaDiagGate");
+    const ring = sessionStorage.getItem("studioQaDiagRing");
+    resetQaDiagGateForTests();
+    if (gate) sessionStorage.setItem("studioQaDiagGate", gate);
+    if (ring) sessionStorage.setItem("studioQaDiagRing", ring);
+
+    const hydrated = hydrateQaDiagGate();
+    expect(hydrated.capturePaused).toBe(true);
+    expect(hydrated.finaleSealed).toBe(true);
+    expect(hydrated.ring.map((event) => event.outcome)).toContain("fail");
+    expect(hydrated.ring.map((event) => event.outcome)).toContain("soft-fail");
+    expect(hydrated.ring.find((event) => event.kind === "alarm")?.action).toBe(fullMessage);
+  });
+
   it("legacy gate-open without kind → agent when not logger", () => {
     sessionStorage.setItem(
       "studioQaDiagGate",

@@ -23,6 +23,7 @@ import {
   compileRecordingToBeatTimeline,
 } from "@/app/recording/recordingReplay";
 import { SCROLL_STOP_DWELL_MS } from "@/app/recording/scrollStopDetect";
+import { assertSemanticAgentCjmLabel } from "@/app/recording/recordingMetadata";
 import type {
   CompiledBeatSegment,
   CompiledRecordingTimeline,
@@ -302,7 +303,8 @@ function inferKind(beat: JourneyBeat): JourneyBeatKind {
 
 function recordedClickFromDemoEvent(
   event: Extract<RecordedEvent, { kind: "demo-click" }>,
-  pendingScroll: Extract<RecordedEvent, { kind: "scroll" }> | null
+  pendingScroll: Extract<RecordedEvent, { kind: "scroll" }> | null,
+  activeModalId?: string
 ): JourneyBeatRecordedClick | null {
   if (!isUsablePlaybackSelectorChain(event.selectorChain)) return null;
   const click: JourneyBeatRecordedClick = {
@@ -319,18 +321,10 @@ function recordedClickFromDemoEvent(
       /* hang-safe */
     }
   }
-  // Infer choose-pharmacy for avail targets even if snapshot URL lagged.
-  if (
-    !click.modalId &&
-    click.selectorChain.some(
-      (s) =>
-        /data-studio-action="avail-|data-studio-avail-|data-studio-modal="choose-pharmacy"/i.test(
-          s
-        )
-    )
-  ) {
-    click.modalId = "choose-pharmacy";
-  }
+  // REC writes modal open/close as ordered screen URL events. A product click
+  // inside the dialog commonly has no URL in its own snapshot, so inherit the
+  // latest active modal instead of guessing from project-specific selectors.
+  if (!click.modalId && activeModalId) click.modalId = activeModalId;
   if (
     pendingScroll &&
     isUsablePlaybackSelectorChain(pendingScroll.selectorChain)
@@ -343,6 +337,31 @@ function recordedClickFromDemoEvent(
     }
   }
   return click;
+}
+
+type RecordedModalTransition = {
+  observed: boolean;
+  modalId?: string;
+};
+
+/** Read an explicit recorded URL state; `observed + undefined` means closed. */
+function readRecordedModalTransition(event: RecordedEvent): RecordedModalTransition {
+  const studioUrl =
+    event.kind === "screen" && typeof event.studioUrl === "string"
+      ? event.studioUrl
+      : typeof event.snapshot?.studioUrl === "string"
+        ? event.snapshot.studioUrl
+        : undefined;
+  if (studioUrl == null) return { observed: false };
+  try {
+    const q = studioUrl.startsWith("?") ? studioUrl : `?${studioUrl}`;
+    return {
+      observed: true,
+      modalId: new URLSearchParams(q).get("modal")?.trim() || undefined,
+    };
+  } catch {
+    return { observed: false };
+  }
 }
 
 type PendingCamera = {
@@ -464,8 +483,11 @@ function compileSegmentToBeat(
   let onEnterApplied = false;
   let recordedClickApplied = false;
   let pendingScroll: Extract<RecordedEvent, { kind: "scroll" }> | null = null;
+  let activeModalId: string | undefined;
 
   for (const event of segment.events) {
+    const modalTransition = readRecordedModalTransition(event);
+    if (modalTransition.observed) activeModalId = modalTransition.modalId;
     if (event.kind === "director-script" && !scriptApplied) {
       scriptApplied = applyScriptToBeat(
         beat,
@@ -538,7 +560,11 @@ function compileSegmentToBeat(
     }
 
     if (event.kind === "demo-click" && !recordedClickApplied && !scriptApplied) {
-      const click = recordedClickFromDemoEvent(event, pendingScroll);
+      const click = recordedClickFromDemoEvent(
+        event,
+        pendingScroll,
+        activeModalId
+      );
       if (click) {
         beat.recordedClick = click;
         recordedClickApplied = true;
@@ -605,6 +631,7 @@ function compileFallbackBeats(
   let pendingScroll: Extract<RecordedEvent, { kind: "scroll" }> | null = null;
   /** Last scroll-stop not yet consumed by a camera beat / click pair. */
   let pendingStop: PendingCamera | null = null;
+  let activeModalId: string | undefined;
   const landedScreens = new Set<string>();
 
   const flushPending = () => {
@@ -637,6 +664,9 @@ function compileFallbackBeats(
     screenIdToProtoTab(projectId, currentScreenId);
 
   for (const event of events) {
+    const modalTransition = readRecordedModalTransition(event);
+    if (modalTransition.observed) activeModalId = modalTransition.modalId;
+
     if (event.kind === "scroll") {
       // New scroll motion ends the prior settle wait → emit camera first.
       if (pendingStop) flushPendingCamera();
@@ -686,7 +716,11 @@ function compileFallbackBeats(
     }
 
     if (event.kind === "demo-click") {
-      const click = recordedClickFromDemoEvent(event, pendingScroll);
+      const click = recordedClickFromDemoEvent(
+        event,
+        pendingScroll,
+        activeModalId
+      );
       const stopDwell = pendingStop?.dwellMs;
       pendingScroll = null;
       if (!click) {
@@ -973,6 +1007,12 @@ export function saveRecordingAsJourney(
     personaId?: PersonaId | string;
   }
 ): SaveRecordingAsJourneyResult {
+  if (session.metadata?.author === "agent") {
+    if (!options?.label?.trim()) {
+      throw new Error("Agent-created CJMs require an explicit semantic title.");
+    }
+    assertSemanticAgentCjmLabel(options.label);
+  }
   const compiled = compileRecordingToJourney(session, {
     ...options,
     addAsNew: options?.addAsNew !== false,
@@ -981,6 +1021,17 @@ export function saveRecordingAsJourney(
     session,
     compiled.journey
   );
+  const capturedProductClicks = session.events.filter(
+    (event) => event.kind === "demo-click"
+  );
+  const compiledProductClicks = compiled.journey.beats.filter(
+    (beat) => Boolean(beat.recordedClick?.selectorChain.length)
+  );
+  if (capturedProductClicks.length > 0 && compiledProductClicks.length === 0) {
+    throw new Error(
+      "Add as CJM refused — recorded interactions have no stable playback target"
+    );
+  }
   if (!startAssert.ok) {
     const humanRec =
       Boolean(session.metadata?.startScreenId) ||

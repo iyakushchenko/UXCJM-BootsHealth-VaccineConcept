@@ -6,6 +6,8 @@ export type StudioNavDeleteRecordedCjmProps = {
   journeyId: string;
   label: string;
   onConfirmDelete: () => void;
+  disabled?: boolean;
+  disabledTitle?: string;
 };
 
 /** PLP Reset Filters trash glyph — sized for Studio nav step buttons. */
@@ -44,6 +46,8 @@ export function StudioNavDeleteRecordedCjm({
   journeyId,
   label,
   onConfirmDelete,
+  disabled = false,
+  disabledTitle,
 }: StudioNavDeleteRecordedCjmProps) {
   const rootRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
@@ -71,6 +75,8 @@ export function StudioNavDeleteRecordedCjm({
   }, [open]);
 
   const openConfirm = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (disabled) return;
     flashControlRoomButton(event.currentTarget, "studio-nav-scenario__btn--tap");
     logControlPanel("recording:delete-cjm-open", {
       journeyId,
@@ -100,10 +106,12 @@ export function StudioNavDeleteRecordedCjm({
         type="button"
         className="studio-nav-step-btn studio-nav-scenario__btn"
         aria-label={`Delete CJM ${label}`}
-        title={`Delete recorded CJM: ${label}`}
+        title={disabled ? disabledTitle : `Delete recorded CJM: ${label}`}
+        disabled={disabled}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={openConfirm}
+        data-studio-action="delete-cjm"
       >
         <TrashGlyph />
       </button>
@@ -122,14 +130,20 @@ export function StudioNavDeleteRecordedCjm({
             <button
               type="button"
               className="studio-nav-delete-cjm__action"
-              onClick={cancel}
+              onClick={(event) => {
+                event.stopPropagation();
+                cancel();
+              }}
             >
               Cancel
             </button>
             <button
               type="button"
               className="studio-nav-delete-cjm__action studio-nav-delete-cjm__action--danger"
-              onClick={confirm}
+              onClick={(event) => {
+                event.stopPropagation();
+                confirm();
+              }}
             >
               DELETE
             </button>

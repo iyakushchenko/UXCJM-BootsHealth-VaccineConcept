@@ -871,6 +871,9 @@ async function animateCursorTravel(
   const travelMs = Math.max(1, durationMs);
   let controls!: AnimationPlaybackControls;
   await new Promise<void>((resolve) => {
+    // Keep the scheduling realm captured. Test/browser teardown can remove the
+    // global `window` before this safety ceiling fires.
+    const timerWindow = window;
     let settled = false;
     const settle = () => {
       if (settled) return;
@@ -918,21 +921,21 @@ async function animateCursorTravel(
     });
     activeTravelControls = controls;
     // Abort poll — stop() alone never settles FM's thenable.
-    const guard = window.setInterval(() => {
+    const guard = timerWindow.setInterval(() => {
       if (settled) {
-        window.clearInterval(guard);
+        timerWindow.clearInterval(guard);
         return;
       }
       if (aborted()) {
-        window.clearInterval(guard);
+        timerWindow.clearInterval(guard);
         stopAndSettle();
       }
     }, 32);
     // Natural complete path (thenable resolves). Keep ceiling tight so tests
     // still observe press within their sampling windows.
     Promise.resolve(controls).then(settle, settle);
-    window.setTimeout(() => {
-      window.clearInterval(guard);
+    timerWindow.setTimeout(() => {
+      timerWindow.clearInterval(guard);
       if (!settled) stopAndSettle();
     }, travelMs + 80);
   });

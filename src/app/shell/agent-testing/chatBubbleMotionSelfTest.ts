@@ -148,6 +148,7 @@ export function analyzeChatBubbleMotionSamples(
     let maxAbsDeltaTransformY = 0;
     let framesWithScroll = 0;
     let framesWithTrace = 0;
+    let previousDeltaY: number | null = null;
     for (const s of list) {
       const b = s.bubble as
         | (NonNullable<(typeof list)[0]["bubble"]> & {
@@ -164,15 +165,11 @@ export function analyzeChatBubbleMotionSamples(
       if (!b) continue;
       if (b.jump) jumps += 1;
       if (b.chop) chops += 1;
-      if (typeof b.deltaY === "number") {
-        // Co-travel moves layoutY with scrollTop — exclude from hard layout gate.
-        const coTravel =
-          b.trace?.scrollLock === true ||
-          (typeof b.trace?.deltaScrollTop === "number" &&
-            Math.abs(b.trace.deltaScrollTop) > 0.5);
-        if (!coTravel) {
-          maxAbsDeltaY = Math.max(maxAbsDeltaY, Math.abs(b.deltaY));
+      if (b.phase === "frame" && typeof b.deltaY === "number") {
+        if (previousDeltaY != null) {
+          maxAbsDeltaY = Math.max(maxAbsDeltaY, Math.abs(b.deltaY - previousDeltaY));
         }
+        previousDeltaY = b.deltaY;
       }
       if (typeof b.deltaTransformY === "number") {
         maxAbsDeltaTransformY = Math.max(
@@ -226,7 +223,7 @@ export function analyzeChatBubbleMotionSamples(
     if (chops > 0) detailParts.push(`chops=${chops}`);
     if (!entryPaint && !continuousY) detailParts.push("y not continuous");
     if (!entryPaint && maxAbsDeltaY > 10) {
-      detailParts.push(`layoutΔY=${maxAbsDeltaY.toFixed(1)}>10`);
+      detailParts.push(`layoutΔΔY=${maxAbsDeltaY.toFixed(1)}>10`);
     }
     if (!entryPaint && maxAbsDeltaTransformY > 4.5) {
       detailParts.push(`transformΔy=${maxAbsDeltaTransformY.toFixed(2)}>4.5`);

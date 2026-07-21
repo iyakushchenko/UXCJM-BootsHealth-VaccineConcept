@@ -7,6 +7,7 @@ import {
   beatHasDirectorScript,
   isDwellLandingBeat,
   shouldChainManualDirectorStepOnAdvance,
+  shouldAdvanceAfterChainedManualDirectorBeat,
   touchpointExpectsViewportFollow,
 } from "@/app/orchestra/journeyBeatDirector";
 import {
@@ -142,6 +143,28 @@ describe("journeyBeatDirector", () => {
     ).toBe(true);
     expect(
       shouldChainManualDirectorStepOnAdvance(bookDateBeat, bookReserveBeat)
+    ).toBe(false);
+  });
+
+  it("advances a chained Reserve click to the Book Step 3 camera beat", () => {
+    const confirmationCameraBeat: JourneyBeat = {
+      id: "book-step3-camera",
+      label: "Book Step 3 — show page",
+      kind: "camera",
+      protoTab: 7,
+      camera: {
+        selectorChain: ['[data-studio-open-appointment="true"]'],
+      },
+    };
+
+    expect(
+      shouldAdvanceAfterChainedManualDirectorBeat(
+        bookReserveBeat,
+        confirmationCameraBeat
+      )
+    ).toBe(true);
+    expect(
+      shouldAdvanceAfterChainedManualDirectorBeat(bookTimeBeat, bookReserveBeat)
     ).toBe(false);
   });
 

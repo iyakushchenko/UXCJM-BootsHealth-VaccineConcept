@@ -63,7 +63,7 @@ export function buildQaAgentResumeCard(pendingNote?: string): QaAgentResumeCard 
   const offline = isQaAgentOfflineForMessage();
 
   const markdown = [
-    `## UX Studio — resume QA (agent was offline)`,
+    `## UXML — resume QA (agent was offline)`,
     ``,
     `**Studio:** ${studioUrl}`,
     `**Version / tip:** ${version}`,

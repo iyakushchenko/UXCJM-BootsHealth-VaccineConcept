@@ -31,6 +31,7 @@ A page is **PAGE FINAL PASS hard-green** only when **all** are true:
 3. Team check green for that screen — including **`Knowledge used:`** per role, Uma fidelity + typical DS checks, Bea register (no Missing P0), Quinn interaction matrix.  
 4. **This gate green:** `npm run check:page-final-pass` — manifest stamp `status: "proven"` + full checklist + source contracts (see below).  
 5. Quinn MCP prove cited after stamp (manifest notes may say “Quinn MCP follow-up” — Arch does **not** open the next page until Quinn team-check matrix PASS).
+6. **Interaction inventory attached:** migrated page `readinessPass=true`, no unexplained target loss versus its pre-migration Make inventory, and intentional decorative/retired controls are recorded ([INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md)).
 
 PROVEN / tests green alone are **insufficient** to open the next page. Final Pass is the erase-Make **page-close** bar.
 

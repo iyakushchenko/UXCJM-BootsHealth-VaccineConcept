@@ -163,6 +163,14 @@ export type RecordingJourneyCatalogEntry = {
 export type RecordingSessionMetadata = {
   userAgent?: string;
   recordedFrom?: "mcp" | "dev" | "ui";
+  /** Who physically/directly drove REC. Agent helpers must stamp `agent`. */
+  author?: "agent" | "user";
+  /** Auth states encountered during REC, in first-seen order. */
+  authStates?: Array<"guest" | "user">;
+  /** UX Studio release that created the session. */
+  studioVersion?: string;
+  /** Metadata/diagnostic contract for forward compatibility checks. */
+  recordingContractVersion?: 1;
   notes?: string;
   /**
    * Screen id at ● Start (seeded). Compile + Add as CJM assert first beat

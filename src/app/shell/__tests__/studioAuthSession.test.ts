@@ -8,7 +8,16 @@ import {
 
 describe("studioAuthSession", () => {
   beforeEach(() => {
+    sessionStorage.clear();
     setStudioLoggedIn(false);
+  });
+
+  it("persists auth truth for a hard route handoff", async () => {
+    setStudioLoggedIn(true);
+    expect(sessionStorage.getItem("studioAuthSessionV1")).toBe("user");
+    vi.resetModules();
+    const reloaded = await import("@/app/shell/studioAuthSession");
+    expect(reloaded.isStudioLoggedIn()).toBe(true);
   });
 
   it("defaults logged out", () => {

@@ -21,6 +21,7 @@ export function StudioJourneySwitch({
       role="switch"
       aria-checked={checked}
       aria-label="CJM"
+      data-studio-action="cjm-toggle"
       title={
         disabled && disabledTitle
           ? disabledTitle

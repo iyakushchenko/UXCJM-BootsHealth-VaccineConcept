@@ -37,6 +37,8 @@ export type AgentTestingLogEntry = {
   outcome: AgentTestingStepOutcome;
   kind: AgentTestingLogKind;
   durationMs?: number;
+  /** Whether duration is the event's own runtime or elapsed time since the previous row. */
+  durationKind?: "operation" | "since-previous";
   /** Coalesced repeat count for identical helper spam. */
   count?: number;
   beatId?: string;

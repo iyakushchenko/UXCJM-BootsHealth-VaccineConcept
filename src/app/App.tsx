@@ -1,11 +1,4 @@
-import {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import StudioNavPanel from "@/app/nav/StudioNavPanel";
 import { StudioNavScenarioControls } from "@/app/nav/StudioNavScenarioControls";
 import {
@@ -31,11 +24,7 @@ import {
   resolveBeatIndexForScreenTab,
   resolveJourneyStartBeat,
 } from "@/app/orchestra/journeyUtils";
-import type {
-  JourneyRuntime,
-  JourneyDefinition,
-  OrchestraModeId,
-} from "@/app/orchestra/types";
+import type { JourneyRuntime, JourneyDefinition, OrchestraModeId } from "@/app/orchestra/types";
 import type { PersonaId, ProjectId, ProjectWireApi } from "@/projects/types";
 import {
   cancelDemoCursorJourneyEndFade,
@@ -69,6 +58,7 @@ import { ProjectPlaceholder } from "@/app/shell/ProjectPlaceholder";
 import { PlaybackShield } from "@/app/shell/PlaybackShield";
 import { PlaybackDiagnosticOverlay } from "@/app/shell/PlaybackDiagnosticOverlay";
 import type { PlaybackDiagnosticError } from "@/app/shell/playbackDiagnostic";
+import { refuseIncompatibleCjm } from "@/app/shell/cjmCompatibilityPreflight";
 import {
   attachPlaybackInteractionToDiagnostic,
   buildPlaybackStudioSnapshot,
@@ -77,7 +67,7 @@ import {
 } from "@/app/shell/playbackStudioSnapshot";
 import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
 import { refusePlayIfQaBlocks } from "@/app/shell/agent-testing/agentTestingListen";
-import { clearQaPlaybackBlocksForReset } from "@/app/shell/agent-testing";
+import { clearQaPlaybackBlocksForReset } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { playbackDiagHubNav } from "@/app/shell/playbackDiag";
 import {
   disableCursorQaEyes,
@@ -94,6 +84,7 @@ import {
   registerControlPanelSnapshotProvider,
 } from "@/app/shell/controlPanelLog";
 import { registerStudioMcpHelpers } from "@/app/shell/studioMcpHelpers";
+import { useInteractionInventoryRegistration } from "@/app/shell/useInteractionInventoryRegistration";
 import {
   captureTouchpointChange,
   registerRecordingSnapshotProvider,
@@ -103,6 +94,7 @@ import {
   pauseRecording,
 } from "@/app/recording/recordingSession";
 import { replayRecordingSession } from "@/app/recording/recordingReplay";
+import { buildCjmMetadataCatalog } from "@/app/recording/recordingMetadata";
 import { useRecordingReplayBridge } from "@/app/recording/useRecordingReplayBridge";
 import { isRecModeLocked } from "@/app/nav/studioModeXor";
 import { registerJourneyMcpHelpers } from "@/app/journey/journeyMcpHelpers";
@@ -183,7 +175,6 @@ import {
   isStudioLoggedIn,
 } from "@/app/shell/studioAuthSession";
 import { AVAIL_INTENT } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
-
 const CHAT_SCREEN_SELECTOR = ".studio-viewport > div > div:nth-child(10)";
 
 export default function App() {
@@ -214,13 +205,14 @@ export default function App() {
     SCENARIO_SCREENS,
     studioTabToIndex,
   } = projectContent;
-
+  const hasProjectPages = SCREENS.length > 0;
   const [current, setCurrent] = useState(() => {
     const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
     if (fromUrl && !fromUrl.hubOpen) return fromUrl.current;
     return readStoredNavIndex(studioProjectId, SCREENS.length);
   });
   const [hubOpen, setHubOpen] = useState(() => {
+    if (!hasProjectPages) return true;
     const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
     if (fromUrl) return fromUrl.hubOpen;
     return readStoredHubOpen(studioProjectId);
@@ -310,7 +302,9 @@ export default function App() {
     prevProjectIdRef.current = studioProjectId;
     // Deep link wins over per-project session nav when `screen` is present.
     const fromUrl = resolveNavFromScreenId(parseStudioUrl().screenId, SCREENS);
-    if (fromUrl) {
+    if (!hasProjectPages) {
+      setCurrent(0); setHubOpen(true);
+    } else if (fromUrl) {
       setHubOpen(fromUrl.hubOpen);
       if (!fromUrl.hubOpen) setCurrent(fromUrl.current);
     } else {
@@ -318,7 +312,7 @@ export default function App() {
       setHubOpen(readStoredHubOpen(studioProjectId));
     }
     wireApiRef.current = null;
-  }, [SCREENS, studioProjectId]);
+  }, [SCREENS, hasProjectPages, studioProjectId]);
 
   useEffect(() => {
     storeNavIndex(studioProjectId, current);
@@ -1517,7 +1511,7 @@ export default function App() {
 
   const go = useCallback(
     (i: number) => {
-      if (navPlaybackLockedRef.current || studioJourneyModeRef.current) return;
+      if (!hasProjectPages || navPlaybackLockedRef.current || studioJourneyModeRef.current) return;
       const wasHub = hubOpen;
       const next = Math.max(0, Math.min(SCREENS.length - 1, i));
       if (!wasHub && next === current) return;
@@ -1533,11 +1527,13 @@ export default function App() {
         setCurrent(next);
       });
     },
-    [current, hubOpen, SCREENS, syncJourneyBeatToScreen]
+    [current, hasProjectPages, hubOpen, SCREENS, syncJourneyBeatToScreen]
   );
   goRef.current = go;
 
   const openHub = useCallback(() => {
+    if (navPlaybackLockedRef.current || studioJourneyModeRef.current) return;
+    if (!hasProjectPages) { setHubOpen(true); return; }
     runNavTransitionRef.current(() => {
       if (hubOpen) {
         wireApiRef.current?.saveHubScroll();
@@ -1551,13 +1547,16 @@ export default function App() {
       playbackDiagHubNav({ reason: "user-nav-hub", source: "App.openHub" });
       setHubOpen(true);
     });
-  }, [hubOpen]);
+  }, [hasProjectPages, hubOpen]);
 
   const resetPrototype = useCallback(() => {
+    if (navPlaybackLockedRef.current || studioJourneyModeRef.current) return;
     wireApiRef.current?.resetPrototype();
   }, []);
 
-  const navLabel = hubOpen ? HUB_LABEL : SCREENS[current]?.label ?? "";
+  const navLabel = !hasProjectPages || hubOpen ? HUB_LABEL : SCREENS[current]?.label ?? "";
+
+  useInteractionInventoryRegistration({ projectId: studioProjectId, screens: SCREENS, hubLabel: HUB_LABEL, hubOpenRef, currentRef, goRef, hubRootRef: hubScrollElRef, screenRootRef: prototypeScrollElRef, wireApiRef });
 
   useEffect(() => {
     const el = tabsScrollRef.current;
@@ -1618,6 +1617,23 @@ export default function App() {
     [orchestraModeId, studioJourneys]
   );
 
+  const cjmMetadataById = useMemo(
+    () =>
+      buildCjmMetadataCatalog(studioJourneys, (journeyId) =>
+        readPersistedRecordingForJourney(
+          studioProjectId,
+          studioPersonaId,
+          journeyId
+        )
+      ),
+    [studioJourneys, studioProjectId, studioPersonaId]
+  );
+
+  const refuseTransportForIncompatibleCjm = useCallback(
+    () => refuseIncompatibleCjm(cjmMetadataById[orchestraModeId], handlePlaybackDiagnostic),
+    [cjmMetadataById, orchestraModeId, handlePlaybackDiagnostic]
+  );
+
   const refreshJourneysAfterImport = useCallback(() => {
     resetBeatIndex();
     transportActionsRef.current.jumpToStart();
@@ -1648,18 +1664,6 @@ export default function App() {
       studioProjectId,
     ]
   );
-
-  const deleteRecordedCjmControl = useMemo(() => {
-    if (!isDeletableRecordedJourneyId(orchestraModeId)) return null;
-    const label =
-      orchestraModes.find((mode) => mode.id === orchestraModeId)?.label ??
-      orchestraModeId;
-    return {
-      journeyId: orchestraModeId,
-      label,
-      onConfirmDelete: () => handleDeleteRecordedCjm(orchestraModeId),
-    };
-  }, [handleDeleteRecordedCjm, orchestraModeId, orchestraModes]);
 
   const onRecordingAddedAsCjm = useCallback(
     (_s: unknown, saved?: { journeyId: string }) => {
@@ -1811,7 +1815,7 @@ export default function App() {
             action === "step-forward" ||
             action === "step-back" ||
             action === "jump-to-end") &&
-          refusePlayIfQaBlocks()
+          (refuseTransportForIncompatibleCjm() || refusePlayIfQaBlocks())
         ) {
           return;
         }
@@ -1844,7 +1848,7 @@ export default function App() {
       registerPlaybackDiagnosticForceClear(null);
       unregisterMcp();
     };
-  }, [orchestraModeId]);
+  }, [orchestraModeId, refuseTransportForIncompatibleCjm]);
 
   useEffect(() => {
     // PRODUCT UI chrome — Studio tabs strip (not journey/REC camera SSoT).
@@ -1938,7 +1942,6 @@ export default function App() {
   );
 
   const WireComponent = getProjectWire(studioProjectId);
-
   const projectStudioSelect = (
     <StudioNavStudioSelect
       options={projectSelectOptions(studioProjects)}
@@ -1950,7 +1953,6 @@ export default function App() {
       controlsLocked={transport.isPausingBeforeReveal || studioJourneyMode}
     />
   );
-
   return (
     <div
       className="studio-app-root flex flex-col h-full max-h-[100dvh] overflow-hidden"
@@ -1979,6 +1981,8 @@ export default function App() {
         navBrowseLocked={navBrowseLocked}
         navResetLocked={navTransportLocked}
         journeyMode={studioJourneyMode}
+        cjmMetadata={cjmMetadataById}
+        projectId={studioProjectId} projectLabel={studioProject.label}
         contentRef={appContentRef}
         tabsScrollRef={tabsScrollRef}
         tabBtnRefs={tabBtnRefs}
@@ -1986,11 +1990,10 @@ export default function App() {
         onGo={go}
         onReset={resetPrototype}
         scenarioControls={
-          showOrchestraControls ? (
+          hasProjectPages && showOrchestraControls ? (
             <StudioNavScenarioControls
               studioMenus={
                 <div className="studio-nav-studio-menus">
-                  {projectStudioSelect}
                   <StudioNavStudioSelect
                     options={personaSelectOptions(studioProject)}
                     value={studioPersonaId}
@@ -2010,13 +2013,14 @@ export default function App() {
                     recMode={studioRecMode}
                     onRequestRecMode={handleStudioRecModeChange}
                     recModeLocked={studioRecModeLocked}
+                    onDeleteMode={handleDeleteRecordedCjm}
+                    metadataById={cjmMetadataById}
                   />
                 </div>
               }
               createNewCjmSelected={createNewCjmSelected}
               recMode={studioRecMode}
               onRecModeChange={handleStudioRecModeChange}
-              deleteRecordedCjm={deleteRecordedCjmControl}
               segmentLabel={
                 studioJourneyMode ? studioTouchpoint.label : undefined
               }
@@ -2053,27 +2057,28 @@ export default function App() {
                 }
               }}
               onStepBack={() => {
-                if (refusePlayIfQaBlocks()) return;
+                if (refuseTransportForIncompatibleCjm() || refusePlayIfQaBlocks()) return;
                 notePlaybackTransport("step-back");
                 playbackCursorMonitor.noteManualTransport("step-back");
                 playbackViewportMonitor.noteManualTransport("step-back");
                 transport.stepBack();
               }}
               onPlay={() => {
-                if (refusePlayIfQaBlocks()) return;
+                if (refuseTransportForIncompatibleCjm() || refusePlayIfQaBlocks()) return;
                 notePlaybackTransport("play");
                 playbackCursorMonitor.noteManualTransport("play");
                 playbackViewportMonitor.noteManualTransport("play");
                 transport.play();
               }}
               onStepForward={() => {
-                if (refusePlayIfQaBlocks()) return;
+                if (refuseTransportForIncompatibleCjm() || refusePlayIfQaBlocks()) return;
                 notePlaybackTransport("step-forward");
                 playbackCursorMonitor.noteManualTransport("step-forward");
                 playbackViewportMonitor.noteManualTransport("step-forward");
                 transport.stepForward();
               }}
               onJumpToEnd={() => {
+                if (refuseTransportForIncompatibleCjm() || refusePlayIfQaBlocks()) return;
                 notePlaybackTransport("jump-to-end");
                 playbackCursorMonitor.noteManualTransport("jump-to-end");
                 playbackViewportMonitor.noteManualTransport("jump-to-end");
@@ -2093,9 +2098,8 @@ export default function App() {
                 />
               }
             />
-          ) : (
+          ) : hasProjectPages ? (
             <div className="studio-nav-scenario">
-              <div className="studio-nav-studio-menus">{projectStudioSelect}</div>
               <StudioNavRecordingModeSlot
                 getStartOptions={getRecordingStartOptions}
                 recModeLocked={navTransportLocked}
@@ -2107,8 +2111,9 @@ export default function App() {
                 onExportSavedJourney={exportSavedJourneyDownload}
               />
             </div>
-          )
+          ) : null
         }
+        projectSelect={projectStudioSelect}
       />
 
       <div
@@ -2124,12 +2129,11 @@ export default function App() {
           className="studio-chat-composer-portal-host"
           aria-hidden
         />
-        {WireComponent ? (
+        {hasProjectPages && WireComponent ? (
           <WireComponent bridge={bridge} apiRef={wireApiRef} />
         ) : (
           <ProjectPlaceholder projectLabel={studioProject.label} />
         )}
-      </div>
-    </div>
+      </div></div>
   );
 }

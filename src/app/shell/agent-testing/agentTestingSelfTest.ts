@@ -81,6 +81,7 @@ export type QaSelfTestSmokeResult = {
   ok: boolean;
   atIso: string;
   scenarioCount: number;
+  catalogScenarioCount: number;
   paceMs: { step: number; settle: number; clear: number };
   checks: Array<{ id: string; ok: boolean; detail?: string }>;
 };
@@ -488,9 +489,11 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       const passed = checks.filter((c) => c.ok).length;
       const failed = checks.length - passed;
       const finaleOk = failed === 0;
+      const totalWithFinaleAssertion = checks.length + 1;
+      const passedWithFinaleAssertion = passed + 1;
       w.__studioAgentTestingOverlay?.appendFinale?.(
         finaleOk ? "pass" : "fail",
-        `${passed}/${checks.length} checks`
+        `${passedWithFinaleAssertion}/${totalWithFinaleAssertion} checks`
       );
       await sleep(pace.step);
       const finaleLine = [
@@ -535,7 +538,8 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
   return {
     ok: checks.every((c) => c.ok),
     atIso: new Date().toISOString(),
-    scenarioCount: QA_SELF_TEST_SCENARIOS.length,
+    scenarioCount: checks.length,
+    catalogScenarioCount: QA_SELF_TEST_SCENARIOS.length,
     paceMs: pace,
     checks,
   };

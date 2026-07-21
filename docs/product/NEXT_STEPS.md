@@ -31,6 +31,7 @@ A screen is **DONE** only when **all** are true:
 0c. [x] **CJM Record/Play/Edit = guitar tabs** — doctrine [CJM_RECORD_PLAY_EDIT.md](../shell/CJM_RECORD_PLAY_EDIT.md); Play≡Step; Edit-by-user-story; Book Step2 already-selected → **other** 24/16:30; agentic prove `__studioRunAgenticFullPlayProve`.
 0d. [ ] **Traditional CJM smoothness** — PO dump 2026-07-20T22:58:41Z: Play completes but **3× scroll-reversal** camera yanks (Reserve / Open Appointments / View Details). Sitrep: [TRADITIONAL_CJM_UX_2026-07-21.md](../projects/boots-pharmacy/audits/TRADITIONAL_CJM_UX_2026-07-21.md). **Not green** until camera ROI + re-dump.
 0e. [ ] **Chat bubble appear chop (PP-14 REOPEN)** — PO still sees choppy progressive/send bubbles after multi-agent waves (tip `7e0cce7` / v0.0.104 self-test 8/8 = **false-green risk**). Thorough clash investigation — [PAINPOINTS.md](./PAINPOINTS.md) PP-14. **Do not claim PROVEN from self-test alone.**
+0f. [ ] **Appointment History → Appointment Details React migration** — next erase-Make sequence. Migrate History first to PAGE FINAL PASS hard-green, then Details; preserve both CJM playback contracts while retiring their remaining Make mounts.
 1. [x] **PLP React migration** — DONE by erase-Make definition. Brief: [PLP_REACT.md](../projects/boots-pharmacy/features/PLP_REACT.md) · audit [FE_AUDIT_PLP_2026-07-19.md](../projects/boots-pharmacy/audits/FE_AUDIT_PLP_2026-07-19.md).
 2. [x] **PLP Make parity restore** — register [PLP_MAKE_PARITY_REGISTER.md](../projects/boots-pharmacy/features/PLP_MAKE_PARITY_REGISTER.md); P0 gaps fixed (bg fill, hero shadow, listing wrapper, preloader, filter chips); audit PROVEN; patch `0.0.5`.
 2b. [x] **PLP fidelity rage fix** — Advantage bar, heart optimistic hover/click, Book now commerce hover, tile border removed, Reset Filters icon+text; Uma checklist + team-check harden; patch bump.
@@ -114,3 +115,4 @@ A screen is **DONE** only when **all** are true:
 - [LESSONS_LEARNED.md](./LESSONS_LEARNED.md)
 - [POST_CHANGE_CHECKLIST.md](./POST_CHANGE_CHECKLIST.md)
 - [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md)
+- [ ] Introduce shell-level dark/light appearance modes after the neutral dark shell surfaces and token contract are stable; do not couple shell appearance to project themes.

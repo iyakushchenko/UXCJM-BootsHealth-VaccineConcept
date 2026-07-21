@@ -28,7 +28,7 @@ src/projects/
 |-------|-----------|-----|
 | Boots | Pharmacy | `boots-pharmacy` |
 | Boots | (none) | `boots` |
-| Puma | (none) | `puma` |
+| UXDS - Larkin | (none) | `puma` |
 
 ```ts
 // src/projects/puma/index.ts
@@ -38,7 +38,7 @@ import { EXAMPLE_PERSONA } from "./personas/example-user";
 export const PUMA_PROJECT: ProjectDefinition = {
   id: formatProjectId("puma"),
   brand: "puma",
-  label: "Puma",
+  label: "UXDS - Larkin",
   personas: [EXAMPLE_PERSONA],
   defaultPersonaId: EXAMPLE_PERSONA.id,
 };
@@ -124,7 +124,7 @@ export const BOOTS_PHARMACY_PROJECT: ProjectDefinition = {
 };
 ```
 
-The shell (`App.tsx`) calls `getProjectWire(projectId)` and passes a `ProjectShellBridge`. Projects without a wire (e.g. Puma today) render `ProjectPlaceholder`.
+The shell (`App.tsx`) calls `getProjectWire(projectId)` and passes a `ProjectShellBridge`. Projects without a wire (e.g. UXDS - Larkin today) render `ProjectPlaceholder`.
 
 ```
 src/projects/<project-id>/

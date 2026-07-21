@@ -17,7 +17,7 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 
 | Prove | API | Rule |
 |-------|-----|------|
-| **REC robustness** | `__studioRunRecNewCjmProve({ experience?, label? })` | **ALWAYS CLEAR** → **human pace** (`REC_USER_PACE_MS`) → arm REC → capture (scroll-stops + CTAs) → **modal drain** if `&modal=` (e.g. choose-pharmacy) → Add as CJM → Play **that** `journeyId`. **FORBIDDEN:** built-in Play as REC prove; skipping open modals; 50ms spam clicks. |
+| **REC robustness** | `__studioRunRecNewCjmProve({ experience?, label?, captureUntil? })` | **ALWAYS CLEAR** → **human pace** (`REC_USER_PACE_MS`) → arm REC → capture (scroll-stops + CTAs) → **modal drain** if `&modal=` (e.g. choose-pharmacy) → Add as CJM → Play **that** `journeyId`. `captureUntil`: `plp-book`, `pdp-book`, `book-location`, `book-schedule`, or `book-confirmation`. **FORBIDDEN:** built-in Play as REC prove; skipping open modals; 50ms spam clicks. |
 | **Play journey** | `__studioRunFullPlayProve({ journeyId \| experience })` | **ALWAYS CLEAR** (`requireFreshQaSession`, no skip) → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve`. Smoke `__protoRunTraditionalPlaySmoke` tears down overlay. |
 
 **REC arm (agents only):** `__studioArmRecCapture()` — **ALWAYS CLEAR QA first** → CJM off → REC mode ON → CREATE NEW CJM → ● Start. Latch: `__studioAssertRecLive()`. **ALWAYS CLEAR + human pace + modal drain are code law** — not reminders. URL `modal=` is navigable state — never ignore.
@@ -34,6 +34,14 @@ Same camera for agentic / traditional / REC — see [PLAYBACK.md](./PLAYBACK.md)
 ## Touchpoint naming (REC → STEPS)
 
 Compile stamps **short human labels** on beats (button text / aria-label / action slug) — **not** long CSS selectors. Nav during Play must read as concise touchpoint names.
+
+## CJM title + provenance contract
+
+- **Agent-created CJMs require a semantic human title**: actor/context + path or outcome, e.g. `Sarah · PLP→Book appointment` or `Guest · Vaccine details→Choose pharmacy`.
+- Agent titles containing internal placeholders such as `QA`, `test`, `prove`, `recording`, `Recorded`, or `Route 3` are refused by the save pipeline. Think about the user story before naming.
+- Agent REC helpers stamp `author=agent` before using the visible Start button; direct human Start stamps `author=user`. MCP sessions cannot downgrade agent provenance.
+- REC metadata records every global auth state encountered (`guest`, `user`, or both), Studio version, contract version, time, event count and step count. Projects consume the engine auth SSoT; they must not fork auth metadata.
+- CJM picker metadata is diagnostic truth: warning triangle = potential compatibility/provenance issue; hover explains it; click copies the complete diagnostic JSON for agent handoff.
 
 ## Cursor engine rails
 

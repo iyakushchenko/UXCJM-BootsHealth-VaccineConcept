@@ -468,21 +468,6 @@ function ReplyFrame({
     });
   }, [replyActive, shouldAnimate, frame.id, visibleCount]);
 
-  // Defer helpful strip until pull-up ends — instant layout growth under tween = chop.
-  const [helpfulLive, setHelpfulLive] = useState(false);
-  useEffect(() => {
-    if (!frame.helpful || !replyActive) {
-      setHelpfulLive(false);
-      return;
-    }
-    if (!shouldAnimate) {
-      setHelpfulLive(true);
-      return;
-    }
-    const t = window.setTimeout(() => setHelpfulLive(true), CHAT_PULL_UP_MS);
-    return () => window.clearTimeout(t);
-  }, [frame.helpful, replyActive, shouldAnimate]);
-
   const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement | null;
     const link = t?.closest?.(".uxds-link, .chat__link");
@@ -556,7 +541,19 @@ function ReplyFrame({
           ) : null}
         </AnimatePresence>
       </div>
-      {helpfulLive ? <HelpfulStrip /> : null}
+      {/* Reserve final geometry from frame zero, but paint it with the same
+          progress/easing as the reply instead of inserting it at 340ms. */}
+      {frame.helpful && replyActive ? (
+        <motion.div
+          className="chat__helpful-arrival"
+          data-studio-chat-helpful-arrival="reply"
+          initial={shouldAnimate ? { opacity: 0 } : false}
+          animate={pullLive ? { opacity: 1 } : shouldAnimate ? { opacity: 0 } : { opacity: 1 }}
+          transition={CHAT_PULL_UP.transition}
+        >
+          <HelpfulStrip />
+        </motion.div>
+      ) : null}
     </div>
   );
 }
@@ -951,25 +948,19 @@ export function ChatScreen({
       // Same duration as pull-up — bubble/thinking lands already on target.
       // coTravel: keep ease alive under pull-up lock (no abort→instant yank).
       // Do NOT force past camera dwell / hold — only co-travel new content.
-      if (target) {
-        void scrollCameraToTarget(target, {
-          scrollEl: column,
-          align: "end",
-          padding: 24,
-          instant: false,
-          durationMs: STUDIO_ENTER_MS,
-          skipHold: true,
-          coTravel: true,
-        });
-      } else {
-        scrollCameraToHostEnd(column, {
-          instant: false,
-          durationMs: STUDIO_ENTER_MS,
-          skipHold: true,
-          coTravel: true,
-          reason: "pull-up co-travel host-end",
-        });
-      }
+      // The composer overlays the scroll viewport, so element `align: end`
+      // can legitimately resolve to 0 while the reply is still hidden under
+      // the dock. Co-travel to the thread extent; the latest target remains
+      // the visual tracker, while host-end is the correct camera coordinate.
+      scrollCameraToHostEnd(column, {
+        instant: false,
+        durationMs: STUDIO_ENTER_MS,
+        skipHold: true,
+        coTravel: true,
+        reason: target
+          ? "pull-up co-travel latest target"
+          : "pull-up co-travel host-end",
+      });
       const delta = column.scrollTop - before;
       logChatRevealCameraTrace({
         tag: "pull-up-co-travel",

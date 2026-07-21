@@ -3,7 +3,7 @@
  * Open / close / pick only — no spam on every URL churn.
  */
 
-import { logAgentTestingStep } from "@/app/shell/agent-testing";
+import { logAgentTestingStep } from "@/app/shell/agent-testing/agentTestingOverlay";
 
 export type QaModalTrackSource = "url" | "rec" | "play" | "pick" | "drain";
 

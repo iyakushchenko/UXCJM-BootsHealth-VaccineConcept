@@ -62,11 +62,66 @@ export function formatDurationMs(ms: number | undefined): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
+/** Plain-language presentation only. Raw labels remain intact in the QA dump. */
+export function humanizeQaLogLabel(label: string): string {
+  const titleId = (value: string) =>
+    value
+      .trim()
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  const screen = /^Screen →\s*(\S+)/i.exec(label)?.[1];
+  if (screen) return `Opened · ${titleId(screen)}`;
+  const modalOpen = /^Modal open ·\s*([^·]+)/i.exec(label)?.[1];
+  if (modalOpen) return `Opened dialog · ${titleId(modalOpen)}`;
+  const modalClose = /^Modal close ·\s*([^·]+)/i.exec(label)?.[1];
+  if (modalClose) return `Closed dialog · ${titleId(modalClose)}`;
+  if (label === "Journey reset to start") return "Returned to journey start";
+  if (label === "Play finished — back at journey start") return "Play completed · returned to journey start";
+  const click = /^Click:\s*(.+)$/i.exec(label)?.[1]?.trim();
+  if (click) {
+    if (/^(?:\d{1,2}(?::\d{2})?|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2})$/i.test(click)) {
+      return `Selected · ${click}`;
+    }
+    return `Activated · ${click}`;
+  }
+  if (/^Bubble\s+q\d+\s+pull-up/i.test(label)) return "Chat message appeared";
+  if (/^Bubble\s+r\d+\s+pull-up/i.test(label)) return "Chat reply appeared";
+  if (/^Bubble\s+r\d+\s+thinking→reply/i.test(label)) return "Thinking changed to reply";
+  if (/^Bubble\s+\S+\s+settle/i.test(label)) return "Chat message settled";
+  if (/^Cursor stayed at last click/i.test(label)) return "Cursor stayed at last action";
+  if (/^prove PASS ·\s*([^·]+)\s*· peak\s*(\d+)\/(\d+)\s*· play-end at start/i.test(label)) {
+    const match = /^prove PASS ·\s*([^·]+)\s*· peak\s*(\d+)\/(\d+)/i.exec(label);
+    return match ? `PASS · Completed ${match[2]}/${match[3]} · returned to journey start` : label;
+  }
+  if (/^Save Log · paused \+ downloaded/i.test(label)) {
+    return label.replace(/^Save Log · paused \+ downloaded/i, "Log saved · QA paused after saving");
+  }
+  return label;
+}
+
+/** Routine engine choreography stays in raw evidence, not the primary human log. */
+export function isRoutineTechnicalLogEntry(entry: AgentTestingLogEntry): boolean {
+  if (entry.outcome === "fail" || entry.outcome === "soft-fail" || entry.outcome === "pass") return false;
+  return (
+    /^Cursor → (?:hand|arrow|carriage)/i.test(entry.label) ||
+    /^Cursor stayed at last click/i.test(entry.label) ||
+    /^Camera:/i.test(entry.label) ||
+    /^Chat pin bottom/i.test(entry.label) ||
+    /^Bubble\s+\S+\s+settle/i.test(entry.label) ||
+    entry.label === "Journey reset to start" ||
+    /^page refresh · session restored$/i.test(entry.label)
+  );
+}
+
 export function inferOutcomeFromText(text: string): AgentTestingStepOutcome {
   const t = text.toLowerCase();
+  if (/\bno\s+(?:errors?|failures?)\b|\berrors?\s*:\s*\[\s*\]/.test(t)) {
+    return "ok";
+  }
   // Explicit prove / finale green only — never paint routine "ok" as success.
   if (
     /\bresult\s*·\s*pass\b/.test(t) ||
+    /\bprove\s+pass\b/.test(t) ||
     /\bprove\s+green\b/.test(t) ||
     /\bself-?test\s+pass\b/.test(t)
   ) {
@@ -79,7 +134,7 @@ export function inferOutcomeFromText(text: string): AgentTestingStepOutcome {
     t.includes("cursor issue detected") ||
     t.includes("scroll issue detected")
   ) {
-    if (t.includes("soft-fail") || t.includes("unexpected") || t.includes("warn")) {
+    if (t.includes("soft-fail") || t.includes("warn")) {
       return "soft-fail";
     }
     if (
@@ -215,6 +270,6 @@ export function formatLogRowText(entry: AgentTestingLogEntry): string {
   const count =
     entry.count && entry.count > 1 ? ` ×${entry.count}` : "";
   const dur = formatDurationMs(entry.durationMs);
-  const durPart = dur ? ` (${dur})` : "";
-  return `${entry.timeLabel}  ${entry.label}${count}${durPart}`;
+  const durPart = dur && entry.durationKind !== "since-previous" ? ` (${dur})` : "";
+  return `${entry.timeLabel}  ${humanizeQaLogLabel(entry.label)}${count}${durPart}`;
 }

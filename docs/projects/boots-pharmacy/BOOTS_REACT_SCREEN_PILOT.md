@@ -32,6 +32,13 @@ Agentic CJM still lands on Book Step 2 after Availability Tool; this pilot prove
 
 ## Make vs React (current)
 
+**Migration guard (HARD for every remaining Boots page):** before retiring its
+Make surface, download **Map current page interactions** as the legacy baseline.
+After the React mount, rerun the map, require `readinessPass=true`, and reconcile
+every removed/renamed target. This is the behavior/target companion to visual
+parity and prevents future CJMs or programmable connections losing their hooks.
+See [Interaction inventory](../../product/INTERACTION_INVENTORY.md).
+
 | Screen | Stack |
 |--------|--------|
 | **PLP — Vaccinations** | **React + UXDS** (Make child **9** retired via `data-studio-make-retired`; delete deferred) |

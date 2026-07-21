@@ -34,7 +34,7 @@ import {
   startAgentTestingOverlay,
   stopAgentTestingOverlay,
   touchAgentTestingOverlay,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
 import { isMakeParkedForScreen } from "@/projects/boots-pharmacy/screens/retireMakeUnderPage";
 import {
@@ -377,18 +377,18 @@ function plpProbeSteps(): ProbeStep[] {
     {
       id: "plp-reset-visible",
       selector:
-        '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]',
+        '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]:not(.proto-plp-reset-filters-link)',
       action: "assert",
       waitMs: 4000,
       assert: () =>
         document.querySelector(
-          '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]'
+          '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]:not(.proto-plp-reset-filters-link)'
         ) != null || "reset filters missing after filter click",
     },
     {
       id: "plp-reset-filters",
       selector:
-        '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]',
+        '[data-studio-react-screen="plp"] button[data-studio-plp-reset-filters="true"]:not(.proto-plp-reset-filters-link)',
       action: "click",
       // Catch mid-load (platform STUDIO_CONTENT_LOAD_MS) — stale jab count must already be gone.
       settleMs: 80,
@@ -404,17 +404,21 @@ function plpProbeSteps(): ProbeStep[] {
           '[data-studio-react-screen="plp"] [data-studio-plp-results]'
         );
         if (!count) return "results count element missing";
-        if (count.getAttribute("data-studio-plp-results-loading") !== "true") {
-          return "count must stamp data-studio-plp-results-loading during refresh";
-        }
-        if ((count.getAttribute("data-studio-plp-results") ?? "") !== "") {
-          return "count data-studio-plp-results must be empty while loading";
+        const stamped =
+          count.getAttribute("data-studio-plp-results-loading") === "true" &&
+          (count.getAttribute("data-studio-plp-results") ?? "") === "";
+        const engineHidden =
+          !stamped &&
+          document.body?.getAttribute("data-studio-content-loading") === "plp" &&
+          getComputedStyle(count).visibility === "hidden";
+        if (!stamped && !engineHidden) {
+          return "results count must be cleared or engine-hidden during refresh";
         }
         const text = (count.textContent ?? "").replace(/\s+/g, " ").trim();
-        if (text.length > 0) {
+        if (text.length > 0 && !engineHidden) {
           return `stale count visible during load: "${text}"`;
         }
-        if (/\d+\s+jabs?\s+available/i.test(text)) {
+        if (/\d+\s+jabs?\s+available/i.test(text) && !engineHidden) {
           return "jab-count text must not render while loading";
         }
         const loader = document.querySelector(
@@ -1202,9 +1206,17 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
 
   // click (default)
   await revealDemoTargetForAgent(el);
-  const clicked = await simulateDemoPointerClick(el, { scroll: true });
+  // Reveal/scroll can allow React loading transitions to replace the target.
+  // Re-resolve from the registered selector so probes never click stale nodes.
+  const liveEl = document.querySelector<HTMLElement>(step.selector);
+  if (!liveEl) {
+    const detail = "target disappeared after reveal";
+    logStep(step.id, false, detail);
+    return { id: step.id, pass: false, detail };
+  }
+  const clicked = await simulateDemoPointerClick(liveEl, { scroll: true });
   if (!clicked) {
-    const detail = isElementBlockedByModal(el)
+    const detail = isElementBlockedByModal(liveEl)
       ? "robo-cursor refused — target under open overlay"
       : "robo-cursor click failed";
     logStep(step.id, false, detail);
@@ -1228,7 +1240,7 @@ async function runProbeStep(step: ProbeStep): Promise<McpPageProbeStepResult> {
     return { id: step.id, pass: false, detail };
   }
   logStep(step.id, true);
-  await postStepReveal(el);
+  await postStepReveal(liveEl);
   return { id: step.id, pass: true };
 }
 

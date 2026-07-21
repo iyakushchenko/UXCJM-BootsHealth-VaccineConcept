@@ -261,6 +261,7 @@ export default function LoginPopup({ open, initialTab, onClose, onSignIn }: Prop
                   <button
                     type="button"
                     className="proto-avail-btn-primary proto-login-cta"
+                    data-studio-action="login-sign-in"
                     onClick={handleSignIn}
                   >
                     Sign in

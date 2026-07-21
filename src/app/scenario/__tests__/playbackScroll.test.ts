@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   animateScrollTo,
   beginDemoTargetPageScroll,
+  cancelPlaybackScroll,
   computeScrollTopForElement,
   easeInOutCubic,
   getPrototypeScrollRoot,
@@ -20,7 +21,9 @@ import {
   setPlaybackCameraSessionActive,
   shouldBlindOriginResetOnScreenEnter,
   shouldYieldChatAutoCamera,
+  waitForPlaybackLayoutFrames,
 } from "@/app/scenario/playbackScroll";
+import { motionEaseInOutProgress } from "@/uxds/motion";
 
 function mockRect(top: number, height: number) {
   return {
@@ -201,6 +204,136 @@ describe("animateScrollTo", () => {
     rafCallback!(400);
     await promise;
     expect(scrollEl.scrollTop).toBe(800);
+  });
+
+  it("uses the bubble ease-in-out curve for chat co-travel", async () => {
+    expect(motionEaseInOutProgress(0.25)).toBeCloseTo(0.12916, 4);
+    const scrollEl = {
+      scrollTop: 0,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+    } as unknown as HTMLElement;
+
+    let rafCallback: FrameRequestCallback | null = null;
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      rafCallback = cb;
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    let now = 0;
+    vi.stubGlobal("performance", { now: () => now });
+
+    const promise = animateScrollTo(scrollEl, 800, {
+      durationMs: 400,
+      coTravel: true,
+    });
+
+    now = 100;
+    rafCallback!(100);
+    expect(scrollEl.scrollTop).toBeCloseTo(
+      800 * motionEaseInOutProgress(0.25),
+      3
+    );
+
+    now = 400;
+    rafCallback!(400);
+    await promise;
+    expect(scrollEl.scrollTop).toBe(800);
+  });
+
+  it("co-travels when Chat scroll range appears after animation start", async () => {
+    const scrollEl = {
+      scrollTop: 0,
+      scrollHeight: 400,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+    } as unknown as HTMLElement;
+
+    let rafCallback: FrameRequestCallback | null = null;
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      rafCallback = cb;
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    let now = 0;
+    vi.stubGlobal("performance", { now: () => now });
+
+    const resolveTargetTop = () =>
+      Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    const promise = animateScrollTo(scrollEl, resolveTargetTop(), {
+      durationMs: 400,
+      coTravel: true,
+      resolveTargetTop,
+    });
+
+    // Reply/helpful content creates a 447px range after the camera was armed.
+    scrollEl.scrollHeight = 847;
+    now = 80;
+    rafCallback!(80);
+    expect(scrollEl.scrollTop).toBe(0); // continuity-preserving re-anchor
+
+    now = 160;
+    rafCallback!(160);
+    expect(scrollEl.scrollTop).toBeGreaterThan(0);
+    expect(scrollEl.scrollTop).toBeLessThan(447);
+
+    now = 400;
+    rafCallback!(400);
+    await promise;
+    expect(scrollEl.scrollTop).toBe(447);
+  });
+
+  it("settles a dynamic co-travel promise when a new camera replaces its rAF", async () => {
+    const scrollEl = {
+      scrollTop: 0,
+      scrollHeight: 400,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+    } as unknown as HTMLElement;
+
+    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 17));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    vi.stubGlobal("performance", { now: () => 0 });
+
+    const resolveTargetTop = () =>
+      Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
+    let settled = false;
+    const coTravel = animateScrollTo(scrollEl, 0, {
+      durationMs: 400,
+      coTravel: true,
+      resolveTargetTop,
+    }).then(() => {
+      settled = true;
+    });
+
+    cancelPlaybackScroll("replace");
+    await coTravel;
+
+    expect(settled).toBe(true);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(17);
+  });
+
+  it("settles the pre-camera layout wait when rAF is lost", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("requestAnimationFrame", vi.fn(() => 23));
+
+    let settled = false;
+    const wait = waitForPlaybackLayoutFrames(2, 120).then(() => {
+      settled = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(119);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await wait;
+    expect(settled).toBe(true);
+    vi.useRealTimers();
   });
 
   it("animates even when prefers-reduced-motion is set", async () => {

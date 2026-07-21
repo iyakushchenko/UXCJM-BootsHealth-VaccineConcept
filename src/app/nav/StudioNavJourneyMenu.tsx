@@ -6,6 +6,9 @@ import {
   resolveFirstSavedCjmModeId,
 } from "@/app/orchestra/orchestraModes";
 import { StudioNavStudioSelect } from "@/app/nav/StudioNavStudioSelect";
+import { StudioNavDeleteRecordedCjm } from "@/app/nav/StudioNavDeleteRecordedCjm";
+import { StudioNavCjmMetadata } from "@/app/nav/StudioNavCjmMetadata";
+import type { CjmOptionMetadata } from "@/app/recording/recordingMetadata";
 import {
   getActiveRecordingSession,
   subscribeRecordingSession,
@@ -31,6 +34,8 @@ type Props = {
   onRequestRecMode?: (enabled: boolean) => void;
   /** REC locked (CJM on / AIR) — CREATE NEW cannot stick. */
   recModeLocked?: boolean;
+  onDeleteMode?: (modeId: OrchestraModeId) => void;
+  metadataById?: Readonly<Record<string, CjmOptionMetadata>>;
 };
 
 function useRecordingSessionLive(): boolean {
@@ -51,6 +56,8 @@ export function StudioNavJourneyMenu({
   recMode = false,
   onRequestRecMode,
   recModeLocked = false,
+  onDeleteMode,
+  metadataById = {},
 }: Props) {
   /** REC ● start → live/paused session while Rec deck is open. */
   const recordingLive = useRecordingSessionLive();
@@ -193,6 +200,14 @@ export function StudioNavJourneyMenu({
       }
       return;
     }
+    const metadata = metadataById[id];
+    if (metadata && !metadata.playable) {
+      logControlPanel("studio:cjm-preflight-blocked", {
+        journeyId: id,
+        issues: metadata.issues.map((issue) => issue.code),
+        selectionAllowedForInspection: true,
+      });
+    }
     setIdleCreateNew(false);
     lastSavedModeRef.current = id;
     onChange(id);
@@ -214,6 +229,27 @@ export function StudioNavJourneyMenu({
           ? "CJM picker locked while recording"
           : undefined
       }
+      renderOptionMeta={(option) =>
+        option.id === CREATE_NEW_CJM_MODE_ID
+          ? null
+          : metadataById[option.id]?.summary ?? null
+      }
+      renderOptionAction={(option) => {
+        if (option.id === CREATE_NEW_CJM_MODE_ID) return null;
+        const metadata = metadataById[option.id];
+        const protectedBuiltIn =
+          option.id === "agentic-cjm" || option.id === "traditional-cjm";
+        return <>
+          {metadata ? <StudioNavCjmMetadata metadata={metadata} /> : null}
+          <StudioNavDeleteRecordedCjm
+              journeyId={option.id}
+              label={option.label}
+              disabled={protectedBuiltIn || controlsLocked || (recordingLive && recMode)}
+              disabledTitle={protectedBuiltIn ? `${option.label} is a protected built-in CJM` : "Stop playback or recording before deleting this CJM"}
+              onConfirmDelete={() => onDeleteMode?.(option.id)}
+            />
+        </>;
+      }}
     />
   );
 }

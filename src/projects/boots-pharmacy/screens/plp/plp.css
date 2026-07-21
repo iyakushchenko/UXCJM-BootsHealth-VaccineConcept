@@ -468,6 +468,15 @@
   min-height: 24px;
 }
 
+/* The legacy listing enhancer can retain its summary class on a React-owned
+   node. The shared loading latch still guarantees that stale totals stay out
+   of sight while either renderer refreshes the listing. */
+body[data-studio-content-loading="plp"]
+  [data-studio-react-screen="plp"]
+  [data-studio-plp-results] {
+  visibility: hidden;
+}
+
 .plp__results-count--in {
   animation: plp-results-count-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

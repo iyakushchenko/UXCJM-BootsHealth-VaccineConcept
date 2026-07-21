@@ -131,6 +131,18 @@ function normalizeSearchPlaceholder(text: string): string {
   return trimmed;
 }
 
+function ensureSearchFieldIdentity(input: HTMLInputElement, label: string): void {
+  const key = /disease/i.test(label)
+    ? "disease"
+    : /country/i.test(label)
+      ? "country"
+      : null;
+  if (!key) return;
+  const identity = `plp-${key}-search`;
+  if (!input.id) input.id = identity;
+  if (!input.name) input.name = identity;
+}
+
 function syncSearchFieldFilled(
   textField: HTMLElement,
   query: string
@@ -144,6 +156,12 @@ function wirePlpSearchField(fieldHost: HTMLElement): void {
   if (!textField) return;
 
   let input = textField.querySelector<HTMLInputElement>(".proto-search-input");
+  if (input) {
+    ensureSearchFieldIdentity(
+      input,
+      normalizeSearchPlaceholder(input.placeholder || input.getAttribute("aria-label") || "")
+    );
+  }
   if (
     fieldHost.dataset.studioSearchWired === PLP_SEARCH_WIRE_VERSION &&
     input
@@ -201,6 +219,7 @@ function wirePlpSearchField(fieldHost: HTMLElement): void {
   input.className = "proto-search-input";
   input.placeholder = placeholder;
   input.setAttribute("aria-label", placeholder);
+  ensureSearchFieldIdentity(input, placeholder);
 
   if (wrapper) {
     wrapper.replaceChildren(input);

@@ -198,6 +198,8 @@ This section preserves PO decisions in chronological order; it is **not** the li
 
 | Date | Decision |
 |------|----------|
+| 2026-07-21 | **Product identity + Project visibility:** visible product name is **UXML**. Project selection lives directly after the product identity in the fixed tabs-row cluster, followed by the standard delimiter; it is intentionally more visible because project switching is infrequent but high-context. Hover/focus on UXML opens a concise close-only stakeholder onboarding lightbox. |
+| 2026-07-21 | **Interaction-map foundation (HARD):** UX Studio inventories every registered project surface, including Hub, without blindly clicking controls. Versioned `{projectId, surfaceId, targetId}` readiness data becomes the basis for future declared, reversible programmable connections. See [INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md). |
 | 2026-07-19 | Repo renamed to `ux-studio`; engine framing; Boots = first project |
 | 2026-07-19 | Canonical disk path: `E:\UX\ux-studio`; abandon old copies |
 | 2026-07-19 | Concept UI = React + full UXDS; Make HTML is bootstrap only |
@@ -239,3 +241,5 @@ This section preserves PO decisions in chronological order; it is **not** the li
 | 2026-07-19 | **PDP Check availability logged-out** opens Availability Tool **first screen** (Find Pharmacy / `start`), not Choose Date. **No login gate** on Check availability (Book now still gates to Login). Studio-wide auth SSoT: `isStudioLoggedIn` / `__studioIsLoggedIn`. See PDP_MAKE_PARITY_REGISTER I10, shell/URL.md |
 
 New durable PO decisions get a row here in the same session they are made, plus an update to the authoritative source above. Delivery milestones and transient NEXT statements belong only in [NEXT_STEPS.md](./NEXT_STEPS.md).
+- **2026-07-21 — Empty-project and shell identity contract:** every registered project owns its page manifest and display labels; known empty projects use the engine-owned zero-page contract and dark UXML empty state, never another project's fallback content. UXML About expands the name to **User Experience Modeling Lab**, shows the package-derived version/channel, R&D/alpha status, UX Department R&D ownership, shield mark, and the Summarizer copyright line.
+- **2026-07-21 — Global CJM diagnostic center:** the version warning opens an exact current-project compatibility inventory, copies one aggregate agent-ready JSON payload, and runs the canonical fail-fast `all-cjms` autonomous QA suite. The QA bug icon remains the manual logger. The empty reference project's display name is **UXDS - Larkin** while its stable internal id remains `puma` to preserve URLs/storage.

@@ -50,14 +50,14 @@ export function isCjmCassetteOn(cjm: string | null | undefined): boolean {
 }
 
 /**
- * Live Play transport from Studio nav (aria-pressed on Play journey).
+ * Live Play transport from Studio nav (stable action selector; label changes to Pause on-air).
  * Hang-safe — false when DOM missing.
  */
 export function readLiveJourneyIsPlaying(): boolean {
   if (typeof document === "undefined") return false;
   try {
     const btn = document.querySelector(
-      'button[aria-label="Play journey"]'
+      'button[data-studio-action="transport-play"], button[aria-label="Play journey"]'
     );
     return btn?.getAttribute("aria-pressed") === "true";
   } catch {

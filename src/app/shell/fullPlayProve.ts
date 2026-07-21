@@ -15,7 +15,7 @@ import {
   preArmAgentTestingOverlay,
   touchAgentTestingOverlay,
   type AgentLeavePauseResult,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { requireFreshQaSession } from "@/app/shell/requireFreshQaSession";
 import {
   beginQaProveMode,
@@ -37,7 +37,7 @@ import {
   type PlayJourneySmokeResult,
 } from "@/app/shell/playJourneySmoke";
 import { getImportedJourneys } from "@/app/journey/journeyRuntimeStore";
-import { logAgentTestingStep } from "@/app/shell/agent-testing";
+import { logAgentTestingStep } from "@/app/shell/agent-testing/agentTestingOverlay";
 
 export type FullPlayProveExperience = "agentic" | "traditional";
 
@@ -258,7 +258,12 @@ function resolvePreset(options?: FullPlayProveOptions): FullPlayProvePreset {
   const journeyId = options?.journeyId ?? base.journeyId;
 
   // Recorded CJMs must assert THAT journey's playlist — not traditional 13 / agentic 22.
-  if (isRecordedJourneyId(journeyId)) {
+  if (
+    isRecordedJourneyId(journeyId) ||
+    (!isBuiltInTraditionalId(journeyId) &&
+      !isBuiltInAgenticId(journeyId) &&
+      lookupJourneyCatalog(journeyId) != null)
+  ) {
     const catalog = lookupJourneyCatalog(journeyId);
     const beatIds = catalog?.beatIds?.filter(Boolean) ?? [];
     const catalogPeak =

@@ -97,7 +97,8 @@ export function logControlPanel(
   detail?: ControlPanelLogDetail
 ): ControlPanelLogEntry {
   const { blocked, blockReason, ...rest } = detail ?? {};
-  const snapshot = snapshotProvider?.() ?? undefined;
+  // Diagnostics must never be able to abort the real control action.
+  const snapshot = getControlPanelSnapshot() ?? undefined;
   const entry: ControlPanelLogEntry = {
     seq: ++seq,
     atMs: performance.now(),

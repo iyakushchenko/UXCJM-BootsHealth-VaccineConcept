@@ -56,6 +56,7 @@ Playable · recordable · CJM-ready · looks like THAT brand
 - Map structure to **UXDS** + closest `component.*` / `module.*`; brand via project theme CSS
 - Stable Studio wiring (`data-name`, screens, touchpoints)
 - **Interactive fidelity** needed for proofing and recording — shared kits under `src/uxds/interactions/`, not one-off scripts ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Fake data OK; dead UI is not record-ready.
+- **Interaction inventory is mandatory:** map the current project before composition to reuse established target conventions, then map the finished page and resolve/record every `invalid`, `semantic-ready`, and `visual-candidate` result ([INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md)). A coarse Figma draft is not permission to invent dead or untargetable controls.
 - On React rebuilds: **behavior parity** with prior Make/concept handlers ([VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) §1.1) — do not drop checkbox/Continue/search wiring.
 
 Do **not** refuse a concept because it is “not on the design system.”  
@@ -104,11 +105,12 @@ When PO pastes a concept URL (or after agent requested and received it):
 2. Extract intent + **brand delta** (primary colors, logos, fonts).  
 3. Create/update project `styleguide/` theme CSS.  
 4. Map each region → nearest UXDS module/component + tokens.  
-5. Build React pages under `src/projects/<id>/`.  
-6. Build anticipated interactivity (shared kits); wire CTAs/links. Later: derive requirements from CJM deck when PO points at one.  
-7. Register in Studio; smoke browse + happy-path controls + one playback path.  
-8. Confirm **record-ready** only after controls respond ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)).  
-9. Note gaps briefly (“no token; used UXDS role X; brand primary from concept swatch; used interaction kit Y”).
+5. Run **Map all project interactions** and reuse its target conventions/components before adding new ones. For a migration, save the legacy page result as the behavior/target baseline.
+6. Build React pages under `src/projects/<id>/`.
+7. Build anticipated interactivity (shared kits); wire CTAs/links. Later: derive requirements from CJM deck when PO points at one.
+8. Register in Studio; run **Map current page interactions**; fix invalid contracts and explicitly classify decorative candidates. On migration, compare against the legacy baseline—no unexplained target loss.
+9. Smoke browse + happy-path controls + one playback path. Confirm **record-ready** only after controls respond and the inventory is attached to the handoff ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md), [INTERACTION_INVENTORY.md](./INTERACTION_INVENTORY.md)).
+10. Note gaps briefly (“no token; used UXDS role X; brand primary from concept swatch; used interaction kit Y”).
 
 ---
 

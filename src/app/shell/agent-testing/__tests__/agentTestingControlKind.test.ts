@@ -6,6 +6,7 @@ import {
   deriveAgentControlKind,
   formatAgentControlKindSuffix,
   isCjmCassetteOn,
+  readLiveJourneyIsPlaying,
 } from "@/app/shell/agent-testing/agentTestingControlKind";
 
 describe("agentTestingControlKind", () => {
@@ -59,5 +60,16 @@ describe("agentTestingControlKind", () => {
     expect(isCjmCassetteOn("agentic-cjm")).toBe(true);
     expect(isCjmCassetteOn("off")).toBe(false);
     expect(isCjmCassetteOn("hub")).toBe(false);
+  });
+
+  it("reads the stable Play transport selector after its label changes to Pause", () => {
+    document.body.innerHTML = `
+      <button data-studio-action="transport-play" aria-label="Pause journey" aria-pressed="true"></button>
+    `;
+    expect(readLiveJourneyIsPlaying()).toBe(true);
+    document.body.innerHTML = `
+      <button data-studio-action="transport-play" aria-label="Play journey" aria-pressed="false"></button>
+    `;
+    expect(readLiveJourneyIsPlaying()).toBe(false);
   });
 });

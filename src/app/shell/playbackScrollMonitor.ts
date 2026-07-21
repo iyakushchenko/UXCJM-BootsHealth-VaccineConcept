@@ -23,6 +23,8 @@ export type ScrollAnimationTelemetry = {
   startTime: number;
   lastFrameTime: number;
   stutterFrames: number;
+  /** Dynamic chat co-travel re-anchors its start/target as reply geometry grows. */
+  pathCheck: boolean;
 };
 
 export type PlaybackScrollMonitor = {
@@ -33,6 +35,7 @@ export type PlaybackScrollMonitor = {
     startTop: number;
     targetTop: number;
     duration: number;
+    pathCheck?: boolean;
   }) => void;
   onAnimationFrame: (payload: { scrollTop: number; frameMs: number }) => void;
   onAnimationEnd: (payload: {
@@ -204,7 +207,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
     isBurstWatchActive() {
       return inBurstWatch();
     },
-    onAnimationStart({ startTop, targetTop, duration }) {
+    onAnimationStart({ startTop, targetTop, duration, pathCheck = true }) {
       if (!active) return;
       if (inScriptWatch) {
         inScriptAnimationStarts += 1;
@@ -230,6 +233,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
         startTime: now,
         lastFrameTime: now,
         stutterFrames: 0,
+        pathCheck,
       };
       lastScrollTop = startTop;
       pushSample(startTop);
@@ -257,6 +261,7 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
         !inScriptWatch &&
         !inPassiveScrollGrace() &&
         animation === anim &&
+        anim.pathCheck &&
         !isChatPullUpScrollLocked()
       ) {
         const deviation = detectScrollPathDeviation({

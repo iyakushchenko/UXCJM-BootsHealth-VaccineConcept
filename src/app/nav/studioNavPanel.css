@@ -35,7 +35,8 @@
   position: relative;
   overflow: visible;
   background: #2e2e2e;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
@@ -57,6 +58,12 @@
   gap: 12px;
   min-width: 0;
   justify-self: start;
+}
+
+.studio-nav-status-bar__position {
+  color: #aeb3bb;
+  font-size: 10px;
+  flex-shrink: 0;
 }
 
 .studio-nav-dots {
@@ -105,16 +112,20 @@
   overflow: visible;
   position: relative;
   flex-wrap: wrap;
-  transition: filter 0.55s ease, opacity 0.55s ease;
+  transition:
+    filter 0.55s ease,
+    opacity 0.55s ease;
 }
 
 .studio-nav-scenario__label-slot {
   display: inline-flex;
   align-items: center;
-  flex-shrink: 0;
+  flex: 0 0 12ch;
+  inline-size: 12ch;
+  min-inline-size: 12ch;
+  max-inline-size: 12ch;
   height: 12px;
   overflow: hidden;
-  /* Width timing owned by Motion (studioMotion / StudioNavSegmentLabel). */
 }
 
 .studio-nav-scenario__label {
@@ -124,9 +135,13 @@
   line-height: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.45);
+  color: #aeb3bb;
   margin-right: 2px;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .studio-nav-scenario__label--touchpoint-blink {
@@ -183,7 +198,7 @@
   border: none;
   border-radius: 3px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  color: #aeb3bb;
   font: inherit;
   line-height: 1;
   cursor: default;
@@ -222,7 +237,8 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  min-width: 11.5rem;
+  width: 14rem;
+  max-width: calc(100vw - 16px);
   padding: 2px;
   border-radius: 4px;
   background: #141414;
@@ -232,58 +248,10 @@
     0 10px 24px rgba(0, 0, 0, 0.55);
 }
 
-.studio-nav-journey-menu__option {
-  display: block;
-  width: 100%;
-  padding: 5px 8px;
-  border: none;
-  border-radius: 2px;
-  text-align: left;
-  font-size: 9px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.78);
-  background: linear-gradient(180deg, #2c2c2c 0%, #1a1a1a 48%, #101010 100%);
-  cursor: default;
-}
-
-.studio-nav-journey-menu__option:hover:not(.studio-nav-journey-menu__option--active) {
-  color: rgba(255, 255, 255, 0.92);
-  background: linear-gradient(180deg, #343434 0%, #1e1e1e 48%, #141414 100%);
-}
-
-.studio-nav-journey-menu__option--active {
-  color: #3d3018;
-  background: linear-gradient(
-    180deg,
-    #faf0d4 0%,
-    #ead9ad 18%,
-    #dcc796 46%,
-    #ccb57f 72%,
-    #bfa56e 100%
-  );
-}
-
-/* Separator between CREATE NEW CJM and saved journeys. */
-.studio-nav-journey-menu__separator {
-  height: 1px;
-  margin: 3px 4px;
-  background: rgba(255, 255, 255, 0.12);
-  flex-shrink: 0;
-}
-
 /* REC live — closed trigger reads as CREATE NEW CJM (same gold as active option). */
 .studio-nav-journey-menu--new-cjm .studio-nav-journey-menu__trigger {
   color: #3d3018;
-  background: linear-gradient(
-    180deg,
-    #faf0d4 0%,
-    #ead9ad 18%,
-    #dcc796 46%,
-    #ccb57f 72%,
-    #bfa56e 100%
-  );
+  background: linear-gradient(180deg, #faf0d4 0%, #ead9ad 18%, #dcc796 46%, #ccb57f 72%, #bfa56e 100%);
   padding: 0 6px;
   border-radius: 3px;
 }
@@ -312,7 +280,7 @@
   font-weight: 600;
   line-height: 12px;
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.42);
+  color: #9aa0aa;
   flex-shrink: 0;
   /* Content-sized — avoid right-aligned min-width gap after | CJM | in playback */
   min-width: 0;
@@ -330,7 +298,7 @@
   line-height: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.42);
+  color: #9aa0aa;
   flex-shrink: 0;
   white-space: nowrap;
   user-select: none;
@@ -385,8 +353,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 22px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   margin: 0;
   padding: 0;
   border: none;
@@ -610,8 +578,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 20px;
+  min-width: 26px;
+  height: 26px;
   padding: 0 5px !important;
   border-radius: 2px;
   cursor: default;
@@ -632,14 +600,7 @@
 
 .studio-nav-scenario__deck .studio-nav-scenario__btn:hover:not(:disabled) {
   color: #3d3018;
-  background: linear-gradient(
-    180deg,
-    #faf0d4 0%,
-    #ead9ad 18%,
-    #dcc796 46%,
-    #ccb57f 72%,
-    #bfa56e 100%
-  );
+  background: linear-gradient(180deg, #faf0d4 0%, #ead9ad 18%, #dcc796 46%, #ccb57f 72%, #bfa56e 100%);
   border-color: rgba(118, 92, 42, 0.62);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
@@ -731,13 +692,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 34% 28%,
-    #4a5568 0%,
-    #1a2030 36%,
-    #07090d 68%,
-    #151b28 100%
-  );
+  background: radial-gradient(circle at 34% 28%, #4a5568 0%, #1a2030 36%, #07090d 68%, #151b28 100%);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.9),
     inset 0 -1px 0 rgba(255, 255, 255, 0.05);
@@ -757,13 +712,7 @@
 }
 
 .studio-nav-scenario--on-air .studio-nav-scenario__on-air-dot {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #b8ffd8 0%,
-    #74ffb3 36%,
-    #3dd68c 64%,
-    #1f9f5c 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #b8ffd8 0%, #74ffb3 36%, #3dd68c 64%, #1f9f5c 100%);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.72),
     inset 0 -1px 1px rgba(0, 80, 40, 0.35),
@@ -795,13 +744,7 @@
 
 /* Playback transport — amber flash on each simulated demo click (300ms). */
 .studio-nav-scenario--on-air .studio-nav-scenario__on-air--click .studio-nav-scenario__on-air-dot {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #ffd180 0%,
-    #ff9a12 38%,
-    #ef6c00 68%,
-    #e65100 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #ffd180 0%, #ff9a12 38%, #ef6c00 68%, #e65100 100%);
   box-shadow:
     inset 0 1px 1px rgba(255, 248, 220, 0.82),
     inset 0 -1px 1.5px rgba(120, 45, 0, 0.45),
@@ -822,13 +765,7 @@
 
 /* CJM journey complete — blue end diode while on the last playlist frame. */
 .studio-nav-scenario__on-air--end .studio-nav-scenario__on-air-dot {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #9ed4ff 0%,
-    #4da3ff 38%,
-    #2b7fd4 62%,
-    #1a5a9e 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #9ed4ff 0%, #4da3ff 38%, #2b7fd4 62%, #1a5a9e 100%);
   box-shadow:
     inset 0 1px 1px rgba(220, 240, 255, 0.82),
     inset 0 -1px 1.5px rgba(0, 40, 90, 0.55),
@@ -850,13 +787,7 @@
 
 /* Playback diagnostic error — red glow; shows while diagnostic overlay is open. */
 .studio-nav-scenario__on-air--error .studio-nav-scenario__on-air-dot {
-  background: radial-gradient(
-    circle at 38% 30%,
-    #ff8a80 0%,
-    #e53935 38%,
-    #c62828 62%,
-    #8b0000 100%
-  );
+  background: radial-gradient(circle at 38% 30%, #ff8a80 0%, #e53935 38%, #c62828 62%, #8b0000 100%);
   box-shadow:
     inset 0 1px 1px rgba(255, 230, 230, 0.82),
     inset 0 -1px 1.5px rgba(60, 0, 0, 0.55),
@@ -962,14 +893,7 @@
 
 .studio-nav-scenario--on-air .studio-nav-scenario__btn--play:not(:disabled) {
   color: #3d3018;
-  background: linear-gradient(
-    180deg,
-    #faf0d4 0%,
-    #ead9ad 18%,
-    #dcc796 46%,
-    #ccb57f 72%,
-    #bfa56e 100%
-  );
+  background: linear-gradient(180deg, #faf0d4 0%, #ead9ad 18%, #dcc796 46%, #ccb57f 72%, #bfa56e 100%);
   border-color: rgba(118, 92, 42, 0.62);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
@@ -980,14 +904,7 @@
 
 .studio-nav-scenario--on-air .studio-nav-scenario__btn--play:hover:not(:disabled) {
   color: #2e2412;
-  background: linear-gradient(
-    180deg,
-    #fff8e8 0%,
-    #f2e4c0 18%,
-    #e6d4a6 46%,
-    #d8c48e 72%,
-    #c9b478 100%
-  );
+  background: linear-gradient(180deg, #fff8e8 0%, #f2e4c0 18%, #e6d4a6 46%, #d8c48e 72%, #c9b478 100%);
   border-color: rgba(128, 100, 46, 0.7);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
@@ -1018,13 +935,7 @@
   }
   6%,
   100% {
-    background: radial-gradient(
-      circle at 34% 28%,
-      #4a5568 0%,
-      #1a2030 36%,
-      #07090d 68%,
-      #151b28 100%
-    );
+    background: radial-gradient(circle at 34% 28%, #4a5568 0%, #1a2030 36%, #07090d 68%, #151b28 100%);
     box-shadow:
       inset 0 1px 2px rgba(0, 0, 0, 0.9),
       inset 0 -1px 0 rgba(255, 255, 255, 0.05);
@@ -1058,13 +969,7 @@
 @keyframes studio-on-air-step-dot {
   0%,
   100% {
-    background: radial-gradient(
-      circle at 34% 28%,
-      #4a5568 0%,
-      #1a2030 36%,
-      #07090d 68%,
-      #151b28 100%
-    );
+    background: radial-gradient(circle at 34% 28%, #4a5568 0%, #1a2030 36%, #07090d 68%, #151b28 100%);
     box-shadow:
       inset 0 1px 2px rgba(0, 0, 0, 0.9),
       inset 0 -1px 0 rgba(255, 255, 255, 0.05);
@@ -1145,19 +1050,12 @@
   }
 
   .studio-nav-scenario__on-air--end .studio-nav-scenario__on-air-dot {
-    background: radial-gradient(
-      circle at 38% 30%,
-      #9ed4ff 0%,
-      #4da3ff 38%,
-      #2b7fd4 62%,
-      #1a5a9e 100%
-    );
+    background: radial-gradient(circle at 38% 30%, #9ed4ff 0%, #4da3ff 38%, #2b7fd4 62%, #1a5a9e 100%);
     box-shadow:
       inset 0 1px 1px rgba(220, 240, 255, 0.82),
       inset 0 -1px 1.5px rgba(0, 40, 90, 0.55),
       0 0 6px rgba(74, 158, 255, 0.85);
   }
-
 }
 
 .studio-nav-panel-host--playback-locked .studio-nav-tab,
@@ -1173,9 +1071,7 @@
   pointer-events: auto;
 }
 
-.studio-nav-panel-host--playback-locked
-  .studio-nav-stepper
-  > :not(.studio-nav-stepper__scenario-slot) {
+.studio-nav-panel-host--playback-locked .studio-nav-stepper > :not(.studio-nav-stepper__scenario-slot) {
   opacity: 0.42;
   pointer-events: none;
 }
@@ -1199,6 +1095,11 @@
 
 .studio-nav-panel-host--journey-mode .studio-nav-dot--active:not(.studio-nav-dot--hub) {
   background: linear-gradient(180deg, #c49a4a 0%, #9a7030 55%, #7a5520 100%);
+}
+
+.studio-nav-panel-host--playback-locked
+  .studio-nav-dot--active:not(.studio-nav-dot--hub)::before {
+  background: transparent;
 }
 
 .studio-nav-panel-host--journey-mode .studio-nav-dot--hub.studio-nav-dot--active {
@@ -1226,7 +1127,7 @@
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 8px 8px 0;
+  padding: 8px 8px 0 2px;
   gap: 4px;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1303,14 +1204,19 @@
   align-items: center;
   justify-content: center;
   margin: 0;
-  padding: 2px;
+  width: 26px;
+  height: 26px;
+  padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   background: rgba(16, 18, 24, 0.4);
   color: rgba(160, 166, 176, 0.72);
   cursor: pointer;
   line-height: 0;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease,
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
     opacity 0.18s ease;
 }
 
@@ -1323,6 +1229,32 @@
 .studio-nav-version__qa:focus-visible {
   outline: 2px solid rgba(180, 186, 198, 0.45);
   outline-offset: 1px;
+}
+
+.studio-nav-version__compat-warning {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 26px;
+  height: 26px;
+  padding: 4px 5px;
+  border: 1px solid rgba(224, 184, 92, 0.5);
+  border-radius: 4px;
+  background: rgba(55, 42, 13, 0.58);
+  color: #e0b85c;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.studio-nav-version__compat-warning:hover,
+.studio-nav-version__compat-warning:focus-visible {
+  color: #f1cb70;
+  border-color: rgba(224, 184, 92, 0.78);
+  background: rgba(72, 54, 16, 0.72);
+  outline: none;
 }
 
 /* Manual logger open — amber active */
@@ -1445,7 +1377,9 @@ html[data-studio-qa-lock="observe"] .studio-nav-version__qa:hover {
 .studio-nav-logo__svg {
   display: block;
   flex-shrink: 0;
-  transition: opacity 0.15s ease, filter 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    filter 0.15s ease;
 }
 
 .studio-nav-logo-btn:not(.studio-nav-logo-btn--active) .studio-nav-logo__svg {
@@ -1518,7 +1452,11 @@ html[data-studio-qa-lock="observe"] .studio-nav-version__qa:hover {
   border-radius: 4px;
   background: transparent;
   cursor: default;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+  min-width: 26px;
+  min-height: 26px;
 }
 
 .studio-nav-step-btn--icon-only {
@@ -1545,34 +1483,36 @@ html[data-studio-qa-lock="observe"] .studio-nav-version__qa:hover {
 }
 
 /* Studio control panel — no focus ring on chrome buttons or journey dropdown */
-.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus,
-.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus-visible,
-.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):active:focus {
+.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus:not(:focus-visible) {
   outline: none !important;
 }
 
-.studio-nav-journey-menu__trigger:focus,
+.studio-nav-panel-host :is(button, [role="listbox"], [role="option"]):focus-visible {
+  outline: 2px solid #f4cf72 !important;
+  outline-offset: 2px;
+}
+
 .studio-nav-journey-menu__trigger:focus-visible,
-.studio-nav-journey-menu__panel:focus,
 .studio-nav-journey-menu__panel:focus-visible,
-.studio-nav-journey-menu__option:focus,
 .studio-nav-journey-menu__option:focus-visible {
-  outline: none !important;
-  box-shadow: none;
+  outline: 2px solid #f4cf72 !important;
+  outline-offset: 0;
+  z-index: 2;
+}
+
+.studio-nav-journey-menu__option:focus-within {
+  z-index: 2;
 }
 
 .studio-nav-journey-menu__option--active:focus,
 .studio-nav-journey-menu__option--active:focus-visible {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-    0 1px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(61, 48, 24, 0.5);
 }
 
-.studio-nav-scenario__deck .studio-nav-scenario__btn:focus,
 .studio-nav-scenario__deck .studio-nav-scenario__btn:focus-visible,
-.studio-nav-scenario__deck .studio-nav-scenario__btn:active:focus {
-  outline: none !important;
+.studio-mode-switch:focus-visible {
+  outline: 2px solid #f4cf72 !important;
+  outline-offset: 2px;
 }
 
 .studio-nav-zoom-controls .studio-nav-step-btn:focus,
@@ -1651,18 +1591,109 @@ html[data-studio-qa-lock="observe"] .studio-nav-version__qa:hover {
   border-radius: 9999px;
   cursor: default;
   transition: all 0.15s ease;
-  background: rgba(255, 255, 255, 0.3);
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studio-nav-dot::before {
+  content: "";
   width: 8px;
   height: 8px;
-  padding: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.45);
+  transition: all 0.15s ease;
 }
 
 .studio-nav-dot:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: transparent;
+}
+
+.studio-nav-dot:hover::before {
+  background: rgba(255, 255, 255, 0.75);
 }
 
 .studio-nav-dot--active {
+  background: transparent;
+}
+
+.studio-nav-dot--active::before {
   width: 16px;
-  height: 8px;
-  background: #467672;
+  background: #5f9d97;
+}
+
+@media (max-width: 1100px) {
+  .studio-nav-status-bar {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .studio-nav-status-bar__title {
+    display: none;
+  }
+
+  .studio-nav-stepper {
+    grid-column: 2;
+    justify-self: stretch;
+    justify-content: flex-end;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .studio-nav-stepper__scenario-slot {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .studio-nav-scenario {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* The numeric position is sufficient progress feedback in compact chrome. */
+  .studio-nav-dots {
+    display: none;
+  }
+
+  /* Keep popup geometry out of the bar and inside the viewport. */
+  .studio-nav-studio-menus .studio-nav-journey-menu__panel {
+    right: 0;
+    left: auto;
+  }
+
+  .studio-nav-studio-menus .studio-nav-journey-menu:first-child .studio-nav-journey-menu__panel {
+    right: auto;
+    left: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Preserve controls; remove redundant labels before allowing a third chrome row. */
+  .studio-nav-scenario__label-slot,
+  .studio-nav-scenario__mode-label,
+  .studio-nav-zoom-label {
+    display: none;
+  }
+
+  /* Tabs and step controls still cover navigation; keep the compact bar single-line. */
+  [data-studio-action="transport-jump-to-start"],
+  [data-studio-action="transport-jump-to-end"],
+  [data-studio-action="nav-previous"],
+  [data-studio-action="nav-next"] {
+    display: none;
+  }
+
+  /* Persona remains encoded in URL and reappears at wider widths. */
+  .studio-nav-studio-menus > .studio-nav-journey-menu:not(:last-child) {
+    display: none;
+  }
+
+  .studio-nav-studio-menus > .studio-nav-journey-menu:last-child .studio-nav-journey-menu__panel {
+    right: auto;
+    left: 0;
+  }
 }

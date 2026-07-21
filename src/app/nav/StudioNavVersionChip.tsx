@@ -1,5 +1,7 @@
 import { getStudioRelease } from "@/app/shell/studioRelease";
 import { toggleAgentTestingLogger } from "@/app/shell/agent-testing/agentTestingOverlay";
+import type { CjmOptionMetadata } from "@/app/recording/recordingMetadata";
+import { StudioNavCompatibilityDialog } from "@/app/nav/StudioNavCompatibilityDialog";
 
 /**
  * Sticky right chip on the page-tabs row — version + channel.
@@ -7,7 +9,15 @@ import { toggleAgentTestingLogger } from "@/app/shell/agent-testing/agentTesting
  * Small CTRL/OBS/PENDING hint mirrors in-app AGENT latch when overlay is open
  * (not Cursor Chrome-DevTools MCP — tooltip says so on the chip).
  */
-export function StudioNavVersionChip() {
+export function StudioNavVersionChip({
+  cjmMetadata = {},
+  projectId,
+  projectLabel,
+}: {
+  cjmMetadata?: Readonly<Record<string, CjmOptionMetadata>>;
+  projectId: string;
+  projectLabel: string;
+}) {
   const release = getStudioRelease();
 
   return (
@@ -15,8 +25,8 @@ export function StudioNavVersionChip() {
       className="studio-nav-version"
       data-studio-version={release.version}
       data-studio-channel={release.channel}
-      title={`UX Studio ${release.label} (${release.channel})`}
-      aria-label={`UX Studio ${release.label}, ${release.channel} channel`}
+      title={`UXML ${release.label} (${release.channel})`}
+      aria-label={`UXML ${release.label}, ${release.channel} channel`}
     >
       <span
         className="studio-nav-version__mcp"
@@ -24,6 +34,7 @@ export function StudioNavVersionChip() {
         aria-live="polite"
         data-studio-mcp-hint="true"
       />
+      <StudioNavCompatibilityDialog metadataById={cjmMetadata} projectId={projectId} projectLabel={projectLabel} />
       <button
         type="button"
         className="studio-nav-version__qa"

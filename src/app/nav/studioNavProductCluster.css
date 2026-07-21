@@ -1,0 +1,50 @@
+/* PANEL — fixed UXML + Project cluster before scrollable page tabs. */
+.studio-nav-tabs-prefix {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 8px 6px 0 8px;
+  background: #2e2e2e;
+}
+
+.studio-nav-tabs-project {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 150px;
+}
+
+.studio-nav-tabs-project .studio-nav-journey-menu {
+  height: 18px;
+  margin: 0;
+  min-width: 0;
+}
+
+.studio-nav-tabs-project .studio-nav-journey-menu__trigger {
+  height: 18px;
+  max-width: 150px;
+  padding: 0 4px;
+}
+
+.studio-nav-tabs-project .studio-nav-journey-menu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.studio-nav-tabs-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 0 2px 0 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .studio-nav-tabs-project,
+  .studio-nav-tabs-project .studio-nav-journey-menu__trigger {
+    max-width: 108px;
+  }
+}

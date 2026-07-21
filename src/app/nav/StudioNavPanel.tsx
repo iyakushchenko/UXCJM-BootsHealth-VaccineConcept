@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { StudioNavLogo } from "@/app/nav/StudioNavLogo";
 import { StudioNavVersionChip } from "@/app/nav/StudioNavVersionChip";
-import { studioNavIndex } from "@/projects/boots-pharmacy/screens/screens";
+import { StudioNavProductAbout } from "@/app/nav/StudioNavProductAbout";
 import { useStudioNavZoom } from "@/app/nav/studioNavZoom";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
+import type { CjmOptionMetadata } from "@/app/recording/recordingMetadata";
 /* PANEL CSS: imported via src/styles/index.css (BASE → THEME → PANEL → LEGACY). */
 
 export type StudioNavScreen = {
@@ -31,6 +32,10 @@ type Props = {
   onGo: (index: number) => void;
   onReset: () => void;
   scenarioControls?: ReactNode;
+  projectSelect?: ReactNode;
+  cjmMetadata?: Readonly<Record<string, CjmOptionMetadata>>;
+  projectId: string;
+  projectLabel: string;
 };
 
 /**
@@ -55,6 +60,10 @@ export default function StudioNavPanel({
   onGo,
   onReset,
   scenarioControls,
+  projectSelect,
+  cjmMetadata,
+  projectId,
+  projectLabel,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -67,7 +76,8 @@ export default function StudioNavPanel({
   }, []);
 
   const screenCount = screens.length;
-  const navIndex = studioNavIndex(hubOpen, current);
+  const hasScreens = screenCount > 0;
+  const navIndex = hubOpen ? 0 : current + 1;
 
   const onPrevious = () => {
     if (navBrowseLocked || hubOpen) {
@@ -111,7 +121,16 @@ export default function StudioNavPanel({
     });
   };
 
-  const handleOpenHub = () => {
+  const handleOpenHub = (source: "logo" | "dot") => {
+    if (navBrowseLocked) {
+      logControlPanel("nav:hub", {
+        blocked: true,
+        blockReason: "navBrowseLocked",
+        source,
+        hubOpen,
+      });
+      return;
+    }
     logControlPanel("nav:hub", { hubOpen, togglingTo: !hubOpen });
     onOpenHub();
   };
@@ -149,10 +168,10 @@ export default function StudioNavPanel({
   };
 
   const handleReset = () => {
-    if (navResetLocked) {
+    if (navBrowseLocked || navResetLocked) {
       logControlPanel("nav:reset-page", {
         blocked: true,
-        blockReason: "navResetLocked",
+        blockReason: navBrowseLocked ? "navBrowseLocked" : "navResetLocked",
         current,
         label: screens[current]?.label,
       });
@@ -176,21 +195,24 @@ export default function StudioNavPanel({
       <div ref={shellRef} className="studio-nav-panel">
         <div className="studio-nav-chrome">
           <div className="studio-nav-tabs-row">
-            <div ref={tabsScrollRef} className="studio-nav-tabs">
+            <div className="studio-nav-tabs-prefix">
+              <StudioNavProductAbout disabled={navBrowseLocked} />
+              <div className="studio-nav-tabs-project">{projectSelect}</div>
+              <span className="studio-nav-tabs-divider" aria-hidden="true" />
               <button
                 type="button"
-                onClick={handleOpenHub}
+                onClick={() => handleOpenHub("logo")}
+                disabled={navBrowseLocked}
+                data-studio-action="nav-hub"
                 title={hubLabel}
                 aria-label={`Open ${hubLabel}`}
                 aria-current={hubOpen ? "page" : undefined}
-                className={
-                  hubOpen
-                    ? "studio-nav-logo-btn studio-nav-logo-btn--active"
-                    : "studio-nav-logo-btn"
-                }
+                className={hubOpen ? "studio-nav-logo-btn studio-nav-logo-btn--active" : "studio-nav-logo-btn"}
               >
                 <StudioNavLogo />
               </button>
+            </div>
+            <div ref={tabsScrollRef} className="studio-nav-tabs">
               {screens.map((screen: StudioNavScreen, i) => (
                 <button
                   key={screen.childIndex}
@@ -210,7 +232,7 @@ export default function StudioNavPanel({
                 </button>
               ))}
             </div>
-            <StudioNavVersionChip />
+            <StudioNavVersionChip cjmMetadata={cjmMetadata} projectId={projectId} projectLabel={projectLabel} />
           </div>
 
           <div className="studio-nav-status-bar px-4 py-2 bg-black/20 border-t border-white/10">
@@ -222,7 +244,9 @@ export default function StudioNavPanel({
               >
                 <button
                   type="button"
-                  onClick={onOpenHub}
+                  onClick={() => handleOpenHub("dot")}
+                  disabled={navBrowseLocked}
+                  data-studio-action="nav-hub"
                   aria-label={hubLabel}
                   aria-current={hubOpen ? "true" : undefined}
                   className={
@@ -236,7 +260,8 @@ export default function StudioNavPanel({
                     key={i}
                     type="button"
                     onClick={() => handleGoDot(i)}
-                    disabled={navBrowseLocked}
+                  disabled={navBrowseLocked}
+                  data-studio-action="nav-screen"
                     aria-label={`Screen ${i + 1}`}
                     aria-current={!hubOpen && i === current ? "true" : undefined}
                     className={
@@ -247,14 +272,15 @@ export default function StudioNavPanel({
                   />
                 ))}
               </div>
-              <span className="text-white/45 text-[10px] shrink-0">
+              {hasScreens ? <span className="studio-nav-status-bar__position">
                 {navIndex} / {screenCount}
-              </span>
-              {!isStudioPristine ? (
+              </span> : null}
+              {hasScreens && !isStudioPristine && !navBrowseLocked && !navResetLocked ? (
                 <button
                   type="button"
                   onClick={handleReset}
-                  disabled={navResetLocked}
+                  disabled={navBrowseLocked || navResetLocked}
+                  data-studio-action="nav-reset"
                   title="Reset prototype to defaults"
                   className="studio-nav-reset-state"
                 >
@@ -279,12 +305,13 @@ export default function StudioNavPanel({
               >
                 100%
               </span>
-              <button
+              {hasScreens ? <button
                 type="button"
                 onClick={onPrevious}
                 disabled={navBrowseLocked || hubOpen}
                 className="studio-nav-step-btn studio-nav-step-btn--icon-only"
                 aria-label="Previous screen"
+                data-studio-action="nav-previous"
                 title="Previous screen"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -296,8 +323,8 @@ export default function StudioNavPanel({
                     strokeLinejoin="round"
                   />
                 </svg>
-              </button>
-              <button
+              </button> : null}
+              {hasScreens ? <button
                 type="button"
                 onClick={onNext}
                 disabled={
@@ -305,6 +332,7 @@ export default function StudioNavPanel({
                 }
                 className="studio-nav-step-btn studio-nav-step-btn--icon-only"
                 aria-label="Next screen"
+                data-studio-action="nav-next"
                 title="Next screen"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -316,7 +344,7 @@ export default function StudioNavPanel({
                     strokeLinejoin="round"
                   />
                 </svg>
-              </button>
+              </button> : null}
             </div>
           </div>
         </div>

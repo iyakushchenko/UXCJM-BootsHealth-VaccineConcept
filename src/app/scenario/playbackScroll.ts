@@ -15,6 +15,7 @@
 import { playbackDiagScroll } from "@/app/shell/playbackDiag";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 import { isChatPullUpScrollLocked } from "@/projects/boots-pharmacy/screens/chat/chatMotion";
+import { motionEaseInOutProgress } from "@/uxds/motion";
 
 export type PlaybackScrollAlign = "start" | "center" | "end" | "nearest";
 
@@ -33,6 +34,8 @@ export type PlaybackScrollOptions = {
 
 let activeScrollRaf: number | null = null;
 let activeScrollAbort: AbortController | null = null;
+/** Settles the owned animation promise when replacement cancels its next rAF. */
+let activeScrollFinish: ((completed: boolean) => void) | null = null;
 let playbackScrollAnimating = false;
 const playbackScrollCancelHooks = new Set<() => void>();
 
@@ -221,6 +224,35 @@ function delayMs(ms: number): Promise<void> {
   return new Promise((r) => window.setTimeout(r, ms));
 }
 
+/**
+ * Wait for layout paint without allowing a throttled/lost rAF to deadlock Play.
+ * Chat scenario settles call this before the eased camera; the timeout is a
+ * lifecycle ceiling, not an extra visual delay (normal path remains two rAFs).
+ */
+export function waitForPlaybackLayoutFrames(
+  frameCount = 2,
+  timeoutMs = 120
+): Promise<void> {
+  return new Promise((resolve) => {
+    let done = false;
+    let remaining = Math.max(1, frameCount);
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timeout);
+      resolve();
+    };
+    const step = () => {
+      if (done) return;
+      remaining -= 1;
+      if (remaining <= 0) finish();
+      else requestAnimationFrame(step);
+    };
+    const timeout = window.setTimeout(finish, Math.max(16, timeoutMs));
+    requestAnimationFrame(step);
+  });
+}
+
 /** @returns true when the caller should return (work was scheduled for later). */
 function deferForPostClickCameraHold(
   run: () => void,
@@ -272,6 +304,14 @@ export function cancelPlaybackScroll(reason: "replace" | "abort" = "abort"): voi
     playbackScrollMonitor.onAnimationCancelled();
   } else {
     scrollReplacePending = true;
+  }
+  // A replacement may cancel the only scheduled rAF. Settle through the
+  // animation-owned finish path before clearing globals, otherwise callers
+  // awaiting animateScrollTo hang forever (Chat Step Forward stuck at 3/22).
+  const settle = activeScrollFinish;
+  if (settle) {
+    settle(false);
+    return;
   }
   if (activeScrollRaf != null) {
     cancelAnimationFrame(activeScrollRaf);
@@ -479,11 +519,7 @@ export async function animateDemoTargetIntoView(
     retreat: options?.retreat,
   });
 
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolve());
-    });
-  });
+  await waitForPlaybackLayoutFrames();
   if (isAborted(options)) return;
 
   const align = options?.align ?? DEMO_TARGET_SCROLL_ALIGN;
@@ -582,11 +618,7 @@ export async function beginDemoTargetPageScroll(
     return { durationMs: 0, scrollPromise: Promise.resolve() };
   }
 
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolve());
-    });
-  });
+  await waitForPlaybackLayoutFrames();
   if (isAborted(options)) {
     return { durationMs: 0, scrollPromise: Promise.resolve() };
   }
@@ -805,7 +837,13 @@ export function animateScrollTo(
   const startTop = scrollEl.scrollTop;
   const distance = top - startTop;
 
-  if (Math.abs(distance) < 2) {
+  // Chat reply/helpful geometry can mount with maxScroll=0 and grow on the
+  // next layout frame. Keep dynamic co-travel alive for its supplied duration
+  // so resolveTargetTop can pick up that growth instead of returning early and
+  // leaving composer-clearance to snap the full distance at animation end.
+  const waitForDynamicCoTravel =
+    options?.coTravel === true && typeof options.resolveTargetTop === "function";
+  if (Math.abs(distance) < 2 && !waitForDynamicCoTravel) {
     scrollEl.scrollTop = top;
     return Promise.resolve();
   }
@@ -836,6 +874,11 @@ export function animateScrollTo(
     startTop,
     targetTop: top,
     duration,
+    // Chat co-travel continuously re-anchors against reply/helpful geometry,
+    // so the fixed start→target path model is invalid even after scrollLock
+    // releases near the end. Bubble ΔΔY / scroll ΔΔ diagnostics still guard
+    // discontinuities for this dynamic path.
+    pathCheck: !options?.coTravel,
   });
 
   return new Promise<void>((resolve) => {
@@ -847,6 +890,9 @@ export function animateScrollTo(
       externalSignal?.removeEventListener("abort", onExternalAbort);
       if (activeScrollAbort === controller) {
         activeScrollAbort = null;
+      }
+      if (activeScrollFinish === finish) {
+        activeScrollFinish = null;
       }
       playbackScrollAnimating = false;
     };
@@ -871,6 +917,8 @@ export function animateScrollTo(
       resolve();
     };
 
+    activeScrollFinish = finish;
+
     playbackScrollAnimating = true;
 
     const tick = (now: number) => {
@@ -888,12 +936,16 @@ export function animateScrollTo(
       }
 
       const progress = Math.min(1, (now - animStartTime) / duration);
+      // Chat bubble pull-up uses Motion's easeInOut. Co-travel must use the
+      // same progress curve or the camera races ahead, then appears to brake
+      // while the bubble is still arriving.
+      const ease = options?.coTravel ? motionEaseInOutProgress : easeOutCubic;
       const maxNow = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
       const currentTarget = clamp(resolveTargetTop?.() ?? anchoredTarget, 0, maxNow);
       // Reply mount grows scrollHeight mid co-travel — re-anchor so one rAF
       // cannot jump hundreds of px (chat bubble appear chop).
       if (Math.abs(currentTarget - anchoredTarget) > 12) {
-        const t = easeOutCubic(Math.min(0.95, Math.max(0.05, progress)));
+        const t = ease(Math.min(0.95, Math.max(0.05, progress)));
         animStartTop =
           t < 0.999
             ? (scrollEl.scrollTop - currentTarget * t) / (1 - t)
@@ -901,7 +953,7 @@ export function animateScrollTo(
         anchoredTarget = currentTarget;
       }
       scrollEl.scrollTop =
-        animStartTop + (currentTarget - animStartTop) * easeOutCubic(progress);
+        animStartTop + (currentTarget - animStartTop) * ease(progress);
 
       const frameMs = now - lastFrameTime;
       lastFrameTime = now;
@@ -937,11 +989,7 @@ export async function animateScrollElementIntoView(
   const align = options?.align ?? "nearest";
   const padding = options?.padding ?? 0;
 
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolve());
-    });
-  });
+  await waitForPlaybackLayoutFrames();
   if (isAborted(options)) return;
 
   const targetTop = computeScrollTopForElement(scrollEl, target, align, padding);

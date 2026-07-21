@@ -16,6 +16,7 @@ import {
 import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
 
 export type PlayJourneySmokeState = {
+  journeyMode?: boolean;
   diagnosticOpen?: boolean;
   beatId?: string | null;
   counter?: string | null;
@@ -77,7 +78,29 @@ export async function runPlayJourneyToStartSmoke(options: {
   if (!options.setJourneyMode(true)) {
     return { pass: false, reason: "set-journey-mode-unavailable" };
   }
-  await options.delay(480);
+
+  // React state and the URL commit asynchronously. Do not start transport until
+  // the player has actually mounted a journey; otherwise Play can be accepted
+  // against the previous non-CJM render and sit at 0/N until the outer timeout.
+  const armDeadline = Date.now() + 3_000;
+  let armedState = options.getState();
+  while (Date.now() < armDeadline) {
+    const counter = parseVisible(armedState?.counter);
+    if (armedState?.journeyMode === true && counter.total > 0) break;
+    await options.delay(100);
+    armedState = options.getState();
+  }
+  if (
+    armedState?.journeyMode !== true ||
+    parseVisible(armedState.counter).total <= 0
+  ) {
+    return {
+      pass: false,
+      reason: "journey-mode-did-not-arm",
+      state: armedState,
+    };
+  }
+
   if (!options.triggerTransport("jump-to-start")) {
     return { pass: false, reason: "jump-to-start-unavailable" };
   }

@@ -6,6 +6,8 @@ import {
   formatHelperStepLabel,
   formatLogRowText,
   humanizeHelperSuffix,
+  humanizeQaLogLabel,
+  isRoutineTechnicalLogEntry,
   inferOutcomeFromText,
 } from "@/app/shell/agent-testing/agentTestingFormat";
 
@@ -36,6 +38,9 @@ describe("agentTestingFormat", () => {
     expect(
       inferOutcomeFromText("scroll issue detected · SCROLL_ISSUE_REPORTED")
     ).toBe("soft-fail");
+    expect(inferOutcomeFromText("no errors")).toBe("ok");
+    expect(inferOutcomeFromText("errors: []")).toBe("ok");
+    expect(inferOutcomeFromText("unexpected fatal error")).toBe("fail");
   });
 
   it("coalesces identical helper spam", () => {
@@ -67,5 +72,23 @@ describe("agentTestingFormat", () => {
     const merged = coalesceLogEntry(a, b);
     expect(merged?.count).toBe(2);
     expect(formatLogRowText(merged!)).toMatch(/×2/);
+  });
+
+  it("presents journey events in plain language without changing raw labels", () => {
+    expect(humanizeQaLogLabel("Screen → checkout-review")).toBe("Opened · Checkout Review");
+    expect(humanizeQaLogLabel("Modal open · delivery-options · screen=cart · url")).toBe("Opened dialog · Delivery Options");
+    expect(humanizeQaLogLabel("Click: June 24")).toBe("Selected · June 24");
+    expect(humanizeQaLogLabel("Click: Continue")).toBe("Activated · Continue");
+    expect(humanizeQaLogLabel("Click: Confirm order")).toBe("Activated · Confirm order");
+  });
+
+  it("marks inferred gaps as elapsed time and suppresses routine choreography", () => {
+    const entry = buildLogEntryFromPlain("Camera: target");
+    entry.durationMs = 5100;
+    entry.durationKind = "since-previous";
+    expect(formatLogRowText(entry)).not.toContain("5.1s");
+    expect(isRoutineTechnicalLogEntry(entry)).toBe(true);
+    entry.outcome = "fail";
+    expect(isRoutineTechnicalLogEntry(entry)).toBe(false);
   });
 });

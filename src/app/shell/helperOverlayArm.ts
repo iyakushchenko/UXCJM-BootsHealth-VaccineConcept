@@ -13,7 +13,7 @@
 import {
   logAgentTestingHelper,
   touchAgentTestingOverlay,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 
 const READ_ONLY_HELPER_SUFFIXES = new Set([
   "AgentTestingOverlay",

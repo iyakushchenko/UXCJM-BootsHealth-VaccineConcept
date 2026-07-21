@@ -92,7 +92,9 @@ async function waitTransportIdle(
     }
     const fwd = document.querySelector('[aria-label="Step forward"]');
     const back = document.querySelector('[aria-label="Step back"]');
-    const play = document.querySelector('[aria-label="Play journey"]');
+    const play = document.querySelector(
+      '[data-studio-action="transport-play"], [aria-label="Play journey"]'
+    );
     if (direction === "forward" && fwd && !fwd.hasAttribute("disabled")) {
       return true;
     }

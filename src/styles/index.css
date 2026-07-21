@@ -26,9 +26,15 @@
 
 /* ── PANEL — engine chrome only (`src/app/nav/`; `src/app/shell/`) ─── */
 @import '../app/nav/studioNavPanel.css';
+@import '../app/nav/studioNavPolish.css';
+@import '../app/nav/studioNavProductCluster.css';
+@import '../app/nav/studioNavDropdown.css';
+@import '../app/nav/studioNavCjmMetadata.css';
+@import '../app/nav/studioNavCompatibilityDialog.css';
 @import '../app/nav/studioNavRecordingAddCjm.css';
 @import '../app/nav/studioNavRecordingDiode.css';
 @import '../app/nav/studioNavDeleteCjm.css';
+@import '../app/shell/studioEmptyProject.css';
 @import '../app/shell/agent-testing/agent-testing-overlay.css';
 
 /* ── LEGACY — Make quarantine (`globals-*.css`); do not grow for React pages */

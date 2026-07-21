@@ -1,24 +1,11 @@
 import type { ReactNode } from "react";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "@/uxds/motion";
 import { StudioJourneySwitch } from "@/app/nav/StudioJourneySwitch";
 import { StudioPlaybackRecSwitch } from "@/app/nav/StudioPlaybackRecSwitch";
-import {
-  CONTROL_ROOM_TAP_MS,
-  flashControlRoomButton,
-} from "@/app/nav/controlRoomTap";
-import { StudioNavDeleteRecordedCjm } from "@/app/nav/StudioNavDeleteRecordedCjm";
+import { CONTROL_ROOM_TAP_MS, flashControlRoomButton } from "@/app/nav/controlRoomTap";
 import { StudioNavRecordingEventCounter } from "@/app/nav/StudioNavRecordingControls";
-import {
-  STUDIO_LABEL_SHRINK_DELAY_S,
-  studioPanelTransition,
-} from "@/app/nav/studioMotion";
+import { studioPanelTransition } from "@/app/nav/studioMotion";
 import {
   getActiveRecordingSession,
   isRecordingActive,
@@ -26,15 +13,8 @@ import {
   pauseRecording,
   subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
-import {
-  logControlPanel,
-  type ControlPanelAction,
-} from "@/app/shell/controlPanelLog";
-import {
-  isJourneyModeSwitchDisabled,
-  isRecModeLocked,
-  resolveRecModeLockReason,
-} from "@/app/nav/studioModeXor";
+import { logControlPanel } from "@/app/shell/controlPanelLog";
+import { isJourneyModeSwitchDisabled, isRecModeLocked, resolveRecModeLockReason } from "@/app/nav/studioModeXor";
 export type StudioNavScenarioControlsProps = {
   studioMenus: ReactNode;
   segmentLabel?: string;
@@ -80,15 +60,6 @@ export type StudioNavScenarioControlsProps = {
    */
   recMode?: boolean;
   onRecModeChange?: (enabled: boolean) => void;
-  /**
-   * REC-mode only: delete the selected recorded CJM (hidden for built-ins).
-   * Parent supplies target when the current orchestra mode is deletable.
-   */
-  deleteRecordedCjm?: {
-    journeyId: string;
-    label: string;
-    onConfirmDelete: () => void;
-  } | null;
 };
 
 function CassettePauseIcon() {
@@ -160,59 +131,24 @@ function CassetteJumpToEndIcon() {
   );
 }
 
-function formatStepCounter(
-  visibleCount: number,
-  totalFrames: number,
-  stepProgressActive: boolean
-): string {
+function formatStepCounter(visibleCount: number, totalFrames: number, stepProgressActive: boolean): string {
   if (totalFrames <= 0) return "STEPS: —";
   if (!stepProgressActive) return `STEPS: ${totalFrames}`;
   return `STEPS: ${visibleCount} / ${totalFrames}`;
 }
 
-/** Width-animates touchpoint label via Motion so studio menus slide instead of jumping. */
-function StudioNavSegmentLabel({
-  label,
-  blinkToken,
-}: {
-  label: string;
-  blinkToken: number;
-}) {
-  const innerRef = useRef<HTMLSpanElement>(null);
-  const prevWidthRef = useRef<number | null>(null);
-  const [width, setWidth] = useState<number | "auto">("auto");
-  const [shrink, setShrink] = useState(false);
-
-  useLayoutEffect(() => {
-    const el = innerRef.current;
-    if (!el) return;
-    const next = Math.ceil(el.scrollWidth);
-    const prev = prevWidthRef.current;
-    setShrink(prev !== null && next < prev);
-    prevWidthRef.current = next;
-    setWidth(next);
-  }, [label]);
-
+/** Stable touchpoint slot — playback labels truncate without moving adjacent controls. */
+function StudioNavSegmentLabel({ label, blinkToken }: { label: string; blinkToken: number }) {
   return (
-    <motion.span
-      className="studio-nav-scenario__label-slot"
-      initial={false}
-      animate={{ width }}
-      transition={{
-        ...studioPanelTransition,
-        delay: shrink ? STUDIO_LABEL_SHRINK_DELAY_S : 0,
-      }}
-    >
+    <span className="studio-nav-scenario__label-slot">
       <span
         key={blinkToken}
-        ref={innerRef}
-        className={`studio-nav-scenario__label${
-          blinkToken > 0 ? " studio-nav-scenario__label--touchpoint-blink" : ""
-        }`}
+        title={label || undefined}
+        className={`studio-nav-scenario__label${blinkToken > 0 ? " studio-nav-scenario__label--touchpoint-blink" : ""}`}
       >
         {label}
       </span>
-    </motion.span>
+    </span>
   );
 }
 
@@ -245,7 +181,6 @@ export function StudioNavScenarioControls({
   qaBeatLabel,
   recordingControls,
   createNewCjmSelected = false,
-  deleteRecordedCjm = null,
   recMode: recModeControlled,
   onRecModeChange,
 }: StudioNavScenarioControlsProps) {
@@ -259,9 +194,7 @@ export function StudioNavScenarioControls({
   /** Session-only: left = playback transport, right = recording controls (mutually exclusive). */
   const [recModeUncontrolled, setRecModeUncontrolled] = useState(false);
   const recModeControlledActive = typeof recModeControlled === "boolean";
-  const recMode = recModeControlledActive
-    ? recModeControlled
-    : recModeUncontrolled;
+  const recMode = recModeControlledActive ? recModeControlled : recModeUncontrolled;
   const setRecMode = (enabled: boolean) => {
     if (recModeControlledActive) {
       onRecModeChange?.(enabled);
@@ -272,17 +205,17 @@ export function StudioNavScenarioControls({
   const recordingArmed = useSyncExternalStore(
     subscribeRecordingSession,
     () => getActiveRecordingSession() != null,
-    () => false
+    () => false,
   );
   const recordingLive = useSyncExternalStore(
     subscribeRecordingSession,
     () => isRecordingActive(),
-    () => false
+    () => false,
   );
   const recordingPaused = useSyncExternalStore(
     subscribeRecordingSession,
     () => isRecordingPaused(),
-    () => false
+    () => false,
   );
   const prevPlaybackEndTokenRef = useRef(0);
   const stepBlinkTimerRef = useRef<number | null>(null);
@@ -434,34 +367,17 @@ export function StudioNavScenarioControls({
     flashControlRoomButton(button, "studio-nav-scenario__btn--tap");
   };
 
-  const showEndDiode =
-    (journeyAtEnd || diodeEndPulse) && !playbackErrorActive && !isOnAir;
+  const showEndDiode = (journeyAtEnd || diodeEndPulse) && !playbackErrorActive && !isOnAir;
   const transportAtEnd = journeyAtEnd && !isOnAir;
   const playbackActive = isOnAir || isPlaying;
   const playShowsStop = transportAtEnd;
   const playShowsPause = !playShowsStop && isOnAir;
-  const playDisabled =
-    !journeyMode ||
-    transportAtEnd ||
-    (!playbackActive && !canPlay);
+  const playDisabled = !journeyMode || transportAtEnd || (!playbackActive && !canPlay);
 
-  const logBlockedTransport = (
-    action: ControlPanelAction,
-    disabled: boolean,
-    blockReason: string,
-    extra?: Record<string, unknown>
-  ) => {
-    if (!disabled) return;
-    logControlPanel(action, { blocked: true, blockReason, ...extra });
-  };
-
-  const jumpToStartDisabled =
-    !journeyMode || playbackActive || !canJumpToStart;
+  const jumpToStartDisabled = !journeyMode || playbackActive || !canJumpToStart;
   const stepBackDisabled = !journeyMode || playbackActive || !canStepBack;
-  const stepForwardDisabled =
-    !journeyMode || playbackActive || transportAtEnd || !canStepForward;
-  const jumpToEndDisabled =
-    !journeyMode || playbackActive || transportAtEnd || !canJumpToEnd;
+  const stepForwardDisabled = !journeyMode || playbackActive || transportAtEnd || !canStepForward;
+  const jumpToEndDisabled = !journeyMode || playbackActive || transportAtEnd || !canJumpToEnd;
 
   const handleJumpToStart = (event: React.MouseEvent<HTMLButtonElement>) => {
     logControlPanel("transport:jump-to-start", {
@@ -528,13 +444,9 @@ export function StudioNavScenarioControls({
   const diodeErrorClass = playbackErrorActive ? " studio-nav-scenario__on-air--error" : "";
   const diodeEndClass = showEndDiode ? " studio-nav-scenario__on-air--end" : "";
   const diodeStepClass =
-    stepBlinkActive && !isOnAir && !showEndDiode && !playbackErrorActive
-      ? " studio-nav-scenario__on-air--step"
-      : "";
+    stepBlinkActive && !isOnAir && !showEndDiode && !playbackErrorActive ? " studio-nav-scenario__on-air--step" : "";
   const diodeClickClass =
-    clickBlinkActive && isOnAir && !showEndDiode && !playbackErrorActive
-      ? " studio-nav-scenario__on-air--click"
-      : "";
+    clickBlinkActive && isOnAir && !showEndDiode && !playbackErrorActive ? " studio-nav-scenario__on-air--click" : "";
   const diodeRecClass =
     recordingLive && !playbackErrorActive
       ? " studio-nav-scenario__on-air--rec"
@@ -546,27 +458,13 @@ export function StudioNavScenarioControls({
     <div
       className={`studio-nav-scenario${onAirClass}${journeyModeClass}`}
       role="group"
+      aria-label="CJM playback and recording controls"
     >
       {studioMenus}
-      {recMode && !recModeLocked && !recordingArmed && deleteRecordedCjm ? (
-        <StudioNavDeleteRecordedCjm
-          journeyId={deleteRecordedCjm.journeyId}
-          label={deleteRecordedCjm.label}
-          onConfirmDelete={deleteRecordedCjm.onConfirmDelete}
-        />
-      ) : null}
-      {segmentLabel ? (
-        <StudioNavSegmentLabel
-          label={segmentLabel}
-          blinkToken={blinkToken}
-        />
-      ) : null}
+      {segmentLabel ? <StudioNavSegmentLabel label={segmentLabel} blinkToken={blinkToken} /> : null}
       <div className="studio-nav-scenario__deck">
         {recordingControls ? (
-          <span
-            className="studio-nav-scenario__mode-control"
-            aria-disabled={recModeLocked || undefined}
-          >
+          <span className="studio-nav-scenario__mode-control" aria-disabled={recModeLocked || undefined}>
             <span className="studio-nav-scenario__mode-label" aria-hidden>
               REC
             </span>
@@ -576,10 +474,16 @@ export function StudioNavScenarioControls({
               disabled={recModeLocked}
               lockReason={recLockReason}
             />
+            {!recMode && recordingArmed && recordingPaused ? (
+              <span
+                className="studio-nav-scenario__counter studio-nav-scenario__counter--recording-paused"
+                title="Unsaved recording paused — turn REC on to continue"
+              >
+                REC PAUSED
+              </span>
+            ) : null}
             <AnimatePresence initial={false} mode="popLayout">
-              {recMode &&
-              !recModeLocked &&
-              (createNewCjmSelected || recordingArmed) ? (
+              {recMode && !recModeLocked && (createNewCjmSelected || recordingArmed) ? (
                 <motion.span
                   key="rec-event-counter"
                   className="studio-nav-scenario__panel-motion-inline"
@@ -596,13 +500,7 @@ export function StudioNavScenarioControls({
               <div className="studio-nav-scenario__deck-led" aria-hidden>
                 <span
                   className={`studio-nav-scenario__on-air${diodeRecClass}`}
-                  title={
-                    recordingLive
-                      ? "Recording"
-                      : recordingPaused
-                        ? "Recording paused"
-                        : "REC ready"
-                  }
+                  title={recordingLive ? "Recording" : recordingPaused ? "Recording paused" : "REC ready"}
                 >
                   <span className="studio-nav-scenario__on-air-dot" />
                   <span className="studio-nav-scenario__on-air-halo" />
@@ -617,7 +515,7 @@ export function StudioNavScenarioControls({
           cassette transport vanishes while REC stays visible. Playback is the
           default deck and must always mount when Rec is off.
         */}
-        <div className="studio-nav-scenario__panel-swap" aria-live="polite">
+        <div className="studio-nav-scenario__panel-swap">
           {recordingControls && recMode && !recModeLocked ? (
             <motion.div
               key="rec-panel"
@@ -661,22 +559,12 @@ export function StudioNavScenarioControls({
                   />
                 </span>
               ) : null}
-              <span className="studio-nav-scenario__counter" aria-live="polite">
-                {formatStepCounter(
-                  visibleCount,
-                  totalFrames,
-                  stepProgressActive
-                )}
+              <span className="studio-nav-scenario__counter" role="status" aria-live="polite" aria-atomic="true">
+                {formatStepCounter(visibleCount, totalFrames, stepProgressActive)}
               </span>
               <div className="studio-nav-scenario__deck-led" aria-hidden>
                 <span
-                  key={
-                    showEndDiode
-                      ? "diode-end"
-                      : stepBlinkActive
-                        ? `step-${stepBlinkToken}`
-                        : "diode-idle"
-                  }
+                  key={showEndDiode ? "diode-end" : stepBlinkActive ? `step-${stepBlinkToken}` : "diode-idle"}
                   className={`studio-nav-scenario__on-air${diodeErrorClass}${diodeEndClass}${diodeStepClass}${diodeClickClass}`}
                 >
                   <span className="studio-nav-scenario__on-air-dot" />
@@ -687,18 +575,8 @@ export function StudioNavScenarioControls({
                 type="button"
                 className="studio-nav-step-btn studio-nav-scenario__btn"
                 aria-label="Jump to start"
+                data-studio-action="transport-jump-to-start"
                 disabled={jumpToStartDisabled}
-                onPointerDown={() =>
-                  logBlockedTransport(
-                    "transport:jump-to-start",
-                    jumpToStartDisabled,
-                    !journeyMode
-                      ? "journey-mode-off"
-                      : playbackActive
-                        ? "playback-active"
-                        : "canJumpToStart=false"
-                  )
-                }
                 onClick={handleJumpToStart}
               >
                 <CassetteJumpToStartIcon />
@@ -707,18 +585,8 @@ export function StudioNavScenarioControls({
                 type="button"
                 className="studio-nav-step-btn studio-nav-scenario__btn"
                 aria-label="Step back"
+                data-studio-action="transport-step-back"
                 disabled={stepBackDisabled}
-                onPointerDown={() =>
-                  logBlockedTransport(
-                    "transport:step-back",
-                    stepBackDisabled,
-                    !journeyMode
-                      ? "journey-mode-off"
-                      : playbackActive
-                        ? "playback-active"
-                        : "canStepBack=false"
-                  )
-                }
                 onClick={handleStepBack}
               >
                 <CassetteStepBackIcon />
@@ -733,49 +601,21 @@ export function StudioNavScenarioControls({
                 <button
                   type="button"
                   className="studio-nav-step-btn studio-nav-scenario__btn studio-nav-scenario__btn--play"
-                  aria-label="Play journey"
+                  aria-label={playShowsPause ? "Pause journey" : playShowsStop ? "Journey ended" : "Play journey"}
+                  data-studio-action="transport-play"
                   aria-pressed={isOnAir}
                   disabled={playDisabled}
-                  onPointerDown={() =>
-                    logBlockedTransport(
-                      "transport:play",
-                      playDisabled,
-                      !journeyMode
-                        ? "journey-mode-off"
-                        : transportAtEnd
-                          ? "journey-at-end"
-                          : "canPlay=false"
-                    )
-                  }
                   onClick={handlePlay}
                 >
-                  {playShowsPause ? (
-                    <CassettePauseIcon />
-                  ) : playShowsStop ? (
-                    <CassetteStopIcon />
-                  ) : (
-                    <CassettePlayIcon />
-                  )}
+                  {playShowsPause ? <CassettePauseIcon /> : playShowsStop ? <CassetteStopIcon /> : <CassettePlayIcon />}
                 </button>
               </div>
               <button
                 type="button"
                 className="studio-nav-step-btn studio-nav-scenario__btn"
                 aria-label="Step forward"
+                data-studio-action="transport-step-forward"
                 disabled={stepForwardDisabled}
-                onPointerDown={() =>
-                  logBlockedTransport(
-                    "transport:step-forward",
-                    stepForwardDisabled,
-                    !journeyMode
-                      ? "journey-mode-off"
-                      : playbackActive
-                        ? "playback-active"
-                        : transportAtEnd
-                          ? "journey-at-end"
-                          : "canStepForward=false"
-                  )
-                }
                 onClick={handleStepForward}
               >
                 <CassetteStepForwardIcon />
@@ -784,20 +624,8 @@ export function StudioNavScenarioControls({
                 type="button"
                 className="studio-nav-step-btn studio-nav-scenario__btn"
                 aria-label="Jump to end"
+                data-studio-action="transport-jump-to-end"
                 disabled={jumpToEndDisabled}
-                onPointerDown={() =>
-                  logBlockedTransport(
-                    "transport:jump-to-end",
-                    jumpToEndDisabled,
-                    !journeyMode
-                      ? "journey-mode-off"
-                      : playbackActive
-                        ? "playback-active"
-                        : transportAtEnd
-                          ? "journey-at-end"
-                          : "canJumpToEnd=false"
-                  )
-                }
                 onClick={handleJumpToEnd}
               >
                 <CassetteJumpToEndIcon />

@@ -1,7 +1,7 @@
 import type { ProjectPlayback } from "@/projects/types";
 import { scriptFail, scriptOk } from "@/projects/playbackScriptResult";
 
-/** No-op playback — Puma journeys not implemented yet. */
+/** No-op playback — UXDS - Larkin journeys not implemented yet. */
 export const PUMA_PLAYBACK: ProjectPlayback = {
   abortAll: () => {},
   runBeatAction: () => {},

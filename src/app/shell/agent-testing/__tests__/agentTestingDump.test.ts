@@ -3,12 +3,39 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildAgentTestingEvidencePack,
   buildAgentTestingDump,
   buildAgentTestingDumpFilename,
   downloadAgentTestingDump,
 } from "@/app/shell/agent-testing/agentTestingDump";
+import {
+  appendQaDiagRing,
+  openQaDiagGate,
+  resetQaDiagGateForTests,
+} from "@/app/shell/qaDiagGate";
 
 describe("buildAgentTestingDump lean-rich", () => {
+  it("retains a full user message from the hydrated diagnostic ring", () => {
+    const fullMessage = "message ".repeat(35);
+    openQaDiagGate({ sessionKind: "manual" });
+    appendQaDiagRing({
+      kind: "user-message",
+      label: "User: clipped display",
+      action: fullMessage,
+    });
+
+    const dump = buildAgentTestingDump({
+      reason: "manual",
+      title: "MANUAL TEST",
+      elapsedMs: 0,
+      gateMode: "manual",
+      log: [],
+    });
+
+    expect(dump.ring?.find((event) => event.kind === "user-message")?.action).toBe(fullMessage);
+    resetQaDiagGateForTests();
+  });
+
   it("includes sessionKind, code, agentPrompt, compact log for agent parse", () => {
     const dump = buildAgentTestingDump({
       reason: "alarm",
@@ -122,5 +149,23 @@ describe("buildAgentTestingDump lean-rich", () => {
     const a = appended.find((el) => el.tagName === "A");
     expect(a?.getAttribute("data-studio-agent-testing-ignore")).toBe("true");
     vi.restoreAllMocks();
+  });
+
+  it("summarizes console ↔ QA diagnostic parity for token-lean review", () => {
+    const dump = buildAgentTestingDump({
+      reason: "manual",
+      title: "PARITY",
+      elapsedMs: 10,
+      gateMode: "agent",
+      log: [],
+    });
+    dump.recentPlaybackDiagEvents = [{ kind: "click", detail: "click failed" }];
+    dump.ring = [];
+    const pack = buildAgentTestingEvidencePack([dump]);
+    expect(pack.verdict).toBe("review");
+    expect(pack.sessions[0]?.issues[0]).toContain("no human QA diagnostic row");
+    expect(pack.agentBrief.rootCause).toBe("EVIDENCE_PARITY_REVIEW");
+    expect(pack.clusters[0]?.count).toBe(1);
+    expect(pack.comparison.newIssues).toContain("EVIDENCE_PARITY_REVIEW");
   });
 });

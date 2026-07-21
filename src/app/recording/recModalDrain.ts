@@ -6,7 +6,7 @@
  */
 
 import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
-import { logAgentTestingStep, touchAgentTestingOverlay } from "@/app/shell/agent-testing";
+import { logAgentTestingStep, touchAgentTestingOverlay } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { parseStudioUrl } from "@/app/shell/studioUrl";
 import { STUDIO_MODAL } from "@/app/shell/studioModalGuard";
 import { recUserPace } from "@/app/recording/recUserPace";

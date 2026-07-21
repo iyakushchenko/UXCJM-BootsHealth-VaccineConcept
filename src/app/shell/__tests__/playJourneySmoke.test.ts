@@ -1,0 +1,61 @@
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/app/shell/playbackDiag", () => ({
+  assertPlaybackPlayEndedAtStart: vi.fn(() => ({ pass: true })),
+  getPlaybackDiagBundle: vi.fn(() => ({ playEnd: { count: 0 } })),
+  playbackDiagClear: vi.fn(),
+  playbackDiagLog: vi.fn(),
+}));
+
+vi.mock("@/app/shell/smokePoSignalPoll", () => ({
+  pollSmokePoSignal: vi.fn(() => ({ hit: false, abort: false, signal: null })),
+}));
+
+import { runPlayJourneyToStartSmoke } from "@/app/shell/playJourneySmoke";
+
+describe("runPlayJourneyToStartSmoke arming", () => {
+  it("waits for committed journey mode and a populated counter before transport", async () => {
+    let reads = 0;
+    const triggerTransport = vi.fn(() => false);
+    const result = await runPlayJourneyToStartSmoke({
+      orchestraMode: "agentic-cjm",
+      startBeatId: "agentic-home",
+      startScreenId: "site-pilot",
+      delay: vi.fn(async () => undefined),
+      ensureClean: vi.fn(),
+      setOrchestraMode: vi.fn(),
+      setJourneyMode: vi.fn(() => true),
+      triggerTransport,
+      getState: () => {
+        reads += 1;
+        return reads < 3
+          ? { journeyMode: false, counter: "0 / 0" }
+          : { journeyMode: true, counter: "0 / 22" };
+      },
+    });
+
+    expect(triggerTransport).toHaveBeenCalledWith("jump-to-start");
+    expect(result.reason).toBe("jump-to-start-unavailable");
+  });
+
+  it("fails fast without touching transport when journey mode never commits", async () => {
+    let now = 0;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => (now += 1_000));
+    const triggerTransport = vi.fn(() => true);
+    const result = await runPlayJourneyToStartSmoke({
+      orchestraMode: "agentic-cjm",
+      startBeatId: "agentic-home",
+      startScreenId: "site-pilot",
+      delay: vi.fn(async () => undefined),
+      ensureClean: vi.fn(),
+      setOrchestraMode: vi.fn(),
+      setJourneyMode: vi.fn(() => true),
+      triggerTransport,
+      getState: () => ({ journeyMode: false, counter: "0 / 0" }),
+    });
+
+    nowSpy.mockRestore();
+    expect(result.reason).toBe("journey-mode-did-not-arm");
+    expect(triggerTransport).not.toHaveBeenCalled();
+  });
+});

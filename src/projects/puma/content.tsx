@@ -18,7 +18,7 @@ export function ProjectFrame() {
       style={{ fontFamily: "'Open Sans', sans-serif" }}
     >
       <p className="text-sm font-semibold uppercase tracking-wide">
-        Puma prototype — coming soon
+        UXDS - Larkin prototype — coming soon
       </p>
     </div>
   );
@@ -27,7 +27,7 @@ export function ProjectFrame() {
 export function HubViewport(_props: { onGoToTab?: (index: number) => void }) {
   return (
     <div className="p-8 text-center text-neutral-600">
-      <p className="text-lg font-semibold">Puma</p>
+      <p className="text-lg font-semibold">UXDS - Larkin</p>
       <p className="mt-2 text-sm">Project shell registered. Content not wired yet.</p>
     </div>
   );

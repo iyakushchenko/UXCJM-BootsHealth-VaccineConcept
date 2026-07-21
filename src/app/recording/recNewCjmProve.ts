@@ -10,6 +10,7 @@
 import { armRecCapture, assertRecLive, stopRecCaptureViaUi, type RecArmCaptureHooks } from "@/app/recording/recArmCapture";
 import {
   isRecordingActive,
+  isRecordingPaused,
   stopRecording,
   type StartRecordingOptions,
 } from "@/app/recording/recordingSession";
@@ -18,7 +19,7 @@ import { describeRecordingClickTarget } from "@/app/recording/recordingCapture";
 import {
   logAgentTestingStep,
   touchAgentTestingOverlay,
-} from "@/app/shell/agent-testing";
+} from "@/app/shell/agent-testing/agentTestingOverlay";
 import { requireFreshQaSession } from "@/app/shell/requireFreshQaSession";
 import { runFullPlayProve, type FullPlayProvePeak } from "@/app/shell/fullPlayProve";
 import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
@@ -32,6 +33,13 @@ import { getLastRecordingSession } from "@/app/recording/recordingSession";
 export type RecNewCjmProveOptions = {
   experience?: "agentic" | "traditional";
   label?: string;
+  /** Reusable route depth for broad REC coverage; defaults to the full booking path. */
+  captureUntil?:
+    | "plp-book"
+    | "pdp-book"
+    | "book-location"
+    | "book-schedule"
+    | "book-confirmation";
   /** Max wait for Play prove of the new journey. */
   timeoutMs?: number;
   settleMs?: number;
@@ -59,11 +67,10 @@ function mintDemoJourneyLabel(experience: "agentic" | "traditional"): string {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, "0");
   const mm = String(now.getMinutes()).padStart(2, "0");
-  const slug = Math.random().toString(36).slice(2, 6);
   if (experience === "agentic") {
-    return `Sarah · Home→Chat · ${hh}:${mm} · ${slug}`;
+    return `Sarah · Home→Chat vaccination advice · ${hh}:${mm}`;
   }
-  return `Sarah · PLP→Book · ${hh}:${mm} · ${slug}`;
+  return `Sarah · PLP→Book appointment · ${hh}:${mm}`;
 }
 
 /** Honest click targets — never coarse shell / tiles container. */
@@ -136,7 +143,7 @@ async function pacedScrollStop(deltaPx: number): Promise<void> {
   await recUserPace("scrollStopSettle");
 }
 
-function goPlpViaUrlOrTab(): void {
+function goPlpViaUrlOrTab(experience: "agentic" | "traditional"): void {
   // Prefer URL deep-link (same as PO / prove recipe) when not already on PLP.
   try {
     const url = new URL(window.location.href);
@@ -145,10 +152,7 @@ function goPlpViaUrlOrTab(): void {
       url.searchParams.set("screen", "plp");
       url.searchParams.set("persona", url.searchParams.get("persona") || "sarah-jenkins");
       url.searchParams.set("cjm", "off");
-      url.searchParams.set(
-        "experience",
-        url.searchParams.get("experience") || "traditional"
-      );
+      url.searchParams.set("experience", experience);
       window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
@@ -176,6 +180,7 @@ export async function runRecNewCjmProve(
   options?: RecNewCjmProveOptions
 ): Promise<RecNewCjmProveResult> {
   const experience = options?.experience ?? "traditional";
+  const captureUntil = options?.captureUntil ?? "book-confirmation";
   const settle = options?.settleMs ?? 100;
   const errors: string[] = [];
   let journeyId: string | null = null;
@@ -205,10 +210,17 @@ export async function runRecNewCjmProve(
   const seedMode =
     experience === "traditional" ? "traditional-cjm" : "agentic-cjm";
   hooks.setOrchestraMode?.(seedMode);
+  // A prior Play prove intentionally returns with CJM on. REC is XOR with CJM,
+  // so clear journey mode before attempting to arm the next capture.
+  (
+    window as Window & {
+      __studioSetJourneyMode?: (enabled: boolean) => boolean;
+    }
+  ).__studioSetJourneyMode?.(false);
   await delay(settle);
 
   // Land on PLP for traditional capture path.
-  goPlpViaUrlOrTab();
+  goPlpViaUrlOrTab(experience);
   await recUserPace("afterScreenChange");
   for (let i = 0; i < 20 && !pickHonestClickTarget(['[data-studio-action="plp-book-now"]']); i++) {
     await delay(150);
@@ -248,20 +260,20 @@ export async function runRecNewCjmProve(
       const fallback = pickHonestClickTarget();
       if (!fallback) {
         errors.push("no honest click target (data-studio-action) on page");
-        if (isRecordingActive()) stopRecording();
+        if (isRecordingActive() || isRecordingPaused()) stopRecording();
         return failResult(errors, journeyId, recLive, peak);
       }
       await recUserPace("beforeCta");
       const ok = await simulateDemoPointerClick(fallback, { scroll: true });
       if (!ok) {
         errors.push("robo-cursor click failed / degraded target");
-        if (isRecordingActive()) stopRecording();
+        if (isRecordingActive() || isRecordingPaused()) stopRecording();
         return failResult(errors, journeyId, recLive, peak);
       }
       await recUserPace("afterClick");
       const drain = await afterRecClickDrainModal();
       if (!drain.ok) errors.push(drain.reason ?? "modal drain failed");
-    } else {
+    } else if (captureUntil !== "plp-book") {
       await pacedScrollStop(320);
       await pacedClick('[data-studio-action="pdp-book-now"]', "PDP Book now");
       // Traditional: Book may open login first — drain Sign in, then Book again.
@@ -276,17 +288,19 @@ export async function runRecNewCjmProve(
         const loginGone = !document.querySelector(
           '[data-studio-modal="login"], .proto-login-card'
         );
-        if (screenNow === "pdp" && loginGone) {
+        if (screenNow === "pdp" && loginGone && captureUntil !== "pdp-book") {
           await pacedClick(
             '[data-studio-action="pdp-book-now"]',
             "PDP Book now (after login)"
           );
         }
       }
-      await pacedClick(
-        '[data-studio-action="book-step-1-continue"]',
-        "Book Step 1 Continue"
-      );
+      if (captureUntil !== "pdp-book") {
+        await pacedClick(
+          '[data-studio-action="book-step-1-continue"]',
+          "Book Step 1 Continue"
+        );
+      }
       // afterRecClickDrainModal inside pacedClick handles choose-pharmacy.
       // After pick, book-step-1 still owns the page — Continue again → step 2.
       const screenAfterPharmacy = (() => {
@@ -296,7 +310,11 @@ export async function runRecNewCjmProve(
           return null;
         }
       })();
-      if (screenAfterPharmacy === "book-step-1") {
+      if (
+        screenAfterPharmacy === "book-step-1" &&
+        captureUntil !== "pdp-book" &&
+        captureUntil !== "book-location"
+      ) {
         await pacedClick(
           '[data-studio-action="book-step-1-continue"]',
           "Book Step 1 Continue (after pharmacy)"
@@ -312,6 +330,7 @@ export async function runRecNewCjmProve(
         await delay(150);
       }
       if (
+        captureUntil === "book-confirmation" &&
         document.querySelector('[data-studio-action="book-step-2-reserve"]')
       ) {
         await pacedClick(
@@ -322,21 +341,32 @@ export async function runRecNewCjmProve(
     }
   } catch (err) {
     errors.push(err instanceof Error ? err.message : String(err));
-    if (isRecordingActive()) stopRecording();
+    if (isRecordingActive() || isRecordingPaused()) stopRecording();
     return failResult(errors, journeyId, recLive, peak);
   }
 
   // 4) ■ Stop via REC deck, then + Add as CJM via real UI (product title).
-  if (!isRecordingActive()) {
+  if (
+    !(isRecordingActive() || isRecordingPaused()) &&
+    !getLastRecordingSession()
+  ) {
     errors.push("REC died before Stop");
     return failResult(errors, journeyId, false, peak);
   }
-  if (!(await stopRecCaptureViaUi(settle))) {
+  await stopRecCaptureViaUi(settle);
+  // Screen navigation can collapse the REC deck and pause capture before the
+  // visible Stop control settles. Preserve the session with the same SSoT
+  // stop operation instead of treating a valid paused capture as dead.
+  if (isRecordingActive() || isRecordingPaused()) {
     stopRecording();
     await delay(settle);
   }
-  if (isRecordingActive()) {
+  if (isRecordingActive() || isRecordingPaused()) {
     errors.push("Stop failed — session still live");
+    return failResult(errors, journeyId, false, peak);
+  }
+  if (!getLastRecordingSession()) {
+    errors.push("Stop produced no staged recording session");
     return failResult(errors, journeyId, false, peak);
   }
 

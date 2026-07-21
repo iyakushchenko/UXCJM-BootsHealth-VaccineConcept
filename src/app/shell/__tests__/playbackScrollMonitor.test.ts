@@ -79,6 +79,43 @@ describe("playbackScrollMonitor", () => {
     expect(anomalies).toEqual([]);
   });
 
+  it("does not false-FAIL a dynamically re-anchored Chat co-travel path", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    // R15 report, agentic-chat frame 7/22: the fixed easeOut model expected
+    // 310, while reply/helpful geometry re-anchored co-travel to 446 at 12%.
+    monitor.onAnimationStart({
+      startTop: 0,
+      targetTop: 943,
+      duration: 1000,
+      pathCheck: false,
+    });
+    vi.advanceTimersByTime(120);
+    monitor.onAnimationFrame({ scrollTop: 446, frameMs: 16 });
+
+    expect(anomalies).toEqual([]);
+  });
+
+  it("still reports the same deviation for a fixed-path scroll", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+
+    monitor.onAnimationStart({
+      startTop: 0,
+      targetTop: 943,
+      duration: 1000,
+    });
+    vi.advanceTimersByTime(120);
+    monitor.onAnimationFrame({ scrollTop: 446, frameMs: 16 });
+
+    expect(anomalies).toContain("scroll-path-deviation");
+  });
+
   it("still reports jumps when not in navigation grace", () => {
     const anomalies: string[] = [];
     const monitor = createPlaybackScrollMonitor();

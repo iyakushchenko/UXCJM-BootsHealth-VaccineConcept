@@ -24,6 +24,23 @@ export type PlaybackDiagnosticPhase =
   | "viewport-anomaly"
   | "transport-no-op";
 
+export function cjmCompatibilityDiagnostic(options: {
+  journeyId: string;
+  journeyLabel: string;
+  issues: readonly { code: string; detail: string }[];
+}): PlaybackDiagnosticError {
+  const codes = options.issues.map((issue) => issue.code);
+  return new PlaybackDiagnosticError({
+    phase: "state-mismatch",
+    journeyId: options.journeyId,
+    failureStep: "cjm-compatibility-preflight",
+    expected: "Active CJM passes the current Studio recording and product contract",
+    actual: `Compatibility failed: ${codes.join(", ")}`,
+    message: `${options.journeyLabel} is not compatible with this Studio build`,
+    detail: options.issues.map((issue) => `${issue.code}: ${issue.detail}`).join(" | "),
+  });
+}
+
 export type PlaybackDiagnosticContext = {
   phase: PlaybackDiagnosticPhase;
   journeyId?: string;

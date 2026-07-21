@@ -31,6 +31,8 @@ export type OpenQaLoggerOptions = {
   title?: string;
   /** Internal: page-refresh hydrate — keep restored log/ring + elapsed. */
   hydrateRestore?: boolean;
+  /** Internal refresh state: preserve Pause instead of auto-resuming. */
+  hydrateCapturePaused?: boolean;
 };
 
 export type QaHandoffOptions = {
