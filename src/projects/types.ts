@@ -46,6 +46,8 @@ export type JourneyPlaybackHooks = {
 export type PersonaDefinition = {
   id: PersonaId;
   label: string;
+  /** Concise browser-title identity; full label remains dropdown/a11y truth. */
+  shortLabel?: string;
   journeys: JourneyDefinition[];
   journeyHooks?: JourneyPlaybackHooks;
 };

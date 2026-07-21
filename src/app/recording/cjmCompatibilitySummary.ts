@@ -6,6 +6,7 @@ export type CjmCompatibilitySummary = {
   affectedCjmCount: number;
   issueCount: number;
   blockingIssueCount: number;
+  retestIssueCount: number;
 };
 
 export function buildCjmCompatibilitySummary(
@@ -18,6 +19,10 @@ export function buildCjmCompatibilitySummary(
     issueCount: affected.reduce((total, item) => total + item.issues.length, 0),
     blockingIssueCount: affected.reduce(
       (total, item) => total + item.issues.filter((issue) => issue.severity === "blocking").length,
+      0,
+    ),
+    retestIssueCount: affected.reduce(
+      (total, item) => total + item.issues.filter((issue) => issue.severity !== "blocking").length,
       0,
     ),
   };
@@ -37,6 +42,7 @@ export function buildGlobalCjmDiagnostic(options: {
     affectedCjmCount: options.summary.affectedCjmCount,
     issueCount: options.summary.issueCount,
     blockingIssueCount: options.summary.blockingIssueCount,
+    retestIssueCount: options.summary.retestIssueCount,
     recommendedTestSuiteId: "all-cjms",
     journeys: options.summary.affected.map((item) => item.diagnostic),
   };

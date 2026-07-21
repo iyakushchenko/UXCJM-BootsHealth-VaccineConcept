@@ -16,6 +16,8 @@ import type { JourneyFile } from "@/app/journey/journeyFile";
 import { isBuiltInOrchestraModeId } from "@/app/orchestra/orchestraModes";
 import { healRecordedJourneyNav } from "@/app/recording/recordedJourneyNavHeal";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
+import { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingMetadata";
+import { getStudioRelease } from "@/app/shell/studioRelease";
 import type { PersonaId, ProjectId } from "@/projects/types";
 
 const STORAGE_PREFIX = "studio-recorded-cjm";
@@ -93,6 +95,31 @@ export function readPersistedRecordingForJourney(
   const session = catalog?.recordings?.[journeyId];
   if (!session || !Array.isArray(session.events)) return undefined;
   return session;
+}
+
+/** Attach a successful playback proof without rewriting recording provenance. */
+export function markPersistedJourneyPlaybackProven(
+  projectId: ProjectId | string,
+  personaId: PersonaId | string,
+  journeyId: string
+): boolean {
+  const catalog = readCatalogRaw(projectId, personaId);
+  const session = catalog?.recordings?.[journeyId];
+  if (!catalog || !session) return false;
+  const updated: RecordingSession = {
+    ...session,
+    metadata: {
+      ...session.metadata,
+      compatibilityProof: {
+        playbackContract: CJM_PLAYBACK_CONTRACT_VERSION,
+        studioVersion: getStudioRelease().version,
+        provedAt: new Date().toISOString(),
+      },
+    },
+  };
+  persistRecordedJourneys(projectId, personaId, catalog.journeys, { [journeyId]: updated });
+  window.dispatchEvent(new CustomEvent("studio:cjm-compatibility-proof", { detail: { journeyId } }));
+  return true;
 }
 
 export function persistRecordedJourneys(

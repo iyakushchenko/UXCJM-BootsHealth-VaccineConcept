@@ -171,6 +171,12 @@ export type RecordingSessionMetadata = {
   studioVersion?: string;
   /** Metadata/diagnostic contract for forward compatibility checks. */
   recordingContractVersion?: 1;
+  /** Latest successful playback proof; separate from immutable recording provenance. */
+  compatibilityProof?: {
+    playbackContract: 1;
+    studioVersion: string;
+    provedAt: string;
+  };
   notes?: string;
   /**
    * Screen id at ● Start (seeded). Compile + Add as CJM assert first beat

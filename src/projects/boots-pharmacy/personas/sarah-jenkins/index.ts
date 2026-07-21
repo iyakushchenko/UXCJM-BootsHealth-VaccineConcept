@@ -8,6 +8,7 @@ import {
 export const SARAH_JENKINS_PERSONA: PersonaDefinition = {
   id: "sarah-jenkins",
   label: "Sarah Jenkins",
+  shortLabel: "Sarah J.",
   journeys: [AGENTIC_CJM_JOURNEY, TRADITIONAL_CJM_JOURNEY],
   journeyHooks: {
     shouldSkipBeat: (beat, { headerLoggedIn }) =>

@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.106 - 210726
+- **engine:** CJM compatibility uses structural blocks plus persistent playback proofs instead of blanket patch-version lockout; browser titles now identify product, project, and persona
+
 ## v0.0.105 - 210726
 - **docs:** PP-14 reopen handoff + board 0e; docs-links gate + workflow/proof-router catalog
 - **shell:** UXML product cluster, About experience, responsive navigation polish, and global CJM compatibility diagnostics

@@ -2,6 +2,8 @@ import type { JourneyDefinition } from "@/app/orchestra/types";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import { getStudioRelease } from "@/app/shell/studioRelease";
 
+export const CJM_PLAYBACK_CONTRACT_VERSION = 1 as const;
+
 export type CjmMetadataIssue = {
   code: string;
   detail: string;
@@ -59,21 +61,25 @@ export function buildCjmOptionMetadata(
     issues.push({
       code: "recording-source-missing",
       detail: "Raw REC session is unavailable; provenance and compatibility cannot be fully verified.",
+      severity: "blocking",
     });
   }
   if (session && session.metadata?.recordingContractVersion !== 1) {
     issues.push({
       code: "legacy-recording-contract",
       detail: "Recording predates the current metadata/diagnostic contract.",
+      severity: "blocking",
     });
   }
   if (
     session?.metadata?.studioVersion &&
-    session.metadata.studioVersion !== currentVersion
+    session.metadata.studioVersion !== currentVersion &&
+    session.metadata.compatibilityProof?.playbackContract !== CJM_PLAYBACK_CONTRACT_VERSION
   ) {
     issues.push({
-      code: "studio-version-drift",
-      detail: `Recorded in Studio v${session.metadata.studioVersion}; re-prove against current v${currentVersion}.`,
+      code: "retest-required",
+      detail: `Recorded in Studio v${session.metadata.studioVersion}; playback proof is required for the current contract.`,
+      severity: "warning",
     });
   }
   if (session && session.version !== 1) {
@@ -105,9 +111,7 @@ export function buildCjmOptionMetadata(
     : formatRecordedAt(session?.startedAt);
   const authorLabel = builtIn ? "Studio" : resolveAuthorLabel(session);
   const summary = `${journey.beats.length} ${journey.beats.length === 1 ? "step" : "steps"} · ${authLabel} · ${recordedAtLabel} · ${authorLabel}`;
-  // Strict cassette contract: every unresolved compatibility issue blocks
-  // transport until the journey is re-proven against the current product.
-  const playable = issues.length === 0;
+  const playable = !issues.some((issue) => issue.severity === "blocking");
   const diagnostic = {
     kind: "studio-cjm-diagnostic",
     generatedAt: new Date().toISOString(),
@@ -129,6 +133,7 @@ export function buildCjmOptionMetadata(
           recordedFrom: session.metadata?.recordedFrom ?? null,
           studioVersion: session.metadata?.studioVersion ?? null,
           contractVersion: session.metadata?.recordingContractVersion ?? null,
+          compatibilityProof: session.metadata?.compatibilityProof ?? null,
         }
       : null,
     currentStudioVersion: currentVersion,

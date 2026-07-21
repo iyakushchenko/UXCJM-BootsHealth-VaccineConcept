@@ -70,7 +70,9 @@ export function StudioNavCompatibilityDialog({
   };
 
   if (summary.affectedCjmCount === 0) return null;
-  const warningTitle = `${summary.affectedCjmCount} CJM${summary.affectedCjmCount === 1 ? "" : "s"} blocked · ${summary.issueCount} compatibility issue${summary.issueCount === 1 ? "" : "s"}`;
+  const warningTitle = summary.blockingIssueCount > 0
+    ? `${summary.blockingIssueCount} blocking compatibility issue${summary.blockingIssueCount === 1 ? "" : "s"}`
+    : `${summary.affectedCjmCount} CJM${summary.affectedCjmCount === 1 ? "" : "s"} need re-testing`;
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -101,8 +103,12 @@ export function StudioNavCompatibilityDialog({
           </header>
 
           <div className="studio-global-diagnostics__summary">
-            <strong>{summary.affectedCjmCount} CJM{summary.affectedCjmCount === 1 ? "" : "s"} blocked</strong>
-            <span>{summary.issueCount} compatibility issue{summary.issueCount === 1 ? "" : "s"} require attention before playback. Tests stop at the first failure.</span>
+            <strong>{summary.blockingIssueCount > 0
+              ? `${summary.blockingIssueCount} blocking issue${summary.blockingIssueCount === 1 ? "" : "s"}`
+              : `${summary.affectedCjmCount} CJM${summary.affectedCjmCount === 1 ? "" : "s"} need re-testing`}</strong>
+            <span>{summary.blockingIssueCount > 0
+              ? "Structurally incompatible CJMs remain blocked. Tests stop at the first real failure."
+              : "Playback is allowed so the QA suite can prove each CJM and clear successful checks."}</span>
           </div>
 
           <div className="studio-global-diagnostics__list">
@@ -113,7 +119,7 @@ export function StudioNavCompatibilityDialog({
                     <h3>{item.label}</h3>
                     <p>{item.summary}</p>
                   </div>
-                  <span>Playback blocked</span>
+                  <span>{item.playable ? "Re-test required" : "Playback blocked"}</span>
                 </div>
                 <ul>
                   {item.issues.map((issue) => (

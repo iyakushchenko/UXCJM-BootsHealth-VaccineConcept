@@ -89,19 +89,15 @@ import {
   captureTouchpointChange,
   registerRecordingSnapshotProvider,
 } from "@/app/recording/recordingCapture";
-import {
-  isRecordingActive,
-  pauseRecording,
-} from "@/app/recording/recordingSession";
+import { isRecordingActive, pauseRecording } from "@/app/recording/recordingSession";
 import { replayRecordingSession } from "@/app/recording/recordingReplay";
 import { buildCjmMetadataCatalog } from "@/app/recording/recordingMetadata";
+import { useCjmCompatibilityRevision } from "@/app/recording/useCjmCompatibilityRevision";
+import { useStudioDocumentTitle } from "@/app/shell/studioDocumentTitle";
 import { useRecordingReplayBridge } from "@/app/recording/useRecordingReplayBridge";
 import { isRecModeLocked } from "@/app/nav/studioModeXor";
 import { registerJourneyMcpHelpers } from "@/app/journey/journeyMcpHelpers";
-import {
-  buildSavedJourneyDownload,
-  summarizeJourney,
-} from "@/app/journey/journeyFile";
+import { buildSavedJourneyDownload, summarizeJourney } from "@/app/journey/journeyFile";
 import {
   isDeletableRecordedJourneyId,
   readPersistedRecordingForJourney,
@@ -198,6 +194,8 @@ export default function App() {
     resetBeatIndex,
     journey: activeJourney,
   } = studio;
+  const cjmCompatibilityRevision = useCjmCompatibilityRevision();
+  useStudioDocumentTitle(studioProject.label, studioPersona.shortLabel ?? studioPersona.label);
 
   const {
     PROJECT_SCREENS: SCREENS,
@@ -1626,7 +1624,7 @@ export default function App() {
           journeyId
         )
       ),
-    [studioJourneys, studioProjectId, studioPersonaId]
+    [studioJourneys, studioProjectId, studioPersonaId, cjmCompatibilityRevision]
   );
 
   const refuseTransportForIncompatibleCjm = useCallback(

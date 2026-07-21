@@ -1,3 +1,5 @@
+import { markPersistedJourneyPlaybackProven } from "@/app/journey/recordedJourneyPersist";
+
 export type QaSuiteTestId =
   | "mcp-sanity"
   | "mcp-page-probe"
@@ -124,7 +126,16 @@ async function proveJourney(journeyId: string): Promise<unknown> {
     }, timeoutMs);
   });
   try {
-    return await Promise.race([runner({ journeyId }), timeout]);
+    const result = await Promise.race([runner({ journeyId }), timeout]);
+    if (passOf(result) && /^rec-/i.test(journeyId)) {
+      const params = new URLSearchParams(window.location.search);
+      markPersistedJourneyPlaybackProven(
+        params.get("project") ?? "",
+        params.get("persona") ?? "",
+        journeyId,
+      );
+    }
+    return result;
   } finally {
     if (timeoutId !== undefined) clearTimeout(timeoutId);
   }

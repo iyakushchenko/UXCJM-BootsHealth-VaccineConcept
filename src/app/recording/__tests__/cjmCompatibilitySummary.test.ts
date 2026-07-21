@@ -32,7 +32,7 @@ describe("CJM compatibility summary", () => {
       ]),
       healthy: metadata("healthy", []),
     });
-    expect(summary).toMatchObject({ affectedCjmCount: 2, issueCount: 3, blockingIssueCount: 2 });
+    expect(summary).toMatchObject({ affectedCjmCount: 2, issueCount: 3, blockingIssueCount: 2, retestIssueCount: 1 });
     const report = buildGlobalCjmDiagnostic({ projectId: "demo", projectLabel: "Demo", summary });
     expect(report).toMatchObject({ kind: "studio-global-cjm-diagnostic", affectedCjmCount: 2, issueCount: 3, recommendedTestSuiteId: "all-cjms" });
     expect(report.journeys).toHaveLength(2);

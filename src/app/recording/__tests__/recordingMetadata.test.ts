@@ -54,6 +54,23 @@ describe("recording metadata", () => {
     }));
   });
 
+  it("allows version-drift re-testing and clears it with a contract proof", () => {
+    const prior = session();
+    prior.metadata!.studioVersion = "0.0.0";
+    const pending = buildCjmOptionMetadata(journey, prior);
+    expect(pending.playable).toBe(true);
+    expect(pending.issues).toContainEqual(expect.objectContaining({
+      code: "retest-required",
+      severity: "warning",
+    }));
+    prior.metadata!.compatibilityProof = {
+      playbackContract: 1,
+      studioVersion: getStudioRelease().version,
+      provedAt: "2026-07-21T19:00:00.000Z",
+    };
+    expect(buildCjmOptionMetadata(journey, prior).issues).toEqual([]);
+  });
+
   it("flags legacy recordings and missing raw REC diagnostics", () => {
     expect(buildCjmOptionMetadata(journey).issues[0]?.code).toBe(
       "recording-source-missing"
