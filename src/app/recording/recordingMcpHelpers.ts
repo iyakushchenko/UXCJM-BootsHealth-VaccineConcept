@@ -165,7 +165,23 @@ export function registerRecordingMcpHelpers(options?: {
 
   window.__protoStartRecording = (startOptions) => {
     const defaults = options?.getDefaultStartOptions?.() ?? {};
-    const session = startRecording({ ...defaults, ...startOptions });
+    let session: RecordingSession;
+    try {
+      session = startRecording({ ...defaults, ...startOptions });
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      try {
+        logAgentTestingStep({
+          kind: "rec",
+          action: "StartRecording",
+          label: `REC FAIL — ${reason}`,
+          outcome: "fail",
+        });
+      } catch {
+        /* hang-safe */
+      }
+      throw err;
+    }
     const live = isRecordingActive();
     try {
       logAgentTestingStep({

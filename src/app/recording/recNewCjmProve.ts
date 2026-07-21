@@ -7,7 +7,7 @@
  * Window: `__studioRunRecNewCjmProve` / `__protoRunRecNewCjmProve`
  */
 
-import { armRecCapture, assertRecLive, type RecArmCaptureHooks } from "@/app/recording/recArmCapture";
+import { armRecCapture, assertRecLive, stopRecCaptureViaUi, type RecArmCaptureHooks } from "@/app/recording/recArmCapture";
 import {
   isRecordingActive,
   stopRecording,
@@ -23,6 +23,7 @@ import {
 } from "@/app/shell/agent-testing";
 import { runFullPlayProve, type FullPlayProvePeak } from "@/app/shell/fullPlayProve";
 import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
+import { isStudioRecModeOnInDom } from "@/app/recording/studioRecModeDom";
 
 export type RecNewCjmProveOptions = {
   experience?: "agentic" | "traditional";
@@ -199,55 +200,97 @@ export async function runRecNewCjmProve(
   }
   await delay(settle * 3);
 
-  // 4) Stop + Add as CJM with unique random title.
+  // 4) ■ Stop via REC deck, then + Add as CJM via real UI (product title).
   if (!isRecordingActive()) {
     errors.push("REC died before Stop");
     return failResult(errors, journeyId, false, peak);
   }
-  stopRecording();
-  await delay(settle);
+  if (!(await stopRecCaptureViaUi(settle))) {
+    stopRecording();
+    await delay(settle);
+  }
+  if (isRecordingActive()) {
+    errors.push("Stop failed — session still live");
+    return failResult(errors, journeyId, false, peak);
+  }
 
   const label = options?.label?.trim() || mintDemoJourneyLabel(experience);
-  const saveFn =
+  const beforeIds = new Set(
     (
+      (
+        window as Window & {
+          __studioListJourneys?: () => Array<{ id: string; label?: string }>;
+        }
+      ).__studioListJourneys?.() ?? []
+    ).map((j) => j.id)
+  );
+
+  const addBtn = document.querySelector<HTMLButtonElement>(
+    'button[aria-label="Add to project as CJM"]'
+  );
+  if (!addBtn || addBtn.disabled) {
+    errors.push("Add as CJM button missing/disabled — stay in REC CREATE NEW deck");
+    return failResult(errors, journeyId, recLive, peak);
+  }
+  addBtn.click();
+  await delay(settle);
+  const titleInput = document.querySelector<HTMLInputElement>(
+    '.studio-nav-recording-add-cjm__input, [aria-label="New CJM title"] input'
+  );
+  const confirmBtn = document.querySelector<HTMLButtonElement>(
+    ".studio-nav-recording-add-cjm__action--confirm"
+  );
+  if (!titleInput || !confirmBtn) {
+    errors.push("Add as CJM title panel missing");
+    return failResult(errors, journeyId, recLive, peak);
+  }
+  // Native value set so React controlled input accepts product title.
+  const nativeSet = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value"
+  )?.set;
+  nativeSet?.call(titleInput, label);
+  titleInput.dispatchEvent(new Event("input", { bubbles: true }));
+  titleInput.dispatchEvent(new Event("change", { bubbles: true }));
+  await delay(settle / 2);
+  confirmBtn.click();
+  await delay(settle * 2);
+
+  const afterList =
+    (
+      window as Window & {
+        __studioListJourneys?: () => Array<{ id: string; label?: string }>;
+      }
+    ).__studioListJourneys?.() ?? [];
+  const minted = afterList.find(
+    (j) => /^rec-/i.test(j.id) && !beforeIds.has(j.id)
+  );
+  journeyId = minted?.id ?? null;
+  if (!journeyId) {
+    // Fallback: SaveRecordingAsJourney if UI Add did not mint (same product label).
+    const saveFn = (
       window as Window & {
         __studioSaveRecordingAsJourney?: (opts?: {
           label?: string;
           addAsNew?: boolean;
         }) => { journey: { id: string } };
-        __protoSaveRecordingAsJourney?: (opts?: {
-          label?: string;
-          addAsNew?: boolean;
-        }) => { journey: { id: string } };
       }
-    ).__studioSaveRecordingAsJourney ??
-    (
-      window as Window & {
-        __protoSaveRecordingAsJourney?: (opts?: {
-          label?: string;
-          addAsNew?: boolean;
-        }) => { journey: { id: string } };
-      }
-    ).__protoSaveRecordingAsJourney;
-
-  if (!saveFn) {
-    errors.push("SaveRecordingAsJourney helper missing");
-    return failResult(errors, journeyId, recLive, peak);
+    ).__studioSaveRecordingAsJourney;
+    if (!saveFn) {
+      errors.push("Add as CJM UI did not mint journeyId");
+      return failResult(errors, null, recLive, peak);
+    }
+    try {
+      journeyId = saveFn({ label, addAsNew: true }).journey.id;
+    } catch (err) {
+      errors.push(
+        `Add as CJM failed: ${err instanceof Error ? err.message : String(err)}`
+      );
+      return failResult(errors, null, recLive, peak);
+    }
   }
-
-  let saved: { journey: { id: string } };
-  try {
-    saved = saveFn({ label, addAsNew: true });
-  } catch (err) {
-    errors.push(
-      `Add as CJM failed: ${err instanceof Error ? err.message : String(err)}`
-    );
-    return failResult(errors, journeyId, recLive, peak);
-  }
-
-  journeyId = saved.journey?.id ?? null;
-  if (!journeyId || journeyId === "agentic-cjm" || journeyId === "traditional-cjm") {
-    errors.push(`journeyId missing or built-in: ${journeyId ?? "null"}`);
+  if (journeyId === "agentic-cjm" || journeyId === "traditional-cjm") {
+    errors.push(`journeyId missing or built-in: ${journeyId}`);
     return failResult(errors, null, recLive, peak);
   }
   if (!/^rec-/i.test(journeyId)) {
@@ -255,7 +298,15 @@ export async function runRecNewCjmProve(
     return failResult(errors, journeyId, recLive, peak);
   }
 
-  // 5) Play THAT new journey continuously (not built-in).
+  // 5) REC off + Play THAT new journey (not built-in).
+  if (isStudioRecModeOnInDom()) {
+    const recSw = document.querySelector<HTMLButtonElement>(
+      '[role="switch"][aria-label="REC on"]'
+    );
+    recSw?.click();
+    await delay(settle);
+  }
+
   const play = await runFullPlayProve({
     journeyId,
     experience,

@@ -5,6 +5,10 @@ import type {
   RecordingSessionMetadata,
   RecordingSnapshot,
 } from "@/app/recording/recordingTypes";
+import {
+  isStudioRecModeOnInDom,
+  REC_MODE_OFF_REFUSE_MESSAGE,
+} from "@/app/recording/studioRecModeDom";
 
 const SESSION_VERSION = 1 as const;
 const DEDUPE_WINDOW_MS = 80;
@@ -154,6 +158,11 @@ export type StartRecordingOptions = {
 };
 
 export function startRecording(options: StartRecordingOptions = {}): RecordingSession {
+  // HARD: impossible to arm a session while nav REC switch is OFF.
+  // Same DOM truth the PO sees — no silent capture / fake orange frame.
+  if (typeof document !== "undefined" && !isStudioRecModeOnInDom()) {
+    throw new Error(REC_MODE_OFF_REFUSE_MESSAGE);
+  }
   activeSession = {
     id: newSessionId(),
     version: SESSION_VERSION,

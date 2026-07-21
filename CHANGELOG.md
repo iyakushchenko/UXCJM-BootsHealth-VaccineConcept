@@ -43,6 +43,7 @@
 - **shell:** Honest REC: degrade container clicks FAIL; REC capture live vs Play journey prove QA labels; prove catalog from imported store.
 - **shell:** REC robustness: __studioArmRecCapture + __studioRunRecNewCjmProve (NEW CJM only; never built-in Play as REC prove).
 - **shell:** Recorded CJM titles product-facing only; purge meta REC/QA prove labels from catalog.
+- **shell:** Hard-gate startRecording on nav REC switch ON; ArmRecCapture = real UI clicks only.
 
 ## v0.0.100 - 200726
 - **shell:** PP-13 self-test expand + stale-green detector + PLAYBACK_DIAG mirror

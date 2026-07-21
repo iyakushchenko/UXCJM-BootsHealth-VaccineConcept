@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment happy-dom
+ */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   appendRecordingEvent,
@@ -43,6 +46,13 @@ import {
 import { applyRecordingProjectScript } from "@/app/recording/recordingScriptApply";
 import { notePlaybackTransport } from "@/app/shell/playbackInteractionContext";
 import { resolvePlaybackScriptKind } from "@/app/shell/playbackScriptRegistry";
+
+/** Gate helper — startRecording refuses unless nav REC switch is ON. */
+function mountRecModeOn(): void {
+  document.body.innerHTML = `
+    <button role="switch" aria-label="REC on" aria-checked="true"></button>
+  `;
+}
 
 type FakeEl = {
   attrs: Record<string, string>;
@@ -130,11 +140,23 @@ describe("recordingSession", () => {
   beforeEach(() => {
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
+    mountRecModeOn();
   });
 
   afterEach(() => {
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
+    document.body.innerHTML = "";
+  });
+
+  it("refuses startRecording when nav REC switch is OFF", () => {
+    document.body.innerHTML = `
+      <button role="switch" aria-label="REC off" aria-checked="false"></button>
+    `;
+    expect(() => startRecording({ projectId: "boots-pharmacy" })).toThrow(
+      /REC refuse|REC switch is OFF/i
+    );
+    expect(isRecordingActive()).toBe(false);
   });
 
   it("starts, pauses, resumes, and stops a session", () => {
@@ -275,6 +297,7 @@ describe("recordingCapture bridge", () => {
   beforeEach(() => {
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
+    mountRecModeOn();
     startRecording();
   });
 
@@ -362,6 +385,7 @@ describe("recording human click capture", () => {
   beforeEach(() => {
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
+    mountRecModeOn();
   });
 
   afterEach(() => {
@@ -887,6 +911,7 @@ describe("recording scroll + typed-text capture", () => {
   beforeEach(() => {
     resetRecordingSessionForTests();
     resetRecordingCaptureForTests();
+    mountRecModeOn();
   });
 
   afterEach(() => {
