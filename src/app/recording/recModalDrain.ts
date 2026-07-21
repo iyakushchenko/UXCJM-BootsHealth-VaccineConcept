@@ -142,7 +142,7 @@ async function pickLoginSignIn(): Promise<{
     detail: "Sign in",
     source: "drain",
   });
-  logQaModal("RecModalPharmacyPick", "login · Sign in");
+  logQaModal("RecModalPick", "login · Sign in");
   await recUserPace("beforeCta");
   const ok = await simulateDemoPointerClick(signIn, { scroll: true });
   await recUserPace("modalPickSettle");
@@ -203,7 +203,7 @@ export async function drainLoginModalIfOpen(): Promise<RecModalDrainResult> {
   }
   const pick = await pickLoginSignIn();
   if (!pick.ok) {
-    logQaModal("RecModalPharmacyPick", pick.reason ?? "login fail", "fail");
+    logQaModal("RecModalPick", pick.reason ?? "login fail", "fail");
     return {
       ok: false,
       modalId: STUDIO_MODAL.login,
@@ -212,7 +212,7 @@ export async function drainLoginModalIfOpen(): Promise<RecModalDrainResult> {
     };
   }
   trackStudioModalForQa({ modalId: null, source: "drain" });
-  logQaModal("RecModalPharmacyPick", "login drained · signed in");
+  logQaModal("RecModalPick", "login drained · signed in");
   return { ok: true, modalId: STUDIO_MODAL.login, drained: true };
 }
 

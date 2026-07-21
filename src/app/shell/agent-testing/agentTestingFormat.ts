@@ -34,6 +34,7 @@ const HELPER_ACTION_LABEL: Record<string, string> = {
   RecNewCjmCaptureClick: "REC capture click",
   RecModalOpen: "REC modal open",
   RecModalPharmacyPick: "REC pharmacy pick",
+  RecModalPick: "REC modal pick",
   RecStartScreenSeed: "REC start screen",
   QaModalOpen: "Modal open",
   QaModalClose: "Modal close",

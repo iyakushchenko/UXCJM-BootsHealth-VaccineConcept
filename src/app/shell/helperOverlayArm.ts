@@ -84,6 +84,7 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "RecNewCjmCaptureClick",
   "RecModalOpen",
   "RecModalPharmacyPick",
+  "RecModalPick",
   "RecStartScreenSeed",
   "QaModalOpen",
   "QaModalClose",

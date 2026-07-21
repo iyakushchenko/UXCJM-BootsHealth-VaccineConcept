@@ -65,12 +65,39 @@ describe("playbackDiagQaBridge", () => {
   it("flags unexpected scroll-reversal as soft-fail with human label", () => {
     const scroll = ev({
       kind: "scroll",
-      detail: "scrollCameraToOrigin — host top (named SSoT)",
+      detail: "competing snap during play",
       scroll: { beforeTop: 400, afterTop: 200, retreat: false },
     });
     expect(shouldMirrorPlaybackDiagToQa(scroll)).toBe(true);
     expect(outcomeForPlaybackDiagEvent(scroll)).toBe("soft-fail");
     expect(labelForPlaybackDiagEvent(scroll)).toMatch(/wrong way/i);
+  });
+
+  it("does not soft-fail intentional scrollCameraToOrigin (jump-to-start / page land)", () => {
+    const jumpStart = ev({
+      kind: "scroll",
+      detail: "scrollCameraToOrigin — host top (named SSoT; jump-to-start)",
+      scroll: { beforeTop: 400, afterTop: 0, retreat: false },
+    });
+    expect(shouldMirrorPlaybackDiagToQa(jumpStart)).toBe(false);
+    expect(outcomeForPlaybackDiagEvent(jumpStart)).toBe("ok");
+
+    const pageLand = ev({
+      kind: "scroll",
+      detail: "scrollCameraToOrigin — host top (named SSoT; resetPrototypeScroll)",
+      scroll: { beforeTop: 922, afterTop: 0, retreat: false },
+    });
+    expect(shouldMirrorPlaybackDiagToQa(pageLand)).toBe(false);
+  });
+
+  it("does not paint jump-to-start park-rest as fail / attention", () => {
+    const park = ev({
+      kind: "cursor",
+      detail: "cursor-engine:park-rest — jump-to-start",
+    });
+    expect(shouldMirrorPlaybackDiagToQa(park)).toBe(false);
+    expect(outcomeForPlaybackDiagEvent(park)).toBe("ok");
+    expect(labelForPlaybackDiagEvent(park)).toBe("Cursor parked (play-end)");
   });
 
   it("does not soft-fail target-driven scrollIntoView (large upward camera is OK)", () => {
@@ -150,12 +177,17 @@ describe("playbackDiagQaBridge", () => {
       shouldMirrorPlaybackDiagToQa(
         ev({ kind: "cursor", detail: "cursor-engine:park-rest — journey-park" })
       )
-    ).toBe(true);
+    ).toBe(false);
     expect(
       labelForPlaybackDiagEvent(
-        ev({ kind: "cursor", detail: "cursor-engine:park-rest — journey-park" })
+        ev({ kind: "cursor", detail: "cursor-engine:park-rest — after-click" })
       )
     ).toBe("Cursor eased to rest");
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({ kind: "cursor", detail: "cursor-engine:park-rest — after-click" })
+      )
+    ).toBe(true);
   });
 
   it("ignores small upward camera nudge", () => {
@@ -190,7 +222,7 @@ describe("playbackDiagQaBridge", () => {
     expect(shouldMirrorPlaybackDiagToQa(unusable)).toBe(true);
     expect(outcomeForPlaybackDiagEvent(unusable)).toBe("soft-fail");
     expect(labelForPlaybackDiagEvent(unusable)).toBe(
-      "Skipped hidden/retired target — wait only"
+      "Camera target missing — wait only"
     );
   });
 
@@ -204,7 +236,7 @@ describe("playbackDiagQaBridge", () => {
     ).toBe(true);
   });
 
-  it("mirrors lean chat-camera trackers with human labels", () => {
+  it("mirrors lean camera trackers with human labels (not Chat on traditional)", () => {
     expect(
       shouldMirrorPlaybackDiagToQa(
         ev({ kind: "scroll", detail: "chat-camera:thinking" })
@@ -214,7 +246,7 @@ describe("playbackDiagQaBridge", () => {
       labelForPlaybackDiagEvent(
         ev({ kind: "scroll", detail: "chat-camera:wait — kind:camera dwell" })
       )
-    ).toBe("Chat camera: wait");
+    ).toBe("Camera: wait");
     expect(
       labelForPlaybackDiagEvent(
         ev({ kind: "scroll", detail: "chat-camera:host-end — settle" })

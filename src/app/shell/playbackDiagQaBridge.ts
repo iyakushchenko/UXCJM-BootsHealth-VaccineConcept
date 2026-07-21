@@ -100,12 +100,27 @@ function detailOf(event: PlaybackDiagEvent): string {
   return (event.detail ?? "").trim();
 }
 
+/** Intentional host-top resets — never “jumped the wrong way” in QA. */
+function isIntentionalScrollOrigin(detail: string): boolean {
+  if (!/scrollCameraToOrigin/i.test(detail)) return false;
+  // Require an explicit reason — bare named-SSoT mid-play snaps can still soft-fail.
+  return /jump-to-start|resetPrototypeScroll|page-land|play-end|journey-reset|book-step-\d+-first-mount/i.test(
+    detail
+  );
+}
+
 function isScrollReversal(event: PlaybackDiagEvent): boolean {
   const detail = detailOf(event);
   // Target-driven intoView / session skips are camera doing its job — not a yank.
-  // Blind `scrollCameraToOrigin` host-top during play still soft-fails (symptom of
-  // competing snaps); intentional force baselines are rare at play-end rewind.
-  if (/scrollIntoView|skipped \(camera session\)|skipped \(hold\/ease\)/i.test(detail)) {
+  if (
+    /scrollIntoView|skipped \(camera session\)|skipped \(hold\/ease\)/i.test(
+      detail
+    )
+  ) {
+    return false;
+  }
+  // Named SSoT host-top (jump-to-start / screen land) is expected — not a reversal.
+  if (isIntentionalScrollOrigin(detail)) {
     return false;
   }
   const before = event.scroll?.beforeTop;
@@ -120,7 +135,9 @@ function isScrollReversal(event: PlaybackDiagEvent): boolean {
 
 function isBubbleChopOrJump(event: PlaybackDiagEvent): boolean {
   if (event.bubble?.jump || event.bubble?.chop) return true;
-  return /JUMP|CHOP|bubble-jump|bubble-chop/i.test(detailOf(event));
+  // Word-boundary — do not treat reason tags like `jump-to-start` as bubble JUMP.
+  if (/jump-to-start/i.test(detailOf(event))) return false;
+  return /\bJUMP\b|\bCHOP\b|bubble-jump|bubble-chop/i.test(detailOf(event));
 }
 
 /**
@@ -160,6 +177,13 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     ) {
       return false;
     }
+    // Play-end / jump-to-start rest is expected — do not paint as attention.
+    if (
+      /cursor-engine:park-rest\b/i.test(detail) &&
+      /jump-to-start|play-end|journey-end|journey-park/i.test(detail)
+    ) {
+      return false;
+    }
     // Lean engine milestones (deduped at emit) — meaningful park / step-play / submit
     if (
       /^cursor-engine:(park-rest|type-in-hold|cancel-settle|park-on-step|stay-on-play|park-from-submit)\b/i.test(
@@ -173,8 +197,10 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
   }
 
   if (kind === "scroll") {
+    // Intentional host-top — dump-only (never soft-fail “wrong way”).
+    if (isIntentionalScrollOrigin(detail)) return false;
     if (isScrollReversal(event)) return true;
-    // Lean chat camera trackers (deduped at emit) — not TRACE flood.
+    // Lean camera trackers (deduped at emit) — not TRACE flood.
     if (/^chat-camera:/i.test(detail)) return true;
     if (
       /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted|script-timeout/i.test(
@@ -314,7 +340,13 @@ export function outcomeForPlaybackDiagEvent(
     // Cleared / parked / abort / engine milestones = info
     return "ok";
   }
-  if (/FAIL|error|OFF-TARGET|script-timeout|CHOP|JUMP/i.test(detailOf(event))) {
+  // Word-boundary JUMP — do not match reason tags like `jump-to-start`.
+  if (
+    /\bFAIL\b|\berror\b|OFF-TARGET|script-timeout|\bCHOP\b|\bJUMP\b/i.test(
+      detailOf(event)
+    ) &&
+    !/jump-to-start/i.test(detailOf(event))
+  ) {
     return "fail";
   }
   // Soft attention only — not routine clear / po-signal chatter as "warn red-ish".
@@ -339,7 +371,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
   if (kind === "skip") {
     if (/camera-beat:target-unusable/i.test(detail)) {
-      return "Skipped hidden/retired target — wait only";
+      return "Camera target missing — wait only";
     }
     return `Step skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
   }
@@ -370,6 +402,9 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
       return "Cursor stayed at last click (Play)";
     }
     if (/cursor-engine:park-rest/i.test(detail)) {
+      if (/jump-to-start|play-end|journey-end/i.test(detail)) {
+        return "Cursor parked (play-end)";
+      }
       return "Cursor eased to rest";
     }
     if (/cursor-engine:park-force/i.test(detail)) {
@@ -400,18 +435,28 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
 
   if (kind === "scroll") {
-    if (/^chat-camera:wait\b/i.test(detail)) return "Chat camera: wait";
+    // Generic camera dwell (traditional + agentic) — do not say “Chat”.
+    if (
+      /^chat-camera:wait\b/i.test(detail) &&
+      /kind:camera dwell|camera dwell/i.test(detail)
+    ) {
+      return "Camera: wait";
+    }
+    if (/^chat-camera:wait\b/i.test(detail)) return "Camera: wait";
     if (/^chat-camera:thinking\b/i.test(detail)) {
       return "Chat scroll to thinking";
     }
     if (/^chat-camera:pin-bottom\b/i.test(detail)) return "Chat pin bottom";
     if (/^chat-camera:host-end\b/i.test(detail)) return "Chat host-end";
-    if (/^chat-camera:target\b/i.test(detail)) return "Chat camera: target";
+    if (/^chat-camera:target\b/i.test(detail)) return "Camera: target";
     if (/^chat-camera:skip-dwell\b/i.test(detail)) {
-      return "Chat camera: wait (settle skipped)";
+      return "Camera: wait (settle skipped)";
     }
     if (/^chat-camera:skip-ease\b/i.test(detail)) {
-      return "Chat camera: ease in flight";
+      return "Camera: ease in flight";
+    }
+    if (isIntentionalScrollOrigin(detail)) {
+      return "Camera reset to top";
     }
     if (isScrollReversal(event) || /reversal/i.test(detail)) {
       const before = event.scroll?.beforeTop;
@@ -457,7 +502,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 
   if (kind === "info") {
     if (/camera-beat:target-unusable/i.test(detail)) {
-      return "Skipped hidden/retired target — wait only";
+      return "Camera target missing — wait only";
     }
     if (/script-timeout/i.test(detail)) return "Script timed out";
     if (/po-signal/i.test(detail)) {
