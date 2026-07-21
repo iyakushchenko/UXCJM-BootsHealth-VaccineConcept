@@ -170,6 +170,12 @@ export const CHAT_BUBBLE_SCROLL_CHOP_PX = 18;
 
 const MAX_EVENTS = 400;
 const events: PlaybackDiagEvent[] = [];
+/**
+ * Durable click tallies — survive MAX_EVENTS rotation so dump summaries.click.ok
+ * matches real successful clicks even when early click events were shifted out.
+ */
+let clickOkCount = 0;
+let clickFailCount = 0;
 /** Completed type-in char samples (in-memory only — never per-char events). */
 let completedTypeInSamples: number[] = [];
 let typeInActive: {
@@ -302,6 +308,8 @@ export function playbackDiagClear(): void {
   bubbleTraceLastKept.clear();
   typeInActive = null;
   completedTypeInSamples = [];
+  clickOkCount = 0;
+  clickFailCount = 0;
   if (isQaDiagGateOpen()) {
     console.info("[PLAYBACK_DIAG]", "clear");
   }
@@ -476,6 +484,8 @@ export function playbackDiagClick(options: {
   found?: boolean;
   bbox?: PlaybackDiagBBox | null;
 }): void {
+  if (options.ok) clickOkCount += 1;
+  else clickFailCount += 1;
   push({
     kind: "click",
     detail:
@@ -486,6 +496,7 @@ export function playbackDiagClick(options: {
     bbox: options.bbox,
     beatId: options.beatId,
     clickOk: options.ok,
+    ok: options.ok,
   });
 }
 
@@ -1032,7 +1043,6 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
   const cursorEvents = events.filter((e) => e.kind === "cursor");
   const parks = cursorEvents.filter((e) => e.cursor?.parked);
   const scrollEvents = events.filter((e) => e.kind === "scroll");
-  const clickEvents = events.filter((e) => e.kind === "click");
   const skipEvents = events.filter((e) => e.kind === "skip");
   // Prefer in-memory samples (per-char, no event spam). Legacy type-in-progress
   // events (if any) still count so old dumps stay assertable.
@@ -1073,8 +1083,8 @@ export function getPlaybackDiagBundle(): PlaybackDiagBundle {
       ).length,
     },
     click: {
-      ok: clickEvents.filter((e) => e.clickOk).length,
-      fail: clickEvents.filter((e) => e.clickOk === false).length,
+      ok: clickOkCount,
+      fail: clickFailCount,
     },
     skip: {
       count: skipEvents.length,

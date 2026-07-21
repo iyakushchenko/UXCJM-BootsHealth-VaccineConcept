@@ -260,6 +260,28 @@ describe("playbackDiag", () => {
     ).toBe(true);
   });
 
+  it("keeps durable click.ok tallies across event rotation", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    for (let i = 0; i < 3; i++) {
+      playbackDiagClick({
+        ok: true,
+        selector: `[data-studio-action=cta-${i}]`,
+      });
+    }
+    playbackDiagClick({
+      ok: false,
+      selector: "[data-studio-action=miss]",
+    });
+    expect(getPlaybackDiagBundle().click.ok).toBe(3);
+    expect(getPlaybackDiagBundle().click.fail).toBe(1);
+    // Flood ring past MAX_EVENTS — tallies must not drop.
+    for (let i = 0; i < 450; i++) {
+      playbackDiagLog("info", `noise-${i}`);
+    }
+    expect(getPlaybackDiagBundle().click.ok).toBe(3);
+    expect(getPlaybackDiagBundle().click.fail).toBe(1);
+  });
+
   it("assertPlayEndedAtStart requires play-end + start beat", () => {
     vi.spyOn(console, "info").mockImplementation(() => {});
     vi.stubGlobal("window", {

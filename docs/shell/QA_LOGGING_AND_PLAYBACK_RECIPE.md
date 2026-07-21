@@ -69,6 +69,7 @@ Mirrored into QA chat (deduped ~450–500ms — not TRACE flood):
 | `chat-camera:target` | Chat camera: target |
 | `chat-camera:skip-dwell` | Chat camera: wait (settle skipped) |
 | `chat-camera:skip-ease` | Chat camera: ease in flight |
+| `camera-beat:target-unusable` | Skipped hidden Make target — wait only |
 
 Emit: `logChatCameraTracker` in `playbackScroll.ts`. Mirror: `playbackDiagQaBridge`.
 
@@ -221,7 +222,13 @@ await window.__studioRunFullPlayProve?.({ experience: "traditional" }) // defaul
 
 **Smoke (tears down overlay):** `await window.__protoRunTraditionalPlaySmoke?.()` — Play → start assert; good for local smoke, **weak** for Save Log peak sitrep.
 
-**Dump/log hygiene (2026-07-21):** click rows prefer `data-studio-action` / `data-studio-cal-*` selectors; consecutive duplicate `Journey reset to start` QA rows are deduped (~800ms).
+**Dump/log hygiene (2026-07-21):** click rows prefer `data-studio-action` / `data-studio-cal-*` selectors; consecutive duplicate `Journey reset to start` / soft-fail QA rows are deduped (~900–1600ms). `summaries.click.ok` uses durable tallies (survives diag ring rotation).
+
+**REC ⊕ QA (XOR):** REC live → QA capture auto-pauses + page click guard releases — product clicks must work; observe logger may stay open. Log: `REC live · QA capture paused (product clicks free)`.
+
+**Prove-mode latch:** `__studioRunFullPlayProve` arms prove-mode so the 8s stale auto-pause cannot abort mid continuous Play; cleared in `finally`.
+
+**Camera unusable:** hidden Make targets soft-continue as QA row `Skipped hidden Make target — wait only` (`camera-beat:target-unusable`).
 
 Example URL:
 
@@ -237,7 +244,7 @@ Eyes: no already-selected date/time re-click; Book Step 3 camera beat dwells the
 
 **Problem:** Agent leaves the QA tool session (Cursor chat, docs, elsewhere) but capture/Play keep running as if the agent is still watching.
 
-**Default guard rail (auto-pause):** Presence heartbeat TTL = `QA_AGENT_AUTO_PAUSE_MS` (**8s**, same as ONLINE present window). When last touch is stale, overlay **automatically** pauses capture + halts Play (leave-equivalent: **no** `QA_PAUSE_HALT` / **no** `DIAGNOSTIC_ACK_STOP`). Chrome shows **Last seen Ns ago** (never green ONLINE while stale). Agents **still SHOULD** call leave/return explicitly; auto-pause is the belt when they forget.
+**Default guard rail (auto-pause):** Presence heartbeat TTL = `QA_AGENT_AUTO_PAUSE_MS` (**8s**, same as ONLINE present window). When last touch is stale, overlay **automatically** pauses capture + halts Play (leave-equivalent: **no** `QA_PAUSE_HALT` / **no** `DIAGNOSTIC_ACK_STOP`). Chrome shows **Last seen Ns ago** (never green ONLINE while stale). Agents **still SHOULD** call leave/return explicitly; auto-pause is the belt when they forget. **Exception:** full Play prove (`beginQaProveMode`) skips auto-pause until prove ends.
 
 | Moment | Call | Effect |
 |--------|------|--------|

@@ -177,6 +177,18 @@ describe("playbackDiagQaBridge", () => {
     );
   });
 
+  it("labels camera-beat:target-unusable as human skip row", () => {
+    const unusable = ev({
+      kind: "info",
+      detail: "camera-beat:target-unusable — dwell only ([data-name=\"module.plp.filters\"])",
+    });
+    expect(shouldMirrorPlaybackDiagToQa(unusable)).toBe(true);
+    expect(outcomeForPlaybackDiagEvent(unusable)).toBe("soft-fail");
+    expect(labelForPlaybackDiagEvent(unusable)).toBe(
+      "Skipped hidden Make target — wait only"
+    );
+  });
+
   it("clear appends playback-diag ring row as neutral ok", () => {
     mirrorPlaybackDiagClearToQa();
     const ring = getQaDiagRing();

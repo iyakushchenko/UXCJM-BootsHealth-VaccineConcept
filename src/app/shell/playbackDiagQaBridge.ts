@@ -177,7 +177,19 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     return false;
   }
 
-  if (kind === "chat-bubble-motion" || kind === "chat-reveal" || kind === "info") {
+  if (kind === "info") {
+    if (/camera-beat:target-unusable/i.test(detail)) return true;
+    if (/script-timeout/i.test(detail)) return true;
+    if (/diag|fail|warn|error|clear|po-signal/i.test(detail)) {
+      return true;
+    }
+    return false;
+  }
+
+  if (
+    kind === "chat-bubble-motion" ||
+    kind === "chat-reveal"
+  ) {
     if (isBubbleChopOrJump(event)) return true;
     if (
       /JUMP|CHOP|stutter|competing|layoutY|fight|script-timeout|FAIL|Alarm|ERROR/i.test(
@@ -190,9 +202,6 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     if (kind === "chat-bubble-motion") {
       const phase = event.bubble?.phase;
       if (phase === "frame" || phase === "trace") return false;
-    }
-    if (kind === "info" && /diag|fail|warn|error|clear|po-signal/i.test(detail)) {
-      return true;
     }
     return false;
   }
@@ -259,6 +268,12 @@ export function outcomeForPlaybackDiagEvent(
     }
   }
   if (event.kind === "skip" || event.kind === "type-in-skip") return "soft-fail";
+  if (
+    event.kind === "info" &&
+    /camera-beat:target-unusable/i.test(detailOf(event))
+  ) {
+    return "soft-fail";
+  }
   if (event.kind === "hub-nav") return "fail";
   if (event.kind === "scroll") {
     if (isScrollReversal(event)) return "soft-fail";
@@ -305,6 +320,9 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
     return `Typing skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
   }
   if (kind === "skip") {
+    if (/camera-beat:target-unusable/i.test(detail)) {
+      return "Skipped hidden Make target — wait only";
+    }
     return `Step skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
   }
 
@@ -420,6 +438,9 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
 
   if (kind === "info") {
+    if (/camera-beat:target-unusable/i.test(detail)) {
+      return "Skipped hidden Make target — wait only";
+    }
     if (/script-timeout/i.test(detail)) return "Script timed out";
     if (/po-signal/i.test(detail)) {
       return `PO signal — ${clip(detail.replace(/^po-signal\s*/i, ""), 70)}`;
@@ -452,7 +473,12 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 
 /** Mirror a diag event into ring + overlay chat when gate open. */
 let lastMirroredJourneyResetAt = 0;
-const JOURNEY_RESET_DEDUPE_MS = 800;
+const JOURNEY_RESET_DEDUPE_MS = 1600;
+let lastMirroredPlayEndAt = 0;
+const PLAY_END_DEDUPE_MS = 1600;
+let lastMirroredSoftFailKey = "";
+let lastMirroredSoftFailAt = 0;
+const SOFT_FAIL_DEDUPE_MS = 900;
 let lastMirroredChatCameraKey = "";
 let lastMirroredChatCameraAt = 0;
 const CHAT_CAMERA_MIRROR_DEDUPE_MS = 500;
@@ -470,6 +496,15 @@ export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
       return;
     }
     lastMirroredJourneyResetAt = now;
+  }
+
+  if (event.kind === "play-end") {
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (now - lastMirroredPlayEndAt < PLAY_END_DEDUPE_MS) {
+      return;
+    }
+    lastMirroredPlayEndAt = now;
   }
 
   // Second-line dedupe for chat camera trackers (emit already dedupes; mirror too).
@@ -490,6 +525,22 @@ export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
 
   const label = labelForPlaybackDiagEvent(event);
   const outcome = outcomeForPlaybackDiagEvent(event);
+
+  // Soft-fail rows (scroll-reversal etc.) often double-emit — keep one visible.
+  if (outcome === "soft-fail") {
+    const key = `${event.kind}|${label}`;
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (
+      key === lastMirroredSoftFailKey &&
+      now - lastMirroredSoftFailAt < SOFT_FAIL_DEDUPE_MS
+    ) {
+      return;
+    }
+    lastMirroredSoftFailKey = key;
+    lastMirroredSoftFailAt = now;
+  }
+
   try {
     appendQaDiagRing({
       kind: "playback-diag",

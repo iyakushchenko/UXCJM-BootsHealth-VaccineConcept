@@ -19,6 +19,10 @@ import {
   type AgentLeavePauseResult,
 } from "@/app/shell/agent-testing";
 import {
+  beginQaProveMode,
+  endQaProveMode,
+} from "@/app/shell/agent-testing/agentTestingPresence";
+import {
   beginMcpTestSession,
   endMcpTestSession,
   getMcpTestSession,
@@ -247,6 +251,7 @@ export async function runFullPlayProve(
   }
   const sessionId = beginMcpTestSession(preset.sessionName);
   enableCursorQaEyes();
+  beginQaProveMode("full-play-prove");
 
   let smoke: PlayJourneySmokeResult | undefined;
   let leave: AgentLeavePauseResult | undefined;
@@ -266,7 +271,7 @@ export async function runFullPlayProve(
     });
     touchAgentTestingOverlay(preset.overlayTitle);
     logAgentTestingOverlay(
-      `prove: full-play ${preset.journeyId} (keep overlay)`
+      `prove: full-play ${preset.journeyId} (keep overlay · prove-mode latch)`
     );
 
     // 3–5) Jump start + continuous Play + play-end assert (shared smoke core).
@@ -382,6 +387,11 @@ export async function runFullPlayProve(
     };
   } finally {
     // Keep overlay — no stop() / forceClear / ensure-clear (unlike withMcpTestSession).
+    try {
+      endQaProveMode();
+    } catch {
+      /* hang-safe */
+    }
     try {
       disableCursorQaEyes();
     } catch {

@@ -9,17 +9,23 @@
  * DIAGNOSTIC_ACK_STOP / QA_PAUSE_HALT latch). Return via
  * `resumeForAgentReturn` / touch unpauses + reads Message latch.
  *
+ * **Prove latch:** `__studioRunFullPlayProve` / continuous Play prove arms
+ * `beginQaProveMode()` so the 8s stale heartbeat does **not** auto-pause /
+ * abort mid-prove. Cleared in `endQaProveMode()` (finally).
+ *
  * Label XOR (PO): either **ONLINE** (recently touched) **or**
  * **Last seen Xs ago** when stale — never both. Green diode = present only.
  */
 
 const MEMORY_KEY = "__studioQaPresenceMemory";
+const PROVE_LATCH_KEY = "__studioQaProveModeLatch";
 const HEARTBEAT_MS = 2_000;
 /** Agent counts as present when last touch ≤ this age (align resume-card stale). */
 export const QA_AGENT_PRESENT_MS = 8_000;
 /**
  * Auto-pause capture + Play when last touch exceeds this age.
  * Same window as present TTL so green ONLINE never pairs with a live session.
+ * Skipped while prove-mode latch is armed (full Play prove).
  */
 export const QA_AGENT_AUTO_PAUSE_MS = QA_AGENT_PRESENT_MS;
 
@@ -30,6 +36,39 @@ type Memory = {
   timer: ReturnType<typeof setInterval> | null;
   onTick: ((ageMs: number) => void) | null;
 };
+
+type ProveLatch = { active: boolean; startedAt: number };
+
+function proveLatch(): ProveLatch {
+  if (typeof window === "undefined") {
+    const g = globalThis as typeof globalThis & { [PROVE_LATCH_KEY]?: ProveLatch };
+    if (!g[PROVE_LATCH_KEY]) g[PROVE_LATCH_KEY] = { active: false, startedAt: 0 };
+    return g[PROVE_LATCH_KEY]!;
+  }
+  const w = window as Window & { [PROVE_LATCH_KEY]?: ProveLatch };
+  if (!w[PROVE_LATCH_KEY]) w[PROVE_LATCH_KEY] = { active: false, startedAt: 0 };
+  return w[PROVE_LATCH_KEY]!;
+}
+
+/** Arm during `__studioRunFullPlayProve` — skips stale auto-pause until end. */
+export function beginQaProveMode(source = "full-play-prove"): void {
+  const latch = proveLatch();
+  latch.active = true;
+  latch.startedAt = Date.now();
+  touchQaAgentPresence(source);
+  void source;
+}
+
+/** Clear prove latch (always call in finally). */
+export function endQaProveMode(): void {
+  const latch = proveLatch();
+  latch.active = false;
+  latch.startedAt = 0;
+}
+
+export function isQaProveModeActive(): boolean {
+  return proveLatch().active;
+}
 
 function memory(): Memory {
   if (typeof window === "undefined") {
@@ -106,6 +145,8 @@ export function armQaAgentPresenceHeartbeat(
 export function isQaAgentPresenceStaleForAutoPause(
   ageMs = peekQaAgentPresence().ageMs
 ): boolean {
+  // Full Play prove owns the session — do not abort from 8s heartbeat.
+  if (isQaProveModeActive()) return false;
   const m = memory();
   if (!m.online || !m.lastSeenAt) return false;
   return ageMs > QA_AGENT_AUTO_PAUSE_MS;

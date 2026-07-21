@@ -63,6 +63,12 @@
   pointer-events: none;
 }
 
+/* Capture paused (incl. REC XOR) — product clicks must reach the page. */
+.studio-agent-testing-overlay[data-capture="paused"]
+  .studio-agent-testing-overlay__capture {
+  pointer-events: none;
+}
+
 .studio-agent-testing-overlay__panel {
   position: absolute;
   right: 16px;

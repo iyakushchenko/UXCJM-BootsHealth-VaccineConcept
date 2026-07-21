@@ -155,3 +155,14 @@ export {
   type ChatBubbleMotionSelfTestResult,
   type ChatBubbleMotionBubbleResult,
 } from "@/app/shell/agent-testing/chatBubbleMotionSelfTest";
+
+export {
+  beginQaProveMode,
+  endQaProveMode,
+  isQaProveModeActive,
+  QA_AGENT_AUTO_PAUSE_MS,
+  QA_AGENT_PRESENT_MS,
+  touchQaAgentPresence,
+  clearQaAgentPresence,
+  peekQaAgentPresence,
+} from "@/app/shell/agent-testing/agentTestingPresence";

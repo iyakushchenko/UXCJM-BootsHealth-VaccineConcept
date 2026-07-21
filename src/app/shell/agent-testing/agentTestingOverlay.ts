@@ -118,9 +118,14 @@ import {
   armQaAgentPresenceHeartbeat,
   clearQaAgentPresence,
   isQaAgentPresenceStaleForAutoPause,
+  isQaProveModeActive,
   peekQaAgentPresence,
   touchQaAgentPresence,
 } from "@/app/shell/agent-testing/agentTestingPresence";
+import {
+  isRecordingActive,
+  subscribeRecordingSession,
+} from "@/app/recording/recordingSession";
 import {
   armQaChatLoadingWatch,
   disarmQaChatLoadingWatch,
@@ -345,6 +350,10 @@ let settling = false;
 let capturePaused = false;
 /** Dedupes auto-pause log spam while presence stays stale. */
 let autoPausedForStalePresence = false;
+/** Dedupes REC→QA capture pause log while REC stays live. */
+let recPausedQaCapture = false;
+/** Unsubscribe for REC session XOR with QA capture. */
+let recordingSessionUnsub: (() => void) | null = null;
 /**
  * True after real capture progress in this session.
  * False after reset / fresh open → Capture CTA shows CAPTURE (not Resume).
@@ -1745,6 +1754,7 @@ function syncSessionChrome(): void {
   root.dataset.kind = kind;
   root.dataset.capture = capturePaused ? "paused" : "on";
   setQaSessionLock(active || settling ? kind : null);
+  syncClickGuard();
   syncDiagAckChrome();
 
   const locked = isAgentLocked() && (active || settling);
@@ -2369,11 +2379,85 @@ function armPresenceHeartbeatWithAutoPause(): void {
 }
 
 /**
+ * REC live XOR QA capture — pause QA capture + release page click guard so
+ * product clicks reach the page and REC (observe logger may stay open).
+ */
+function syncQaCaptureWithRecording(): void {
+  const recLive = isRecordingActive();
+  if (!recLive) {
+    recPausedQaCapture = false;
+    syncClickGuard();
+    return;
+  }
+  // Always free product clicks while REC is armed.
+  syncClickGuard();
+  if (!active || settling) return;
+  if (capturePaused) {
+    recPausedQaCapture = true;
+    return;
+  }
+  // Pause capture only (do not halt Play / latch QA_PAUSE_HALT).
+  pauseElapsedClock();
+  capturePaused = true;
+  sessionHadProgress = true;
+  recPausedQaCapture = true;
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: "REC live · QA capture paused (product clicks free)",
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase("paused", "rec-xor");
+  syncCaptureWatch();
+  syncSessionChrome();
+}
+
+function armRecordingXorWatch(): void {
+  if (recordingSessionUnsub) return;
+  try {
+    recordingSessionUnsub = subscribeRecordingSession(() => {
+      try {
+        syncQaCaptureWithRecording();
+      } catch {
+        /* hang-safe */
+      }
+    });
+  } catch {
+    recordingSessionUnsub = null;
+  }
+  // Catch already-live REC (install after Start).
+  try {
+    syncQaCaptureWithRecording();
+  } catch {
+    /* hang-safe */
+  }
+}
+
+function disarmRecordingXorWatch(): void {
+  if (!recordingSessionUnsub) return;
+  try {
+    recordingSessionUnsub();
+  } catch {
+    /* hang-safe */
+  }
+  recordingSessionUnsub = null;
+  recPausedQaCapture = false;
+}
+
+/**
  * HARD guard rail — stale presence (≥ QA_AGENT_AUTO_PAUSE_MS) pauses capture +
  * Play like leave, without clearing Last seen and without QA_PAUSE_HALT /
  * DIAGNOSTIC_ACK_STOP latch. Agents should still call pauseForAgentLeave.
+ * Skipped while prove-mode latch is armed (`__studioRunFullPlayProve`).
  */
 function maybeAutoPauseOnStalePresence(ageMs: number): void {
+  if (isQaProveModeActive()) {
+    autoPausedForStalePresence = false;
+    // Keep presence fresh so ONLINE stays honest during long proves.
+    touchQaAgentPresence("prove-mode");
+    return;
+  }
   if (!isQaAgentPresenceStaleForAutoPause(ageMs)) {
     autoPausedForStalePresence = false;
     return;
@@ -2936,6 +3020,21 @@ function setAgentTestingHtmlFlag(on: boolean): void {
   else delete rootEl.dataset.studioAgentTesting;
 }
 
+/**
+ * Page click guard XOR — agent mid-flight blocks product clicks; observe/manual
+ * and paused capture do not. REC live always releases the guard so product
+ * clicks reach both the page and REC capture (QA must not steal/block).
+ */
+function syncClickGuard(): void {
+  const block =
+    active &&
+    !settling &&
+    !capturePaused &&
+    shouldBlockPageClicks() &&
+    !isRecordingActive();
+  setAgentTestingHtmlFlag(block);
+}
+
 function releaseClickGuard(): void {
   setAgentTestingHtmlFlag(false);
 }
@@ -3214,7 +3313,7 @@ export function startAgentTestingOverlay(title?: string): void {
     root.querySelector(".studio-agent-testing-overlay__history")?.remove();
     syncAgentTestingNavClearance(ROOT_ID, root);
   }
-  setAgentTestingHtmlFlag(shouldBlockPageClicks("agent"));
+  syncClickGuard();
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind("agent"));
@@ -3322,7 +3421,7 @@ export function ensureAgentTestingOverlayDomArmed(title?: string): boolean {
   settling = false;
   root.dataset.active = "true";
   root.dataset.settling = "false";
-  setAgentTestingHtmlFlag(true);
+  syncClickGuard();
   setTitle(resolved);
   syncAgentTestingNavClearance(ROOT_ID, root);
   if (!root.querySelector(".studio-agent-testing-overlay__panel")) {
@@ -3332,7 +3431,7 @@ export function ensureAgentTestingOverlayDomArmed(title?: string): boolean {
     if (!rebuilt) return false;
     rebuilt.dataset.active = "true";
     rebuilt.dataset.settling = "false";
-    setAgentTestingHtmlFlag(true);
+    syncClickGuard();
     setTitle(resolved);
     syncAgentTestingNavClearance(ROOT_ID, rebuilt);
   }
@@ -3523,7 +3622,7 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
   });
   setQaDiagLoggerMode(isLoggerStyleSession(target));
   setQaDiagSessionMeta({ sessionKind: target, awaitingReply: false });
-  setAgentTestingHtmlFlag(shouldBlockPageClicks(target));
+  syncClickGuard();
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind(target));
@@ -3573,7 +3672,7 @@ export function escalateObserveToAgentSession(reason = "escalate"): boolean {
   capturePaused = false;
   clearMcpPending();
   signalMcpConnect();
-  setAgentTestingHtmlFlag(true);
+  syncClickGuard();
   setQaDiagLoggerMode(false);
   const resolved = titleForSessionKind("agent");
   sessionTitle = resolved;
@@ -3599,7 +3698,7 @@ export function unlockObserveSession(): boolean {
   clearMcpPending();
   setAwaitingUserReply(false);
   signalMcpConnect();
-  setAgentTestingHtmlFlag(false);
+  syncClickGuard();
   setQaDiagLoggerMode(true);
   const resolved = titleForSessionKind("observe");
   sessionTitle = resolved;
@@ -3728,7 +3827,7 @@ export function openAgentTestingLogger(
   active = true;
   settling = false;
   nest = Math.max(nest, 1);
-  setAgentTestingHtmlFlag(shouldBlockPageClicks(kind));
+  syncClickGuard();
   setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind(kind));
@@ -4189,6 +4288,7 @@ function bindOverlayApi(api: OverlayApi): void {
 export function installAgentTestingOverlayApi(): void {
   if (typeof window === "undefined") return;
   stripEphemeralStudioQuery();
+  armRecordingXorWatch();
   const hydrated = hydrateQaDiagGate();
   if (!shouldContinueFromPersist()) {
     clearPersist();
@@ -4410,6 +4510,7 @@ export function uninstallAgentTestingOverlayApi(): void {
   settleResult = "neutral";
   logEntries = [];
   timelineKeys = [];
+  disarmRecordingXorWatch();
   unbindCaptureWatch();
   cancelPendingReload();
   clearSafetyTimer();

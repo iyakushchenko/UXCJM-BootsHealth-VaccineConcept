@@ -127,7 +127,7 @@ export async function playCameraBeat(
     // Noisy Make anchors (module.plp.filters / module.pdp under display:none)
     // — prefer soft continue after dwell over hard-fail / ghost scroll hang.
     playbackDiagLog(
-      "warn",
+      "info",
       `camera-beat:target-unusable — dwell only (${
         camera.anchorSelector ?? camera.selectorChain?.[0] ?? "?"
       })`,

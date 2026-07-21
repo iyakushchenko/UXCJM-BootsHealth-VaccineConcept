@@ -82,7 +82,7 @@ window.__studioForceClearAgentTestingOverlay?.()
 
 ### Agent leave / return (HARD)
 
-Agents **SHOULD** call leave/return. **Guard rail:** presence TTL (`QA_AGENT_AUTO_PAUSE_MS` = 8s) auto-pauses capture + Play when last touch goes stale (keeps Last seen; no `QA_PAUSE_HALT` / no `DIAGNOSTIC_ACK_STOP`).
+Agents **SHOULD** call leave/return. **Guard rail:** presence TTL (`QA_AGENT_AUTO_PAUSE_MS` = 8s) auto-pauses capture + Play when last touch goes stale (keeps Last seen; no `QA_PAUSE_HALT` / no `DIAGNOSTIC_ACK_STOP`). **Prove latch:** `__studioRunFullPlayProve` skips auto-pause until prove ends. **REC live:** QA capture auto-pauses + click guard releases (product clicks free).
 
 1. **`pauseForAgentLeave()`** — halt Play + pause capture + presence OFFLINE (no `QA_PAUSE_HALT` latch).
 2. **Stale auto-pause** — if you forget leave, heartbeat pauses after ~8s without touch.

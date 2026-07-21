@@ -29,6 +29,9 @@ import {
   QA_AGENT_AUTO_PAUSE_MS,
   QA_AGENT_PRESENT_MS,
   touchQaAgentPresence,
+  beginQaProveMode,
+  endQaProveMode,
+  isQaProveModeActive,
 } from "@/app/shell/agent-testing/agentTestingPresence";
 
 describe("A–E interrupt primitives", () => {
@@ -101,5 +104,15 @@ describe("A–E interrupt primitives", () => {
     touchQaAgentPresence("test");
     expect(isQaAgentPresenceStaleForAutoPause(7_999)).toBe(false);
     expect(isQaAgentPresenceStaleForAutoPause(8_001)).toBe(true);
+  });
+
+  it("D: prove-mode latch skips stale auto-pause", () => {
+    touchQaAgentPresence("test");
+    beginQaProveMode("test-prove");
+    expect(isQaProveModeActive()).toBe(true);
+    expect(isQaAgentPresenceStaleForAutoPause(60_000)).toBe(false);
+    endQaProveMode();
+    expect(isQaProveModeActive()).toBe(false);
+    expect(isQaAgentPresenceStaleForAutoPause(60_000)).toBe(true);
   });
 });

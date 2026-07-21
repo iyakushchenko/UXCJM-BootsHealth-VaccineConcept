@@ -188,6 +188,7 @@ function compactDiagEvent(ev: unknown): Record<string, unknown> | null {
   if (e.screenId != null) out.screenId = e.screenId;
   if (e.screenAfter != null) out.screenId = e.screenAfter;
   if (typeof e.ok === "boolean") out.ok = e.ok;
+  if (typeof e.clickOk === "boolean") out.clickOk = e.clickOk;
   if (typeof e.selector === "string") out.selector = clip(e.selector, 80);
   if (e.bubble && typeof e.bubble === "object") {
     const b = e.bubble as Record<string, unknown>;

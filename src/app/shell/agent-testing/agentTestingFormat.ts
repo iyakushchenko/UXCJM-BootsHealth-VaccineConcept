@@ -148,7 +148,7 @@ export function buildLogEntryFromStep(
   };
 }
 
-/** Merge identical consecutive helper/info rows into one counted line.
+/** Merge identical consecutive helper/info/system/playback-diag rows into one counted line.
  * Never coalesce clicks/nav — dense click paths must stay 1:1 visible. */
 export function coalesceLogEntry(
   prev: AgentTestingLogEntry | undefined,
@@ -162,7 +162,8 @@ export function coalesceLogEntry(
     prev.kind !== "helper" &&
     prev.kind !== "info" &&
     prev.kind !== "init" &&
-    prev.kind !== "system"
+    prev.kind !== "system" &&
+    prev.kind !== "playback-diag"
   ) {
     return null;
   }
