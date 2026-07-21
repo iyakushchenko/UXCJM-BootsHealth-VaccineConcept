@@ -315,10 +315,12 @@ When `applyWireIntent` is wired (App / MCP):
 
 ## Start / stop via MCP
 
+**HARD:** `startRecording` / `__studioStartRecording` **throw** unless nav REC switch is ON (`aria-label="REC on"` + `aria-checked="true"`). Use `__studioArmRecCapture()` (clicks REC switch → Orchestra CREATE NEW → ● Start) — never silent session while playback chrome shows.
+
 ```javascript
 window.__studioEnsureCleanStudio?.()
-window.__studioStartRecording?.()          // uses current project/persona/journey — session only
-await window.__studioArmRecCapture?.()     // CJM off → REC ON → CREATE NEW → ● Start (required for agent REC)
+window.__studioStartRecording?.()          // FAILS if REC switch off
+await window.__studioArmRecCapture?.()     // typical-user: REC switch → CREATE NEW → ● Start
 window.__studioAssertRecLive?.()           // { ok, recMode, recording, … } — FAIL if switch or session missing
 await window.__studioRunRecNewCjmProve?.({ experience: "traditional" })
 // REC robustness = NEW random CJM only → Play that journeyId (not built-in / old rec-*)
