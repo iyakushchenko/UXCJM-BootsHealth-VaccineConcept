@@ -55,7 +55,8 @@ Detect CJM-off: `?cjm=off` (URL). ChatScreen also gates `existingChatLoadHold` o
 - Thinking / prelude owned by scenario playback (`site-pilot-chat`), not by browse-entry helper.
 - Bubble appear + scroll co-travel on step reveal uses `STUDIO_ENTER_MS` + `scrollCameraToTarget` / host-end in `ChatScreen` settle effect — do not reintroduce appear-then-scroll lag.
 - **Camera target:** settle uses `resolveChatCameraTarget` — **thinking first** (thinking paints `data-studio-chat-revealed="false"`), then CTA, then last revealed. **Rail:** any new content including thinking must camera into view under the dock.
-- Forward settle pins chat column **bottom** (see LESSONS — scroll-reversal).
+- **Camera SSoT yield:** settle / pin / pad **yield** during `kind:camera` dwell (`shouldYieldChatAutoCamera`) and do **not** blind-`force` host-end over an in-flight ease. Co-travel uses `coTravel: true` so pull-up lock does not abort the ease into an instant yank. QA trackers: `chat-camera:wait|thinking|pin-bottom|host-end` (deduped) — [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../../../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md).
+- Forward settle frames chat column to the **resolved target** (not a competing always-pin that cancels the camera engine).
 - **Play ≡ SF:** Continuous Play is the same progressive sequence as step-forward (thinking → staged bubbles → camera), automated — **not** a dump-all path. Chat enter (Play or land) shows **Sarah q0 only** until transport advances. `jumpToStart` must complete before `play()` resumes on the chat beat.
 - **QA dump-all watch:** `armQaChatLoadingWatch` / `CHAT_LOADING_DUMP_ALL` is **CJM-off only** (saved-chat content-load interim). Do **not** apply `STUDIO_CONTENT_LOAD_MS` dump-all gating during CJM-on Play/SF progressive reveal — fast frame advances are expected and must not Alarm.
 

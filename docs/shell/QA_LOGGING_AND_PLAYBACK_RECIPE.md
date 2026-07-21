@@ -50,10 +50,27 @@ Transport: `useJourneyPlayback` / scenario prelude — same runners for Play and
 | Bug | Cause | Fix |
 |-----|-------|-----|
 | Thinking not pulled up | Settle scrolled to last `[data-studio-chat-revealed="true"]` while thinking paints `revealed=false` | `ChatScreen` settle uses `resolveChatCameraTarget` (**thinking first** → CTA → last revealed) |
+| Always pin / fight camera | Settle + pin used `force` host-end during `kind:camera` dwell or over eased target scrolls | Yield via `shouldYieldChatAutoCamera`; co-travel `coTravel: true`; no blind always-pin |
 
-Code: `ChatScreen.tsx` settle · `resolveChatCameraTarget` · [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md).
+Code: `ChatScreen.tsx` settle · `resolveChatCameraTarget` · `setCameraBeatDwellActive` · [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md).
 
 Also: suppress `scroll-path-deviation` while chat pull-up holds `scrollLock` (`playbackScrollMonitor.ts`) — intentional co-travel is not a FAIL.
+
+### Chat camera QA trackers (lean)
+
+Mirrored into QA chat (deduped ~450–500ms — not TRACE flood):
+
+| Detail prefix | Human label |
+|---------------|-------------|
+| `chat-camera:wait` | Chat camera: wait |
+| `chat-camera:thinking` | Chat scroll to thinking |
+| `chat-camera:pin-bottom` | Chat pin bottom |
+| `chat-camera:host-end` | Chat host-end |
+| `chat-camera:target` | Chat camera: target |
+| `chat-camera:skip-dwell` | Chat camera: wait (settle skipped) |
+| `chat-camera:skip-ease` | Chat camera: ease in flight |
+
+Emit: `logChatCameraTracker` in `playbackScroll.ts`. Mirror: `playbackDiagQaBridge`.
 
 ---
 
@@ -91,9 +108,10 @@ After fix: full Play **PASS 22/22**. Do not invent green past real timeouts.
 | Click miss | Healthy step-forward / routine transport |
 | Cursor off-target / hidden during typing | Cursor remove / park / abort chatter |
 | Scroll jumped the wrong way (reversal) | Small camera nudges / origin scrolls |
-| Chat bubble **JUMP** / **CHOP** / script-timeout | Bubble TRACE / frame rAF samples |
-| Play finished / journey reset / hub-nav | Routine beat landings |
-| PO Alarm / diagnostic FAIL | Helper peek / is-open polls |
+| **Chat camera** wait / thinking / pin / host-end (deduped) | Bubble TRACE / frame rAF samples |
+| Chat bubble **JUMP** / **CHOP** / script-timeout | Routine beat landings |
+| Play finished / journey reset / hub-nav | Helper peek / is-open polls |
+| PO Alarm / diagnostic FAIL | (same — always mirror) |
 
 **Label examples:** `remove` → “Cursor cleared”; `type-in-park` → “Cursor parked for typing”; scroll-reversal → “Scroll jumped the wrong way”; bubble-chop → “Chat bubble motion cut short”. Machine `kind` stays on ring `detail` / data attrs.
 

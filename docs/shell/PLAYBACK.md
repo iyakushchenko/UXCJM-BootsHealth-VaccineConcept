@@ -67,7 +67,7 @@ One policy for **any** journey (agentic, traditional, REC tabs):
 2. **Playback camera session** — shell sets `setPlaybackCameraSessionActive(journeyMode ∪ playing ∪ onAir)`.
 3. **Screen-enter / tab change** — `shouldBlindOriginResetOnScreenEnter()` must be true before wire blind-origin. While session / post-click hold / in-flight ease: **skip** instant origin (no Δ−900 yanks fighting eased scrolls). Wire still **`cancelPlaybackScroll("abort")`** on CJM/play tab enter so a prior-screen ease cannot keep fighting the new layout.
 4. **Intentional origin only** — jump-to-start, retreat sync, probe prep, scenario align-start → `scrollCameraToOrigin(..., { force: true })` (optionally honor `POST_CLICK_CAMERA_HOLD`).
-5. **Chat** stays exempt from tab-enter origin; host-end / pull-up paths unchanged.
+5. **Chat** — exempt from tab-enter origin. Settle / pin / pad **yield** during `kind:camera` dwell (`shouldYieldChatAutoCamera` / `setCameraBeatDwellActive`). Prefer `scrollChatCamera` / `scrollCameraToTarget` over blind host-end; co-travel uses `coTravel: true` so pull-up lock does not abort the ease.
 
 Smell this kills: Traditional Reserve→history→details `scroll-reversal` soft-fails from `resetPrototypeScroll` on every non-chat tab.
 

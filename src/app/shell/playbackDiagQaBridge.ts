@@ -152,6 +152,8 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
 
   if (kind === "scroll") {
     if (isScrollReversal(event)) return true;
+    // Lean chat camera trackers (deduped at emit) — not TRACE flood.
+    if (/^chat-camera:/i.test(detail)) return true;
     if (
       /SCROLL_ISSUE|reversal|stutter|unexpected|JUMP|competing|interrupted|script-timeout/i.test(
         detail
@@ -303,6 +305,19 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
 
   if (kind === "scroll") {
+    if (/^chat-camera:wait\b/i.test(detail)) return "Chat camera: wait";
+    if (/^chat-camera:thinking\b/i.test(detail)) {
+      return "Chat scroll to thinking";
+    }
+    if (/^chat-camera:pin-bottom\b/i.test(detail)) return "Chat pin bottom";
+    if (/^chat-camera:host-end\b/i.test(detail)) return "Chat host-end";
+    if (/^chat-camera:target\b/i.test(detail)) return "Chat camera: target";
+    if (/^chat-camera:skip-dwell\b/i.test(detail)) {
+      return "Chat camera: wait (settle skipped)";
+    }
+    if (/^chat-camera:skip-ease\b/i.test(detail)) {
+      return "Chat camera: ease in flight";
+    }
     if (isScrollReversal(event) || /reversal/i.test(detail)) {
       const before = event.scroll?.beforeTop;
       const after = event.scroll?.afterTop;
@@ -360,6 +375,9 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 /** Mirror a diag event into ring + overlay chat when gate open. */
 let lastMirroredJourneyResetAt = 0;
 const JOURNEY_RESET_DEDUPE_MS = 800;
+let lastMirroredChatCameraKey = "";
+let lastMirroredChatCameraAt = 0;
+const CHAT_CAMERA_MIRROR_DEDUPE_MS = 500;
 
 export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
   if (!isQaDiagGateOpen()) return;
@@ -374,6 +392,22 @@ export function mirrorPlaybackDiagToQa(event: PlaybackDiagEvent): void {
       return;
     }
     lastMirroredJourneyResetAt = now;
+  }
+
+  // Second-line dedupe for chat camera trackers (emit already dedupes; mirror too).
+  const detail = detailOf(event);
+  if (event.kind === "scroll" && /^chat-camera:/i.test(detail)) {
+    const key = detail.replace(/\s+/g, " ").slice(0, 80);
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (
+      key === lastMirroredChatCameraKey &&
+      now - lastMirroredChatCameraAt < CHAT_CAMERA_MIRROR_DEDUPE_MS
+    ) {
+      return;
+    }
+    lastMirroredChatCameraKey = key;
+    lastMirroredChatCameraAt = now;
   }
 
   const label = labelForPlaybackDiagEvent(event);

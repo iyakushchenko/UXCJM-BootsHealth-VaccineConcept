@@ -19,6 +19,7 @@ import { CHAT_THREAD_FRAMES } from "../chatThreadContent";
 
 vi.mock("@/app/scenario/playbackScroll", () => ({
   scrollCameraToHostEnd: vi.fn(),
+  logChatCameraTracker: vi.fn(),
 }));
 
 import { scrollCameraToHostEnd } from "@/app/scenario/playbackScroll";

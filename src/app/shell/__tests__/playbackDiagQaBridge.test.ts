@@ -165,4 +165,27 @@ describe("playbackDiagQaBridge", () => {
       )
     ).toBe(true);
   });
+
+  it("mirrors lean chat-camera trackers with human labels", () => {
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({ kind: "scroll", detail: "chat-camera:thinking" })
+      )
+    ).toBe(true);
+    expect(
+      labelForPlaybackDiagEvent(
+        ev({ kind: "scroll", detail: "chat-camera:wait — kind:camera dwell" })
+      )
+    ).toBe("Chat camera: wait");
+    expect(
+      labelForPlaybackDiagEvent(
+        ev({ kind: "scroll", detail: "chat-camera:host-end — settle" })
+      )
+    ).toBe("Chat host-end");
+    expect(
+      labelForPlaybackDiagEvent(
+        ev({ kind: "scroll", detail: "chat-camera:pin-bottom" })
+      )
+    ).toBe("Chat pin bottom");
+  });
 });

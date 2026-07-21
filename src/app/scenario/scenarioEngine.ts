@@ -4,11 +4,14 @@ import {
   animateScrollElementIntoView,
   cancelPlaybackScroll,
   getPrototypeScrollRoot,
+  isCameraBeatDwellActive,
   isPlaybackScrollAnimating,
+  logChatCameraTracker,
   registerPlaybackScrollCancelHook,
   scrollCameraToHostEnd,
   scrollCameraToOrigin,
   scrollCameraToTarget,
+  scrollChatCamera,
 } from "@/app/scenario/playbackScroll";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 
@@ -340,6 +343,15 @@ function startScrollPin(
   const started = performance.now();
   const tick = () => {
     if (stopped) return;
+    if (isCameraBeatDwellActive()) {
+      // kind:camera wait — freeze pin; do not yank to bottom during dwell.
+      if (performance.now() - started < durationMs) {
+        requestAnimationFrame(tick);
+      } else {
+        stop();
+      }
+      return;
+    }
     if (isPlaybackScrollAnimating()) {
       stop();
       return;
@@ -362,9 +374,23 @@ export function pinScenarioScrollToBottomDuring(
   scrollEl: HTMLElement | null | undefined,
   durationMs = SCENARIO_SCROLL_ANIM_PIN_MS
 ): void {
+  const el = resolveScrollEl(scrollEl);
+  const chatColumn = el != null && isChatColumnScrollHost(el);
+  if (chatColumn) {
+    logChatCameraTracker("pin-bottom", { reason: `pin ${durationMs}ms` });
+  }
   startScrollPin(
     scrollEl,
-    () => scrollPrototypeScrollToBottom(scrollEl, "instant"),
+    () => {
+      if (isCameraBeatDwellActive()) return;
+      const host = resolveScrollEl(scrollEl);
+      if (host && isChatColumnScrollHost(host)) {
+        // Target thinking/last frame — not blind host-end (camera SSoT).
+        scrollChatCamera(host, { instant: true });
+        return;
+      }
+      scrollPrototypeScrollToBottom(scrollEl, "instant");
+    },
     durationMs
   );
 }

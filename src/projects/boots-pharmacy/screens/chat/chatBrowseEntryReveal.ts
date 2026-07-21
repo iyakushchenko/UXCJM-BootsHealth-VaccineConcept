@@ -4,7 +4,7 @@
  * No per-reply thinking / creation simulation.
  */
 
-import { scrollCameraToHostEnd } from "@/app/scenario/playbackScroll";
+import { logChatCameraTracker, scrollCameraToHostEnd } from "@/app/scenario/playbackScroll";
 import { playbackDiagLog } from "@/app/shell/playbackDiag";
 import {
   STUDIO_CONTENT_LOAD_MS,
@@ -124,6 +124,9 @@ export async function runChatBrowseEntryReveal(
     return { ok: false, frames: 0, aborted: true };
   }
   if (col) {
+    logChatCameraTracker("host-end", {
+      reason: "cjm-off existing-chat load settle",
+    });
     scrollCameraToHostEnd(col, {
       instant: false,
       durationMs: STUDIO_ENTER_MS,

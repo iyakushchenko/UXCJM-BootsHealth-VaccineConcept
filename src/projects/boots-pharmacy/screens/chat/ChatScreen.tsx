@@ -36,9 +36,12 @@ import {
   syncStudioScrollOverflowGutter,
 } from "@/app/scenario/studioScrollOverflow";
 import {
+  isPlaybackScrollAnimating,
+  logChatCameraTracker,
   resolveChatCameraTarget,
   scrollCameraToHostEnd,
   scrollCameraToTarget,
+  shouldYieldChatAutoCamera,
 } from "@/app/scenario/playbackScroll";
 import { CHAT_REACT_SCREEN_ID } from "./chatContract";
 import { ChatSitePilotBar } from "./ChatSitePilotBar";
@@ -601,7 +604,10 @@ function useChatComposerScrollPad(
       if (prevPad === nextPad || !nearBottom) return;
       // Skip pad scroll adjust while a bubble is mid pull-up — pad deltas
       // cancel Motion transform (sitePilotChat: snap only before/after tween).
+      // Also yield during kind:camera dwell / in-flight ease (no blind pin fight).
       if (
+        shouldYieldChatAutoCamera() ||
+        isPlaybackScrollAnimating() ||
         isChatPullUpScrollLocked() ||
         column.querySelector(
           '[data-studio-chat-pull-up="start"], [data-studio-chat-pull-up="up"]'
@@ -610,6 +616,8 @@ function useChatComposerScrollPad(
         return;
       requestAnimationFrame(() => {
         if (
+          shouldYieldChatAutoCamera() ||
+          isPlaybackScrollAnimating() ||
           isChatPullUpScrollLocked() ||
           column.querySelector(
             '[data-studio-chat-pull-up="start"], [data-studio-chat-pull-up="up"]'
@@ -886,11 +894,52 @@ export function ChatScreen({
 
     let topUp: number | null = null;
     const runCoTravelCamera = () => {
+      // kind:camera dwell — wait shows the page; do not yank to latest.
+      if (shouldYieldChatAutoCamera()) {
+        logChatCameraTracker("skip-dwell", { reason: "settle" });
+        logChatRevealCameraTrace({
+          tag: "settle-skip-camera-dwell",
+          el: null,
+          visibleCount: revealedFrameCount,
+          delta: 0,
+        });
+        return;
+      }
+
       const before = column.scrollTop;
       // Thinking mounts with revealed=false on the reply slot — must not
       // camera to last revealed (q0) or thinking stays under the composer.
       const target = resolveChatCameraTarget(column);
+      const alreadyClear = measureComposerClearPx();
+      // Already framed under dock and no ease to fight — skip blind re-pin.
+      if (
+        target &&
+        alreadyClear != null &&
+        alreadyClear >= 16 &&
+        !isPlaybackScrollAnimating() &&
+        !thinkingNeedsCamera
+      ) {
+        logChatRevealCameraTrace({
+          tag: "settle-already-framed",
+          el: target,
+          visibleCount: revealedFrameCount,
+          clearPx: Math.round(alreadyClear),
+          delta: 0,
+        });
+        return;
+      }
+
+      if (thinkingNeedsCamera && target) {
+        logChatCameraTracker("thinking");
+      } else if (target) {
+        logChatCameraTracker("target");
+      } else {
+        logChatCameraTracker("host-end", { reason: "settle co-travel" });
+      }
+
       // Same duration as pull-up — bubble/thinking lands already on target.
+      // coTravel: keep ease alive under pull-up lock (no abort→instant yank).
+      // Do NOT force past camera dwell / hold — only co-travel new content.
       if (target) {
         void scrollCameraToTarget(target, {
           scrollEl: column,
@@ -899,14 +948,14 @@ export function ChatScreen({
           instant: false,
           durationMs: STUDIO_ENTER_MS,
           skipHold: true,
-          force: true,
+          coTravel: true,
         });
       } else {
         scrollCameraToHostEnd(column, {
           instant: false,
           durationMs: STUDIO_ENTER_MS,
           skipHold: true,
-          force: true,
+          coTravel: true,
           reason: "pull-up co-travel host-end",
         });
       }
@@ -921,6 +970,14 @@ export function ChatScreen({
       if (topUp != null) window.clearTimeout(topUp);
       topUp = window.setTimeout(() => {
         topUp = null;
+        if (shouldYieldChatAutoCamera()) {
+          logChatCameraTracker("skip-dwell", { reason: "clearance top-up" });
+          return;
+        }
+        if (isPlaybackScrollAnimating()) {
+          logChatCameraTracker("skip-ease", { reason: "clearance top-up" });
+          return;
+        }
         const clearPx = measureComposerClearPx();
         if (clearPx == null || clearPx >= 16) {
           logChatRevealCameraTrace({
@@ -943,10 +1000,10 @@ export function ChatScreen({
         }
         // Near-miss under dock — instant top-up; remeasure AFTER so QA does not
         // hard-CHOP on the pre-top-up clearPx (halted Play on q1 — PO).
+        logChatCameraTracker("host-end", { reason: "composer clearance top-up" });
         scrollCameraToHostEnd(column, {
           instant: true,
           skipHold: true,
-          force: true,
           reason: `composer clearance top-up (clearPx=${Math.round(clearPx)})`,
         });
         const afterClearPx = measureComposerClearPx();

@@ -73,6 +73,23 @@ describe("cameraBeatPlayback", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("arms camera dwell latch during non-instant wait then clears", async () => {
+    vi.useFakeTimers();
+    const mod = await import("@/app/scenario/playbackScroll");
+    mod.setCameraBeatDwellActive(false);
+    const pending = playCameraBeat(
+      { dwellMs: 150 },
+      { beatId: "dwell-only", instant: false }
+    );
+    await Promise.resolve();
+    expect(mod.isCameraBeatDwellActive()).toBe(true);
+    await vi.advanceTimersByTimeAsync(160);
+    const result = await pending;
+    expect(result.ok).toBe(true);
+    expect(mod.isCameraBeatDwellActive()).toBe(false);
+    vi.useRealTimers();
+  });
+
   it("missing target with selector fails", async () => {
     const result = await playCameraBeat(
       {

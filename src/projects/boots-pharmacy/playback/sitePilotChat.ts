@@ -9,7 +9,7 @@ import {
 import {
   pinScenarioScrollToBottomDuring,
 } from "@/app/scenario/scenarioEngine";
-import { scrollCameraToTarget, scrollChatCamera } from "@/app/scenario/playbackScroll";
+import { scrollCameraToTarget, scrollChatCamera, logChatCameraTracker } from "@/app/scenario/playbackScroll";
 import {
   playbackDiagClick,
   playbackDiagLog,
@@ -368,6 +368,7 @@ export async function runSitePilotChatBeforeReveal(
       });
     }
     if (scrollEl) {
+      logChatCameraTracker("thinking", { reason: "playback thinking pin" });
       scrollChatToBottom(true);
       // Keep latest frame in view while thinking grows (SSoT chat camera / host-end).
       pinScenarioScrollToBottomDuring(

@@ -9,6 +9,7 @@ import {
   animateScrollTo,
   getPrototypeScrollRoot,
   scrollCameraToTarget,
+  setCameraBeatDwellActive,
 } from "@/app/scenario/playbackScroll";
 import { playbackDiagLog, playbackDiagScroll } from "@/app/shell/playbackDiag";
 
@@ -47,6 +48,7 @@ function resolveCameraTarget(
 /** Clear undo stash (jump-to-start / tests). */
 export function clearCameraBeatUndo(): void {
   lastCameraUndo = null;
+  setCameraBeatDwellActive(false);
 }
 
 export function peekCameraBeatUndo(): CameraUndo | null {
@@ -80,7 +82,12 @@ export async function playCameraBeat(
   if (options?.skip || options?.instant) {
     // Skip motion — still resolve target snap for state honesty.
   } else if (dwellMs > 0) {
-    await delay(dwellMs);
+    setCameraBeatDwellActive(true);
+    try {
+      await delay(dwellMs);
+    } finally {
+      setCameraBeatDwellActive(false);
+    }
   }
 
   const target = resolveCameraTarget(camera);

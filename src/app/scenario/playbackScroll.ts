@@ -24,6 +24,11 @@ export type PlaybackScrollOptions = {
   shouldAbort?: () => boolean;
   /** Re-read scroll target each frame (layout shifts during chat bubbles, etc.). */
   resolveTargetTop?: () => number;
+  /**
+   * Chat settle co-travel — keep easing while pull-up scrollLock is held.
+   * Default false: abort mid-flight (avoids layoutY JUMP from competing tweens).
+   */
+  coTravel?: boolean;
 };
 
 let activeScrollRaf: number | null = null;
@@ -106,6 +111,79 @@ export function shouldBlindOriginResetOnScreenEnter(): boolean {
 
 export function resetPlaybackCameraSessionForTests(): void {
   playbackCameraSessionActive = false;
+  cameraBeatDwellActive = false;
+  lastChatCameraTrackerKey = null;
+  lastChatCameraTrackerAt = 0;
+}
+
+/**
+ * First-class `kind:camera` dwell (wait → show page → scroll).
+ * Chat auto-settle / pin / pad MUST yield while this is true.
+ */
+let cameraBeatDwellActive = false;
+
+export function setCameraBeatDwellActive(active: boolean): void {
+  const was = cameraBeatDwellActive;
+  cameraBeatDwellActive = active;
+  if (active && !was) {
+    logChatCameraTracker("wait", { reason: "kind:camera dwell" });
+  }
+}
+
+export function isCameraBeatDwellActive(): boolean {
+  return cameraBeatDwellActive;
+}
+
+/** True when chat auto-camera (settle / pin / pad) must not yank. */
+export function shouldYieldChatAutoCamera(): boolean {
+  return cameraBeatDwellActive;
+}
+
+/** Lean QA trackers for chat camera (deduped — not TRACE flood). */
+export type ChatCameraTracker =
+  | "wait"
+  | "thinking"
+  | "pin-bottom"
+  | "host-end"
+  | "target"
+  | "skip-dwell"
+  | "skip-ease";
+
+let lastChatCameraTrackerKey: string | null = null;
+let lastChatCameraTrackerAt = 0;
+const CHAT_CAMERA_TRACKER_DEDUPE_MS = 450;
+
+export function logChatCameraTracker(
+  tag: ChatCameraTracker,
+  options?: { reason?: string; beatId?: string | null }
+): void {
+  const detail = `chat-camera:${tag}${
+    options?.reason ? ` — ${options.reason}` : ""
+  }`;
+  const now =
+    typeof performance !== "undefined" ? performance.now() : Date.now();
+  if (
+    detail === lastChatCameraTrackerKey &&
+    now - lastChatCameraTrackerAt < CHAT_CAMERA_TRACKER_DEDUPE_MS
+  ) {
+    return;
+  }
+  lastChatCameraTrackerKey = detail;
+  lastChatCameraTrackerAt = now;
+  try {
+    playbackDiagScroll({
+      detail,
+      beatId: options?.beatId,
+    });
+  } catch {
+    /* hang-safe */
+  }
+}
+
+export function resetChatCameraTrackerForTests(): void {
+  lastChatCameraTrackerKey = null;
+  lastChatCameraTrackerAt = 0;
+  cameraBeatDwellActive = false;
 }
 
 function ensurePostClickCameraHoldArm(): void {
@@ -793,9 +871,10 @@ export function animateScrollTo(
     playbackScrollAnimating = true;
 
     const tick = (now: number) => {
-      // Pull-up tween owns layoutY — yield camera mid-flight (prevents JUMP ΔY~500).
+      // Pull-up tween owns layoutY — yield camera mid-flight (prevents JUMP ΔY~500)
+      // unless settle co-travel explicitly keeps the ease alive.
       // Treat as replace so scroll guard does not open PlaybackDiagnostic.
-      if (isChatPullUpScrollLocked()) {
+      if (isChatPullUpScrollLocked() && !options?.coTravel) {
         scrollReplacePending = true;
         finish(false);
         return;
@@ -1003,6 +1082,19 @@ export function scrollCameraToHostEnd(
   } catch {
     /* hang-safe */
   }
+  // kind:camera dwell — do not pin bottom during wait (even forced settle).
+  if (isCameraBeatDwellActive() && !options?.force) {
+    try {
+      playbackDiagScroll({
+        detail: `scrollCameraToHostEnd — skipped (camera dwell${
+          options?.reason ? `; ${options.reason}` : ""
+        })`,
+      });
+    } catch {
+      /* hang-safe */
+    }
+    return;
+  }
   if (
     deferForPostClickCameraHold(
       () => scrollCameraToHostEnd(scrollEl, { ...options, skipHold: true }),
@@ -1091,6 +1183,10 @@ export function scrollChatCamera(
     if (frozen && !options?.force) return;
   } catch {
     /* hang-safe */
+  }
+  if (isCameraBeatDwellActive() && !options?.force) {
+    logChatCameraTracker("skip-dwell", { reason: "scrollChatCamera" });
+    return;
   }
   if (isChatPullUpScrollLocked() && !options?.force) {
     return;

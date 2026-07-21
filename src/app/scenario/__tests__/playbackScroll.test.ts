@@ -11,12 +11,15 @@ import {
   noteCameraHoldInteraction,
   POST_CLICK_CAMERA_HOLD_MS,
   readScrollPaddingBottom,
+  resetChatCameraTrackerForTests,
   resetPlaybackCameraSessionForTests,
   resetPostClickCameraHoldForTests,
   scrollCameraToHostEnd,
   scrollCameraToOrigin,
+  setCameraBeatDwellActive,
   setPlaybackCameraSessionActive,
   shouldBlindOriginResetOnScreenEnter,
+  shouldYieldChatAutoCamera,
 } from "@/app/scenario/playbackScroll";
 
 function mockRect(top: number, height: number) {
@@ -504,5 +507,39 @@ describe("screen-enter camera policy", () => {
 
     scrollCameraToOrigin(el, { instant: true });
     expect(el.scrollTop).toBe(0);
+  });
+});
+
+describe("camera beat dwell vs chat host-end", () => {
+  afterEach(() => {
+    resetChatCameraTrackerForTests();
+    resetPlaybackCameraSessionForTests();
+  });
+
+  it("skips host-end during dwell unless force", () => {
+    setCameraBeatDwellActive(true);
+    expect(shouldYieldChatAutoCamera()).toBe(true);
+    const el = {
+      scrollTop: 100,
+      scrollHeight: 2000,
+      clientHeight: 400,
+      classList: { contains: () => false },
+      dataset: {},
+      tagName: "DIV",
+      id: "",
+      className: "",
+      getBoundingClientRect: () => mockRect(0, 400),
+    } as unknown as HTMLElement;
+
+    scrollCameraToHostEnd(el, { instant: true, reason: "settle" });
+    expect(el.scrollTop).toBe(100);
+
+    scrollCameraToHostEnd(el, {
+      instant: true,
+      force: true,
+      skipHold: true,
+      reason: "intentional",
+    });
+    expect(el.scrollTop).toBe(1600);
   });
 });
