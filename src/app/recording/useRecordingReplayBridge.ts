@@ -84,6 +84,10 @@ export function useRecordingReplayBridge(options: {
   getStartOptions: () => StartRecordingOptions;
   /** After Save as journey / MCP save — refresh beat index + transport. */
   onJourneySaved?: () => void;
+  /** Honest REC arm — CJM off / REC on / CREATE NEW path. */
+  setJourneyMode?: (enabled: boolean) => void;
+  setRecMode?: (enabled: boolean) => void;
+  setOrchestraMode?: (modeId: string) => void;
 }): {
   replayRecordingOptions: () => RecordingReplayOptions;
 } {
@@ -94,6 +98,9 @@ export function useRecordingReplayBridge(options: {
     projectPlayback,
     getStartOptions,
     onJourneySaved,
+    setJourneyMode,
+    setRecMode,
+    setOrchestraMode,
   } = options;
 
   const screensRef = useRef(screenNav.screens);
@@ -383,8 +390,17 @@ export function useRecordingReplayBridge(options: {
       }),
       ...replayRecordingOptions(),
       onJourneySaved: () => onJourneySavedRef.current?.(),
+      setJourneyMode,
+      setRecMode,
+      setOrchestraMode,
     });
-  }, [getStartOptions, replayRecordingOptions]);
+  }, [
+    getStartOptions,
+    replayRecordingOptions,
+    setJourneyMode,
+    setRecMode,
+    setOrchestraMode,
+  ]);
 
   return { replayRecordingOptions };
 }

@@ -31,6 +31,11 @@ import {
 } from "@/app/shell/agent-testing";
 import { resolveUsableDemoClickTarget } from "@/app/recording/recordingCapture";
 import { describeRecordingClickTarget } from "@/app/recording/recordingCapture";
+import {
+  armRecCapture,
+  assertRecLive,
+} from "@/app/recording/recArmCapture";
+import { runRecNewCjmProve } from "@/app/recording/recNewCjmProve";
 
 function resolveRecordingSession(
   session?: RecordingSession
@@ -110,6 +115,33 @@ declare global {
       target: HTMLElement | string,
       options?: { instant?: boolean }
     ) => Promise<void>;
+    /**
+     * Arm REC the PO way: CJM off → REC ON → CREATE NEW → ● Start.
+     * FAIL unless switch + session are truly live.
+     */
+    __studioArmRecCapture?: () => Promise<
+      import("@/app/recording/recArmCapture").ArmRecCaptureResult
+    >;
+    __protoArmRecCapture?: () => Promise<
+      import("@/app/recording/recArmCapture").ArmRecCaptureResult
+    >;
+    /** Truth latch — REC switch ON + live session. */
+    __studioAssertRecLive?: () => import("@/app/recording/recArmCapture").RecLiveAssert;
+    __protoAssertRecLive?: () => import("@/app/recording/recArmCapture").RecLiveAssert;
+    /**
+     * REC robustness prove — ALWAYS create NEW random CJM then Play that id.
+     * Forbidden: only playing built-in / old rec-* as “REC prove”.
+     */
+    __studioRunRecNewCjmProve?: (
+      options?: import("@/app/recording/recNewCjmProve").RecNewCjmProveOptions
+    ) => Promise<
+      import("@/app/recording/recNewCjmProve").RecNewCjmProveResult
+    >;
+    __protoRunRecNewCjmProve?: (
+      options?: import("@/app/recording/recNewCjmProve").RecNewCjmProveOptions
+    ) => Promise<
+      import("@/app/recording/recNewCjmProve").RecNewCjmProveResult
+    >;
   }
 }
 
@@ -124,6 +156,10 @@ export function registerRecordingMcpHelpers(options?: {
   applyScroll?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyScroll"];
   applyTypedText?: import("@/app/recording/recordingTypes").RecordingReplayOptions["applyTypedText"];
   onJourneySaved?: () => void;
+  /** Honest REC arm — required for `__studioArmRecCapture` / RecNewCjmProve. */
+  setJourneyMode?: (enabled: boolean) => void;
+  setRecMode?: (enabled: boolean) => void;
+  setOrchestraMode?: (modeId: string) => void;
 }): () => void {
   if (typeof window === "undefined") return () => {};
 
@@ -325,6 +361,52 @@ export function registerRecordingMcpHelpers(options?: {
     });
   };
 
+  const armHooks = () => ({
+    setJourneyMode: options?.setJourneyMode ?? (() => undefined),
+    setRecMode: options?.setRecMode ?? (() => undefined),
+    getStartOptions: options?.getDefaultStartOptions,
+  });
+
+  window.__studioArmRecCapture = async () => {
+    if (!options?.setRecMode || !options?.setJourneyMode) {
+      const fail = {
+        ok: false as const,
+        recMode: false,
+        recording: false,
+        createNew: false,
+        startVisible: false,
+        overlayRecLive: false,
+        reason: "ArmRecCapture hooks not wired (setRecMode/setJourneyMode)",
+      };
+      try {
+        logAgentTestingStep({
+          kind: "rec",
+          action: "ArmRecCapture",
+          label: `REC arm FAIL — ${fail.reason}`,
+          outcome: "fail",
+        });
+      } catch {
+        /* hang-safe */
+      }
+      return fail;
+    }
+    return armRecCapture(armHooks());
+  };
+  window.__protoArmRecCapture = window.__studioArmRecCapture;
+
+  window.__studioAssertRecLive = () => assertRecLive();
+  window.__protoAssertRecLive = window.__studioAssertRecLive;
+
+  window.__studioRunRecNewCjmProve = async (proveOpts) =>
+    runRecNewCjmProve(
+      {
+        ...armHooks(),
+        setOrchestraMode: options?.setOrchestraMode,
+      },
+      proveOpts
+    );
+  window.__protoRunRecNewCjmProve = window.__studioRunRecNewCjmProve;
+
   armOverlayOnStudioHelpers();
 
   return () => {
@@ -345,6 +427,12 @@ export function registerRecordingMcpHelpers(options?: {
     delete window.__studioSimulateDemoPointerClick;
     delete window.__protoScrollCameraToTarget;
     delete window.__studioScrollCameraToTarget;
+    delete window.__studioArmRecCapture;
+    delete window.__protoArmRecCapture;
+    delete window.__studioAssertRecLive;
+    delete window.__protoAssertRecLive;
+    delete window.__studioRunRecNewCjmProve;
+    delete window.__protoRunRecNewCjmProve;
   };
 }
 

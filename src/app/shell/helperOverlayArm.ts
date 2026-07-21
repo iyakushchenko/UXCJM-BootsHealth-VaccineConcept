@@ -76,6 +76,10 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "RunFullPlayProve",
   "RunAgenticFullPlayProve",
   "RunTraditionalFullPlayProve",
+  // REC arm / assert / new-CJM prove — own QA rows; no double-touch spam.
+  "ArmRecCapture",
+  "AssertRecLive",
+  "RunRecNewCjmProve",
   // Auto-Rule agent-teardown-clean asserts — must not re-arm overlay while proving clear.
   "AssertAgentTeardownClean",
   "WaitAgentTeardownClean",
@@ -103,6 +107,8 @@ const SELF_LOGGED_HELPER_SUFFIXES = new Set([
   "StartRecording",
   "StopRecording",
   "SaveRecordingAsJourney",
+  "ArmRecCapture",
+  "RunRecNewCjmProve",
 ]);
 
 const ARMED_FLAG = "__studioOverlayArmed";

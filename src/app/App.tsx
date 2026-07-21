@@ -1713,6 +1713,11 @@ export default function App() {
     projectPlayback,
     getStartOptions: getRecordingStartOptions,
     onJourneySaved: refreshJourneysAfterImport,
+    setJourneyMode: (enabled) =>
+      handleStudioJourneyModeChangeRef.current(enabled),
+    setRecMode: handleStudioRecModeChange,
+    setOrchestraMode: (modeId) =>
+      handleOrchestraModeChangeRef.current(modeId as typeof orchestraModeId),
   });
 
   useEffect(() => {

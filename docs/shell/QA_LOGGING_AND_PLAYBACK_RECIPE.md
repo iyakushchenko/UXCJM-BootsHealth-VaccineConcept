@@ -166,6 +166,17 @@ Sitrep audit: [TRADITIONAL_CJM_UX_2026-07-21.md](../projects/boots-pharmacy/audi
 
 **Localhost only:** `http://localhost:5173/` (`strictPort`; never invent 5174+). One `npm run dev`. Chrome MCP: `list_pages` → reuse tab.
 
+**REC robustness prove (HARD — NEW CJM only):** agents MUST use:
+
+```js
+await window.__studioRunRecNewCjmProve?.({ experience: "traditional" })
+// → { pass, journeyId, recLive, peak, errors }
+// ALWAYS CLEAR → arm REC (CREATE NEW + Start) → short new path → Add as CJM → Play THAT journeyId
+// FAIL if rec never live or journeyId missing
+// FORBIDDEN: only playing agentic-cjm / traditional-cjm / an old rec-* as “REC prove”
+// Latch: await window.__studioArmRecCapture?.() · window.__studioAssertRecLive?.()
+```
+
 **Full continuous Play prove (HARD — one engine):** agents MUST prefer:
 
 ```js

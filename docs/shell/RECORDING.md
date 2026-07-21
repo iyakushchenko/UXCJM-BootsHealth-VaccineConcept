@@ -169,7 +169,9 @@ journeyRuntimeStore          (ephemeral catalog overlay — play in CJM)
 | **Compile** | `app/recording/recordingCompile.ts` | `compileRecordingToJourney` / `saveRecordingAsJourney` → runtime catalog |
 | **Script apply** | `app/recording/recordingScriptApply.ts` | Shared `applyRecordingProjectScript` (director + retreat-sync) |
 | **App bridge** | `app/recording/useRecordingReplayBridge.ts` | Replay options + human click install + MCP register |
-| **MCP** | `app/recording/recordingMcpHelpers.ts` | `window.__studioStartRecording` (legacy `__protoStartRecording` alias) etc. |
+| **MCP** | `app/recording/recordingMcpHelpers.ts` | `__studioStartRecording` (legacy `__proto*`), **`__studioArmRecCapture`**, **`__studioAssertRecLive`**, **`__studioRunRecNewCjmProve`** |
+| **REC arm** | `app/recording/recArmCapture.ts` | PO sequence: CJM off → REC ON → CREATE NEW → ● Start; truth latch |
+| **REC new CJM prove** | `app/recording/recNewCjmProve.ts` | Robustness = **always mint new `rec-*`** then Play that id |
 | **UI** | `app/nav/StudioNavRecordingControls.tsx` | Studio shell REC deck (same session APIs) |
 
 ---
@@ -315,7 +317,11 @@ When `applyWireIntent` is wired (App / MCP):
 
 ```javascript
 window.__studioEnsureCleanStudio?.()
-window.__studioStartRecording?.()          // uses current project/persona/journey
+window.__studioStartRecording?.()          // uses current project/persona/journey — session only
+await window.__studioArmRecCapture?.()     // CJM off → REC ON → CREATE NEW → ● Start (required for agent REC)
+window.__studioAssertRecLive?.()           // { ok, recMode, recording, … } — FAIL if switch or session missing
+await window.__studioRunRecNewCjmProve?.({ experience: "traditional" })
+// REC robustness = NEW random CJM only → Play that journeyId (not built-in / old rec-*)
 window.__studioTriggerTransport?.('step-forward')
 // … navigate freely …
 window.__studioStopRecording?.()

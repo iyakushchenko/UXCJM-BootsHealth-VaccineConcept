@@ -13,7 +13,14 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 
 **Compile path:** REC events → `recordedClick` + `dwellMs` + **`scroll-stop` → `kind: "camera"`** beats → same Play runners as Step.
 
-**Prove helpers (universal):** prefer `__studioRunFullPlayProve({ journeyId | experience })` — ALWAYS CLEAR → arm → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve` (no duplicated logic). Smoke `__protoRunTraditionalPlaySmoke` tears down overlay.
+**Prove helpers (universal):**
+
+| Prove | API | Rule |
+|-------|-----|------|
+| **REC robustness** | `__studioRunRecNewCjmProve({ experience?, label? })` | **ALWAYS NEW random CJM** — arm REC for real → capture → Add as CJM → Play **that** `journeyId`. **FORBIDDEN:** only playing `agentic-cjm` / `traditional-cjm` or an old `rec-*` and calling REC prove done. |
+| **Play journey** | `__studioRunFullPlayProve({ journeyId \| experience })` | ALWAYS CLEAR → arm → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve`. Smoke `__protoRunTraditionalPlaySmoke` tears down overlay. |
+
+**REC arm (agents only):** `__studioArmRecCapture()` — CJM off → REC mode ON → CREATE NEW CJM → ● Start. Latch: `__studioAssertRecLive()` (`{ ok, recMode, recording, … }`). Never log “REC live” from `__studioStartRecording` alone without this arm + assert.
 
 ## Camera engine rails
 

@@ -10,6 +10,12 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-21
 
+### REC robustness = NEW CJM only (PO standing order)
+
+- **Symptom / class:** Agents claim REC robustness by playing built-in `agentic-cjm` / `traditional-cjm` or an old `rec-*`, or call `__studioStartRecording` without REC toggle + CREATE NEW + ● Start.
+- **Right fix:** `__studioArmRecCapture` (CJM off → REC ON → CREATE NEW → Start) + `__studioAssertRecLive` (switch+session) + `__studioRunRecNewCjmProve` (always mint new `rec-*`, Play that id). Docs: AGENTS / RECORDING / QA recipe / CJM_RECORD_PLAY_EDIT.
+- **Gate:** Live prove returns `{ pass, journeyId: rec-*, recLive: true }`.
+
 ### REC prove honesty — fake tiles click + Play logged as REC (PO fury)
 
 - **Symptom / class:** (1) Robo-click on `module.plp.tiles` reported success (auto-refined to first Book now). (2) QA showed Start REC while agent only ran `__studioRunFullPlayProve` on an existing CJM.

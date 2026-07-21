@@ -65,6 +65,8 @@ npm run smoke        # lean profile — local / on-demand CI only; PROTO_SMOKE_P
 
 **Reset QA before every test (ALWAYS CLEAR):** `__studioForceClearAgentTestingOverlay()` / overlay `forceClear`, then fresh `start` — never reuse a dirty AGENT TESTING session. Smokes (`withMcpTestSession`) force-clear before arm. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
 
+**REC robustness prove (HARD — NEW CJM only):** `await window.__studioRunRecNewCjmProve?.({ experience: "traditional" })` — ALWAYS CLEAR → `__studioArmRecCapture` (CJM off → REC ON → CREATE NEW → ● Start; assert switch+session live) → short new random path with honest robo targets → Stop + Add as CJM (unique `rec-*` id) → Play **that** journey. Returns `{ pass, journeyId, recLive, peak, errors }`. **FORBIDDEN** as REC prove: only playing built-in `agentic-cjm` / `traditional-cjm` or reusing an old `rec-*`. Assert latch: `__studioAssertRecLive()`. → [RECORDING.md](docs/shell/RECORDING.md) · [CJM_RECORD_PLAY_EDIT.md](docs/shell/CJM_RECORD_PLAY_EDIT.md)
+
 **Full continuous Play prove (HARD — universal):** call `await window.__studioRunFullPlayProve?.({ experience: "agentic" })` or `{ journeyId: "traditional-cjm" }` (alias `__protoRunFullPlayProve`; defaults via presets). ALWAYS CLEAR → arm → Play → peak → leave pause; keeps QA open for Save Log. Thin aliases: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve` — **no** duplicated logic; **not** ad-hoc Play / **not** `*PlaySmoke` (tears down). → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md)
 
 **Traditional Play smoke:** `await window.__protoRunTraditionalPlaySmoke?.()` (tears down overlay). Prefer keep-overlay `__studioRunFullPlayProve({ experience: "traditional" })` for Save Log peak / RESULT. → [QA_LOGGING_AND_PLAYBACK_RECIPE.md](docs/shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) · [TRADITIONAL_CJM_UX_2026-07-21.md](docs/projects/boots-pharmacy/audits/TRADITIONAL_CJM_UX_2026-07-21.md)
@@ -105,7 +107,10 @@ window.__protoRunTraditionalPlaySmoke?.()     // Traditional Play smoke (tears d
 window.__studioExportJourneyBundle?.()        // journey.json
 window.__studioSaveRecordingAsJourney?.()     // REC → ephemeral CJM journey
 window.__studioApplyJourneyBundle?.(json)     // runtime import
-window.__studioStartRecording?.()             // recording session
+window.__studioStartRecording?.()             // recording session only — NOT full REC UI arm
+window.__studioArmRecCapture?.()              // CJM off → REC ON → CREATE NEW → ● Start; assert live
+window.__studioAssertRecLive?.()              // truth latch: switch ON + session live
+await window.__studioRunRecNewCjmProve?.({ experience: "traditional" }) // REC robustness = NEW CJM only
 // Mid-flight PO signals (HARD — poll each beat; dump is secondary):
 window.__studioAgentTestingTakeover           // peek live latch (null | { type, code, beat, screen, diagSnapshot })
 window.__studioConsumePoSignal?.()            // consume + clear — branch on Alarm (sequence mismatch)

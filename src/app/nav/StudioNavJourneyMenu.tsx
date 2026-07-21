@@ -10,6 +10,7 @@ import {
   getActiveRecordingSession,
   subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
+import { registerCreateNewCjmSelector } from "@/app/recording/createNewCjmApi";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
 
 type Props = {
@@ -71,6 +72,32 @@ export function StudioNavJourneyMenu({
   modesRef.current = modes;
   const recModeRef = useRef(recMode);
   recModeRef.current = recMode;
+  const recModeLockedRef = useRef(recModeLocked);
+  recModeLockedRef.current = recModeLocked;
+
+  // Imperative CREATE NEW — same path as picker (agent REC arm).
+  useEffect(() => {
+    registerCreateNewCjmSelector(() => {
+      if (recModeLockedRef.current) {
+        logControlPanel("studio:create-new-cjm", {
+          blocked: true,
+          blockReason: "rec-mode-locked",
+          source: "imperative",
+        });
+        return;
+      }
+      setIdleCreateNew(true);
+      logControlPanel("studio:create-new-cjm", {
+        autoRecOn: true,
+        previousRecMode: recModeRef.current,
+        source: "imperative",
+      });
+      if (!recModeRef.current) {
+        onRequestRecModeRef.current?.(true);
+      }
+    });
+    return () => registerCreateNewCjmSelector(null);
+  }, []);
 
   // CREATE NEW only while Rec mode is on (live session alone must not gold-lock
   // the picker after the user leaves Rec).
