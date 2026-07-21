@@ -63,14 +63,14 @@ REC capture is **target-only**; legacy `scrollTop`-only replay is **refused**.
 
 One policy for **any** journey (agentic, traditional, REC tabs):
 
-1. **SSoT** = `playbackScroll.ts`. Directors / REC only pick **targets**. Wire must not bypass with competing origin snaps.
+1. **SSoT** = `playbackScroll.ts`. Directors / REC only pick **targets**. Wire must not bypass with competing mid-flight snaps.
 2. **Playback camera session** — shell sets `setPlaybackCameraSessionActive(journeyMode ∪ playing ∪ onAir)`.
-3. **Screen-enter / tab change** — `shouldBlindOriginResetOnScreenEnter()` must be true before wire blind-origin. While session / post-click hold / in-flight ease: **skip** instant origin (no Δ−900 yanks fighting eased scrolls). Wire still **`cancelPlaybackScroll("abort")`** on CJM/play tab enter so a prior-screen ease cannot keep fighting the new layout.
-4. **Intentional origin only** — jump-to-start, retreat sync, probe prep, scenario align-start → `scrollCameraToOrigin(..., { force: true })` (optionally honor `POST_CLICK_CAMERA_HOLD`).
+3. **Screen-enter / tab change (page land)** — while CJM/Play/AIR, wire **force-origins to host top** on tab change (chat exempt). Prior-screen ease is aborted first. Intentional `kind:camera` beats then wait → ease to target — **no mid-scroll land** from a previous screen’s scrollTop.
+4. **Intentional origin also** — jump-to-start, retreat sync, probe prep, scenario align-start → `scrollCameraToOrigin(..., { force: true })` (optionally honor `POST_CLICK_CAMERA_HOLD`).
 5. **Chat** — exempt from tab-enter origin. Settle / pin / pad **yield** during `kind:camera` dwell (`shouldYieldChatAutoCamera` / `setCameraBeatDwellActive`). Prefer `scrollChatCamera` / `scrollCameraToTarget` over blind host-end; co-travel uses `coTravel: true` so pull-up lock does not abort the ease.
+6. **REC scroll-stop** — one camera wait per settle (≥2s quiet). Detector + compile coalesce so a long pause does not mint N duplicate camera steps.
 
-Smell this kills: Traditional Reserve→history→details `scroll-reversal` soft-fails from `resetPrototypeScroll` on every non-chat tab.
-
+Smell this kills: landing mid-PLP/PDP after a tab hop; Traditional Reserve→history→details fighting an in-flight ease.
 ---
 
 ## Cursor engine SSoT (ONE engine)

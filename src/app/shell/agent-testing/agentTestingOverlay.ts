@@ -7,7 +7,7 @@ import {
   resetStudioAfterAgentTest,
   stripEphemeralStudioQuery,
 } from "@/app/shell/studioUrl";
-import { removeDemoCursor } from "@/app/scenario/demoCursor";
+import { removeDemoCursor, setDemoCursorJourneyMode } from "@/app/scenario/demoCursor";
 import { getPrototypeScrollRoot } from "@/app/scenario/playbackScroll";
 import { getControlPanelSnapshot } from "@/app/shell/controlPanelLog";
 import { getCursorDiagnosticState } from "@/app/shell/playbackCursorDiagnostic";
@@ -2019,6 +2019,18 @@ function ensureMessageUnderLog(root: HTMLElement): void {
 
 /** Migrate older overlay DOM: Pause beside clock; Session + Touchpoints bars. */
 function ensureOverlayChrome(root: HTMLElement): void {
+  if (!root.querySelector(".studio-agent-testing-overlay__frame")) {
+    const frame = document.createElement("div");
+    frame.className = "studio-agent-testing-overlay__frame";
+    frame.setAttribute("aria-hidden", "true");
+    root.insertBefore(frame, root.firstChild);
+  }
+  try {
+    if (isRecordingActive()) root.dataset.rec = "live";
+    else delete root.dataset.rec;
+  } catch {
+    /* hang-safe */
+  }
   const panel = root.querySelector(".studio-agent-testing-overlay__panel");
   const header = root.querySelector(".studio-agent-testing-overlay__header");
   if (!panel || !header) return;
@@ -2381,9 +2393,32 @@ function armPresenceHeartbeatWithAutoPause(): void {
 /**
  * REC live XOR QA capture — pause QA capture + release page click guard so
  * product clicks reach the page and REC (observe logger may stay open).
+ * Also paints orange viewport frame while REC is armed.
  */
 function syncQaCaptureWithRecording(): void {
   const recLive = isRecordingActive();
+  try {
+    const root = document.getElementById(ROOT_ID);
+    if (root) {
+      if (recLive) root.dataset.rec = "live";
+      else delete root.dataset.rec;
+    }
+  } catch {
+    /* hang-safe */
+  }
+  // Agent REC demo: pin robo-cursor so PO sees clicks; unpin when REC ends if CJM off.
+  try {
+    if (recLive && getSessionKind() === "agent") {
+      setDemoCursorJourneyMode(true, { parkAfterInteraction: false });
+    } else if (!recLive) {
+      const cjmOn =
+        typeof location !== "undefined" &&
+        new URLSearchParams(location.search).get("cjm") === "on";
+      if (!cjmOn) setDemoCursorJourneyMode(false);
+    }
+  } catch {
+    /* hang-safe */
+  }
   if (!recLive) {
     recPausedQaCapture = false;
     syncClickGuard();
@@ -2664,6 +2699,7 @@ function ensureRoot(): HTMLElement | null {
   root.className = "studio-agent-testing-overlay";
   root.setAttribute("aria-live", "polite");
   root.innerHTML = `
+    <div class="studio-agent-testing-overlay__frame" aria-hidden="true"></div>
     <div class="studio-agent-testing-overlay__capture" aria-hidden="true"></div>
     <div class="studio-agent-testing-overlay__panel" role="status">
       <div class="studio-agent-testing-overlay__header">
@@ -4486,7 +4522,10 @@ function restoreLoggerFromRing(events: QaDiagRingEvent[]): void {
               ? "system"
               : "info",
       outcome:
-        e.kind === "playback-diag" && /FAIL|DIAGNOSTIC|OFF-TARGET/i.test(e.label || e.text || "")
+        e.kind === "playback-diag" &&
+        /FAIL|DIAGNOSTIC|OFF-TARGET|ABRUPT-PARK|ABRUPT PARK|REST-ON-SUBMIT/i.test(
+          e.label || e.text || ""
+        )
           ? "fail"
           : e.kind === "playback-diag"
             ? "soft-fail"

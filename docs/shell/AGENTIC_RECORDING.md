@@ -10,7 +10,7 @@ Cross-link: [RECORDING.md](./RECORDING.md) (shipped capture / replay / compile).
 
 When the PO wants a new CJM without hand-driving every click:
 
-1. PO provides a **link to persona artifacts** (research, journey maps, Figma Make, brief docs, etc.).
+1. PO provides a **link to persona artifacts** (research, journey maps, design files, brief docs, etc.).
 2. The agent **derives a CJM** from those artifacts (touchpoints, screens, decisions, CTAs).
 3. The agent **creates a recording** of that CJM on **pages already available** in the Studio project (`?project=` / `?screen=`).
 4. If a needed page/screen is **not mounted yet**, the agent must **stop inventing UI** and report that **UX CONCEPT(s) will be required**, naming them explicitly.
@@ -23,7 +23,7 @@ When the PO wants a new CJM without hand-driving every click:
 
 | Input | Notes |
 |-------|--------|
-| Persona artifact link(s) | Research pack, journey PDF/FigJam, Make file, brief |
+| Persona artifact link(s) | Research pack, journey PDF/FigJam, design file, brief |
 | Target project | e.g. `boots-pharmacy` |
 | Path flavor | Agentic vs Traditional (or new free CJM) |
 | Accept / reject | Product call on derived CJM + recording quality |
@@ -53,7 +53,7 @@ UX CONCEPT(s) will be required:
 Blocked beats (not recorded): <brief list>
 ```
 
-Honesty rule: under-match over invent. No invented hover, loaders, or screens not in Make/project.
+Honesty rule: under-match over invent. No invented hover, loaders, or screens not in the project / concept pack.
 
 ---
 

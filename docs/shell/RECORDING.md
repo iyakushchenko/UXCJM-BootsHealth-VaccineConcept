@@ -105,7 +105,7 @@ Manual console experiments should omit reload (default `false`). Journey/`__prot
 
 **Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 
-**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open. **Studio nav** (`.studio-nav-panel-host` z `11000`) stays above concept lightboxes; the agent-testing capture hole clears the nav band so Step/Play/REC stay clickable while page clicks stay blocked.
+**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open. **Studio nav** (`.studio-nav-panel-host` z `11000`) stays above concept lightboxes; the agent-testing capture hole clears the nav band so Step/Play/REC stay clickable while page clicks stay blocked. **Viewport frame** is a full-overlay inset ring (`__frame`) so nav-panel DS popups stay inside the frame; **REC live → orange** (`data-rec=live`); MCP CONTROL → gold when not recording.
 
 ---
 
@@ -344,7 +344,9 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 
 **Mapped into beats (compile v2):** touchpoint segments (or screen/director fallback), **usable `demo-click` → `recordedClick`** (SF/Play drives `simulateDemoPointerClick`), preceding `scroll` → **first-class `kind: "camera"` beat** (dwell + target) then the click beat (legacy `cameraSelectorChain` on the click is stripped when the camera beat is emitted), **`scroll-stop` (≥ ~2s settle, jiggles ignored) → `kind: "camera"` pause wait** bound to scroll host / optional next target (`camera.dwellMs` = stop duration), `director-script` → home/avail/book/tab scripts, known `wire-intent` / `beat-enter` → `onEnter`, `dwell` → `dwellMs`, snapshot `protoTab` / `currentTabIndex`. Click→screen within ~1s coalesces (no hollow nav beat). Consecutive same-screen URL/modal churn does not mint `chat-2` / `chat-3`.
 
-**Scroll-stop → camera (REC):** while recording, the engine watches the prototype scroll host. Meaningful Δpx arms a settle timer (`SCROLL_STOP_DWELL_MS` ≈ 2000, tunable). Small jiggles / short ups-downs are not activity. On settle, capture `kind: "scroll-stop"` (duration + target). Compile emits the same Play camera beat (dwell → eased scroll; step-back reverses). Live REC hard to prove → unit + compile path is the gate.
+**Scroll-stop → camera (REC):** while recording, the engine watches the prototype scroll host. Meaningful Δpx arms a settle timer (`SCROLL_STOP_DWELL_MS` ≈ 2000, tunable). Small jiggles / short ups-downs are not activity. On settle, capture `kind: "scroll-stop"` (duration + target). **One wait per settle** — detector re-arm requires leaving the settle band; compile merges consecutive stops. Compile emits the same Play camera beat (dwell → eased scroll; step-back reverses). Live REC hard to prove → unit + compile path is the gate.
+
+**Touchpoint labels:** REC stamps **short human labels** (visible text / aria-label / action slug) on `demo-click` → beat `label` — not long selectors. STEPS / Play nav must stay concise.
 
 **Persisted with Add as CJM:** the **full `.recording.json` session** is stored beside the compiled journey in localStorage (`studio-recorded-cjm:…` v2 `recordings` map) and embedded in Download `.journey.json` when available. Never discard the event log on compile (8.56 failure mode).
 

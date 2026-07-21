@@ -102,7 +102,7 @@ describe("cameraBeatPlayback", () => {
     expect(result.step).toBe("camera-beat:target-unusable");
   });
 
-  it("skips display:none Make ghosts instead of ghost-scrolling", async () => {
+  it("skips display:none retired ghosts instead of ghost-scrolling", async () => {
     const ghostWrap = document.createElement("div");
     ghostWrap.style.display = "none";
     const ghost = document.createElement("div");

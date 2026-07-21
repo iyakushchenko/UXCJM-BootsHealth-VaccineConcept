@@ -24,6 +24,8 @@ import {
 } from "@/app/recording/recordingReplay";
 import type { StartRecordingOptions } from "@/app/recording/recordingSession";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
+import { simulateDemoPointerClick } from "@/app/scenario/demoCursor";
+import { scrollCameraToTarget } from "@/app/scenario/playbackScroll";
 
 function resolveRecordingSession(
   session?: RecordingSession
@@ -85,6 +87,24 @@ declare global {
     __protoReplayRecording?: (
       session?: RecordingSession
     ) => Promise<import("@/app/recording/recordingTypes").RecordingReplayResult>;
+    /** Agent REC demo — robo-cursor click (eased camera scroll). */
+    __protoSimulateDemoPointerClick?: (
+      target: HTMLElement | string,
+      options?: { scroll?: boolean }
+    ) => Promise<boolean>;
+    __studioSimulateDemoPointerClick?: (
+      target: HTMLElement | string,
+      options?: { scroll?: boolean }
+    ) => Promise<boolean>;
+    /** Agent REC demo — eased camera to target (not abrupt jump). */
+    __protoScrollCameraToTarget?: (
+      target: HTMLElement | string,
+      options?: { instant?: boolean }
+    ) => Promise<void>;
+    __studioScrollCameraToTarget?: (
+      target: HTMLElement | string,
+      options?: { instant?: boolean }
+    ) => Promise<void>;
   }
 }
 
@@ -116,6 +136,34 @@ export function registerRecordingMcpHelpers(options?: {
   window.__protoResumeRecording = () => resumeRecording();
 
   window.__protoIsRecording = () => isRecordingActive();
+
+  const resolveEl = (target: HTMLElement | string): HTMLElement | null => {
+    if (typeof target === "string") {
+      try {
+        return document.querySelector<HTMLElement>(target);
+      } catch {
+        return null;
+      }
+    }
+    return target;
+  };
+
+  window.__protoSimulateDemoPointerClick = async (target, clickOpts) => {
+    const el = resolveEl(target);
+    if (!el) return false;
+    return simulateDemoPointerClick(el, {
+      scroll: clickOpts?.scroll !== false,
+    });
+  };
+  window.__studioSimulateDemoPointerClick =
+    window.__protoSimulateDemoPointerClick;
+
+  window.__protoScrollCameraToTarget = async (target, scrollOpts) => {
+    const el = resolveEl(target);
+    if (!el) return;
+    await scrollCameraToTarget(el, { instant: scrollOpts?.instant === true });
+  };
+  window.__studioScrollCameraToTarget = window.__protoScrollCameraToTarget;
 
   window.__protoGetRecording = () =>
     getActiveRecordingSession() ?? getLastRecordingSession();
@@ -217,6 +265,10 @@ export function registerRecordingMcpHelpers(options?: {
     delete window.__protoCompileRecordingToJourney;
     delete window.__protoSaveRecordingAsJourney;
     delete window.__protoReplayRecording;
+    delete window.__protoSimulateDemoPointerClick;
+    delete window.__studioSimulateDemoPointerClick;
+    delete window.__protoScrollCameraToTarget;
+    delete window.__studioScrollCameraToTarget;
   };
 }
 

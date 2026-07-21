@@ -1,10 +1,11 @@
 /**
- * Overlay wiring for capture watch.
- * Manual/observe: OS cursor only — never bind demo/robo pointer-follow
- * (PO: dual cursor with CJM park = wrong UX).
+ * Manual / observe (user driving): hide demo/robo cursor — OS pointer only.
+ * Agent CONTROL: leave CJM Play/SF robo cursor alone.
+ * REC live (agent demo): keep robo cursor so PO sees clicks during capture.
  */
 
 import { removeDemoCursor } from "@/app/scenario/demoCursor";
+import { isRecordingActive } from "@/app/recording/recordingSession";
 import { bindAgentTestingCaptureWatch } from "@/app/shell/agent-testing/agentTestingCaptureWatch";
 import { stopObservePointerCursorFollow } from "@/app/shell/agent-testing/agentTestingObserveCursor";
 import type { AgentTestingSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
@@ -34,6 +35,7 @@ export function isCaptureInProgressBridge(
 /**
  * Manual / observe (user driving): hide demo/robo cursor — OS pointer only.
  * Agent CONTROL: leave CJM Play/SF robo cursor alone.
+ * REC live (agent demo): keep robo cursor so PO sees clicks during capture.
  */
 function syncUserDrivingCursorPolicy(opts: CaptureWatchBridgeOptions): void {
   if (observeCursorUnbind) {
@@ -47,6 +49,8 @@ function syncUserDrivingCursorPolicy(opts: CaptureWatchBridgeOptions): void {
   const kind = opts.getSessionKind();
   // Never follow pointer with a second robo cursor (legacy observe-follow retired).
   stopObservePointerCursorFollow({ remove: false });
+  // Agent CONTROL or live REC demo — do not rip the robo cursor.
+  if (kind === "agent" || isRecordingActive()) return;
   if (
     opts.isActive() &&
     !opts.isSettling() &&

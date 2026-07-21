@@ -38,6 +38,7 @@
 - **engine:** Cursor engine SSoT: travel-to-rest park default; force/first-mount snap only; ABRUPT-PARK QA FAIL mirrored; agentic 22/22 + traditional 12/12 prove, abrupt=0
 - **engine:** Cursor engine: step parks / continuous Play stays at last click; never rest on composer submit (park-from-submit); early hand-on-edge; QA trackers park-on-step/stay-on-play/park-from-submit + REST-ON-SUBMIT FAIL
 - **shell:** QA: REC live pauses capture + frees product clicks; fullPlayProve prove-mode latch skips 8s auto-pause; camera-unusable human row; soft-fail/journey-reset dedupe; durable dump click.ok
+- **shell:** PO REC→Play wave: page-land top, ABRUPT-PARK red, concise touchpoint labels, scroll-stop coalesce, play-end reset, scrub Make copy, orange REC frame covering nav popups, QA log lean, agent REC robo-cursor + eased camera
 
 ## v0.0.100 - 200726
 - **shell:** PP-13 self-test expand + stale-green detector + PLAYBACK_DIAG mirror

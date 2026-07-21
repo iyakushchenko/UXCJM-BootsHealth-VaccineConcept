@@ -50,7 +50,7 @@ import {
   stepBeatIndex,
 } from "@/app/orchestra/journeyUtils";
 import { resolveStudioTouchpointProgress } from "@/app/nav/resolveStudioTouchpoint";
-import { isPlaybackScrollAnimating } from "@/app/scenario/playbackScroll";
+import { isPlaybackScrollAnimating, scrollCameraToOrigin } from "@/app/scenario/playbackScroll";
 import { playbackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
 import {
   isBookStep2DwellBeatId,
@@ -2025,30 +2025,48 @@ export function useJourneyPlayback({
       screenPlayback.jumpToStart();
     }
     resetJourney();
-    const firstBeat = beats.find((beat) => !shouldSkipBeat(beat));
-    if (firstBeat) {
-      // Prefer first *playable* beat index (skip login when logged-in).
-      const startIndex = beats.findIndex((beat) => !shouldSkipBeat(beat));
+    // Prefer first playable beat; if it lacks protoTab, first beat that can land a tab.
+    const firstBeat =
+      beats.find((beat) => !shouldSkipBeat(beat)) ?? beats[0];
+    const landBeat =
+      firstBeat?.protoTab != null
+        ? firstBeat
+        : beats.find((beat) => !shouldSkipBeat(beat) && beat.protoTab != null) ??
+          beats.find((beat) => beat.protoTab != null);
+    if (landBeat) {
+      const startIndex = beats.indexOf(
+        firstBeat?.protoTab != null ? firstBeat : landBeat
+      );
       if (startIndex >= 0) {
         setBeatIndex(startIndex);
         beatIndexRef.current = startIndex;
       }
       // Always navigate — closes hub even when already on start tab.
-      navigateBeatTab(firstBeat, { instant: true });
+      navigateBeatTab(landBeat, { instant: true });
     }
-    const startScreenId = resolveStartScreenId(firstBeat);
+    // Force host top after play-end / reset (shared scroll must not keep PDP mid).
+    try {
+      scrollCameraToOrigin(undefined, {
+        force: true,
+        instant: true,
+        reason: "jump-to-start",
+      });
+    } catch {
+      /* hang-safe */
+    }
+    const startScreenId = resolveStartScreenId(landBeat ?? firstBeat);
     playbackDiagJourneyReset({
       fromBeatId: fromBeat?.id,
-      startBeatId: firstBeat?.id,
+      startBeatId: (landBeat ?? firstBeat)?.id,
       startScreenId,
-      detail: `jump-to-start → beat ${firstBeat?.id ?? "?"} screen ${startScreenId ?? "?"} (never hub)`,
+      detail: `jump-to-start → beat ${(landBeat ?? firstBeat)?.id ?? "?"} screen ${startScreenId ?? "?"} (never hub)`,
     });
     playbackDiagBeat({
       phase: "enter",
-      beatId: firstBeat?.id,
-      beatKind: firstBeat?.kind,
+      beatId: (landBeat ?? firstBeat)?.id,
+      beatKind: (landBeat ?? firstBeat)?.kind,
       screenAfter: startScreenId,
-      detail: `journey start beat ${firstBeat?.id ?? "?"} screen ${startScreenId ?? "?"}`,
+      detail: `journey start beat ${(landBeat ?? firstBeat)?.id ?? "?"} screen ${startScreenId ?? "?"}`,
     });
   }, [
     beats,

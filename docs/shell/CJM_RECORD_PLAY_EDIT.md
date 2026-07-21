@@ -19,21 +19,25 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 
 Same camera for agentic / traditional / REC — see [PLAYBACK.md](./PLAYBACK.md) § Scroll camera SSoT + **Camera engine rails**.
 
-- Target-driven; no blind origin on screen-enter while CJM/play/AIR.
-- `playbackScroll.ts` is SSoT — wire must not snap origin on tab change during session.
+- Target-driven; **page land = host top** on screen/tab change during CJM/Play/AIR (chat owns its column). Intentional `kind:camera` beats then wait → eased scroll.
+- `playbackScroll.ts` is SSoT — wire force-origins on tab change during session (no mid-scroll land from a prior screen).
 - Intentional origin (start/retreat/probe) uses `force: true` and honors post-click hold.
-- **Camera beat** (`kind: "camera"` + `camera: { dwellMs, selectorChain }`) — own STEPS slot: wait (show page) → eased scroll; step-back reverses to pre-scroll top. Edit = swap target / timing. Traditional Book Step 3 uses this before Open Appointments. **REC:** scroll-host settle ≥ ~2s (jiggles ignored) compiles to the same beat.
+- **Camera beat** (`kind: "camera"` + `camera: { dwellMs, selectorChain }`) — own STEPS slot: wait (show page) → eased scroll; step-back reverses to pre-scroll top. Edit = swap target / timing. Traditional Book Step 3 uses this before Open Appointments. **REC:** scroll-host settle ≥ ~2s (jiggles ignored) compiles to the same beat — **one wait per settle** (no N duplicate camera steps for one pause).
+
+## Touchpoint naming (REC → STEPS)
+
+Compile stamps **short human labels** on beats (button text / aria-label / action slug) — **not** long CSS selectors. Nav during Play must read as concise touchpoint names.
 
 ## Cursor engine rails
 
 Same cursor for agentic / traditional / REC / chat — see [PLAYBACK.md](./PLAYBACK.md) § Cursor engine SSoT + [MOTION.md](../product/MOTION.md).
 
 - **Travel** = Motion easeInOut; **park** = travel-to-rest (never hard-snap unless `force` / first-mount).
-- Policy: `demoCursorEngine.ts`; DOM: `demoCursor.ts`. Legacy `animate: false` without force → ABRUPT-PARK FAIL in QA.
+- Policy: `demoCursorEngine.ts`; DOM: `demoCursor.ts`. Legacy `animate: false` without force → **ABRUPT PARK FAIL** (red) in QA.
 - **Step parks; continuous Play stays** at last interaction — except **composer submit** (always park away).
 - **Early hand** on interactive edge during travel.
 - Type-in holds journey park pose; cancel mid-travel settles (hang lesson).
-
+- **Agent REC demo:** robo-cursor visible for agent-driven clicks; scroll uses eased camera (not abrupt jump) where feasible.
 ## Exceptions (deeper, keep thin)
 
 - **Prebuilt chat / persona docks** — progressive frames, type-in, thinking camera. Prefer rails docs over inventing a second Play path. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)

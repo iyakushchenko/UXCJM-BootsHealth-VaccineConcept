@@ -126,7 +126,7 @@ describe("playbackDiagQaBridge", () => {
       labelForPlaybackDiagEvent(
         ev({ kind: "cursor", detail: "PARKED — type-in-park (park)" })
       )
-    ).toBe("Cursor parked for typing");
+    ).toBe("Cursor held for typing");
     expect(
       shouldMirrorPlaybackDiagToQa(ev({ kind: "cursor", detail: "remove" }))
     ).toBe(false);
@@ -138,9 +138,14 @@ describe("playbackDiagQaBridge", () => {
       detail: "ABRUPT-PARK FAIL — cursor-engine:abrupt-park — legacy",
     });
     expect(shouldMirrorPlaybackDiagToQa(abrupt)).toBe(true);
-    expect(labelForPlaybackDiagEvent(abrupt)).toMatch(/teleported/i);
+    expect(labelForPlaybackDiagEvent(abrupt)).toMatch(/ABRUPT PARK/i);
     expect(outcomeForPlaybackDiagEvent(abrupt)).toBe("fail");
 
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({ kind: "cursor", detail: "cursor-engine:park-force — resize" })
+      )
+    ).toBe(false);
     expect(
       shouldMirrorPlaybackDiagToQa(
         ev({ kind: "cursor", detail: "cursor-engine:park-rest — journey-park" })
@@ -185,7 +190,7 @@ describe("playbackDiagQaBridge", () => {
     expect(shouldMirrorPlaybackDiagToQa(unusable)).toBe(true);
     expect(outcomeForPlaybackDiagEvent(unusable)).toBe("soft-fail");
     expect(labelForPlaybackDiagEvent(unusable)).toBe(
-      "Skipped hidden Make target — wait only"
+      "Skipped hidden/retired target — wait only"
     );
   });
 
@@ -222,7 +227,7 @@ describe("playbackDiagQaBridge", () => {
     ).toBe("Chat pin bottom");
   });
 
-  it("mirrors REC scroll-stop + weak clicks; suppresses routine rec-capture", () => {
+  it("mirrors REC scroll-stop + clicks + camera moves; compile always", () => {
     expect(
       shouldMirrorPlaybackDiagToQa(
         ev({
@@ -250,7 +255,16 @@ describe("playbackDiagQaBridge", () => {
           beatKind: "scroll",
         })
       )
-    ).toBe(false);
+    ).toBe(true);
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({
+          kind: "rec-capture",
+          detail: "demo-click Quick View",
+          beatKind: "demo-click",
+        })
+      )
+    ).toBe(true);
     expect(
       labelForPlaybackDiagEvent(
         ev({

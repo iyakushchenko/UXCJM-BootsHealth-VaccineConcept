@@ -617,19 +617,26 @@ export function shouldCaptureRecordingHumanClick(event: Event): boolean {
 }
 
 function describeRecordingClickTarget(el: HTMLElement): string {
+  // Concise human labels for STEPS / nav during Play — not long selectors.
+  const text = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+  if (text && text.length <= 40) return text;
+  if (text) return `${text.slice(0, 37)}…`;
+
+  const aria = el.getAttribute("aria-label")?.trim();
+  if (aria && aria.length <= 40) return aria;
+  if (aria) return `${aria.slice(0, 37)}…`;
+
   const action = el.getAttribute("data-studio-action");
-  if (action) return `data-studio-action="${action}"`;
+  if (action) {
+    // Prefer short action slug over quoted attr soup.
+    return action.replace(/[-_]+/g, " ").trim() || action;
+  }
   const dataName = el.getAttribute("data-name");
   if (dataName) {
-    const toggleIndex = el.getAttribute("data-toggle-index");
-    if (toggleIndex != null) {
-      return `data-name="${dataName}" data-toggle-index="${toggleIndex}"`;
-    }
-    return `data-name="${dataName}"`;
+    const short = dataName.split(".").pop() || dataName;
+    return short.length <= 40 ? short : `${short.slice(0, 37)}…`;
   }
-  const tag = el.tagName.toLowerCase();
-  const text = (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 48);
-  return text ? `<${tag}> text="${text}"` : `<${tag}>`;
+  return el.tagName.toLowerCase();
 }
 
 function onRecordingHumanClick(event: Event): void {

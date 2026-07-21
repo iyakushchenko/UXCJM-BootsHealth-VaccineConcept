@@ -27,6 +27,11 @@ export type ScrollStopTracker = {
   recent: Array<{ atMs: number; delta: number }>;
   /** Prevent double-fire for the same quiet stretch. */
   lastEmittedAtMs: number | null;
+  /**
+   * After a stop emit, ignore re-arms until scrollTop leaves this settle band.
+   * Stops one long pause minting N camera waits from layout jiggle / momentum.
+   */
+  settledTop: number | null;
 };
 
 export type ScrollStopSignal = {
@@ -36,6 +41,9 @@ export type ScrollStopSignal = {
   atMs: number;
 };
 
+/** |ΔscrollTop| from last settle required before a new wait may arm. */
+export const SCROLL_SETTLE_REARM_PX = SCROLL_JIGGLE_PX * 3;
+
 export function createScrollStopTracker(): ScrollStopTracker {
   return {
     lastTop: null,
@@ -43,6 +51,7 @@ export function createScrollStopTracker(): ScrollStopTracker {
     armed: false,
     recent: [],
     lastEmittedAtMs: null,
+    settledTop: null,
   };
 }
 
@@ -52,6 +61,7 @@ export function resetScrollStopTracker(tracker: ScrollStopTracker): void {
   tracker.armed = false;
   tracker.recent = [];
   tracker.lastEmittedAtMs = null;
+  tracker.settledTop = null;
 }
 
 /** Absolute delta below jiggle threshold → not meaningful. */
@@ -127,6 +137,14 @@ export function noteScrollSample(
       windowMs,
     })
   ) {
+    // Still inside the post-emit settle band → one wait per pause (no N beats).
+    if (
+      tracker.settledTop != null &&
+      Math.abs(scrollTop - tracker.settledTop) < SCROLL_SETTLE_REARM_PX
+    ) {
+      return null;
+    }
+    tracker.settledTop = null;
     tracker.lastMeaningfulAtMs = atMs;
     tracker.armed = true;
     // New activity invalidates a pending emit for this stretch.
@@ -172,6 +190,7 @@ function maybeEmitStop(
   tracker.lastEmittedAtMs = atMs;
   // Stay armed so a later longer dwell isn't required; disarm until next move.
   tracker.armed = false;
+  tracker.settledTop = tracker.lastTop;
   return {
     dwellMs: Math.max(stopDwellMs, quietMs),
     scrollTop: tracker.lastTop,

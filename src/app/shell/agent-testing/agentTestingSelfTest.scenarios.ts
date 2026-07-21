@@ -108,7 +108,7 @@ export const QA_SELF_TEST_SCENARIOS: QaSelfTestScenario[] = [
     dualRole: "agent",
     trust: true,
     summary: "CONTROL gold inset remains with Quick View / Availability open under overlay.",
-    helpers: ["data-mcp=control box-shadow"],
+    helpers: ["data-rec / __frame inset box-shadow"],
   },
   {
     id: "rec-xor-keeps-overlay",

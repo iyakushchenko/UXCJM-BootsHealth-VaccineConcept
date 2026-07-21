@@ -555,8 +555,23 @@ function compileFallbackBeats(
 
     if (event.kind === "scroll-stop") {
       flushPending();
-      if (pendingStop) flushPendingCamera();
-      pendingStop = cameraFromScrollStop(event);
+      const nextStop = cameraFromScrollStop(event);
+      if (!nextStop) continue;
+      // One pause → one camera wait: merge consecutive stops (extend dwell / keep target).
+      if (pendingStop) {
+        pendingStop = {
+          dwellMs: Math.max(pendingStop.dwellMs, nextStop.dwellMs),
+          selectorChain:
+            nextStop.selectorChain?.length
+              ? nextStop.selectorChain
+              : pendingStop.selectorChain,
+          anchorSelector:
+            nextStop.anchorSelector || pendingStop.anchorSelector,
+          labelHint: nextStop.labelHint || pendingStop.labelHint,
+        };
+      } else {
+        pendingStop = nextStop;
+      }
       // Bind to preceding scroll target when stop itself lacks selectors.
       if (
         pendingStop &&

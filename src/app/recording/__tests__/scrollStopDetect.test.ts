@@ -64,8 +64,15 @@ describe("scrollStopDetect", () => {
     noteScrollSample(tracker, 400, 20);
     expect(noteScrollIdle(tracker, 20 + SCROLL_STOP_DWELL_MS)).not.toBeNull();
 
-    noteScrollSample(tracker, 800, 3000);
-    const again = noteScrollIdle(tracker, 3000 + SCROLL_STOP_DWELL_MS);
+    // Layout jiggle inside settle band — must NOT mint a second wait.
+    expect(noteScrollSample(tracker, 410, 3000)).toBeNull();
+    expect(tracker.armed).toBe(false);
+    expect(noteScrollIdle(tracker, 3000 + SCROLL_STOP_DWELL_MS)).toBeNull();
+
+    // Clear leave of settle band re-arms.
+    noteScrollSample(tracker, 800, 5000);
+    expect(tracker.armed).toBe(true);
+    const again = noteScrollIdle(tracker, 5000 + SCROLL_STOP_DWELL_MS);
     expect(again).toMatchObject({ scrollTop: 800 });
     expect(again!.dwellMs).toBeGreaterThanOrEqual(SCROLL_STOP_DWELL_MS);
   });

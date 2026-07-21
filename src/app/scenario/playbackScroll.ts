@@ -98,9 +98,9 @@ export function isPlaybackCameraSessionActive(): boolean {
 }
 
 /**
- * Screen-enter / tab-change policy (SSoT).
- * False while a playback camera session is active — prefer landing targets,
- * skip origin reset, or use intentional eased/forced origin (retreat/start).
+ * Screen-enter / tab-change policy (SSoT) for *non-forced* origin calls.
+ * False while a playback camera session is active — callers that must land
+ * at top on tab change (wire page-land) pass `force: true` instead.
  */
 export function shouldBlindOriginResetOnScreenEnter(): boolean {
   if (playbackCameraSessionActive) return false;
@@ -990,10 +990,10 @@ export type ScrollCameraOriginOptions = PlaybackScrollOptions & {
  * Named host-top baseline (jump-to-start / intentional tab reset / probe prep).
  * Call sites MUST use this instead of `scrollTop = 0`.
  *
- * **Screen-enter while CJM/play:** do not call without `force` — wire uses
- * {@link shouldBlindOriginResetOnScreenEnter}; non-forced calls no-op when a
- * playback camera session is active, post-click hold is armed, or an ease is
- * in flight (avoids yank fighting target scrolls).
+ * **Screen-enter while CJM/play:** wire page-land uses `force: true` so hosts
+ * start at top; non-forced calls still no-op when a playback camera session is
+ * active, post-click hold is armed, or an ease is in flight (avoids yank fighting
+ * target scrolls mid-beat).
  */
 export function scrollCameraToOrigin(
   scrollEl?: HTMLElement | null,

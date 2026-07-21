@@ -69,7 +69,7 @@ Mirrored into QA chat (deduped ~450–500ms — not TRACE flood):
 | `chat-camera:target` | Chat camera: target |
 | `chat-camera:skip-dwell` | Chat camera: wait (settle skipped) |
 | `chat-camera:skip-ease` | Chat camera: ease in flight |
-| `camera-beat:target-unusable` | Skipped hidden Make target — wait only |
+| `camera-beat:target-unusable` | Skipped hidden/retired target — wait only |
 
 Emit: `logChatCameraTracker` in `playbackScroll.ts`. Mirror: `playbackDiagQaBridge`.
 
@@ -228,7 +228,7 @@ await window.__studioRunFullPlayProve?.({ experience: "traditional" }) // defaul
 
 **Prove-mode latch:** `__studioRunFullPlayProve` arms prove-mode so the 8s stale auto-pause cannot abort mid continuous Play; cleared in `finally`.
 
-**Camera unusable:** hidden Make targets soft-continue as QA row `Skipped hidden Make target — wait only` (`camera-beat:target-unusable`).
+**Camera unusable:** hidden/retired targets soft-continue as QA row `Skipped hidden/retired target — wait only` (`camera-beat:target-unusable`).
 
 Example URL:
 

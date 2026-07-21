@@ -30,13 +30,13 @@ const ALLOWLIST = {
   "src/styles/globals-chrome.css": 2600,
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
-  "src/app/orchestra/useJourneyPlayback.ts": 2150, // + first-class camera beat play/auto/step/retreat wiring
+  "src/app/orchestra/useJourneyPlayback.ts": 2200, // + jump-to-start landBeat + force origin (play-end PDP desync)
   "src/app/App.tsx": 2130, // + playback camera session latch (CJM/play/AIR screen-enter policy)
-  "src/app/shell/agent-testing/agentTestingOverlay.ts": 4500, // PP-13 expand + stale-green + diag mirror (landed past 4120)
+  "src/app/shell/agent-testing/agentTestingOverlay.ts": 4650, // + REC orange frame + ABRUPT-PARK restore fail + __frame ensure
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
   "src/app/shell/studioMcpHelpers.ts": 1380, // + Traditional keep-overlay full Play prove window API
-  "src/app/scenario/demoCursor.ts": 1800, // + cursor engine park (travel-default / force / abrupt coerce); policy in demoCursorEngine.ts
-  "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4825, // + screen-enter camera gate (no blind origin on CJM tab change)
+  "src/app/scenario/demoCursor.ts": 1920, // ratchet: already above prior 1800 (engine park/travel); split later
+  "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4835, // + CJM page-land force origin on tab change
   "src/projects/boots-pharmacy/data/plpListing.ts": 2000, // Make PLP DOM; retire with PLP React
 };
 

@@ -151,9 +151,18 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     if (/HIDDEN|cursor-hidden|FAIL|OFF-TARGET|click suppressed/i.test(detail)) {
       return true;
     }
-    // Lean engine milestones (deduped at emit) — park / step-play / submit
+    // Suppress force-seed / routine park spam (refresh remount, resize, type-in seed).
     if (
-      /^cursor-engine:(park-rest|park-force|type-in-hold|cancel-settle|park-on-step|stay-on-play|park-from-submit)\b/i.test(
+      /cursor-engine:park-force\b/i.test(detail) ||
+      /reason:\s*(resize|idempotent-remount|cjm-restart|journey-mode-on|type-in-park|observe-stop|journey-end-revive)\b/i.test(
+        detail
+      )
+    ) {
+      return false;
+    }
+    // Lean engine milestones (deduped at emit) — meaningful park / step-play / submit
+    if (
+      /^cursor-engine:(park-rest|type-in-hold|cancel-settle|park-on-step|stay-on-play|park-from-submit)\b/i.test(
         detail
       )
     ) {
@@ -223,9 +232,18 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     return true;
   }
 
-  // REC lean milestones (not every scroll/click capture — dump keeps full trail).
+  // REC lean milestones — camera waits, clicks, screen changes (not flood).
   if (kind === "rec-capture") {
     if (/scroll-stop/i.test(detail) || event.beatKind === "scroll-stop") {
+      return true;
+    }
+    if (/^scroll\s*→/i.test(detail) || event.beatKind === "scroll") {
+      return true;
+    }
+    if (/^demo-click\b/i.test(detail) || event.beatKind === "demo-click") {
+      return true;
+    }
+    if (/^screen\b/i.test(detail) || event.beatKind === "screen") {
       return true;
     }
     if (
@@ -321,7 +339,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
   if (kind === "skip") {
     if (/camera-beat:target-unusable/i.test(detail)) {
-      return "Skipped hidden Make target — wait only";
+      return "Skipped hidden/retired target — wait only";
     }
     return `Step skipped${detail ? ` — ${clip(detail, 60)}` : ""}`;
   }
@@ -334,13 +352,13 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 
   if (kind === "cursor") {
     if (/ABRUPT-PARK|cursor-engine:abrupt-park/i.test(detail)) {
-      return "Cursor teleported to park — FAIL";
+      return "ABRUPT PARK — cursor teleported (FAIL)";
     }
     if (/REST-ON-SUBMIT|cursor-engine:rest-on-submit/i.test(detail)) {
       return "Cursor left on submit — FAIL";
     }
     if (/type-in-park|type-in park|cursor-engine:type-in-hold/i.test(detail)) {
-      return "Cursor parked for typing";
+      return "Cursor held for typing";
     }
     if (/cursor-engine:park-from-submit/i.test(detail)) {
       return "Cursor parked away from submit";
@@ -355,7 +373,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
       return "Cursor eased to rest";
     }
     if (/cursor-engine:park-force/i.test(detail)) {
-      return "Cursor parked (force)";
+      return "Cursor seed (force)";
     }
     if (/cursor-engine:cancel-settle/i.test(detail)) {
       return "Cursor travel cancelled — settled";
@@ -373,7 +391,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
       return "Cursor cleared";
     }
     if (/PARKED|park/i.test(detail)) {
-      return "Cursor parked";
+      return "Cursor park";
     }
     if (/abort/i.test(detail)) {
       return "Cursor travel cancelled";
@@ -439,7 +457,7 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
 
   if (kind === "info") {
     if (/camera-beat:target-unusable/i.test(detail)) {
-      return "Skipped hidden Make target — wait only";
+      return "Skipped hidden/retired target — wait only";
     }
     if (/script-timeout/i.test(detail)) return "Script timed out";
     if (/po-signal/i.test(detail)) {
@@ -455,6 +473,15 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
       return ms
         ? `Camera wait after scroll (${ms}ms)`
         : "Camera wait after scroll";
+    }
+    if (/^scroll\s*→/i.test(detail) || event.beatKind === "scroll") {
+      return `Camera move — ${clip(detail.replace(/^scroll\s*→\s*/i, ""), 60)}`;
+    }
+    if (/^demo-click\b/i.test(detail) || event.beatKind === "demo-click") {
+      return `REC click — ${clip(detail.replace(/^demo-click\s*(WEAK\s*)?/i, ""), 60)}`;
+    }
+    if (/^screen\b/i.test(detail) || event.beatKind === "screen") {
+      return `REC screen — ${clip(detail, 60)}`;
     }
     if (
       event.clickOk === false ||

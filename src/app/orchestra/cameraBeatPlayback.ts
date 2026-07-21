@@ -29,8 +29,8 @@ function delay(ms: number): Promise<void> {
 }
 
 /**
- * Make board ghosts / retired hosts resolve via data-name but sit under
- * display:none (0×0). Scrolling them is a no-op hang risk — treat unusable.
+ * Retired / hidden hosts resolve via data-name but sit under display:none (0×0).
+ * Scrolling them is a no-op hang risk — treat unusable.
  */
 export function isPlaybackCameraTargetUsable(el: HTMLElement | null): boolean {
   if (!el?.isConnected) return false;
@@ -124,7 +124,7 @@ export async function playCameraBeat(
     if (!camera.selectorChain?.length && !camera.anchorSelector) {
       return { ok: true };
     }
-    // Noisy Make anchors (module.plp.filters / module.pdp under display:none)
+    // Noisy retired/hidden anchors (module.plp.filters / module.pdp under display:none)
     // — prefer soft continue after dwell over hard-fail / ghost scroll hang.
     playbackDiagLog(
       "info",

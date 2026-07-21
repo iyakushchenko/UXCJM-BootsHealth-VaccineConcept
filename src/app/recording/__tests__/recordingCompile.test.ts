@@ -402,6 +402,57 @@ describe("compileRecordingToJourney", () => {
     expect(click?.recordedClick?.cameraSelectorChain).toBeUndefined();
   });
 
+  it("coalesces consecutive scroll-stops into one camera beat", () => {
+    const session: RecordingSession = {
+      id: "scroll-stop-coalesce",
+      version: 1,
+      startedAt: "2026-07-21T12:00:00.000Z",
+      projectId: "boots-pharmacy",
+      personaId: "sarah-jenkins",
+      journeyId: "traditional-cjm",
+      orchestraMode: "traditional-cjm",
+      events: [
+        {
+          kind: "screen",
+          screenId: "plp",
+          atMs: 0,
+          snapshot: { currentTabIndex: 4, screenId: "plp" },
+        },
+        {
+          kind: "scroll",
+          selectorChain: ['[data-studio-probe-below-fold="true"]'],
+          anchorSelector: '[data-studio-probe-below-fold="true"]',
+          atMs: 100,
+        },
+        {
+          kind: "scroll-stop",
+          durationMs: 2100,
+          selectorChain: ['[data-studio-probe-below-fold="true"]'],
+          anchorSelector: '[data-studio-probe-below-fold="true"]',
+          atMs: 2200,
+        },
+        {
+          kind: "scroll-stop",
+          durationMs: 4000,
+          selectorChain: ['[data-studio-probe-below-fold="true"]'],
+          anchorSelector: '[data-studio-probe-below-fold="true"]',
+          atMs: 6200,
+        },
+        {
+          kind: "demo-click",
+          element: "Quick View",
+          selectorChain: ['[data-studio-action="plp-quick-view"]'],
+          atMs: 6300,
+        },
+      ],
+    };
+
+    const { journey } = compileRecordingToJourney(session);
+    const cameras = journey.beats.filter((b) => b.kind === "camera");
+    expect(cameras).toHaveLength(1);
+    expect(cameras[0]?.camera?.dwellMs).toBe(4000);
+  });
+
   it("persists raw recording session with Add as CJM", () => {
     const session = sessionWithTouchpoints();
     const saved = saveRecordingAsJourney(session, {
