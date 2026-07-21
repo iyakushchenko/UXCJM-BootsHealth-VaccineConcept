@@ -10,6 +10,13 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-21
 
+### Long traditional REC Play FAIL at ~11/23 — login interstitial under Book Now (PO / Finn)
+
+- **Symptom / class:** Continuous Play on `rec-trad-*` peaks ~11/23 with `po-diagnostic:PLAYBACK_DIAGNOSTIC_OPEN` / `tab/Book Now failed on Book Now`. QA: first `Click: Book now - £150` → `Modal open · login` → later second Book Now → click FAIL (target under modal / degraded).
+- **Root cause:** Logged-out PDP `pdp-book-now` opens login (does not navigate). REC often captures a second Book Now after sign-in. Play drained choose-pharmacy on REC prove but **not** login on recorded-click Play → second click blocked → hard diagnostic.
+- **Right fix:** `drainLoginModalIfOpen` in `playRecordedClick` (before retry + after click). Do **not** auto-drain choose-pharmacy here (own beat owns that pick). Prefer reading live QA rows before ALWAYS CLEAR when a dump/log already has the FAIL.
+- **Gate:** UI Play `rec-trad-mru30gpt-zp5d` (logged out) → QA shows login drain → second Book Now → book-step-1… → peak 23/23 + `Play finished — back at journey start`. Unit: `recordedClickPlayback.test.ts`.
+
 ### REC robustness = NEW CJM only (PO standing order)
 
 - **Symptom / class:** Agents claim REC robustness by playing built-in `agentic-cjm` / `traditional-cjm` or an old `rec-*`, or call `__studioStartRecording` without REC toggle + CREATE NEW + ● Start.

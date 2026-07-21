@@ -151,6 +151,12 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
 
+**Knowledge improved** (2026-07-21 · stream: long REC Play login interstitial · no push):
+- Arch (Director): Read QA first when FAIL already logged; login interstitial ≠ invent green — applied: LESSONS · this ship
+- Finn (FE): `playRecordedClick` drains login (not choose-pharmacy) before retry / after Book Now — applied: recordedClickPlayback · recModalDrain
+- Quinn (QA): Live QA rows: Modal open login → Sign in drain → second Book Now → 23/23 play-end — applied: UI Play prove on `:5173`
+- Pax (PO sim): Harden + commit local; no push — applied: this ship
+
 **Knowledge improved** (2026-07-21 · stream: docs sound + Traditional UX dump sitrep · R12):
 - Arch (Director): Guitar-tabs + Traditional smoothness OPEN on board; no invent green — applied: NEXT_STEPS · CJM_RECORD_PLAY_EDIT · TEAM_KNOWLEDGE corpus
 - Bea (BA): CHAT_REACT / LE3 browse ≠ thinking pause — applied: CHAT_REACT · CHAT_MAKE_PARITY LE3 → rails

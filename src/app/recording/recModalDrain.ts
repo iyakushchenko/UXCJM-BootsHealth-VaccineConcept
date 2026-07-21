@@ -165,6 +165,57 @@ async function pickLoginSignIn(): Promise<{
   return { ok: true };
 }
 
+/** True when login lightbox is open (URL modal, registry attr, or legacy card). */
+export function isLoginModalOpenInDom(): boolean {
+  if (typeof document === "undefined") return false;
+  if (readUrlModalId() === STUDIO_MODAL.login) return true;
+  if (isBlockingModalOpenInDom(STUDIO_MODAL.login)) return true;
+  return Boolean(document.querySelector(".proto-login-card"));
+}
+
+/**
+ * Play/REC: Sign in when login modal is open.
+ * Used by recorded-click Play when PDP Book Now opens login (logged-out gate)
+ * — does NOT auto-drain choose-pharmacy (next beat often owns that pick).
+ */
+export async function drainLoginModalIfOpen(): Promise<RecModalDrainResult> {
+  if (!isLoginModalOpenInDom()) {
+    return { ok: true, modalId: null, drained: false };
+  }
+  trackStudioModalForQa({
+    modalId: STUDIO_MODAL.login,
+    source: "drain",
+  });
+  logQaModal(
+    "RecModalOpen",
+    "login modal open — Sign in before next recorded click / beat"
+  );
+  // URL/registry attr preferred; legacy `.proto-login-card` also counts.
+  const ready =
+    (await waitForModal(STUDIO_MODAL.login)) || isLoginModalOpenInDom();
+  if (!ready) {
+    return {
+      ok: false,
+      modalId: STUDIO_MODAL.login,
+      drained: false,
+      reason: "login modal not visible",
+    };
+  }
+  const pick = await pickLoginSignIn();
+  if (!pick.ok) {
+    logQaModal("RecModalPharmacyPick", pick.reason ?? "login fail", "fail");
+    return {
+      ok: false,
+      modalId: STUDIO_MODAL.login,
+      drained: false,
+      reason: pick.reason,
+    };
+  }
+  trackStudioModalForQa({ modalId: null, source: "drain" });
+  logQaModal("RecModalPharmacyPick", "login drained · signed in");
+  return { ok: true, modalId: STUDIO_MODAL.login, drained: true };
+}
+
 /**
  * If a blocking modal is open (URL or DOM), drain it before the next REC beat.
  * choose-pharmacy → pick a real pharmacy (Choose Location).
@@ -180,6 +231,10 @@ export async function drainBlockingModalIfOpen(): Promise<RecModalDrainResult> {
     null;
 
   if (!modalId) {
+    // Login card can exist without URL modal= yet — still drain for Play.
+    if (isLoginModalOpenInDom()) {
+      return drainLoginModalIfOpen();
+    }
     return { ok: true, modalId: null, drained: false };
   }
 
@@ -193,28 +248,7 @@ export async function drainBlockingModalIfOpen(): Promise<RecModalDrainResult> {
   );
 
   if (modalId === STUDIO_MODAL.login || modalId === "account") {
-    const ready = await waitForModal(STUDIO_MODAL.login);
-    if (!ready) {
-      return {
-        ok: false,
-        modalId,
-        drained: false,
-        reason: "login modal not visible",
-      };
-    }
-    const pick = await pickLoginSignIn();
-    if (!pick.ok) {
-      logQaModal("RecModalPharmacyPick", pick.reason ?? "login fail", "fail");
-      return {
-        ok: false,
-        modalId: STUDIO_MODAL.login,
-        drained: false,
-        reason: pick.reason,
-      };
-    }
-    trackStudioModalForQa({ modalId: null, source: "drain" });
-    logQaModal("RecModalPharmacyPick", "login drained · signed in");
-    return { ok: true, modalId: STUDIO_MODAL.login, drained: true };
+    return drainLoginModalIfOpen();
   }
 
   if (modalId === CHOOSE_PHARMACY || modalId === "avail") {
