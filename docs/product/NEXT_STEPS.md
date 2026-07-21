@@ -93,7 +93,7 @@ A screen is **DONE** only when **all** are true:
 | **REC ⊗ CJM ⊗ AIR** | REC off when journey mode on; XOR; AIR locks both |
 | **No LEGACY growth** | New React page styles → screen CSS / UXDS / theme only |
 | **No new `.proto-*` / `data-proto-*`** | PANEL/chrome/attrs use `.studio-*` / `data-studio-*` |
-| **Nazi QA** | UI ship needs audit **PROVEN** before PO green-light |
+| **Strict interface audit** | UI ship needs audit **PROVEN** before PO green-light |
 | **CI budget** | No auto marathon Playwright on every push |
 | **Post-push (R12)** | Optional `gh run list` peek; **no await** unless HARD-GREEN / release / PO prove |
 | **Hygiene** | `check:hygiene` must stay green |

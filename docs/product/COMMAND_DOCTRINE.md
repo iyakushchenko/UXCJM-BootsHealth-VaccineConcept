@@ -180,7 +180,7 @@ The PO may override with a clear product veto (“wrong priority for the busines
 5. ✅ Thin UXDS code foundation — token CSS bridge (`src/uxds/`), interaction kits (accordion / disclosure / filter chip), Boots `styleguide/theme.css`, Availability Tool enrichment (mode B).  
 6. ✅ Pilot — **Book Steps 1–3** React + UXDS (children 7/4/3). See [BOOTS_REACT_SCREEN_PILOT.md](../projects/boots-pharmacy/BOOTS_REACT_SCREEN_PILOT.md).  
 7. ✅ Studio URL + agent overlay + recording screen replay; naming + hard guardrails locked ([NAMING.md](./NAMING.md)).  
-8. **Next:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) — **PDP React migration** (PLP HARD-GREEN + Reflex landed); then erase-Make sequence. Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md).
+8. **Current status and next work:** living board [NEXT_STEPS.md](./NEXT_STEPS.md) is authoritative; this doctrine does not duplicate mutable page status. Lessons: [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) · [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md).
 
 If the PO issues a product override, update §5 and the decisions log the same turn.
 
@@ -226,15 +226,15 @@ Assume **regressions** and **label collisions** until checked. Example: duplicat
 
 ---
 
-## 7. Strict FE / UI / UX audit ("Nazi QA") — mandatory before any UI handoff is accepted
+## 7. Strict FE / UI / UX audit — mandatory before any UI handoff is accepted
 
 **Locked (PO directive, 2026-07-19).** Extends §6 for **any UI-facing** handoff.
 
 ### Doctrine (non-negotiable)
 
-Before any UI handoff is accepted, a **strict interface audit agent** ("Nazi QA") must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim. React-migrated screens must also be listed **proven** in `PARITY_PROVEN.json` with MCP matrix evidence — `npm run check:parity-proven` fails CI otherwise. Before starting the **NEXT** migrated page, screens must pass **page final-pass** (`PAGE_FINAL_PASS.json` + `npm run check:page-final-pass`) — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md).
+Before any UI handoff is accepted, a **strict interface audit agent** must pass. Master treats implementer "done" as **BAD until this audit is PROVEN** — written result under `docs/projects/<project-id>/audits/` (or the template tables; engine template stays in `docs/product/templates/`), not a chat claim. React-migrated screens must also be listed **proven** in `PARITY_PROVEN.json` with MCP matrix evidence — `npm run check:parity-proven` fails CI otherwise. Before starting the **NEXT** migrated page, screens must pass **page final-pass** (`PAGE_FINAL_PASS.json` + `npm run check:page-final-pass`) — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md).
 
-| Claim | Status until Nazi QA **PROVEN** |
+| Claim | Status until strict interface audit **PROVEN** |
 |-------|----------------------------------|
 | Implementer / subagent "done / success / looks good" | **BAD** |
 | Unit tests / `npm run build` / lean smoke green alone | **Insufficient** — **cannot skip** the audit for "tests passed" |
@@ -290,6 +290,7 @@ Use [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) ruthlessly, plus [VISUAL_FIDELITY.m
 - [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) — Bea 1-pager
 - [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) — progressive agent knowledge (read before UI close)
 - [NEXT_STEPS.md](./NEXT_STEPS.md) — living NOW/NEXT board
+- [DOC_GOVERNANCE.md](./DOC_GOVERNANCE.md) — document authority, lifecycle, and supersession
 - [PRODUCT_OWNER_BRIEF.md](./PRODUCT_OWNER_BRIEF.md) — PO note: do not re-argue; decisions log
 - [../../AGENTS.md](../../AGENTS.md) — first bullets
 - [../../.cursor/rules/ux-studio-director.mdc](../../.cursor/rules/ux-studio-director.mdc) — always-applied Cursor rule

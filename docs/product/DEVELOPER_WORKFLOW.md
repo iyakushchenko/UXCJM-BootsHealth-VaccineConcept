@@ -24,7 +24,7 @@ on another port.
 | Command | Meaning |
 |---------|---------|
 | `npm run dev` | Start the strict-port local Studio on `:5173`. |
-| `npm run test:gates` | Run ten static contracts in parallel: Markdown links/anchors, text-link behavior, file hygiene, naming/felonies, parity ratchets, parity proof, Page Final Pass, theme/brand, version/changelog sync, and UXDS inventory. |
+| `npm run test:gates` | Run eleven static contracts in parallel: Markdown links/anchors, documentation governance, text-link behavior, file hygiene, naming/felonies, parity ratchets, parity proof, Page Final Pass, theme/brand, version/changelog sync, and UXDS inventory. |
 | `npm test` | Run all static gates, then the Vitest suite. This is the normal local correctness gate. |
 | `npm run build` | Build the Vite production bundle used by Pages. |
 | `npm run smoke` | Run the lean Playwright profile against the canonical local server. Use the full profile only while investigating a relevant failure. |
@@ -42,7 +42,7 @@ The UI styling contract is named explicitly: `check:text-link-contract`.
 | React page migration | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md), [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md), [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md), and the screen brief/register. |
 | CSS, components, or visual UI | [CSS_BASE_THEME.md](./CSS_BASE_THEME.md), [DS_STRICTNESS.md](./DS_STRICTNESS.md), [FE_STANDARDS.md](./FE_STANDARDS.md), and [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md). |
 | Navigation, URL, or modal | [../shell/URL.md](../shell/URL.md) and the modal registry contract. |
-| Recording or playback | [../shell/RECORDING.md](../shell/RECORDING.md), [../shell/PLAYBACK.md](../shell/PLAYBACK.md), and [../shell/PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md). |
+| Page, playback, recording, chrome, or PO-signal proof | Start with the [proof router](../shell/PROOF_ROUTER.md); open only the deep contract linked from the selected row. |
 
 ## Where work belongs
 
@@ -66,7 +66,7 @@ New screen folders equal their runtime `screenId`. The existing Boots
 1. The change follows the relevant contract and preserves adjacent chrome, URL, mode,
    and panel behavior.
 2. `npm test` and `npm run build` pass.
-3. Relevant behavior is proved locally on `http://localhost:5173/`.
+3. Relevant behavior is proved locally on `http://localhost:5173/` through the matching [proof-router](../shell/PROOF_ROUTER.md) path; record the helper/input, result, changed interactions, and teardown state.
 4. UI-facing work has the required strict audit and project evidence; a green build alone
    is not visual proof.
 5. Behavior and durable decisions are reflected in the owning docs in the same change.

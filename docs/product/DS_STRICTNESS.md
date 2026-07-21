@@ -101,7 +101,7 @@ Requires a **registered deviation** ([../uxds/DEVIATIONS.md](../uxds/DEVIATIONS.
 
 - [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 — composite Director role; proactive style-zoo / layer forecasting  
 - [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) — BASE → THEME → PANEL → LEGACY  
-- [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) — Nazi QA before PO  
+- [FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md) — strict interface audit before PO  
 - [FE_STANDARDS.md](./FE_STANDARDS.md)  
 - [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md)  
 - [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md)  

@@ -27,7 +27,7 @@ done live in [Developer workflow](docs/product/DEVELOPER_WORKFLOW.md).
 ```bash
 npm install
 npm run dev              # http://localhost:5173/ only (strictPort)
-npm test                 # ten static gates, then Vitest
+npm test                 # eleven static gates, then Vitest
 npm run build
 ```
 
@@ -42,6 +42,7 @@ Lean CI smoke: `npm run smoke` (dev server on `:5173`). Actions budget: [docs/pr
 | [Command doctrine](docs/product/COMMAND_DOCTRINE.md) | Agent decides all tech direction & next steps |
 | [docs/README.md](docs/README.md) | Catalog + reading order |
 | [Developer workflow](docs/product/DEVELOPER_WORKFLOW.md) | Node/setup, commands, task-specific reading, definition of done |
+| [Proof router](docs/shell/PROOF_ROUTER.md) | One entry point for page, Play, REC, chrome, and PO-signal proof |
 | [Product Owner brief (A–Z)](docs/product/PRODUCT_OWNER_BRIEF.md) | Non-technical product guidance |
 | [Page build contract](docs/product/PAGE_BUILD_CONTRACT.md) | React + UXDS |
 | [Component library plan](docs/product/COMPONENT_LIBRARY.md) | Migrated pages = real React kits, not Make slop |

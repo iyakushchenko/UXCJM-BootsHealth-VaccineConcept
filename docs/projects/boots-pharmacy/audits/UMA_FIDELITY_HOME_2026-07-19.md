@@ -50,7 +50,7 @@
 | **H11** | **Suggested chips (×3)** — `component.gse.system.message` | Rest `rgba(204,224,242,0.57)` · **rounded 16** · 13px `#012169` · labels: Vaccine / Skin health / Other Health services | **PENDING** | §0a: hover `rgba(175,204,202,0.55)` + shadow + translateY · active deeper mint — cite Make CSS, **no invent** |
 | **H12** | **Vertical rhythm — hero stack** | Logo → heading → card **`gap-[72px]`** on Make column | **PENDING** | MCP measure before layout PARTIAL (§0b spirit) |
 | **H13** | **Chrome residuals** | **No footer** · **no breadcrumbs** on this frame | **PENDING** | Whole-component invent = ship fail |
-| **H14** | **Header** — shared `boots-pharmacy.module.header` | Navy `#012169` brand switcher (shared chrome — Nazi QA light on class renames only) | **PENDING** | Out of Home page CSS scope unless mount steals layout |
+| **H14** | **Header** — shared `boots-pharmacy.module.header` | Navy `#012169` brand switcher (shared chrome — light strict interface audit on class renames only) | **PENDING** | Out of Home page CSS scope unless mount steals layout |
 
 ---
 

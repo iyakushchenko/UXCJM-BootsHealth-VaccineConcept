@@ -17,67 +17,52 @@ Agents **do not** offer A/B/C tech menus. They decide, document, build, report. 
 
 **Parent / tech-director agents:** subagent handoffs are **BAD until proven** — verify chrome/modes/counters/panels/migrated pages before telling the PO it’s fine ([product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) §6). After UI-facing ships, spawn/run a **strict interface audit** until **PROVEN** ([product/FE_UI_UX_AUDIT.md](./product/FE_UI_UX_AUDIT.md); doctrine §7) — **cannot skip** for “tests passed”; store project FE audits in [projects/<id>/audits/](./projects/) (Boots: [projects/boots-pharmacy/audits/](./projects/boots-pharmacy/audits/); stubs index [product/audits/](./product/audits/)).
 
-## Start here
+## Start here by audience
 
-### 10-minute orientation
+Choose one route. Large governance and evidence documents are references, not a single onboarding sequence.
 
-1. [product/UX_STUDIO_VISION.md](./product/UX_STUDIO_VISION.md) — what the product is.
-2. [product/ARCHITECTURE.md](./product/ARCHITECTURE.md) — where engine, projects, UXDS, and shell live.
-3. [product/NEXT_STEPS.md](./product/NEXT_STEPS.md) — the only current NOW / NEXT / LATER status board.
-4. [product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) + [product/TEAM.md](./product/TEAM.md) — how serious work is directed and checked.
+| Audience | 10-minute route | Then use |
+|----------|-----------------|----------|
+| Product Owner / reviewer | [Vision](./product/UX_STUDIO_VISION.md) → [current board](./product/NEXT_STEPS.md) | [Product Owner brief](./product/PRODUCT_OWNER_BRIEF.md) for decisions and acceptance |
+| Contributor / engineer | [Developer workflow](./product/DEVELOPER_WORKFLOW.md) → [architecture](./product/ARCHITECTURE.md) | The workflow’s task table; [post-change checklist](./product/POST_CHANGE_CHECKLIST.md) before close |
+| Page designer / auditor | [Page build contract](./product/PAGE_BUILD_CONTRACT.md) → [strict audit](./product/FE_UI_UX_AUDIT.md) | [Uma fidelity](./product/UMA_FIDELITY_NOTES.md) and [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
+| QA / proof operator | [Proof router](./shell/PROOF_ROUTER.md) | Open only the deep contract linked from the selected proof row |
+| Agent team / coordinator | [Command doctrine](./product/COMMAND_DOCTRINE.md) → your [team knowledge](./product/TEAM_KNOWLEDGE.md) section | [Team process](./product/TEAM.md), relevant lessons, and current board |
 
-### Route by task
+### Route by change surface
 
-| If you are… | Read next |
-|-------------|-----------|
-| Migrating or auditing a page | [PAGE_BUILD_CONTRACT](./product/PAGE_BUILD_CONTRACT.md) → [UMA fidelity](./product/UMA_FIDELITY_NOTES.md) → [strict audit](./product/FE_UI_UX_AUDIT.md) → [PAGE FINAL PASS](./product/PAGE_FINAL_PASS.md) |
-| Proving page, Play, REC, or a PO signal | [Proof router](./shell/PROOF_ROUTER.md) |
-| Changing shell URL / modal behavior | [URL](./shell/URL.md) + [recording/overlay](./shell/RECORDING.md) |
-| Changing CSS / UXDS | [CSS layers](./product/CSS_BASE_THEME.md) + [DS strictness](./product/DS_STRICTNESS.md) + [FE standards](./product/FE_STANDARDS.md) |
-| Closing any change | [Post-change checklist](./product/POST_CHANGE_CHECKLIST.md) |
+| Change | Owning references |
+|--------|-------------------|
+| React page migration | [Page build](./product/PAGE_BUILD_CONTRACT.md) · screen brief/register · [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
+| CSS / UXDS / visual UI | [CSS layers](./product/CSS_BASE_THEME.md) · [DS strictness](./product/DS_STRICTNESS.md) · [FE standards](./product/FE_STANDARDS.md) |
+| URL / modal / shell | [URL](./shell/URL.md) · [shell](./shell/SHELL.md) |
+| Page, Play, REC, chrome, or PO-signal proof | [Proof router](./shell/PROOF_ROUTER.md) |
+| Release / push / CI | [Versioning](./product/VERSIONING.md) · [CI budget](./product/CI_ACTIONS_BUDGET.md) |
 
-### Full reference reading order
+## Reference catalog
 
-For implementation work, begin with the concise
-[developer workflow](./product/DEVELOPER_WORKFLOW.md), then follow its task-specific
-reading route. The catalog below is the full governance/reference set; it is not a demand
-to read all 26 entries before every change.
+Read only the ownership group relevant to the task. Document authority, lifecycle, and supersession are defined in [DOC_GOVERNANCE.md](./product/DOC_GOVERNANCE.md).
 
-1. [product/COMMAND_DOCTRINE.md](./product/COMMAND_DOCTRINE.md) — **composite role + proactive** + who decides + §6–§7 handoff + FE audit (read first every session)
-1b. [product/TEAM.md](./product/TEAM.md) — lean UX team callsigns + serious-work process (Pax bump/push)
-1c. [product/TEAM_KNOWLEDGE.md](./product/TEAM_KNOWLEDGE.md) — **living team knowledge index** (per-hat re-read; Knowledge used / Knowledge improved)
-1c2. [product/STUDIO_AUTO_RULES.md](./product/STUDIO_AUTO_RULES.md) — **Auto-Rules / Auto-Gates** (dismiss/modal, auth SSoT, avail start, brand-active, §0b → CI)
-1d. [product/PAGE_FINAL_PASS.md](./product/PAGE_FINAL_PASS.md) — **hard-green before next migrated page** (Finn/Uma checklist + check; Arch sequencing)
-1e. [product/TEAM_RETRO_2026-07-19_PLP.md](./product/TEAM_RETRO_2026-07-19_PLP.md) — PLP team retro (Pain/Worked/Keep) · Reflex → knowledge
-2. [product/LESSONS_LEARNED.md](./product/LESSONS_LEARNED.md) — progressive failure/win capture (read before UI close)
-2b. [product/UMA_FIDELITY_NOTES.md](./product/UMA_FIDELITY_NOTES.md) — Uma Make→React fidelity checklist (mandatory before PROVEN)
-2c. [product/PARITY_RATCHETS.md](./product/PARITY_RATCHETS.md) — programmatic typical-miss contracts (`check:parity-ratchets`)
-3. [product/NAMING.md](./product/NAMING.md) — file/folder naming + domain CSS/attrs (no new `.proto-*`)
-4. [product/ARCHITECTURE.md](./product/ARCHITECTURE.md) · [product/HYGIENE.md](./product/HYGIENE.md) — engine folder map + LOC ratchet
-5. [product/POST_CHANGE_CHECKLIST.md](./product/POST_CHANGE_CHECKLIST.md) — local gates before “done”
-5b. [product/DEVELOPER_WORKFLOW.md](./product/DEVELOPER_WORKFLOW.md) — canonical setup, command map, task routes, definition of done
-6. [product/NEXT_STEPS.md](./product/NEXT_STEPS.md) — living NOW / NEXT / LATER board
-6b. [product/PAINPOINTS.md](./product/PAINPOINTS.md) — PO painpoints board (trackable COMPLETE)
-7. [product/SOLUTION_REQUIREMENTS.md](./product/SOLUTION_REQUIREMENTS.md) — readiness + locked defaults (proceed checklist)
-8. [product/PRODUCT_OWNER_BRIEF.md](./product/PRODUCT_OWNER_BRIEF.md) — A–Z for the Product Owner
-9. [product/CONCEPT_INTAKE.md](./product/CONCEPT_INTAKE.md) — **messy concepts in → Studio pages out** (business logic)
-10. [product/PROJECT_STYLEGUIDE.md](./product/PROJECT_STYLEGUIDE.md) — per-brand delta (colors, logos → theme.css remaps)
-11. [product/CSS_BASE_THEME.md](./product/CSS_BASE_THEME.md) — **BASE → THEME → PANEL → LEGACY** (no CSS dump)
-12. [product/DS_STRICTNESS.md](./product/DS_STRICTNESS.md) — **no near-duplicates;** UXDS + theme only; deviations registered; no React growth in LEGACY
-13. [product/UX_STUDIO_VISION.md](./product/UX_STUDIO_VISION.md) — product north star
-14. [product/PAGE_BUILD_CONTRACT.md](./product/PAGE_BUILD_CONTRACT.md) — React + UXDS
-15. [product/COMPONENT_LIBRARY.md](./product/COMPONENT_LIBRARY.md) — migrated pages = real React kits; grow by migration
-16. [product/VISUAL_FIDELITY.md](./product/VISUAL_FIDELITY.md) — **concept L&F mandatory**, no visual zoo, rebuild behavior parity
-17. [product/INTERACTION_FIDELITY.md](./product/INTERACTION_FIDELITY.md) — **recording needs interactive pages** + shared behavior library
-18. [product/FE_UI_UX_AUDIT.md](./product/FE_UI_UX_AUDIT.md) — **post-UI audit checklist** (PROVEN before PO; G5 AIR/REC + G6 REC⊗CJM)
-19. [product/FE_STANDARDS.md](./product/FE_STANDARDS.md) — content column, CTA nowrap, **one text-link pattern**, layout hygiene
-20. [product/CI_ACTIONS_BUDGET.md](./product/CI_ACTIONS_BUDGET.md) — slim Actions; smoke on-demand; post-push sitrep
-21. [product/VERSIONING.md](./product/VERSIONING.md) — local semver + CHANGELOG (no Release CI yet)
-22. [product/PRODUCT_FORECAST.md](./product/PRODUCT_FORECAST.md) — engine product map (URL, REC, UXDS, CI, overlay, X-Suite)
-23. [uxds/README.md](./uxds/README.md) — UXDS Larkin inventory · [uxds/DEVIATIONS.md](./uxds/DEVIATIONS.md) · [uxds/TOKEN_BRIDGE.md](./uxds/TOKEN_BRIDGE.md)
-24. [product/X_SUITE_INTEGRATION.md](./product/X_SUITE_INTEGRATION.md) — X-Suite export → analyze → build/reuse pages → REC new CJM (agent = seam until importer)
-25. [projects/boots-pharmacy/](./projects/boots-pharmacy/) — Boots design deltas, pilots, FE audits · **Chat rails:** [projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md](./projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)
-26. [shell/PROOF_ROUTER.md](./shell/PROOF_ROUTER.md) · [shell/SHELL.md](./shell/SHELL.md) · [shell/URL.md](./shell/URL.md) · [shell/PROJECTS.md](./shell/PROJECTS.md) · [shell/PLAYBACK.md](./shell/PLAYBACK.md) · [shell/RECORDING.md](./shell/RECORDING.md)
+### Governance and current truth
+
+- [Command doctrine](./product/COMMAND_DOCTRINE.md) · [Team](./product/TEAM.md) · [Team knowledge](./product/TEAM_KNOWLEDGE.md) · [Auto-rules](./product/STUDIO_AUTO_RULES.md)
+- [Current board](./product/NEXT_STEPS.md) · [Painpoints](./product/PAINPOINTS.md) · [Product forecast](./product/PRODUCT_FORECAST.md) · [Product Owner brief](./product/PRODUCT_OWNER_BRIEF.md)
+- [Lessons](./product/LESSONS_LEARNED.md) · [PLP retro](./product/TEAM_RETRO_2026-07-19_PLP.md)
+
+### Build, design, and acceptance
+
+- [Developer workflow](./product/DEVELOPER_WORKFLOW.md) · [Architecture](./product/ARCHITECTURE.md) · [Naming](./product/NAMING.md) · [Hygiene](./product/HYGIENE.md)
+- [Page build](./product/PAGE_BUILD_CONTRACT.md) · [Page Final Pass](./product/PAGE_FINAL_PASS.md) · [Component library](./product/COMPONENT_LIBRARY.md)
+- [CSS layers](./product/CSS_BASE_THEME.md) · [DS strictness](./product/DS_STRICTNESS.md) · [FE standards](./product/FE_STANDARDS.md) · [visual fidelity](./product/VISUAL_FIDELITY.md) · [interaction fidelity](./product/INTERACTION_FIDELITY.md)
+- [Uma fidelity](./product/UMA_FIDELITY_NOTES.md) · [strict audit](./product/FE_UI_UX_AUDIT.md) · [parity ratchets](./product/PARITY_RATCHETS.md) · [post-change checklist](./product/POST_CHANGE_CHECKLIST.md)
+- [Concept intake](./product/CONCEPT_INTAKE.md) · [project styleguide](./product/PROJECT_STYLEGUIDE.md) · [solution requirements](./product/SOLUTION_REQUIREMENTS.md)
+
+### Shell, proof, release, and integrations
+
+- [Proof router](./shell/PROOF_ROUTER.md) · [Shell](./shell/SHELL.md) · [URL](./shell/URL.md) · [Projects](./shell/PROJECTS.md) · [Playback](./shell/PLAYBACK.md) · [Recording](./shell/RECORDING.md)
+- [CI budget](./product/CI_ACTIONS_BUDGET.md) · [Versioning](./product/VERSIONING.md)
+- [UXDS inventory](./uxds/README.md) · [deviations](./uxds/DEVIATIONS.md) · [token bridge](./uxds/TOKEN_BRIDGE.md)
+- [X-Suite integration](./product/X_SUITE_INTEGRATION.md) · [Boots project evidence](./projects/boots-pharmacy/) · [Chat rails](./projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)
 
 Agent entry: [../AGENTS.md](../AGENTS.md)
 
@@ -94,5 +79,7 @@ Agent entry: [../AGENTS.md](../AGENTS.md)
 ## Doc ownership rule
 
 Durable decisions (doctrine, workspace, stack, sequence) are written into `docs/` **the same turn** — never only in chat.
+
+Document type, authority, lifecycle, `last_verified`, and supersession follow [product/DOC_GOVERNANCE.md](./product/DOC_GOVERNANCE.md). [product/NEXT_STEPS.md](./product/NEXT_STEPS.md) is the sole mutable current-status source.
 
 **Layout:** engine doctrine → `docs/product/`; per-concept docs → `docs/projects/<project-id>/`; UXDS inventory → `docs/uxds/`; shell → `docs/shell/`.

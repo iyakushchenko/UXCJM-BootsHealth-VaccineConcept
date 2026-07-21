@@ -178,7 +178,23 @@ Avoid:
 
 ---
 
-## K. Decisions log (PO → docs)
+## K. Decision routing and historical ledger
+
+This section preserves PO decisions in chronological order; it is **not** the live backlog. Use the active source below for the current rule. If a later decision supersedes an earlier row, keep both rows and add an explicit forward pointer rather than rewriting history. Full lifecycle: [DOC_GOVERNANCE.md](./DOC_GOVERNANCE.md).
+
+### Active decision sources
+
+| Decision area | Current authoritative source |
+|---------------|------------------------------|
+| Product purpose and intake | [UX_STUDIO_VISION.md](./UX_STUDIO_VISION.md) · [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md) |
+| Roles, sequencing rules, and quality gates | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) · [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) |
+| Current priority, blockers, and completion | [NEXT_STEPS.md](./NEXT_STEPS.md) |
+| Page stack, UXDS, interaction, and fidelity | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) · [INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md) · [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md) |
+| URL, recording, and playback behavior | [URL.md](../shell/URL.md) · [RECORDING.md](../shell/RECORDING.md) · [PLAYBACK.md](../shell/PLAYBACK.md) |
+| X-Suite handoff | [X_SUITE_INTEGRATION.md](./X_SUITE_INTEGRATION.md) |
+| Documentation authority and supersession | [DOC_GOVERNANCE.md](./DOC_GOVERNANCE.md) |
+
+### Historical decision ledger
 
 | Date | Decision |
 |------|----------|
@@ -207,7 +223,7 @@ Avoid:
 | 2026-07-19 | **CSS layers BASE → THEME → PANEL → LEGACY locked:** BASE=`src/uxds/`, THEME=optional project remaps, PANEL=engine chrome, LEGACY=Make quarantine (no new React page styles). Architecture ready now; LEGACY retirement phased. See CSS_BASE_THEME.md, DS_STRICTNESS.md |
 | 2026-07-19 | **Handoff verification — distrust by default:** master/parent agents must not trust subagent done/success summaries; verify critical UX/logic (nav chrome, modes, counters, panel XOR, migrated L&F/behavior) via JSX/CSS gate or localhost before green-lighting PO; reopen/fix smelling handoffs. See COMMAND_DOCTRINE.md §6 |
 | 2026-07-19 | **FE/UI/UX audit before PO green-light:** after any UI-facing subagent ship, master must run or spawn a rigorous FE/UI/UX audit; implementer “done” and tests-passed alone are BAD until audit PROVEN. Covers visual fidelity, layout/max-width/alignment, icon+text CTA nowrap, hover/focus, behavior parity, control hierarchy/no zoo, nav chrome (mode XOR, counters), regressions. See COMMAND_DOCTRINE.md §7, FE_UI_UX_AUDIT.md, FE_STANDARDS.md |
-| 2026-07-19 | **Strict (“Nazi QA”) interface audit is doctrine:** before any UI handoff is accepted, a separate strict FE audit agent must **PROVEN**; master treats implementer done as BAD until then; **cannot skip** for tests/build/smoke. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, lost L&F. Store results in `docs/projects/<project-id>/audits/` (Boots: `docs/projects/boots-pharmacy/audits/`). See COMMAND_DOCTRINE.md §7, FE_UI_UX_AUDIT.md |
+| 2026-07-19 | **Strict interface audit is doctrine:** before any UI handoff is accepted, a separate strict FE audit agent must **PROVEN**; master treats implementer done as BAD until then; **cannot skip** for tests/build/smoke. Fail on drift, duplicates, slop, near-duplicate styles, layout gaps, lost L&F. Store results in `docs/projects/<project-id>/audits/` (Boots: `docs/projects/boots-pharmacy/audits/`). See COMMAND_DOCTRINE.md §7, FE_UI_UX_AUDIT.md |
 | 2026-07-19 | **DS strictness (pages):** no near-duplicate styles (one pattern per role); pages use UXDS components/tokens/kits + project brand theme only — no anonymous one-off CSS; deviations must be named + registered in `docs/uxds/DEVIATIONS.md`; brand theme optional — turn off via removing `data-studio-project` / not importing `theme.css`; UI defaults to UXDS baseline colors; `theme.css` remaps variables only. See DS_STRICTNESS.md, TOKEN_BRIDGE.md, PROJECT_STYLEGUIDE.md |
 | 2026-07-19 | **Composite Director role + proactive forecasting (permanent):** agent = picky Tech Director + Architect + BA + UX + FE/UI; must spot/forecast issues on every task (layout drift, style zoo, bad handoffs, missing hover, unused framer-motion, CSS layer violations, REC chrome bugs, CI). PO does not re-argue — agent owns it. Hard-wired in COMMAND_DOCTRINE §0–§2, AGENTS.md, `.cursor/rules/ux-studio-director.mdc`. Cross: CSS_BASE_THEME, DS_STRICTNESS, FE_UI_UX_AUDIT |
 | 2026-07-19 | **PO rage list hard-guardrails:** (1) ONE text-link pattern — footer-like (no underline rest / underline hover); `.uxds-link` ≡ `.proto-link`; `check:links` in `npm test`. (2) Component library plan — migrate pages into real React kits, not Make slop (COMPONENT_LIBRARY.md). (3) REC disabled/forced off during AIR (same lock as transport). (4) Blast-radius self-check after any UI change (doctrine + director rule). (5) Node 22 everywhere. (6) GitHub Languages ≠ React (library in .tsx — documented). (7) Lean Actions budget (CI_ACTIONS_BUDGET.md). |
@@ -222,4 +238,4 @@ Avoid:
 | 2026-07-19 | **PAGE FINAL PASS sequencing:** no new migrated page until previous page is PAGE FINAL PASS hard-green. Contract PAGE_FINAL_PASS.md; Finn/Uma own checklist + `check:page-final-pass`; Arch enforces; parallel callsigns + Knowledge used still required. PDP blocked until PLP Final Pass hard-green. See PAGE_FINAL_PASS.md, NEXT_STEPS.md, COMMAND_DOCTRINE §0/§4 |
 | 2026-07-19 | **PDP Check availability logged-out** opens Availability Tool **first screen** (Find Pharmacy / `start`), not Choose Date. **No login gate** on Check availability (Book now still gates to Login). Studio-wide auth SSoT: `isStudioLoggedIn` / `__studioIsLoggedIn`. See PDP_MAKE_PARITY_REGISTER I10, shell/URL.md |
 
-New durable decisions get a row here in the same session they are made.
+New durable PO decisions get a row here in the same session they are made, plus an update to the authoritative source above. Delivery milestones and transient NEXT statements belong only in [NEXT_STEPS.md](./NEXT_STEPS.md).

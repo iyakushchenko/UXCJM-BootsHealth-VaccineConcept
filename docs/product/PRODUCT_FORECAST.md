@@ -121,7 +121,7 @@ Documented handshake ([X_SUITE_INTEGRATION.md](./X_SUITE_INTEGRATION.md)). Autom
 | DONE | React mount + Make retired from view + wire gates + no LEGACY growth + honest residual |
 | Retire mode | Delete Make child when safe; else `data-studio-make-retired` |
 | Order | **PLP → PDP → Site Pilot → Chat → History/Details → delete Book 1–3 Make** |
-| Audit | Nazi QA under `docs/projects/boots-pharmacy/audits/` before PO |
+| Audit | Strict interface audit under `docs/projects/boots-pharmacy/audits/` before PO |
 
 ---
 
@@ -129,7 +129,7 @@ Documented handshake ([X_SUITE_INTEGRATION.md](./X_SUITE_INTEGRATION.md)). Autom
 
 | Risk | Mitigation |
 |------|------------|
-| Visual / style zoo | DS strictness + Nazi QA PROVEN |
+| Visual / style zoo | DS strictness + strict interface audit PROVEN |
 | Dead UI “recordings” | Interaction fidelity gate |
 | URL / session fight | URL wins; replaceState sync |
 | Agent overlay sticky | Strip ephemeral; nest-aware stop |

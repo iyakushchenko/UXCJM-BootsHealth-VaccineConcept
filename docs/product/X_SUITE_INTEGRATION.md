@@ -133,7 +133,7 @@ Do **not** invent a second IA taxonomy in Studio.
 - Not “rebuild Summarizer inside Studio”  
 - Not “copy Summarizer’s full `npm run check` megasuite”  
 - Not “implement real-user X-Suite persona as a callsign beside Pax” yet (stub — [TEAM.md](./TEAM.md))  
-- Not skipping PAGE FINAL PASS / Nazi QA when shipping UI  
+- Not skipping PAGE FINAL PASS / strict interface audit when shipping UI  
 
 ---
 

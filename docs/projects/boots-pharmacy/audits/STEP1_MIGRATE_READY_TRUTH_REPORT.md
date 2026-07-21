@@ -65,7 +65,7 @@ Proceed to the **next** page migration — but stop lying that Book Step 1 means
 |---|---------|-----|
 | B1 | **No new React styles in LEGACY** | If next page dumps into `globals-screens.css`, we poison the migration forever. |
 | B2 | **No dual active Make+React handlers for the migrated screen** | Step 1 pattern (gate Make paths when React mounted) is mandatory. Dual systems = flaky CJM/playback. |
-| B3 | **Nazi QA PROVEN required** before PO green-light on the next page | “Tests passed” alone is BAD (doctrine §7). |
+| B3 | **Strict interface audit PROVEN required** before PO green-light on the next page | “Tests passed” alone is BAD (doctrine §7). |
 | B4 | **Confirm main CI smoke green** (or fix if red) before calling the pipeline healthy | CRCRLF already burned us once; smoke was still running at report time. |
 | B5 | **One pattern per role** — reuse `NearMeCta` / `.uxds-link` / commerce primary / tertiary; no FilterChip fork, no parallel link colors | Step 1 already paid this tax; regressing on Step 2 recreates the zoo. |
 
@@ -117,7 +117,7 @@ We are **not** ready to start the next page if any of these are true:
 - [ ] Make child-4 scripts will stay live **without** React-mount gates after React Step 2 mounts
 - [ ] Main CI **test/build/smoke** is red (or smoke still unknown) and we pretend it’s fine
 - [ ] PO is told “clean React+UXDS engine” without the hybrid mount caveat
-- [ ] Next page ships without a separate FE Nazi QA audit file under `docs/projects/boots-pharmacy/audits/` ending in **PROVEN**
+- [ ] Next page ships without a separate strict FE interface audit file under `docs/projects/boots-pharmacy/audits/` ending in **PROVEN**
 - [ ] Theme-off shared kits break (hex only in page CSS / theme, BASE unusable)
 
 ---

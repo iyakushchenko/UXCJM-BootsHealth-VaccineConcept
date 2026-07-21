@@ -2,7 +2,7 @@
  * Run all hard static gates in parallel (fail-fast report).
  * Used by `npm run test:gates` / `npm test` — same scripts CI runs.
  *
- * Gates (do not remove): docs-links, text-link-contract, hygiene, felonies, parity-ratchets,
+ * Gates (do not remove): docs-links, docs-governance, text-link-contract, hygiene, felonies, parity-ratchets,
  * parity-proven, page-final-pass, theme-brand, version, uxds-inventory.
  */
 import { spawn } from "node:child_process";
@@ -15,6 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 /** [npmScriptLabel, relativeScriptPath] — label matches package.json check:* names. */
 const GATES = [
   ["check:docs-links", "scripts/check-doc-links.mjs"],
+  ["check:docs-governance", "scripts/check-doc-governance.mjs"],
   ["check:text-link-contract", "scripts/check-text-link-contract.mjs"],
   ["check:hygiene", "scripts/check-file-hygiene.mjs"],
   ["check:felonies", "scripts/check-agent-felonies.mjs"],

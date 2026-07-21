@@ -8,6 +8,26 @@
 
 ---
 
+## Retrieve knowledge without reading the archive
+
+Use progressive disclosure: read the minimum route for the task, then open historical
+entries only when a symptom, surface, or gate points there.
+
+| Need | Read now | Open next only if relevant |
+|------|----------|----------------------------|
+| Start serious work | Your [per-hat section](#per-hat-knowledge-must-re-read-before-serious-work) + current task brief | [Lessons topic index](./LESSONS_LEARNED.md#topic-index) for the touched surface |
+| Choose or sequence work | [Arch](#arch-director) + [NEXT_STEPS.md](./NEXT_STEPS.md) | Forecast, painpoints, and chronological ship archive |
+| Build a React screen | [Finn](#finn-fe) + [Bea](#bea-ba) | Page contract, screen register, CSS/DS and hybrid-mount lessons |
+| Audit a visible screen | [Uma](#uma-uiux) + [Quinn](#quinn-qa) | Fidelity checklist, interaction/probe lessons, project audit evidence |
+| Record or play a journey | [Finn](#finn-fe) + [Quinn](#quinn-qa) | REC/playback topic lessons and shell recipes |
+| Version, push, or inspect CI | [Ben](#ben-be) + [Pax](#pax-po-sim) | Version/CI lessons and R12 |
+| Report a ship | [Sitrep template](#sitrep-template--knowledge-improved) | Append to the archive only after stating what was applied |
+
+The [chronological ship archive](#chronological-ship-archive) is evidence, not the default
+onboarding path. Do not reread it end-to-end unless reconstructing a regression.
+
+---
+
 ## Canonical corpus (links)
 
 | Artifact | Path | Why |
@@ -42,7 +62,7 @@
 | Must re-read | Focus |
 |--------------|--------|
 | This index + [TEAM.md](./TEAM.md) | Dispatch, team check, knowledge-use gate |
-| [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 / §6–§7 | Parallel siblings, distrust handoffs, Nazi QA |
+| [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 / §6–§7 | Parallel siblings, distrust handoffs, strict interface audit |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next migrated page until previous hard-green |
 | [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md) | After HARD-GREEN: micro-retro → this index (Reflex) |
 | [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) (latest + surface) | Reject “done” without applied lessons |
@@ -150,6 +170,11 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 - Ben (BE): <gate/version/CI> — applied: <script/check>
 - Pax (PO sim): <accept bar / bump call> — applied: <decision>
 ```
+
+## Chronological ship archive
+
+Append-only evidence follows. Search by stream, surface, error code, or callsign; use the
+retrieval table and LESSONS topic index before scanning by date.
 
 **Knowledge improved** (2026-07-21 · stream: prove FAIL camera flake + PO latch wipe · local):
 - Arch (Director): Mid-prove FAIL must escalate immediately — not wrap-up only — applied: this ship · LESSONS

@@ -30,7 +30,7 @@ Boots book flow is the first React+UXDS rabbit: Location (`book-step-1`), Date &
 
 ## Chrome / fidelity (Uma)
 
-- [x] Nazi QA PROVEN for Steps 1–3 pilots
+- [x] Strict interface audit PROVEN for Steps 1–3 pilots
 - [ ] No LEGACY growth on further edits
 
 ## Mount / FE notes (Finn)

@@ -37,6 +37,9 @@ function githubSlug(value) {
 function anchorsFor(markdown) {
   const seen = new Map();
   const anchors = new Set();
+  for (const match of markdown.matchAll(/<(?:a\s+[^>]*(?:id|name)|[a-z][^>]*\sid)=["']([^"']+)["'][^>]*>/gi)) {
+    anchors.add(match[1].toLowerCase());
+  }
   for (const line of markdown.split(/\r?\n/)) {
     const match = line.match(/^#{1,6}\s+(.+?)\s*#*\s*$/);
     if (!match) continue;

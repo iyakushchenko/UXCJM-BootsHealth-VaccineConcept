@@ -8,6 +8,30 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ---
 
+<a id="topic-index"></a>
+## Topic index
+
+Read the latest dated section plus the rows for the surface being changed. The dated body
+below remains append-only evidence; this index is the retrieval layer and may be extended
+without rewriting history.
+
+| Topic | Start with | Typical use |
+|-------|------------|-------------|
+| REC capture, compile, and honesty | [REC robustness](#topic-rec) · [Recording baseline](#topic-recording-baseline) | Arming, new-CJM proof, labels, scroll-stop, compile/replay |
+| Continuous Play and diagnostics | [Playback completion](#topic-playback) · [Navigation/journeys baseline](#topic-navigation-baseline) | Stalls, end state, scroll/cursor diagnostics, Step/Play parity |
+| QA overlay and PO signals | [Overlay reset/HMR](#topic-overlay) · [Overlay baseline](#topic-overlay-baseline) | ALWAYS CLEAR, alarm/cursor/scroll, teardown, false FAIL |
+| Chat, camera, scroll, and type-in | [Chat camera](#topic-chat) · [Nested scroll host](#topic-scroll) | Progressive bubbles, composer pad, type-in, scroll reversal |
+| Make→React mounts and selectors | [Make ghosts](#topic-hybrid) · [Hybrid baseline](#topic-hybrid-baseline) | Retire/park Make, first-match ghosts, mount/unmount |
+| CSS, UXDS, hover, and fidelity | [Typical DS checks](#topic-ds) · [DS/CSS baseline](#topic-ds-baseline) | Tokens, kit states, loading parity, no invented chrome |
+| URL, modal, and navigation state | [URL/CJM state](#topic-url) · [Modal URL](#topic-modal) | Deep links, modal registry, return/reset behavior |
+| Page migration and Final Pass | [Page Final Pass](#topic-final-pass) | Sequencing, proof, audits, next-page gate |
+| Naming, hygiene, docs, version, CI | [Version](#topic-version) · [Naming](#topic-naming) · [CI](#topic-ci) | Repository conventions and delivery mechanics |
+
+For role-specific mandatory reading, return to
+[TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md#retrieve-knowledge-without-reading-the-archive).
+
+---
+
 ## 2026-07-21
 
 ### Agentic prove flake — early path-deviation + stale DIAGNOSTIC_ACK_STOP (PO)
@@ -24,6 +48,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Right fix:** Suppress dwell wait from chat; mirror only via `logStep`; restore coalesces consecutive playback-diag twins; lean login drain rows.
 - **Gate:** `playbackDiagQaBridge` unit — wait not mirrored; clear via logStep.
 
+<a id="topic-overlay"></a>
 ### QA Reset must not auto-CAPTURE + HMR ×24 spam (PO)
 
 - **Symptom / class:** Reset wiped log then immediately capturing again. Vite file save flooded QA with dozens of identical `vite-hmr · capture/play paused` rows.
@@ -31,6 +56,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Right fix:** Reset → capture **off** (`Session reset · capture off`); clear pause latch; Play still auto-resumes Pause-only. One HMR listener + mutable deps; identical system rows already coalesce to `×N`.
 - **Gate:** Unit `agentTestingViteHmr.test.ts` + format coalesce vite-hmr.
 
+<a id="topic-hybrid"></a>
 ### Make `display:none` ≠ gone — ghosts win querySelector / Play (PO)
 
 - **Symptom / class:** React-migrated page still clicks Make `div[data-name=…]` (not clickable / wrong node) while React `<button>` with same name exists. QA Save Log spam: `Save Log · export` + `Click: a` + download row; capture stayed ON.
@@ -52,6 +78,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Right fix:** `drainLoginModalIfOpen` in `playRecordedClick` (before retry + after click). Do **not** auto-drain choose-pharmacy here (own beat owns that pick). Prefer reading live QA rows before ALWAYS CLEAR when a dump/log already has the FAIL.
 - **Gate:** UI Play `rec-trad-mru30gpt-zp5d` (logged out) → QA shows login drain → second Book Now → book-step-1… → peak 23/23 + `Play finished — back at journey start`. Unit: `recordedClickPlayback.test.ts`.
 
+<a id="topic-rec"></a>
 ### REC robustness = NEW CJM only (PO standing order)
 
 - **Symptom / class:** Agents claim REC robustness by playing built-in `agentic-cjm` / `traditional-cjm` or an old `rec-*`, or call `__studioStartRecording` without REC toggle + CREATE NEW + ● Start.
@@ -72,6 +99,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Right fix:** Prove catalog lookup for `rec-*` (playlist length + start beat); `humanizeRecordingLabel` scrub at capture/compile; prefer title/content scroll anchors + drop weak filter chains; refine clicks to `data-studio-action` / tile CTA; page-land only when `current` screen changes.
 - **Gate:** Unit `recordingLabels` + compile human labels + `fullPlayProve` rec-* peak; live REC PLP→PDP → Play → `__studioRunFullPlayProve({ journeyId })` asserts that journey.
 
+<a id="topic-playback"></a>
 ### REC continuous Play stalls on last recordedClick / camera (PO / Quinn + Finn)
 
 - **Symptom / class:** Continuous Play reaches last PDP `recordedClick` (or last `kind:camera`) then hangs → playback-stall ~22s / idle ~45s (often reported as script-timeout). Peak can show `N/N` but play never ends.
@@ -100,6 +128,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Gate:** `demoCursor.ts` travel await settles on onComplete / abort poll / ceiling. Also skip `scroll-path-deviation` while chat pull-up `scrollLock`. Prove: continuous Play 21/21.
 - **Recipe:** [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md).
 
+<a id="topic-chat"></a>
 ### Thinking bubble not camera’d — settle used last revealed only (PO / Finn)
 
 - **Symptom / class:** Thinking dots stay under composer dock; settle scrolled to last `data-studio-chat-revealed="true"` while thinking paints `revealed=false`.
@@ -263,6 +292,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   2. Invalid URL mode (`mode=traditional` / bare aliases) applied via `setModeId` → 0 journey beats → `showOrchestraControls` false → **REC-only** `StudioNavRecordingModeSlot` (empty playback by design).
 - **Gate:** Sync-mount playback when Rec is off (`data-studio-playback-panel`); `normalizeOrchestraModeId` on URL parse + `setModeId` (`traditional`→`traditional-cjm`). Never let an unknown mode zero the cassette deck.
 
+<a id="topic-url"></a>
 ### URL `mode=agentic-cjm` conflates CJM switch with journey path (PO / Arch)
 
 - **Symptom / class:** Deep links used `mode=agentic-cjm` as if “mode” meant both CJM-on and agentic path — logically wrong; CJM is on/off; agentic vs traditional is the experience path.
@@ -274,6 +304,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Root cause:** Mid-travel hover + `trackTarget` chased layout shifts; CSS `scale()` on `--tap` read as bounce; path diagnostics required CJM pin so prove could not show the drift.
 - **Gate:** Hover only after settle; freeze tracking ≥90% progress; lock left/top through press/release; no tap scale; `__studioCursorDiagnostics()` path samples + prove `onTargetStable`. Keep hang guards.
 
+<a id="topic-final-pass"></a>
 ### PAGE FINAL PASS — no next migrated page until previous hard-green (PO / Arch)
 
 - **Symptom / class:** Team starts PDP (or next erase-Make page) while PLP (previous) still has open Final Pass gaps — PROVEN/tests green used as a false “open next page” signal.
@@ -291,6 +322,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   4. **Code gate shipped:** `revealDemoTargetForAgent` + probe `overlay-arm` / `plp-below-fold-scroll`; mid-sitrep re-arm must not fire deferred reload; `RunMcpPageProbe` excluded from helper nest-arm. See [RECORDING.md](../shell/RECORDING.md).
 - **Process:** Index in [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md); Quinn re-reads this before every MCP prove. Arch rejects PROVEN without overlay-visible evidence.
 
+<a id="topic-scroll"></a>
 ### Nested scroll host after single-scrollbar Chat (Finn / Quinn)
 
 - **Symptom / class:** Chat beat/CTA `scrollIntoView` / `revealDemoTargetForAgent` no-ops after React Chat moves overflow to `.chat__column` (outer `.studio-scroll--prototype` `protoMax≈0`).
@@ -308,6 +340,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Symptom:** LESSONS / notes grow but agents re-ship the same fail class — knowledge was append-only.
 - **Gate:** [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) living index; before serious work re-read hat section + LESSONS; team check **`Knowledge used:`** one-liner per role; **Knowledge improved** sitrep after ships; Arch rejects write-only “done.”
 
+<a id="topic-ds"></a>
 ### Typical DS checks mandatory before screen PROVEN (PO)
 
 - **Symptom / class:** Screens stamped **PROVEN** while UXDS controls (SearchField, Button, checkbox, link) were flat at rest — missing kit/Make **hover / focus / active / disabled**. Concrete miss: PLP filter SearchField had **focus-only** kit (no `:hover`); Make / Availability / Book Step 1 use inset navy ring on hover+focus.
@@ -357,6 +390,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Symptom:** Sitrep sat silent/stale; robo-cursor lingered after overlay cleared.
 - **Gate:** Hint = `PASS|FAIL — Auto-closes in Xs` (live tick); big green/red badge; `finishSettle` / `forceClear` call `removeDemoCursor({ immediate: true })` + **hard-remove** overlay DOM; idle → sitrep still honest.
 
+<a id="topic-overlay-baseline"></a>
 ### Agent testing overlay: pre-arm before steps; no stale popup after test
 
 - **Symptom:** Probe clicks started before PO could see the BR panel; after stop, sitrep/overlay sometimes stuck or left a stale panel.
@@ -419,6 +453,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   3. `check:felonies` fails npm test if guard missing or known overlays unregistered.
 - **Quinn prove:** open Quick View → probe cannot click PLP tile underneath → overlay sitrep PASS.
 
+<a id="topic-modal"></a>
 ### Modal URL — every popup must change the address bar (PO rage)
 
 - **Symptom:** Quick View (and other Boots dialogs) opened with **no** URL change; only Choose Pharmacy synced `&modal=`.
@@ -477,6 +512,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
   4. **team check** must include Uma checklist + Bea register completeness + Quinn interaction matrix — ship not done if Uma or Quinn FAIL.
 - **Example miss:** PLP Advantage Card bar — “Collect 3 points for every £1 you spend with Boots Advantage Card‡”.
 
+<a id="topic-version"></a>
 ### Versioning / felonies
 
 - **Version chip wins overflow** — sticky right block with solid PANEL fill + z-index; never let scrolling tabs cover `vX.Y.Z` / channel.
@@ -484,6 +520,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Felony = `npm test` fail** — wire `check:felonies` + `check:version`; do not rely on docs alone. JSDoc must not contain `*/` mid-word (e.g. write "proto star filenames", not `proto*/…`).
 - **Channel ≠ semver** — PO accepts alpha/beta/rc/stable; BE bumps digits via `release.mjs` / notes habit.
 
+<a id="topic-recording-baseline"></a>
 ### Recording
 
 - **Demo-click replay needs stable targets** — prefer `data-studio-action` on the click element; stop the selector chain there. Ancestor `data-name` noise (progress "Step N", breadcrumbs) breaks nested resolve.
@@ -495,7 +532,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ### Domain identity
 
-- **No new `.proto-*` / `data-proto-*`.** PANEL/chrome classes are `.studio-nav-*` / `.studio-*`; DOM attrs are `data-studio-*` (`dataset.studio*`). Prefer `__studio*` window APIs; keep `__proto*` aliases. Concept Make leftovers may stay `.proto-*` in LEGACY until that screen retires — do not invent new ones. Gate: [NAMING.md](./NAMING.md) + Nazi QA light after chrome class renames.
+- **No new `.proto-*` / `data-proto-*`.** PANEL/chrome classes are `.studio-nav-*` / `.studio-*`; DOM attrs are `data-studio-*` (`dataset.studio*`). Prefer `__studio*` window APIs; keep `__proto*` aliases. Concept Make leftovers may stay `.proto-*` in LEGACY until that screen retires — do not invent new ones. Gate: [NAMING.md](./NAMING.md) + light strict interface audit after chrome class renames.
 - **Half-renames kill agents** — className + CSS + smoke/MCP selectors must move together (one codemod). Dual attrs only if a release truly needs them; prefer clean cut.
 - **Storage/events** — `studio-nav:` / `studio-hub:` / `studio-*-sync` with one-time legacy read; beat field `protoTab` waits for a schema migration.
 
@@ -508,12 +545,14 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **REC ⊗ CJM is XOR, not only AIR.** CJM on → REC `disabled`; REC on → CJM off. AIR still locks both. Gate: `src/app/nav/studioModeXor.ts` + MCP sanity `rec-disabled-when-cjm-on` / `rec-enabled-when-cjm-off-idle`. Audit row **G6**.
 - **Blast-radius adjacent chrome** — after any UI edit, scan sibling links/CTAs, counters, mode labels, panel XOR, AIR/browse locks. Do not only test the pixel you touched.
 
+<a id="topic-ds-baseline"></a>
 ### DS / links / CSS
 
 - **Near-dup text links forbidden** — one footer-like pattern (`.uxds-link` + LEGACY aliases): no underline at rest, underline on hover. Enforce with `npm run check:links` ([DS_STRICTNESS.md](./DS_STRICTNESS.md)).
 - **Make `!important` vs kit tokens** — when retiring Make for a React screen, do not fight LEGACY `!important` forever; hide Make chrome and style the React host in page CSS / UXDS / theme. No LEGACY growth for new React pages.
 - **Incomplete CSS grid / flex rows must left-align** — never `justify-content: space-between` with narrower pad spacers on short last rows (Book Step 2 time slots). Prefer CSS `grid` with fixed columns, or equal-width pads + `flex-start`.
 
+<a id="topic-hybrid-baseline"></a>
 ### Hybrid Make + React
 
 - **Distrust “done” without browser proof** — green Vitest/build/smoke alone are BAD for UI. Live localhost or CSS gate; write audit **PROVEN** under `docs/projects/<project-id>/audits/` (Boots: `docs/projects/boots-pharmacy/audits/`).
@@ -523,6 +562,7 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 - **Traditional `pdp-book-now`** — same first-match class: Make `[data-name="component.input.button"]` Book now under `data-studio-make-retired` can win while React wire is gated → transport-no-op. Prefer `button[data-studio-action="pdp-book-now"]` on `.studio-react-screen-host` / `[data-studio-react-screen="pdp"]` and skip make-retired ancestors (`findPdpBookNowBtn`).
 - **createRoot `unmount()` must not run sync during parent React render/commit** — calling `root.unmount()` from `useLayoutEffect` / effect cleanup while `BootsPharmacyProjectView` is committing triggers: *Attempted to synchronously unmount a root while React was already rendering*. Defer with `setTimeout(0)` (or equivalent); cancel the deferred unmount on remount so Step tab / AIR / CJM flips do not race. Gate: `mountBookStep{1,2,3}Screen.tsx`.
 
+<a id="topic-navigation-baseline"></a>
 ### Navigation / journeys
 
 - **Progress / Studio “Step 1” ≠ Make “tab1”.** Book Step 1 is `INDEX_BOOK_STEP1` (screen index **4**, child **7**, protoTab **5**). Agentic CJM has no beat on that tab; beat-index fallback to `agentic-home` must **not** `goToTab` while browsing (`shouldNavigateBeatTabOnEnter` / `scenarioBrowseMode`).
@@ -532,11 +572,13 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 - **Project docs live under `docs/projects/<id>/`** — design deltas, screen pilots, FE audits, migrate-ready reports. Engine doctrine / FE standards / templates stay in `docs/product/`. Old heavily linked paths keep thin stubs. Do not dump Boots files into `docs/product/`.
 
+<a id="topic-naming"></a>
 ### Naming
 
 - **Screen folder = `screenId`** — use `screens/book-step-1/` for `?screen=book-step-1`, never `book-step1`. Journey **beat** ids may stay compact (`book-step2`) until a dedicated migration; URL aliases normalize them ([../shell/URL.md](../shell/URL.md)). New files follow [NAMING.md](./NAMING.md).
 - **No `proto*` filenames / new classes / new attrs** — see Domain identity above.
 
+<a id="topic-ci"></a>
 ### CI / Pages / MCP
 
 - **CI smoke is on-demand** — default CI = unit + build; Playwright smoke = `workflow_dispatch` / local `npm run smoke` only ([CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md)).

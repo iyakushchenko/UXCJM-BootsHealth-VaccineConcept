@@ -2,7 +2,7 @@
 
 **Surface / slice:** Book Step 1 Location (React pilot) + Studio nav chrome on path + Availability open-from-Continue  
 **Date:** 2026-07-19  
-**Auditor:** audit subagent (distrust / not the implementer) — strict (“Nazi QA”) pass  
+**Auditor:** audit subagent (distrust / not the implementer) — strict interface audit pass  
 **Implementer handoff / audited HEAD:** `3e7dd92` (post-`dbdbb5c`: NearMe unify `2ea93a0`, STEPS label `668a6dd`/`1aa6347`, primary filter pills, `.uxds-link` unify)  
 **Checklist:** [../FE_UI_UX_AUDIT.md](../../../product/FE_UI_UX_AUDIT.md) · [../VISUAL_FIDELITY.md](../../../product/VISUAL_FIDELITY.md) · [../FE_STANDARDS.md](../../../product/FE_STANDARDS.md) · [../DS_STRICTNESS.md](../../../product/DS_STRICTNESS.md)  
 **Design delta:** [../BOOTS_BOOK_STEP1_DESIGN_DELTA.md](../BOOTS_BOOK_STEP1_DESIGN_DELTA.md)

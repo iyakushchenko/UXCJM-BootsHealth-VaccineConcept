@@ -1,4 +1,4 @@
-# FE audit (Nazi QA light) — domain CSS / attrs phase 2
+# FE audit (strict interface audit, light scope) — domain CSS / attrs phase 2
 
 **Date:** 2026-07-19  
 **Verdict:** **PROVEN** (chrome / domain identity)  
