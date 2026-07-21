@@ -28,6 +28,31 @@ function delay(ms: number): Promise<void> {
   });
 }
 
+/**
+ * Make board ghosts / retired hosts resolve via data-name but sit under
+ * display:none (0×0). Scrolling them is a no-op hang risk — treat unusable.
+ */
+export function isPlaybackCameraTargetUsable(el: HTMLElement | null): boolean {
+  if (!el?.isConnected) return false;
+  if (el.closest("[data-studio-make-retired]")) return false;
+  let node: HTMLElement | null = el;
+  while (node) {
+    try {
+      if (getComputedStyle(node).display === "none") return false;
+    } catch {
+      return false;
+    }
+    node = node.parentElement;
+  }
+  try {
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 1 && rect.height < 1) return false;
+  } catch {
+    return false;
+  }
+  return true;
+}
+
 function resolveCameraTarget(
   camera: JourneyBeatCamera
 ): HTMLElement | null {
@@ -37,10 +62,13 @@ function resolveCameraTarget(
     (camera.anchorSelector ? [camera.anchorSelector] : undefined);
   if (chain?.length) {
     const fromChain = resolvePlaybackSelectorChain(chain, document);
-    if (fromChain) return fromChain;
+    if (isPlaybackCameraTargetUsable(fromChain)) return fromChain;
   }
   if (camera.anchorSelector) {
-    return document.querySelector<HTMLElement>(camera.anchorSelector);
+    const fromAnchor = document.querySelector<HTMLElement>(
+      camera.anchorSelector
+    );
+    if (isPlaybackCameraTargetUsable(fromAnchor)) return fromAnchor;
   }
   return null;
 }
@@ -96,7 +124,16 @@ export async function playCameraBeat(
     if (!camera.selectorChain?.length && !camera.anchorSelector) {
       return { ok: true };
     }
-    return { ok: false, step: "camera-beat:target-missing" };
+    // Noisy Make anchors (module.plp.filters / module.pdp under display:none)
+    // — prefer soft continue after dwell over hard-fail / ghost scroll hang.
+    playbackDiagLog(
+      "warn",
+      `camera-beat:target-unusable — dwell only (${
+        camera.anchorSelector ?? camera.selectorChain?.[0] ?? "?"
+      })`,
+      beatId ? { beatId } : undefined
+    );
+    return { ok: true, step: "camera-beat:target-unusable" };
   }
 
   if (options?.skip || options?.instant) {

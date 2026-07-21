@@ -33,6 +33,7 @@ import {
   clearCameraBeatUndo,
   playCameraBeat,
 } from "@/app/orchestra/cameraBeatPlayback";
+import { shouldCompleteJourneyPlayAfterScript } from "@/app/orchestra/journeyPlayAdvance";
 import {
   shouldAdvanceCompletedDirectorStep,
   shouldSuppressTransportNoOpForBeat,
@@ -845,6 +846,17 @@ export function useJourneyPlayback({
         if (options?.skip) {
           lastRecordedClickAutoRunRef.current = runId;
           const next = advanceFrom(beatIndexRef.current);
+          if (
+            shouldCompleteJourneyPlayAfterScript({
+              nextIndex: next,
+              beatCount: beats.length,
+              isPlaying: isPlayingRef.current,
+              manualStep: options?.manualStep,
+            })
+          ) {
+            completeJourneyPlay();
+            return true;
+          }
           if (next < beats.length) {
             advanceBeatIndexForManualChain(
               activeBeat,
@@ -870,6 +882,17 @@ export function useJourneyPlayback({
         }
         lastRecordedClickAutoRunRef.current = runId;
         const next = advanceFrom(beatIndexRef.current);
+        if (
+          shouldCompleteJourneyPlayAfterScript({
+            nextIndex: next,
+            beatCount: beats.length,
+            isPlaying: isPlayingRef.current,
+            manualStep: options?.manualStep,
+          })
+        ) {
+          completeJourneyPlay();
+          return true;
+        }
         if (next >= beats.length) return true;
         const nextBeat = beats[next];
         advanceBeatIndexForManualChain(activeBeat, nextBeat, next, options);
@@ -883,6 +906,7 @@ export function useJourneyPlayback({
       advanceFrom,
       advanceFromCompletedDirectorBeat,
       beats,
+      completeJourneyPlay,
       invokeBeatScript,
       reportScriptFailure,
       setScriptingActive,
@@ -932,6 +956,17 @@ export function useJourneyPlayback({
         }
         lastCameraAutoRunRef.current = runId;
         const next = advanceFrom(beatIndexRef.current);
+        if (
+          shouldCompleteJourneyPlayAfterScript({
+            nextIndex: next,
+            beatCount: beats.length,
+            isPlaying: isPlayingRef.current,
+            manualStep: options?.manualStep,
+          })
+        ) {
+          completeJourneyPlay();
+          return true;
+        }
         if (next >= beats.length) return true;
         const nextBeat = beats[next];
         advanceBeatIndexForManualChain(activeBeat, nextBeat, next, options);
@@ -945,6 +980,7 @@ export function useJourneyPlayback({
       advanceFrom,
       advanceFromCompletedDirectorBeat,
       beats,
+      completeJourneyPlay,
       invokeBeatScript,
       reportScriptFailure,
       setScriptingActive,

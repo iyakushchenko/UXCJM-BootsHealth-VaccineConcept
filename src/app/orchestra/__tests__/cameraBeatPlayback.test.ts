@@ -90,7 +90,7 @@ describe("cameraBeatPlayback", () => {
     vi.useRealTimers();
   });
 
-  it("missing target with selector fails", async () => {
+  it("missing / unusable target soft-continues after dwell (no hang)", async () => {
     const result = await playCameraBeat(
       {
         dwellMs: 0,
@@ -98,7 +98,27 @@ describe("cameraBeatPlayback", () => {
       },
       { instant: true }
     );
-    expect(result.ok).toBe(false);
-    expect(result.step).toBe("camera-beat:target-missing");
+    expect(result.ok).toBe(true);
+    expect(result.step).toBe("camera-beat:target-unusable");
+  });
+
+  it("skips display:none Make ghosts instead of ghost-scrolling", async () => {
+    const ghostWrap = document.createElement("div");
+    ghostWrap.style.display = "none";
+    const ghost = document.createElement("div");
+    ghost.setAttribute("data-name", "module.pdp");
+    ghostWrap.appendChild(ghost);
+    document.body.appendChild(ghostWrap);
+
+    const result = await playCameraBeat(
+      {
+        dwellMs: 0,
+        anchorSelector: '[data-name="module.pdp"]',
+        selectorChain: ['[data-name="module.pdp"]'],
+      },
+      { instant: true }
+    );
+    expect(result.ok).toBe(true);
+    expect(result.step).toBe("camera-beat:target-unusable");
   });
 });

@@ -10,6 +10,13 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-21
 
+### REC continuous Play stalls on last recordedClick / camera (PO / Quinn + Finn)
+
+- **Symptom / class:** Continuous Play reaches last PDP `recordedClick` (or last `kind:camera`) then hangs → playback-stall ~22s / idle ~45s (often reported as script-timeout). Peak can show `N/N` but play never ends.
+- **Root cause:** `scheduleDwellAdvance` no-ops on beats that still carry `recordedClick` / camera / `*Script`. Script runners advanced mid-journey but on **last beat** only `return true` — never `completeJourneyPlay()`.
+- **Right fix:** After script success, if `next >= length` and continuous Play (`isPlaying && !manualStep`) → `completeJourneyPlay()`. Helper: `shouldCompleteJourneyPlayAfterScript`. Camera Make ghosts (`display:none` / 0×0 / make-retired) soft-continue dwell-only (`camera-beat:target-unusable`) instead of ghost-scroll.
+- **Gate:** Unit `journeyPlayAdvance` + camera unusable; live `__studioRunFullPlayProve({ journeyId: rec-…, startBeatId, startScreenId })` → PASS peak N/N + play-end at start.
+
 ### REC scroll-stop never compiled to camera (PO / Quinn + Finn)
 
 - **Symptom / class:** Meaningful scroll + ≥2s settle while REC live produced `scroll` events but **no** `scroll-stop` → compile missed `kind:camera` wait beats. QA also silent on camera-wait milestones.
