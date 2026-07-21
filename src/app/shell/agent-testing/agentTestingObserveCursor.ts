@@ -44,7 +44,7 @@ export function stopObservePointerCursorFollow(options?: {
     if (options?.remove) {
       removeDemoCursor({ immediate: true });
     } else if (isDemoCursorParked()) {
-      void parkDemoCursorAtRest({ animate: false });
+      void parkDemoCursorAtRest({ force: true, reason: "observe-stop" });
     } else {
       removeDemoCursor({ immediate: true });
     }

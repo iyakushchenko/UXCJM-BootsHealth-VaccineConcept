@@ -923,7 +923,10 @@ export default function App() {
       setDemoCursorJourneyMode(true, {
         parkAfterInteraction: !journeyPlayback.isPlaying,
       });
-      void parkDemoCursorAtRest({ animate: false });
+      void parkDemoCursorAtRest({
+        force: true,
+        reason: "cjm-restart-remount",
+      });
     }
   }, [journeyPlayback, scenarioPlayback]);
 

@@ -132,6 +132,27 @@ describe("playbackDiagQaBridge", () => {
     ).toBe(false);
   });
 
+  it("mirrors abrupt park + lean cursor-engine milestones", () => {
+    const abrupt = ev({
+      kind: "cursor",
+      detail: "ABRUPT-PARK FAIL — cursor-engine:abrupt-park — legacy",
+    });
+    expect(shouldMirrorPlaybackDiagToQa(abrupt)).toBe(true);
+    expect(labelForPlaybackDiagEvent(abrupt)).toMatch(/teleported/i);
+    expect(outcomeForPlaybackDiagEvent(abrupt)).toBe("fail");
+
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({ kind: "cursor", detail: "cursor-engine:park-rest — journey-park" })
+      )
+    ).toBe(true);
+    expect(
+      labelForPlaybackDiagEvent(
+        ev({ kind: "cursor", detail: "cursor-engine:park-rest — journey-park" })
+      )
+    ).toBe("Cursor eased to rest");
+  });
+
   it("ignores small upward camera nudge", () => {
     const nudge = ev({
       kind: "scroll",

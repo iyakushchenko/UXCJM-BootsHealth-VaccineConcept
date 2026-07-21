@@ -106,14 +106,29 @@ After fix: full Play **PASS 22/22**. Do not invent green past real timeouts.
 |--------------------------------------|--------------------------------|
 | Type-in **start** / **end** / **skip** | `type-in-progress` (per-char) |
 | Click miss | Healthy step-forward / routine transport |
-| Cursor off-target / hidden during typing | Cursor remove / park / abort chatter |
+| Cursor off-target / hidden during typing / **ABRUPT-PARK** | Routine `PARKED` chatter without engine tag |
+| Cursor engine milestones (`park-rest` / `type-in-hold` / cancel — deduped) | Cursor remove / abort spam |
 | Scroll jumped the wrong way (reversal) | Small camera nudges / origin scrolls |
 | **Chat camera** wait / thinking / pin / host-end (deduped) | Bubble TRACE / frame rAF samples |
 | Chat bubble **JUMP** / **CHOP** / script-timeout | Routine beat landings |
 | Play finished / journey reset / hub-nav | Helper peek / is-open polls |
 | PO Alarm / diagnostic FAIL | (same — always mirror) |
 
-**Label examples:** `remove` → “Cursor cleared”; `type-in-park` → “Cursor parked for typing”; scroll-reversal → “Scroll jumped the wrong way”; bubble-chop → “Chat bubble motion cut short”. Machine `kind` stays on ring `detail` / data attrs.
+**Label examples:** `remove` → “Cursor cleared”; `type-in-park` → “Cursor parked for typing”; `ABRUPT-PARK` → “Cursor teleported to park — FAIL”; `cursor-engine:park-rest` → “Cursor eased to rest”; scroll-reversal → “Scroll jumped the wrong way”; bubble-chop → “Chat bubble motion cut short”. Machine `kind` stays on ring `detail` / data attrs.
+
+### Cursor engine QA trackers (lean)
+
+Mirrored into QA chat (deduped ~480ms — not park-spam flood):
+
+| Detail prefix | Human label |
+|---------------|-------------|
+| `cursor-engine:park-rest` | Cursor eased to rest |
+| `cursor-engine:park-force` | Cursor parked (force) |
+| `cursor-engine:type-in-hold` | Cursor parked for typing |
+| `cursor-engine:cancel-settle` | Cursor travel cancelled — settled |
+| `ABRUPT-PARK` / `cursor-engine:abrupt-park` | Cursor teleported to park — FAIL |
+
+Emit: `logCursorEngineTracker` in `demoCursorEngine.ts`. Mirror: `playbackDiagQaBridge`. Policy: [PLAYBACK.md](./PLAYBACK.md) § Cursor engine SSoT.
 
 ### Dump fingerprint (PO 2026-07-20T21:26:23Z manual)
 

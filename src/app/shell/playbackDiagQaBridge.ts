@@ -143,11 +143,19 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
   if (kind === "click" && event.clickOk === false) return true;
 
   if (kind === "cursor") {
-    // Only hard off-target / hidden-during-type-in / click-suppressed — not remove/park spam
+    // Hard problems + lean cursor-engine trackers (not remove/routine park spam)
     if (event.cursor?.onTarget === false) {
       return /OFF-TARGET|off-target|click suppressed|hotspot miss/i.test(detail);
     }
-    return /HIDDEN|cursor-hidden|FAIL|OFF-TARGET|click suppressed/i.test(detail);
+    if (/ABRUPT-PARK|cursor-engine:abrupt-park/i.test(detail)) return true;
+    if (/HIDDEN|cursor-hidden|FAIL|OFF-TARGET|click suppressed/i.test(detail)) {
+      return true;
+    }
+    // Lean engine milestones (deduped at emit) — park-rest / type-in-hold / cancel
+    if (/^cursor-engine:(park-rest|park-force|type-in-hold|cancel-settle)\b/i.test(detail)) {
+      return true;
+    }
+    return false;
   }
 
   if (kind === "scroll") {
@@ -243,7 +251,10 @@ export function outcomeForPlaybackDiagEvent(
     return "ok";
   }
   if (event.kind === "cursor") {
-    // Cleared / parked / abort = info; hard miss already handled above.
+    if (/ABRUPT-PARK|cursor-engine:abrupt-park|HIDDEN|cursor-hidden/i.test(detailOf(event))) {
+      return "fail";
+    }
+    // Cleared / parked / abort / engine milestones = info
     return "ok";
   }
   if (/FAIL|error|OFF-TARGET|script-timeout|CHOP|JUMP/i.test(detailOf(event))) {
@@ -280,8 +291,20 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
   }
 
   if (kind === "cursor") {
-    if (/type-in-park|type-in park/i.test(detail)) {
+    if (/ABRUPT-PARK|cursor-engine:abrupt-park/i.test(detail)) {
+      return "Cursor teleported to park — FAIL";
+    }
+    if (/type-in-park|type-in park|cursor-engine:type-in-hold/i.test(detail)) {
       return "Cursor parked for typing";
+    }
+    if (/cursor-engine:park-rest/i.test(detail)) {
+      return "Cursor eased to rest";
+    }
+    if (/cursor-engine:park-force/i.test(detail)) {
+      return "Cursor parked (force)";
+    }
+    if (/cursor-engine:cancel-settle/i.test(detail)) {
+      return "Cursor travel cancelled — settled";
     }
     if (/HIDDEN|cursor-hidden/i.test(detail)) {
       return "Cursor hidden during typing — FAIL";

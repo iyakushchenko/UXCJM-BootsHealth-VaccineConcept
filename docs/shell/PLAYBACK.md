@@ -73,6 +73,33 @@ Smell this kills: Traditional Reserve→history→details `scroll-reversal` soft
 
 ---
 
+## Cursor engine SSoT (ONE engine)
+
+**Policy module:** `src/app/scenario/demoCursorEngine.ts`  
+**DOM / Motion:** `src/app/scenario/demoCursor.ts`
+
+| API | Use |
+|-----|-----|
+| `parkDemoCursorAtRest({ reason? })` | **Primary** — travel-to-rest (Motion easeInOut). CJM idle, retreat, jump-to-start, post-script park |
+| `parkDemoCursorAtRest({ force: true, reason })` | Intentional hard snap — first remount / revive / resize / observe teardown |
+| `parkDemoCursorForTypeIn(target)` | Hold journey park pose during type-in (force seed only if pose missing) |
+| `cancelDemoCursorTravel()` | Abort mid-travel — settles via onComplete/abort poll (never `await stop()` alone) |
+| `resolveCursorParkDecision(...)` | Pure policy (tests / callers) |
+| `logCursorEngineTracker(tag)` | Lean QA rows: `park-rest` / `park-force` / `abrupt-park` / `type-in-hold` / `cancel-settle` |
+
+### Cursor engine rails
+
+1. **Travel = eased Motion** — straight-line easeInOut; no bounce / spring / overshoot ([MOTION.md](../product/MOTION.md)).
+2. **Park = travel-to-rest** by default. Hard snap **only** with `force: true` or **first-mount** (no start pose).
+3. **Ban** `animate: false` without `force` — coerced to travel + **`ABRUPT-PARK FAIL`** QA row (mirrored).
+4. **Cancel mid-travel** settles cleanly (generation bump + `.stop()` + promise settle — hang lesson).
+5. **Type-in** — CJM cursor stays visible at journey park (`type-in-hold`); hidden → `CURSOR_HIDDEN_DURING_TYPEIN`.
+6. **Dual-cursor** — manual/observe = OS only; robo returns for CONTROL / CJM Play.
+
+**Ban:** new journey/director paths that `seedDemoCursorPosition` / snap left/top to rest without going through `parkDemoCursorAtRest` / engine policy.
+
+---
+
 ## Beat kinds
 
 | Kind | Meaning | Typical fields |

@@ -24,6 +24,14 @@ Same camera for agentic / traditional / REC — see [PLAYBACK.md](./PLAYBACK.md)
 - Intentional origin (start/retreat/probe) uses `force: true` and honors post-click hold.
 - **Camera beat** (`kind: "camera"` + `camera: { dwellMs, selectorChain }`) — own STEPS slot: wait (show page) → eased scroll; step-back reverses to pre-scroll top. Edit = swap target / timing. Traditional Book Step 3 uses this before Open Appointments. **REC:** scroll-host settle ≥ ~2s (jiggles ignored) compiles to the same beat.
 
+## Cursor engine rails
+
+Same cursor for agentic / traditional / REC / chat — see [PLAYBACK.md](./PLAYBACK.md) § Cursor engine SSoT + [MOTION.md](../product/MOTION.md).
+
+- **Travel** = Motion easeInOut; **park** = travel-to-rest (never hard-snap unless `force` / first-mount).
+- Policy: `demoCursorEngine.ts`; DOM: `demoCursor.ts`. Legacy `animate: false` without force → ABRUPT-PARK FAIL in QA.
+- Type-in holds journey park pose; cancel mid-travel settles (hang lesson).
+
 ## Exceptions (deeper, keep thin)
 
 - **Prebuilt chat / persona docks** — progressive frames, type-in, thinking camera. Prefer rails docs over inventing a second Play path. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)

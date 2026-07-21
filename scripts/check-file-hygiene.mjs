@@ -35,7 +35,7 @@ const ALLOWLIST = {
   "src/app/shell/agent-testing/agentTestingOverlay.ts": 4500, // PP-13 expand + stale-green + diag mirror (landed past 4120)
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
   "src/app/shell/studioMcpHelpers.ts": 1380, // + Traditional keep-overlay full Play prove window API
-  "src/app/scenario/demoCursor.ts": 1740, // FM stop≠settle hang-guard; on-target click gate; demoCursorOnTarget.ts
+  "src/app/scenario/demoCursor.ts": 1800, // + cursor engine park (travel-default / force / abrupt coerce); policy in demoCursorEngine.ts
   "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4825, // + screen-enter camera gate (no blind origin on CJM tab change)
   "src/projects/boots-pharmacy/data/plpListing.ts": 2000, // Make PLP DOM; retire with PLP React
 };

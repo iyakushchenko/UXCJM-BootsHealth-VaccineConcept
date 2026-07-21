@@ -33,7 +33,7 @@ describe("typeInCursorGuard", () => {
   it("holds ORIGINAL journey park rest during type-in (not field coords)", async () => {
     vi.spyOn(console, "info").mockImplementation(() => {});
     setDemoCursorJourneyMode(true, { parkAfterInteraction: true });
-    await parkDemoCursorAtRest({ animate: false });
+    await parkDemoCursorAtRest({ force: true, reason: "test-seed" });
     const el = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
     expect(el).not.toBeNull();
     const journeyLeft = el!.style.left;

@@ -1103,7 +1103,7 @@ export function useJourneyPlayback({
         });
       }
       cancelDemoCursorJourneyEndFade();
-      await parkDemoCursorAtRest({ animate: false });
+      await parkDemoCursorAtRest({ reason: "book-step2-landing" });
       if (!retreatSyncRef.current && playback.syncDwellRetreat) {
         // Instant snap always — eased date-section scroll on SF enter was
         // page-jiggle deltaY≈148 (host y 178→30) while nav-cross settled.
@@ -1728,7 +1728,7 @@ export function useJourneyPlayback({
 
     beginRetreatSync();
     cancelDemoCursorJourneyEndFade();
-    void parkDemoCursorAtRest({ animate: false });
+    void parkDemoCursorAtRest({ reason: "retreat" });
 
     // Scenario useLayoutEffect runs before beat-enter useEffect — set restore
     // intent synchronously so re-init lands at thread end, not minVisibleFrames.
@@ -1982,7 +1982,7 @@ export function useJourneyPlayback({
     clearCameraBeatUndo();
     beginRetreatSync();
     cancelDemoCursorJourneyEndFade();
-    void parkDemoCursorAtRest({ animate: false });
+    void parkDemoCursorAtRest({ reason: "jump-to-start" });
     runtime.closeAllPopups();
     runtime.closeAvailability();
     if (onScreenFramesBeat) {

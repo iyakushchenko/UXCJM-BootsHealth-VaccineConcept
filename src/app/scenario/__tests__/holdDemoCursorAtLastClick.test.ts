@@ -47,7 +47,7 @@ describe("holdDemoCursorAtLastClick", () => {
     cursor!.style.opacity = "1";
 
     holdDemoCursorAtLastClick();
-    await parkDemoCursorAtRest({ animate: false });
+    await parkDemoCursorAtRest({ force: true, reason: "test-hold-suppress" });
 
     const held = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
     expect(held).not.toBeNull();

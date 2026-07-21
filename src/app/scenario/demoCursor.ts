@@ -40,8 +40,21 @@ import {
   MOTION_EASE_IN_OUT,
   type AnimationPlaybackControls,
 } from "@/uxds/motion";
+import {
+  CURSOR_ENGINE_PARK_TRAVEL_MS,
+  logCursorEngineTracker,
+  resolveCursorParkDecision,
+} from "@/app/scenario/demoCursorEngine";
 
 export { isDemoCursorHotspotOnTarget } from "@/app/scenario/demoCursorOnTarget";
+export {
+  CURSOR_ENGINE_PARK_TRAVEL_MS,
+  CURSOR_ENGINE_TRAVEL_MS,
+  logCursorEngineTracker,
+  resolveCursorParkDecision,
+  type CursorParkDecision,
+  type ResolveCursorParkOptions,
+} from "@/app/scenario/demoCursorEngine";
 
 const CURSOR_ARROW_SVG = `<img class="proto-chat-demo-cursor__graphic proto-chat-demo-cursor__graphic--arrow" src="${defaultCursorUrl}" width="22" height="26" alt="" aria-hidden="true" draggable="false" />`;
 
@@ -60,7 +73,8 @@ const CURSOR_FADE_MS = 480;
 const CURSOR_REST_RIGHT_INSET_RATIO = 0.08;
 const CURSOR_REST_Y_RATIO = 0.54;
 const CURSOR_PARK_DRIFT_PX = 20;
-const CURSOR_PARK_TRAVEL_MS = 520;
+/** @deprecated Prefer CURSOR_ENGINE_PARK_TRAVEL_MS — kept as local alias. */
+const CURSOR_PARK_TRAVEL_MS = CURSOR_ENGINE_PARK_TRAVEL_MS;
 /**
  * Shared tip hotspot — hand graphic is CSS-shifted so fingertip lands here
  * (same as arrow tip). Switching arrow↔hand must not move left/top.
@@ -187,6 +201,7 @@ export function readDemoCursorDomState(): {
 /**
  * CJM type-in: keep robo-cursor visible at the ORIGINAL journey park rest.
  * Do not reseed onto the field (PO: not caret-ish, not ta.right+28).
+ * Engine: hold parked pose; force seed only when pose missing (type-in must not wait).
  */
 export function parkDemoCursorForTypeIn(
   target: HTMLElement,
@@ -200,20 +215,30 @@ export function parkDemoCursorForTypeIn(
   const cursor = ensureDemoCursorElement();
   // Hold journey park pose — no slide as typed text lands.
   if (
-    !options?.force &&
-    cursor.classList.contains("proto-chat-demo-cursor--parked") &&
+    cursor.classList.contains(DEMO_CURSOR_PARKED_CLASS) &&
     parkedRestAnchor
   ) {
     applyDemoCursorParkedState(cursor);
+    logCursorEngineTracker("type-in-hold", { reason: "type-in-park" });
+    notePlaybackCursorEvent("park", {
+      detail: "type-in-park",
+      animated: false,
+      target: describeCursorTarget(target),
+    });
     return;
   }
+  // Missing park pose mid type-in — intentional force seed (not field coords).
   const rest = resolveDemoCursorRestPosition();
   seedDemoCursorPosition(cursor, { x: rest.left, y: rest.top });
   applyDemoCursorParkedState(cursor);
+  logCursorEngineTracker("park-force", { reason: "type-in-park" });
   notePlaybackCursorEvent("park", {
     detail: "type-in-park",
+    animated: false,
+    instant: true,
     target: describeCursorTarget(target),
   });
+  void options; // API compat — hold-or-force-seed is the engine policy
 }
 
 /**
@@ -283,7 +308,7 @@ export function reviveDemoCursorAfterJourneyEndRetreat(): void {
   if (!journeyModePinned) return;
 
   parkedRestAnchor = null;
-  void parkDemoCursorAtRest({ animate: false });
+  void parkDemoCursorAtRest({ force: true, reason: "journey-end-revive" });
 }
 
 function randomInRange(min: number, max: number): number {
@@ -409,9 +434,20 @@ export function isDemoCursorHeldAtLastClick(): boolean {
   return holdAtLastClick;
 }
 
-/** CJM idle pose — visible on the right, waiting for the next director call. */
+/**
+ * CJM idle pose — visible on the right, waiting for the next director call.
+ *
+ * **Engine default:** travel-to-rest (Motion easeInOut). Hard snap only with
+ * `force: true` or first-mount (no start pose). `animate: false` without force
+ * is banned → coerced to travel + ABRUPT-PARK QA row.
+ */
 export function parkDemoCursorAtRest(options?: {
+  /** @deprecated Prefer omit (travel) or `force` (intentional snap). */
   animate?: boolean;
+  /** Intentional hard snap (remount / revive / resize / observe). */
+  force?: boolean;
+  /** Diag / QA reason (retreat, jump-to-start, journey-park, …). */
+  reason?: string;
 }): Promise<void> {
   if (!journeyModePinned) {
     return Promise.resolve();
@@ -427,11 +463,6 @@ export function parkDemoCursorAtRest(options?: {
   }
   if (parkPromise) return parkPromise;
 
-  notePlaybackCursorEvent("park", {
-    animated: options?.animate ?? false,
-    detail: journeyModePinned ? "journey-park" : "legacy-fade-path",
-  });
-
   const generation = parkGeneration;
   const run = async () => {
     const cursor = ensureDemoCursorElement();
@@ -440,7 +471,27 @@ export function parkDemoCursorAtRest(options?: {
     const hasStart = Number.isFinite(startX) && Number.isFinite(startY);
     const alreadyParked = cursor.classList.contains(DEMO_CURSOR_PARKED_CLASS);
 
-    if (alreadyParked && hasStart) {
+    const decision = resolveCursorParkDecision({
+      force: options?.force,
+      animate: options?.animate,
+      reason: options?.reason ?? (journeyModePinned ? "journey-park" : "legacy-fade-path"),
+      hasStartPos: hasStart,
+      alreadyParked,
+    });
+
+    if (decision.abruptAttempt) {
+      logCursorEngineTracker("abrupt-park", {
+        reason: options?.reason ?? "animate-false-without-force",
+      });
+    }
+
+    notePlaybackCursorEvent("park", {
+      animated: decision.animate,
+      instant: !decision.animate,
+      detail: decision.reason,
+    });
+
+    if (alreadyParked && hasStart && !options?.force) {
       applyDemoCursorParkedState(cursor);
       seedDemoCursorPosition(cursor, { x: startX, y: startY });
       parkedRestAnchor = { left: startX, top: startY };
@@ -448,15 +499,22 @@ export function parkDemoCursorAtRest(options?: {
       return;
     }
 
-    const rest = resolveDemoCursorRestPosition({ resample: true });
+    const rest = resolveDemoCursorRestPosition({
+      resample: decision.animate || options?.force === true,
+    });
 
-    if (!hasStart) {
+    if (!hasStart || decision.mode === "first-mount") {
       seedDemoCursorPosition(cursor, { x: rest.left, y: rest.top });
       applyDemoCursorParkedState(cursor);
+      logCursorEngineTracker("park-force", {
+        reason: decision.reason || "first-mount",
+      });
+      lastCursorPos = { x: rest.left, y: rest.top };
+      parkedRestAnchor = { left: rest.left, top: rest.top };
       return;
     }
 
-    if (options?.animate) {
+    if (decision.animate) {
       applyDemoCursorParkedState(cursor);
       const moved = await animateCursorTravel(
         cursor,
@@ -469,11 +527,28 @@ export function parkDemoCursorAtRest(options?: {
       );
       if (!moved) {
         if (parkGeneration !== generation) return;
+        // Mid-travel cancel — settle at current pose if possible, else rest.
+        const cur = readCursorPosition();
+        if (cur) {
+          seedDemoCursorPosition(cursor, cur);
+          parkedRestAnchor = { left: cur.x, top: cur.y };
+          lastCursorPos = cur;
+          logCursorEngineTracker("cancel-settle", {
+            reason: options?.reason ?? "park-aborted",
+          });
+          return;
+        }
         seedDemoCursorPosition(cursor, { x: rest.left, y: rest.top });
       }
+      logCursorEngineTracker("park-rest", {
+        reason: decision.reason,
+      });
     } else {
       seedDemoCursorPosition(cursor, { x: rest.left, y: rest.top });
       applyDemoCursorParkedState(cursor);
+      logCursorEngineTracker("park-force", {
+        reason: decision.reason,
+      });
     }
 
     if (parkGeneration !== generation) return;
@@ -509,6 +584,8 @@ export function setDemoCursorJourneyMode(
   }
 
   if (!active) {
+    cancelDemoCursorTravel();
+    cancelDemoCursorParkInFlight();
     cancelDemoCursorJourneyEndFade();
     journeyEndCursorFaded = false;
     parkedRestAnchor = null;
@@ -517,16 +594,20 @@ export function setDemoCursorJourneyMode(
 
   if (!wasActive) {
     parkedRestAnchor = null;
-    void parkDemoCursorAtRest();
+    // First pin — no pose yet → engine first-mount seed.
+    void parkDemoCursorAtRest({ reason: "journey-mode-on" });
   } else if (!wasParkAfterInteraction && parkAfterInteraction) {
-    // Manual CJM idle — park visibly at rest; do not fade out (that removed the cursor).
-    void parkDemoCursorAtRest({ animate: true });
+    // Manual CJM idle — travel-to-rest (engine default).
+    void parkDemoCursorAtRest({ reason: "park-after-interaction-on" });
   } else if (parkAfterInteraction && !journeyEndCursorFaded) {
     // Idempotent remount: restart / setJourneyMode(true) while already-on can wipe the
     // DOM node without flipping React state — CJM on = robo time, park must stay visible.
     const existing = document.querySelector<HTMLElement>(".proto-chat-demo-cursor");
     if (!existing) {
-      void parkDemoCursorAtRest({ animate: false });
+      void parkDemoCursorAtRest({
+        force: true,
+        reason: "idempotent-remount",
+      });
     } else {
       existing.classList.remove("proto-chat-demo-cursor--exit");
       applyDemoCursorParkedState(existing);
@@ -540,7 +621,8 @@ export function setDemoCursorJourneyMode(
   resizeParkListener = () => {
     if (journeyModePinned && parkAfterInteraction && !journeyEndCursorFaded) {
       parkedRestAnchor = null;
-      void parkDemoCursorAtRest();
+      // Layout change — intentional force re-seed (not mid-play teleport).
+      void parkDemoCursorAtRest({ force: true, reason: "resize" });
     }
   };
   window.addEventListener("resize", resizeParkListener);
