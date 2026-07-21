@@ -1,4 +1,4 @@
-import { motion, MOTION_EASE_IN_OUT } from "@/uxds/motion";
+import { motion } from "@/uxds/motion";
 import type { ChatThinkingBridgeMode } from "./chatThinkingBridge";
 import { CHAT_PULL_UP, CHAT_THINKING_EXIT } from "./chatMotion";
 
@@ -11,7 +11,7 @@ export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps
   // Make: playback toggled --hint → align-items flex-start (LEFT agent rail).
   const hint = mode === "hint" || mode === "playback";
   // Playback thinking must be visibly LEFT immediately — opacity:0 pull-up
-  // + agent-slot layout="size" made r0 look like “no thinking” (PO).
+  // made r0 look like “no thinking” (PO). Send uses full CHAT_PULL_UP enter.
   const enter =
     mode === "playback"
       ? { opacity: 1, y: 8 }
@@ -31,29 +31,11 @@ export function ChatThinkingBubble({ mode, generation }: ChatThinkingBubbleProps
       transition={CHAT_PULL_UP.transition}
     >
       <div className="chat__thinking-inner">
+        {/* CSS pulse — avoid nested FM opacity fighting thinking exit. */}
         <span className="chat__thinking-dots" aria-hidden="true">
-          <motion.span
-            animate={{ opacity: [0.35, 1, 0.35] }}
-            transition={{ duration: 1, repeat: Infinity, ease: MOTION_EASE_IN_OUT }}
-          />
-          <motion.span
-            animate={{ opacity: [0.35, 1, 0.35] }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: MOTION_EASE_IN_OUT,
-              delay: 0.15,
-            }}
-          />
-          <motion.span
-            animate={{ opacity: [0.35, 1, 0.35] }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: MOTION_EASE_IN_OUT,
-              delay: 0.3,
-            }}
-          />
+          <span />
+          <span />
+          <span />
         </span>
         <span className="chat__thinking-sr">SitePilot is thinking</span>
       </div>

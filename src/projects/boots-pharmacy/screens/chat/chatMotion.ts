@@ -16,11 +16,14 @@ export const CHAT_PULL_UP = {
   },
 } as const;
 
-/** Thinking leave — opacity only so in-slot reply pull-up isn’t undercut by height collapse. */
+/** Thinking leave — opacity only; same duration as reply enter (sync handoff). */
 export const CHAT_THINKING_EXIT = {
   opacity: 0,
   y: 0,
-  transition: { duration: 0.22, ease: MOTION_EASE_IN_OUT },
+  transition: {
+    duration: STUDIO_ENTER_MS / 1000,
+    ease: MOTION_EASE_IN_OUT,
+  },
 } as const;
 
 /** Match platform enter / camera co-travel (ms). */

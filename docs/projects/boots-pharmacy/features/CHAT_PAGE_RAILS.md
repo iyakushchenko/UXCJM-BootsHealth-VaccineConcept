@@ -51,6 +51,15 @@ Detect CJM-off: `?cjm=off` (URL). ChatScreen also gates `existingChatLoadHold` o
 
 ## CJM ON — required (scripted progressive)
 
+### Appear north star (HARD)
+
+- **One** Motion language: `CHAT_PULL_UP` = opacity + y, `STUDIO_ENTER_MS` (340), `MOTION_EASE_IN_OUT` — every progressive query/reply **and** composer-send thinking→reply.
+- Thinking **exit** = opacity-only at the **same** duration (no height collapse under the reply).
+- **No** CSS `transition`/`animation` enter on `.chat__bubble` (Motion owns appear).
+- Camera **co-travels** the same beat/duration — message finishes already in view (no appear-then-yank).
+- Industry bar: message arrives once, continuous ease, in-place thinking→reply crossfade.
+- Prove: `__studioRunChatBubbleMotionSelfTest` — jumps=0, chops=0, continuous transform y ([PLAYBACK_DIAG.md](../../../shell/PLAYBACK_DIAG.md)).
+
 - Engine owns `visibleCount`; React paints `index < visibleCount` (`data-studio-chat-revealed`).
 - Thinking / prelude owned by scenario playback (`site-pilot-chat`), not by browse-entry helper.
 - Bubble appear + scroll co-travel on step reveal uses `STUDIO_ENTER_MS` + `scrollCameraToTarget` / host-end in `ChatScreen` settle effect — do not reintroduce appear-then-scroll lag.

@@ -143,6 +143,7 @@ export function analyzeChatBubbleMotionSamples(
     ];
     const frames = list.filter((s) => s.bubble?.phase === "frame");
     let jumps = 0;
+    let chops = 0;
     let maxAbsDeltaY = 0;
     let maxAbsDeltaTransformY = 0;
     let framesWithScroll = 0;
@@ -151,13 +152,27 @@ export function analyzeChatBubbleMotionSamples(
       const b = s.bubble as
         | (NonNullable<(typeof list)[0]["bubble"]> & {
             chop?: boolean;
-            trace?: { clearPx?: number | null; scrollTop?: number | null };
+            jump?: boolean;
+            trace?: {
+              clearPx?: number | null;
+              scrollTop?: number | null;
+              scrollLock?: boolean;
+              deltaScrollTop?: number | null;
+            };
           })
         | undefined;
       if (!b) continue;
       if (b.jump) jumps += 1;
+      if (b.chop) chops += 1;
       if (typeof b.deltaY === "number") {
-        maxAbsDeltaY = Math.max(maxAbsDeltaY, Math.abs(b.deltaY));
+        // Co-travel moves layoutY with scrollTop — exclude from hard layout gate.
+        const coTravel =
+          b.trace?.scrollLock === true ||
+          (typeof b.trace?.deltaScrollTop === "number" &&
+            Math.abs(b.trace.deltaScrollTop) > 0.5);
+        if (!coTravel) {
+          maxAbsDeltaY = Math.max(maxAbsDeltaY, Math.abs(b.deltaY));
+        }
       }
       if (typeof b.deltaTransformY === "number") {
         maxAbsDeltaTransformY = Math.max(
@@ -195,6 +210,7 @@ export function analyzeChatBubbleMotionSamples(
         hasFrames &&
         hasAnimateEnd &&
         jumps === 0 &&
+        chops === 0 &&
         continuousY &&
         hasThinkingHandoff &&
         maxAbsDeltaY <= 10 &&
@@ -207,7 +223,14 @@ export function analyzeChatBubbleMotionSamples(
     if (!entryPaint && !hasFrames) detailParts.push(`frames=${frames.length}`);
     if (!entryPaint && !hasAnimateEnd) detailParts.push("missing animate-end");
     if (jumps > 0) detailParts.push(`jumps=${jumps}`);
+    if (chops > 0) detailParts.push(`chops=${chops}`);
     if (!entryPaint && !continuousY) detailParts.push("y not continuous");
+    if (!entryPaint && maxAbsDeltaY > 10) {
+      detailParts.push(`layoutΔY=${maxAbsDeltaY.toFixed(1)}>10`);
+    }
+    if (!entryPaint && maxAbsDeltaTransformY > 4.5) {
+      detailParts.push(`transformΔy=${maxAbsDeltaTransformY.toFixed(2)}>4.5`);
+    }
     if (kind === "reply" && !phases.includes("thinking-handoff")) {
       detailParts.push("missing thinking-handoff");
     }

@@ -87,7 +87,9 @@ While the QA gate is open, chat pull-up / thinking→reply samples feed agents w
 | Overlay log | Lean lines: `Bubble r0 pull-up` · `Bubble r0 thinking→reply` · `Bubble JUMP ΔY=…` |
 | Save Log / dump | Full frame series under `chatBubbleMotion.samples` + `summaries.chatBubbleMotion` (`jumps`, `maxAbsDeltaY`, `maxAbsDeltaTransformY`) |
 
-Jump thresholds: layout `|ΔY| > 10px` or transform `|Δy| > 4.5px` between rAF frames → `bubble.jump` + soft-fail log (Alarm / investigate). Gate closed → **no** bubble samples (same lean gate as other diag console).
+Jump thresholds: transform `|Δy| > 4.5px` between rAF frames → `bubble.jump`. Layout `|ΔY| > 10px` → jump **unless** camera co-travel (`trace.deltaScrollTop` / scrollLock). Scroll `|ΔscrollTop|` large **without** pull-up lock → `bubble.chop`. **Self-test hard FAIL:** `jumps=0`, `chops=0`, continuous transform y, transform gate — layout ΔY during intentional co-travel is dump forensics, not a hard fail. Gate closed → **no** bubble samples.
+
+**North star:** one Motion appear (`CHAT_PULL_UP`) for every progressive / send bubble; thinking exit opacity-only same duration; co-travel camera so the message finishes already in view ([MOTION.md](../product/MOTION.md) · [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)).
 
 Code: `playbackDiagChatBubbleMotion` · `chatMotion.ts` · dump: `agentTestingDump.ts`.
 

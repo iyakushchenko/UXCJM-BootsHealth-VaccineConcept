@@ -468,6 +468,21 @@ function ReplyFrame({
     });
   }, [replyActive, shouldAnimate, frame.id, visibleCount]);
 
+  // Defer helpful strip until pull-up ends — instant layout growth under tween = chop.
+  const [helpfulLive, setHelpfulLive] = useState(false);
+  useEffect(() => {
+    if (!frame.helpful || !replyActive) {
+      setHelpfulLive(false);
+      return;
+    }
+    if (!shouldAnimate) {
+      setHelpfulLive(true);
+      return;
+    }
+    const t = window.setTimeout(() => setHelpfulLive(true), CHAT_PULL_UP_MS);
+    return () => window.clearTimeout(t);
+  }, [frame.helpful, replyActive, shouldAnimate]);
+
   const onBodyClick = (e: MouseEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement | null;
     const link = t?.closest?.(".uxds-link, .chat__link");
@@ -508,13 +523,9 @@ function ReplyFrame({
       hidden={!paint}
       aria-hidden={!paint}
     >
-      <motion.div
+      <div
         className="chat__agent-slot"
         data-studio-chat-agent-slot={frame.id}
-        // Never layout-project here — layout="size" fought reply pull-up
-        // (layoutY jumps / choppy thinking→reply). Opacity+y only on bubbles.
-        layout={false}
-        transition={CHAT_PULL_UP.transition}
       >
         <AnimatePresence mode="sync" initial={false}>
           {showThinking ? (
@@ -544,8 +555,8 @@ function ReplyFrame({
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </motion.div>
-      {frame.helpful && replyActive ? <HelpfulStrip /> : null}
+      </div>
+      {helpfulLive ? <HelpfulStrip /> : null}
     </div>
   );
 }

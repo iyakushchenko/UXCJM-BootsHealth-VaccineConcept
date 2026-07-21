@@ -825,7 +825,10 @@ export function animateScrollTo(
     scrollEl.scrollTop = top;
     return Promise.resolve();
   }
-  const startTime = performance.now();
+  let animStartTop = startTop;
+  let animStartTime = performance.now();
+  let anchoredTarget = top;
+  const startTime = animStartTime;
   const resolveTargetTop = options?.resolveTargetTop;
   let lastFrameTime = startTime;
 
@@ -853,7 +856,7 @@ export function animateScrollTo(
       if (replaced) scrollReplacePending = false;
       cleanup();
       if (completed) {
-        const finalTop = resolveTargetTop?.() ?? top;
+        const finalTop = resolveTargetTop?.() ?? anchoredTarget;
         scrollEl.scrollTop = clamp(
           finalTop,
           0,
@@ -884,11 +887,21 @@ export function animateScrollTo(
         return;
       }
 
-      const progress = Math.min(1, (now - startTime) / duration);
+      const progress = Math.min(1, (now - animStartTime) / duration);
       const maxNow = Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight);
-      const currentTarget = clamp(resolveTargetTop?.() ?? top, 0, maxNow);
+      const currentTarget = clamp(resolveTargetTop?.() ?? anchoredTarget, 0, maxNow);
+      // Reply mount grows scrollHeight mid co-travel — re-anchor so one rAF
+      // cannot jump hundreds of px (chat bubble appear chop).
+      if (Math.abs(currentTarget - anchoredTarget) > 12) {
+        const t = easeOutCubic(Math.min(0.95, Math.max(0.05, progress)));
+        animStartTop =
+          t < 0.999
+            ? (scrollEl.scrollTop - currentTarget * t) / (1 - t)
+            : scrollEl.scrollTop;
+        anchoredTarget = currentTarget;
+      }
       scrollEl.scrollTop =
-        startTop + (currentTarget - startTop) * easeOutCubic(progress);
+        animStartTop + (currentTarget - animStartTop) * easeOutCubic(progress);
 
       const frameMs = now - lastFrameTime;
       lastFrameTime = now;

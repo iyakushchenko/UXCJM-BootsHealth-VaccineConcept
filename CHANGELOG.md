@@ -2,6 +2,9 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+## v0.0.104 - 210726
+- **shell:** Chat bubble appear north star + co-travel scroll re-anchor; self-test 8/8 hard-green (PP-14)
+
 ## v0.0.103 - 210726
 - **docs:** X-Suite CJM path: PO export → agent analyze → full page set (UXDS/templates/names) → REC new CJM; ask for prototypes; reuse React
 - **shell:** forceClear wipes DIAGNOSTIC_ACK_STOP; scroll-path-deviation grace 0.12 + threshold 48 (agentic prove flake)
