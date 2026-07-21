@@ -209,4 +209,49 @@ describe("playbackDiagQaBridge", () => {
       )
     ).toBe("Chat pin bottom");
   });
+
+  it("mirrors REC scroll-stop + weak clicks; suppresses routine rec-capture", () => {
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({
+          kind: "rec-capture",
+          detail: "scroll-stop 2100ms → [data-name=\"module.pdp\"]",
+          beatKind: "scroll-stop",
+        })
+      )
+    ).toBe(true);
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({
+          kind: "rec-capture",
+          detail: "demo-click no-selector",
+          beatKind: "demo-click",
+          clickOk: false,
+        })
+      )
+    ).toBe(true);
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({
+          kind: "rec-capture",
+          detail: "scroll → [data-name=\"module.pdp\"]",
+          beatKind: "scroll",
+        })
+      )
+    ).toBe(false);
+    expect(
+      labelForPlaybackDiagEvent(
+        ev({
+          kind: "rec-capture",
+          detail: "scroll-stop 2100ms → [data-name=\"module.pdp\"]",
+          beatKind: "scroll-stop",
+        })
+      )
+    ).toBe("Camera wait after scroll (2100ms)");
+    expect(
+      shouldMirrorPlaybackDiagToQa(
+        ev({ kind: "rec-compile", detail: "beats:4;clicks:2" })
+      )
+    ).toBe(true);
+  });
 });

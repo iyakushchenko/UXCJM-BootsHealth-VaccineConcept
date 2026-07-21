@@ -721,9 +721,16 @@ function flushRecordingScrollStop(): void {
   const root = resolvePrototypeScrollRoot();
   if (!root) return;
   const atMs = performance.now();
-  // Seed idle sample so quiet stretches emit even without further scroll events.
-  noteScrollSample(scrollStopTracker, root.scrollTop, atMs);
-  const signal = noteScrollIdle(scrollStopTracker, atMs);
+  // Seed lastTop for quiet stretches. noteScrollSample may already emit when
+  // quiet ≥ dwell (same-top / jiggle path) — must keep that signal. Calling
+  // noteScrollIdle alone after a successful sample emit always returns null
+  // (armed was cleared), which dropped every timer-based scroll-stop.
+  const fromSample = noteScrollSample(
+    scrollStopTracker,
+    root.scrollTop,
+    atMs
+  );
+  const signal = fromSample ?? noteScrollIdle(scrollStopTracker, atMs);
   if (!signal) return;
   const described = describeCurrentScrollAnchor();
   captureScrollStop({
@@ -862,6 +869,10 @@ function syncRecordingDomCaptureListeners(): void {
     scrollCaptureInstalled = true;
     lastCapturedScrollTargetKey = undefined;
     resetScrollStopTracker(scrollStopTracker);
+    // Baseline lastTop so the first real scroll Δ can arm (a lone jump after
+    // null lastTop only seeded and never armed → no scroll-stop / camera wait).
+    const root = resolvePrototypeScrollRoot();
+    if (root) scrollStopTracker.lastTop = root.scrollTop;
   } else if (!want && scrollCaptureInstalled) {
     document.removeEventListener("scroll", onRecordingScroll, true);
     scrollCaptureInstalled = false;

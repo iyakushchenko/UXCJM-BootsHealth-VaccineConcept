@@ -214,6 +214,21 @@ export function shouldMirrorPlaybackDiagToQa(event: PlaybackDiagEvent): boolean 
     return true;
   }
 
+  // REC lean milestones (not every scroll/click capture — dump keeps full trail).
+  if (kind === "rec-capture") {
+    if (/scroll-stop/i.test(detail) || event.beatKind === "scroll-stop") {
+      return true;
+    }
+    if (
+      event.clickOk === false ||
+      /no-selector|weak|chrome-target|miss|unusable/i.test(detail)
+    ) {
+      return true;
+    }
+    return false;
+  }
+  if (kind === "rec-compile") return true;
+
   return false;
 }
 
@@ -411,6 +426,25 @@ export function labelForPlaybackDiagEvent(event: PlaybackDiagEvent): string {
     }
     if (/clear/i.test(detail)) return "Playback diagnostics cleared";
     return clip(detail || "Info", 90);
+  }
+
+  if (kind === "rec-capture") {
+    if (/scroll-stop/i.test(detail) || event.beatKind === "scroll-stop") {
+      const ms = detail.match(/scroll-stop\s+(\d+)\s*ms/i)?.[1];
+      return ms
+        ? `Camera wait after scroll (${ms}ms)`
+        : "Camera wait after scroll";
+    }
+    if (
+      event.clickOk === false ||
+      /no-selector|weak|chrome-target|miss|unusable/i.test(detail)
+    ) {
+      return `REC click weak — ${clip(detail || "unusable selector", 70)}`;
+    }
+    return clip(detail || "REC capture", 90);
+  }
+  if (kind === "rec-compile") {
+    return `REC compiled — ${clip(detail || "journey beats", 80)}`;
   }
 
   return clip(detail || kind, 90);

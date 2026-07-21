@@ -69,4 +69,31 @@ describe("scrollStopDetect", () => {
     expect(again).toMatchObject({ scrollTop: 800 });
     expect(again!.dwellMs).toBeGreaterThanOrEqual(SCROLL_STOP_DWELL_MS);
   });
+
+  it("flush pattern: keep noteScrollSample emit (idle alone is null after)", () => {
+    // Mirrors flushRecordingScrollStop — same-top seed can emit inside
+    // noteScrollSample and clear armed; noteScrollIdle then returns null.
+    const tracker = createScrollStopTracker();
+    noteScrollSample(tracker, 0, 0);
+    noteScrollSample(tracker, 500, 10);
+    const at = 10 + SCROLL_STOP_DWELL_MS;
+    const fromSample = noteScrollSample(tracker, 500, at);
+    const fromIdle = noteScrollIdle(tracker, at);
+    expect(fromSample).not.toBeNull();
+    expect(fromIdle).toBeNull();
+    expect(fromSample ?? fromIdle).toMatchObject({
+      scrollTop: 500,
+      dwellMs: SCROLL_STOP_DWELL_MS,
+    });
+  });
+
+  it("baseline lastTop + one jump arms (REC install seed pattern)", () => {
+    const tracker = createScrollStopTracker();
+    // Simulate listener install seeding current scrollTop without arming.
+    tracker.lastTop = 0;
+    expect(noteScrollSample(tracker, 900, 5)).toBeNull();
+    expect(tracker.armed).toBe(true);
+    const stop = noteScrollIdle(tracker, 5 + SCROLL_STOP_DWELL_MS);
+    expect(stop).toMatchObject({ scrollTop: 900 });
+  });
 });

@@ -10,6 +10,13 @@ Agents **must read** this file before claiming a UI or Studio-chrome slice done.
 
 ## 2026-07-21
 
+### REC scroll-stop never compiled to camera (PO / Quinn + Finn)
+
+- **Symptom / class:** Meaningful scroll + ≥2s settle while REC live produced `scroll` events but **no** `scroll-stop` → compile missed `kind:camera` wait beats. QA also silent on camera-wait milestones.
+- **Root causes:** (1) `flushRecordingScrollStop` called `noteScrollSample` then discarded its emit; `noteScrollIdle` saw `armed=false` → always null. (2) Listener install reset tracker with `lastTop=null`, so a single scroll jump only seeded baseline and never armed.
+- **Right fix:** Keep `fromSample ?? noteScrollIdle` in flush; seed `lastTop = root.scrollTop` when installing scroll listeners. Mirror lean `rec-capture` scroll-stop (+ weak clicks) into QA as **Camera wait after scroll**.
+- **Gate:** Unit `scrollStopDetect` flush-pattern + baseline-jump; live REC PLP scroll ≥2s → `scroll-stop@2xxx` + QA row. Recipe: [RECORDING.md](../shell/RECORDING.md) · [QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md).
+
 ### Per-char type-in → QA log flood — do NOT kill composer animation (PO / Arch + Finn)
 
 - **Symptom / class:** Huge perf drop / QA overlay noise during continuous Play — one log line (or diag event) per typed character while Site Pilot / Chat composers animate. Dump fingerprint: `typeIn.samples=249` with `starts/ends=2`.
