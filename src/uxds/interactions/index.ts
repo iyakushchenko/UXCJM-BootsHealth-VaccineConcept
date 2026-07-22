@@ -48,3 +48,8 @@ export {
   PendingSpinnerIcon,
   type PendingSpinnerIconProps,
 } from "./PendingSpinnerIcon";
+
+export {
+  CommitPulseIcon,
+  type CommitPulseIconProps,
+} from "./CommitPulseIcon";

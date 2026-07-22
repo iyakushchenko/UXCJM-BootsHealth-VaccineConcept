@@ -20,6 +20,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  CommitPulseIcon,
   PendingSpinnerIcon,
 } from "@/uxds/interactions";
 import {
@@ -258,9 +259,18 @@ function ServiceTile({
   // Optimistic flip landed but the delayed real commit hasn't (add path
   // only — remove commits synchronously so this never latches true there).
   const wishlistCommitPending = heartActive && !wishlisted;
+  // Bumps once per real add-commit (false → true) so CommitPulseIcon can
+  // replay its pop — never on mount (ref starts equal to current value)
+  // and never on remove (that transition is true → false).
+  const wasWishlistedRef = useRef(wishlisted);
+  const [commitPulseKey, setCommitPulseKey] = useState(0);
 
   useEffect(() => {
     setOptimisticOn(null);
+    if (!wasWishlistedRef.current && wishlisted) {
+      setCommitPulseKey((k) => k + 1);
+    }
+    wasWishlistedRef.current = wishlisted;
   }, [wishlisted]);
 
   return (
@@ -301,7 +311,11 @@ function ServiceTile({
               data-studio-bookmarked={heartActive ? "true" : "false"}
               aria-pressed={heartActive}
               aria-label={
-                heartActive ? "Remove from Bookmarks" : "Add to Bookmarks"
+                wishlistCommitPending
+                  ? "Saving to Bookmarks"
+                  : heartActive
+                    ? "Remove from Bookmarks"
+                    : "Add to Bookmarks"
               }
               onPointerDown={() => setOptimisticOn(!heartActive)}
               onClick={onToggleWishlist}
@@ -314,11 +328,19 @@ function ServiceTile({
               >
                 {wishlistCommitPending ? (
                   <PendingSpinnerIcon size={16} />
+                ) : commitPulseKey > 0 ? (
+                  <CommitPulseIcon pulseKey={commitPulseKey}>
+                    <BookmarkGlyph />
+                  </CommitPulseIcon>
                 ) : (
                   <BookmarkGlyph />
                 )}
               </span>
-              {heartActive ? (
+              {wishlistCommitPending ? (
+                <span className="plp__bookmark-label" data-bookmarked="pending">
+                  Saving…
+                </span>
+              ) : heartActive ? (
                 <span className="plp__bookmark-label" data-bookmarked="true">
                   <span className="plp__bookmark-label--default">
                     In your Bookmarks
