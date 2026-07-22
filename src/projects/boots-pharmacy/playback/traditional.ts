@@ -1,5 +1,7 @@
 import {
   isHeaderLoggedIn,
+  isInWishlist,
+  plpTileWishlistId,
   resetPlpTileBookmarkForPlayback,
 } from "@/projects/boots-pharmacy/chrome/headerMount";
 import type { JourneyRuntime, TabScriptId } from "@/app/orchestra/types";
@@ -288,15 +290,34 @@ async function showcaseSarahAvatarDot(
   return !shouldAbort();
 }
 
+/**
+ * The PLP heart flips its optimistic hover/pressed state instantly, but the
+ * real wishlist store write is intentionally held open (PLP_WISHLIST_ADD_DELAY_MS,
+ * see plpCatalog.ts) so the state change stays visible longer. Wait for the
+ * real commit here so the avatar-dot showcase right after never races ahead
+ * and hovers an empty dot.
+ */
+async function waitForWishlistCommit(id: string, tries = 80): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
+    if (isInWishlist(id)) return true;
+    if (shouldAbort()) return false;
+    await playbackReadinessDelay(50);
+  }
+  return isInWishlist(id);
+}
+
 async function addFirstPlpTileBookmark(
   tile: HTMLElement,
   options?: { skip?: boolean }
 ): Promise<boolean> {
   const bookmarkBtn = findPlpBookmarkBtn(tile);
   if (!bookmarkBtn || shouldAbort()) return false;
+  const wishId =
+    bookmarkBtn.getAttribute("data-studio-wishlist-id") ?? plpTileWishlistId(0);
 
   if (options?.skip) {
     bookmarkBtn.click();
+    await waitForWishlistCommit(wishId);
     await delay(120);
     return true;
   }
@@ -306,6 +327,7 @@ async function addFirstPlpTileBookmark(
     scroll: false,
   });
   if (!clicked || shouldAbort()) return false;
+  await waitForWishlistCommit(wishId);
   await delay(SETTLE_MS);
   return true;
 }
@@ -398,6 +420,23 @@ async function openLoginFromPdpQuickSignIn(
   return settleLoginPopup(card);
 }
 
+/**
+ * PLP mounts with its own "content-load interim" spinner over the tiles
+ * (platform pattern — not a one-off), independent of the wishlist delay.
+ * A click that lands while that overlay is still up races the tile's own
+ * re-render and can drop the optimistic heart flip. Wait for it to clear.
+ */
+async function waitForPlpListingSettled(
+  screen: ParentNode,
+  tries = 80
+): Promise<void> {
+  for (let i = 0; i < tries; i++) {
+    if (!screen.querySelector("[data-studio-plp-listing-loader]")) return;
+    if (shouldAbort()) return;
+    await playbackReadinessDelay(50);
+  }
+}
+
 async function runPlpOpenPdp(options?: { skip?: boolean }): Promise<PlaybackScriptResult> {
   resetDemoCursorTravelOrigin();
 
@@ -407,6 +446,7 @@ async function runPlpOpenPdp(options?: { skip?: boolean }): Promise<PlaybackScri
   }
 
   await delay(SETTLE_MS);
+  await waitForPlpListingSettled(screen);
 
   const tile = await waitForVisibleTarget(screen, findFirstVisiblePlpTile);
   if (!tile) {

@@ -18,7 +18,7 @@ without rewriting history.
 | Topic | Start with | Typical use |
 |-------|------------|-------------|
 | REC capture, compile, and honesty | [REC robustness](#topic-rec) · [Recording baseline](#topic-recording-baseline) | Arming, new-CJM proof, labels, scroll-stop, compile/replay |
-| Continuous Play and diagnostics | [Playback completion](#topic-playback) · [Navigation/journeys baseline](#topic-navigation-baseline) · [Beat-tab alignment race](#topic-playback-alignment) | Stalls, end state, scroll/cursor diagnostics, Step/Play parity, beat-tab-mismatch |
+| Continuous Play and diagnostics | [Playback completion](#topic-playback) · [Navigation/journeys baseline](#topic-navigation-baseline) · [Beat-tab alignment race](#topic-playback-alignment) · [PLP listing-load race](#topic-plp-listing-race) | Stalls, end state, scroll/cursor diagnostics, Step/Play parity, beat-tab-mismatch, scripted click vs screen's own reveal timer |
 | Play/REC/QA prove surface sprawl (token burn) | [Prove harness debt](#topic-prove-harness) · board LATER 12a · PP-41 | One-line product flips cascade across smokes/docs/asserts — **refactor later, not now** |
 | QA overlay and PO signals | [Overlay reset/HMR](#topic-overlay) · [Overlay baseline](#topic-overlay-baseline) | ALWAYS CLEAR, alarm/cursor/scroll, teardown, false FAIL |
 | QA suite Observe / touch-wrap (R16) | [Suite Observe race](#topic-suite-observe) · dig [`qaSuiteTouchWrapContract.ts`](../../src/app/shell/qaSuiteTouchWrapContract.ts) | `dom-observe-open kind=agent` after suite sanity |
@@ -36,6 +36,14 @@ For role-specific mandatory reading, return to
 ---
 
 ## 2026-07-22
+
+<a id="topic-plp-listing-race"></a>
+### PLP bookmark click racing the listing content-load overlay (PO)
+
+- **Symptom / class:** Traditional CJM `plp-open-pdp` beat clicked "Add to Bookmarks" but the heart/label never visually activated — only the (intentionally delayed) real store commit ~2s later flipped it, so watchers saw no immediate feedback on click.
+- **Root cause:** PLP always runs a "content-load interim" (`PLP_LISTING_LOAD_MS` ≈ `STUDIO_CONTENT_LOAD_MS`, ~1.5s, **not** wrapped in `playbackMs` so it never compresses in fast/test mode) on every mount — a spinner overlay band, unrelated to bookmarks. `runPlpOpenPdp` only waited `SETTLE_MS` (320ms) after the screen became active before clicking, landing well inside that ~1.5s window. A click during that window still dispatched `pointerdown`/`click` correctly, but the tile's own optimistic `setOptimisticOn` flip never stuck — confirmed live via `MutationObserver` + a native `pointerdown` listener on the button (clean isolated click before the window closes: no attribute change ever; same click issued after the window closes: `aria-pressed`/`data-studio-bookmarked` flip within ~11ms of `pointerdown`).
+- **Right fix:** `waitForPlpListingSettled` in `traditional.ts` — poll for `[data-studio-plp-listing-loader]` to clear (using the same `playbackReadinessDelay` polling idiom as `waitForVisibleTarget`/`pollForLoginPopup`) before finding/clicking the bookmark button. Any scripted click into a screen that has its own async "reveal" timer must wait for that reveal, not just for the screen container to be visible.
+- **Gate:** Live MCP trace (`MutationObserver` on the button + `pointerdown` listener) through `__studioRunFullPlayProve({ experience: "traditional" })` — `native-pointerdown` and `data-studio-bookmarked`/`aria-pressed` → `"true"` land in the same ~10ms window, no delayed-only flip.
 
 <a id="topic-prove-harness"></a>
 ### Playback/REC/QA prove surface — architecture debt (PO / Arch)
