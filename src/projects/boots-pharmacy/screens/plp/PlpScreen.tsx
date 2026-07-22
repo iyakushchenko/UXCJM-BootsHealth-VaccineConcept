@@ -12,6 +12,7 @@ import {
   plpTileWishlistId,
   toggleWishlist,
 } from "@/projects/boots-pharmacy/chrome/headerMount";
+import { playbackMs } from "@/app/shell/playbackTiming";
 import { ButtonPrimary, SearchField } from "@/uxds/components";
 import {
   Accordion,
@@ -26,6 +27,7 @@ import {
   PLP_FILTER_LIST_MAX,
   PLP_LISTING_LOAD_MS,
   PLP_REGION_OPTIONS,
+  PLP_WISHLIST_ADD_DELAY_MS,
   capPlpFilterOptionList,
   collectPlpActiveFilterChips,
   collectPlpCountryFilterLabels,
@@ -390,6 +392,17 @@ export function PlpScreen({
   const syncPassRef = useRef(0);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tilesHostRef = useRef<HTMLDivElement | null>(null);
+  /** Wishlist adds held open on `PLP_WISHLIST_ADD_DELAY_MS` before commit. */
+  const wishlistAddTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map()
+  );
+
+  useEffect(() => {
+    return () => {
+      wishlistAddTimersRef.current.forEach((timer) => clearTimeout(timer));
+      wishlistAddTimersRef.current.clear();
+    };
+  }, []);
 
   const dirty = isPlpFiltersDirty(filters);
   const activeChips = collectPlpActiveFilterChips(filters);
@@ -922,8 +935,31 @@ export function PlpScreen({
                         reveal={listingPhase === "reveal"}
                         probeBelowFold={isLastTile && displayItems.length > 1}
                         onToggleWishlist={() => {
-                          toggleWishlist(wishId);
-                          setWishlistTick((n) => n + 1);
+                          const timers = wishlistAddTimersRef.current;
+                          const pendingAdd = timers.get(wishId);
+                          if (wishlisted || pendingAdd != null) {
+                            if (pendingAdd != null) {
+                              // Still pending — cancel; nothing was ever added.
+                              clearTimeout(pendingAdd);
+                              timers.delete(wishId);
+                              return;
+                            }
+                            toggleWishlist(wishId);
+                            setWishlistTick((n) => n + 1);
+                            return;
+                          }
+                          // Adding — hold the commit open so the user has
+                          // time to see the optimistic hover/pressed flip
+                          // before it lands in Bookmarks (LESSONS-style
+                          // no-invent: engine playbackMs, not a raw ms).
+                          timers.set(
+                            wishId,
+                            setTimeout(() => {
+                              timers.delete(wishId);
+                              toggleWishlist(wishId);
+                              setWishlistTick((n) => n + 1);
+                            }, playbackMs(PLP_WISHLIST_ADD_DELAY_MS))
+                          );
                         }}
                         onBookNow={() => onBookNow(item)}
                         onQuickView={() => onQuickView(item)}

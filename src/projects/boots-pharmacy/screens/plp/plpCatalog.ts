@@ -11,6 +11,16 @@ import {
 /** Listing / refresh preloader — platform content-load interim (not a one-off). */
 export const PLP_LISTING_LOAD_MS = STUDIO_CONTENT_LOAD_MS;
 
+/**
+ * Hold before an "Add to Bookmarks" click actually commits — the optimistic
+ * hover/pressed state flips instantly on pointerdown; this only delays the
+ * real store write so the user has time to register the state change.
+ * Wrap with `playbackMs()` (@/app/shell/playbackTiming) at the call site so
+ * `uxml play` / smoke fast-playback mode compresses it — never await the raw
+ * constant directly.
+ */
+export const PLP_WISHLIST_ADD_DELAY_MS = 2000;
+
 export type PlpListingKind = "jab" | "bundle";
 
 export type PlpCatalogItem = {
