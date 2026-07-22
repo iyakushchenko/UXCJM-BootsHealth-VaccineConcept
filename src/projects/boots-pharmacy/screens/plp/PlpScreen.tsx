@@ -20,6 +20,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  PendingSpinnerIcon,
 } from "@/uxds/interactions";
 import {
   DEFAULT_PLP_FILTERS,
@@ -254,6 +255,9 @@ function ServiceTile({
   // Click-optimistic only. Empty hover = Make tertiary navy (CSS), NOT fuchsia.
   const [optimisticOn, setOptimisticOn] = useState<boolean | null>(null);
   const heartActive = optimisticOn ?? wishlisted;
+  // Optimistic flip landed but the delayed real commit hasn't (add path
+  // only — remove commits synchronously so this never latches true there).
+  const wishlistCommitPending = heartActive && !wishlisted;
 
   useEffect(() => {
     setOptimisticOn(null);
@@ -306,8 +310,13 @@ function ServiceTile({
                 className={`plp__tertiary-icon${heartActive ? " is-active" : ""}`}
                 data-name="icon=add to wishlist"
                 data-fav-active={String(heartActive)}
+                data-fav-pending={String(wishlistCommitPending)}
               >
-                <BookmarkGlyph />
+                {wishlistCommitPending ? (
+                  <PendingSpinnerIcon size={16} />
+                ) : (
+                  <BookmarkGlyph />
+                )}
               </span>
               {heartActive ? (
                 <span className="plp__bookmark-label" data-bookmarked="true">

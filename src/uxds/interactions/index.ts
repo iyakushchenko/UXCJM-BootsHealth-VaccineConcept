@@ -43,3 +43,8 @@ export {
   useFilterChipToggle,
   type UseFilterChipToggleOptions,
 } from "./useFilterChipToggle";
+
+export {
+  PendingSpinnerIcon,
+  type PendingSpinnerIconProps,
+} from "./PendingSpinnerIcon";

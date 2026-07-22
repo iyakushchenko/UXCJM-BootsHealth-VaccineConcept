@@ -1,0 +1,60 @@
+/**
+ * Shared "committing" spinner — same turn/arc timing as PLP's listing
+ * content-load loader, promoted here so any control gets it for free
+ * instead of a per-screen reinvention. Arc = currentColor (inherits the
+ * consumer's active-state color); track = neutral DS border token.
+ */
+.uxds-pending-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uxds-pending-spinner svg {
+  display: block;
+  transform-origin: 50% 50%;
+  animation: uxds-pending-spinner-turn 0.85s linear infinite;
+  will-change: transform;
+}
+
+.uxds-pending-spinner__track {
+  stroke: var(--uxds-border-border-default, #d6d6d6);
+  stroke-width: 4;
+}
+
+.uxds-pending-spinner__arc {
+  stroke: currentColor;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  animation: uxds-pending-spinner-arc 1.1s ease-in-out infinite;
+  will-change: stroke-dasharray, stroke-dashoffset;
+}
+
+@keyframes uxds-pending-spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes uxds-pending-spinner-arc {
+  0% {
+    stroke-dasharray: 1 113;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 56 113;
+    stroke-dashoffset: -18;
+  }
+  100% {
+    stroke-dasharray: 1 113;
+    stroke-dashoffset: -113;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uxds-pending-spinner svg,
+  .uxds-pending-spinner__arc {
+    animation: none !important;
+  }
+}
