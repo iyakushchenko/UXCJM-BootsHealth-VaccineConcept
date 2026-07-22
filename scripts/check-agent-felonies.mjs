@@ -14,6 +14,9 @@
  *  8. Modal URL sync registry — every popup syncs `&modal=` on open
  *  9. Probe teardown — finally forceClear path + resetStudioAfterAgentTest strips `&modal=`
  * 10. Auth SSoT — studioAuthSession / __studioIsLoggedIn used for logged-in branching
+ * 14. Content-load SSoT — data-studio-content-loading writers must use
+ *     waitStudioContentLoad (shared, abortable, never-compressed), not a raw
+ *     setTimeout — prevents scripted clicks racing a screen's reveal timer
  *
  * Companion gates (also in npm test):
  *  - check:hygiene · check:links · check:version · check:parity-* · check:theme-brand
@@ -940,6 +943,43 @@ if (!fs.existsSync(wirePath)) {
   }
 }
 
+// --- 14) Content-load interim SSoT — data-studio-content-loading timers must
+// use the shared waitStudioContentLoad (uncompressed, abortable) primitive,
+// never a raw setTimeout. A raw setTimeout let a scripted click race PLP's
+// listing reveal and silently lose its optimistic visual state — invisible
+// in fast/test mode because that race window only exists at real speed.
+// LESSONS_LEARNED #topic-plp-listing-race.
+{
+  const RULE_ID = "content-load-ssot";
+  const CONTENT_LOAD_WRITER_RE =
+    /setAttribute\(\s*["']data-studio-content-loading["']/;
+  for (const { full, rel } of walk(path.join(ROOT, "src"))) {
+    if (!/\.tsx?$/.test(rel)) continue;
+    if (rel.endsWith("src/uxds/motion/index.ts")) continue;
+    if (/__tests__/.test(rel)) continue;
+    const src = fs.readFileSync(full, "utf8");
+    // Only the screen that WRITES the attribute (drives the reveal timer)
+    // is in scope — readers (probes, playback director gates) just poll it.
+    if (!CONTENT_LOAD_WRITER_RE.test(src)) continue;
+    if (!/waitStudioContentLoad/.test(src)) {
+      fail(
+        `FELONY ${RULE_ID}: ${rel} sets data-studio-content-loading but does not use waitStudioContentLoad (raw setTimeout would race scripted clicks)`
+      );
+      continue;
+    }
+    // A raw setTimeout alongside the attribute (not routed through the
+    // shared helper) is the exact regression class — flag it even when the
+    // helper is imported but bypassed for the actual gating delay.
+    const rawTimeoutNearAttr = /setTimeout\(/.test(src);
+    const usesHelperForDelay = /waitStudioContentLoad\(/.test(src);
+    if (rawTimeoutNearAttr && !usesHelperForDelay) {
+      fail(
+        `FELONY ${RULE_ID}: ${rel} — call waitStudioContentLoad(ms, shouldAbort), not a bare setTimeout, to gate the content-loading window`
+      );
+    }
+  }
+}
+
 if (errors.length) {
   console.error("[check:felonies] FAIL — agent felony gate:\n");
   for (const e of errors) console.error(`  • ${e}`);
@@ -950,5 +990,5 @@ if (errors.length) {
 }
 
 console.log(
-  "[check:felonies] OK — filenames, PANEL CSS, data-proto, BOOTS stubs, channel, version chip, overlay eyes, modal URL sync, agent-teardown-clean, auth-ssot, fixed-localhost-reuse-tab, qa-suite-no-touch-wrap, agent-stuck-router"
+  "[check:felonies] OK — filenames, PANEL CSS, data-proto, BOOTS stubs, channel, version chip, overlay eyes, modal URL sync, agent-teardown-clean, auth-ssot, fixed-localhost-reuse-tab, qa-suite-no-touch-wrap, agent-stuck-router, content-load-ssot"
 );

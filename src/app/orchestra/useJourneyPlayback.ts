@@ -34,6 +34,7 @@ import {
   shouldSuppressTransportNoOpForBeat,
 } from "@/app/orchestra/manualDirectorStep";
 import { syncBeatRetreatState } from "@/app/orchestra/journeyRetreatSync";
+import { waitForContentLoadSettled } from "@/app/scenario/playbackReadiness";
 import {
   navigateToBeatTab,
   shouldNavigateBeatTabOnEnter,
@@ -420,6 +421,13 @@ export function useJourneyPlayback({
       options?: { skip?: boolean }
     ): Promise<{ ok: boolean; failureStep?: string; diagnosticSent: boolean }> => {
       try {
+        // Director-owned safety net (LESSONS_LEARNED #topic-plp-listing-race):
+        // any screen's own async content-load interim must clear before a
+        // script's first interaction, or the click can land mid-reveal and
+        // lose its visual effect. One choke point covers every beat kind —
+        // screens opt in by setting data-studio-content-loading, no
+        // per-script wait needed.
+        await waitForContentLoadSettled();
         const result = await runScriptWithGuard(label, run);
         return {
           ok: isScriptOk(result),

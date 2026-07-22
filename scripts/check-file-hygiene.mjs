@@ -30,7 +30,7 @@ const ALLOWLIST = {
   "src/styles/globals-chrome.css": 2650, // + carriage OS cursor CSS (large demo I-beam)
   "src/styles/globals-hub.css": 1400,
   // Engine / hybrid monsters — prefer domain split over bumping.
-  "src/app/orchestra/useJourneyPlayback.ts": 2260, // + beatEnterPendingRef (fixes book-step2 beat-tab-mismatch race, 2026-07-22)
+  "src/app/orchestra/useJourneyPlayback.ts": 2265, // + waitForContentLoadSettled director gate (content-load-ssot hardening, 2026-07-22)
   "src/app/App.tsx": 2160, // + declarative scenario transition floor; orchestration extraction is a separate refactor
   "src/app/shell/agent-testing/agentTestingOverlay.ts": 4800, // + Reset capture-off + ring restore coalesce + Save Log silent pause
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug

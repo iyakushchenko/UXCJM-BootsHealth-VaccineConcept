@@ -13,6 +13,7 @@ import {
   toggleWishlist,
 } from "@/projects/boots-pharmacy/chrome/headerMount";
 import { playbackMs } from "@/app/shell/playbackTiming";
+import { waitStudioContentLoad } from "@/uxds/motion";
 import { ButtonPrimary, SearchField } from "@/uxds/components";
 import {
   Accordion,
@@ -390,7 +391,6 @@ export function PlpScreen({
   const [diseaseExpanded, setDiseaseExpanded] = useState(false);
   const [countryExpanded, setCountryExpanded] = useState(false);
   const syncPassRef = useRef(0);
-  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tilesHostRef = useRef<HTMLDivElement | null>(null);
   /** Wishlist adds held open on `PLP_WISHLIST_ADD_DELAY_MS` before commit. */
   const wishlistAddTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
@@ -413,13 +413,14 @@ export function PlpScreen({
   }, [dirty, onFiltersDirtyChange]);
 
   // Platform content-load interim on first paint / refresh — not instant dump.
+  // Shared waitStudioContentLoad (not a raw setTimeout) — same wait primitive
+  // Chat's browse-entry reveal uses, so every content-load interim honors the
+  // same abort/no-compress contract (LESSONS #topic-plp-listing-race: a raw
+  // setTimeout here let a scripted click race the reveal and lose its
+  // optimistic visual state).
   useEffect(() => {
     const next = filterPlpCatalog(filters);
-
-    if (loadTimerRef.current != null) {
-      clearTimeout(loadTimerRef.current);
-      loadTimerRef.current = null;
-    }
+    let cancelled = false;
 
     // Lock host height before tiles hide — prevents listing band collapse jump.
     const host = tilesHostRef.current;
@@ -436,8 +437,9 @@ export function PlpScreen({
     } catch {
       /* hang-safe */
     }
-    loadTimerRef.current = setTimeout(() => {
-      loadTimerRef.current = null;
+
+    void waitStudioContentLoad(PLP_LISTING_LOAD_MS, () => cancelled).then(() => {
+      if (cancelled) return;
       setDisplayItems(next);
       setListingPhase("reveal");
       setLoadHostMinHeight(null);
@@ -447,13 +449,10 @@ export function PlpScreen({
         /* hang-safe */
       }
       syncPassRef.current = Math.max(1, syncPassRef.current + 1);
-    }, PLP_LISTING_LOAD_MS);
+    });
 
     return () => {
-      if (loadTimerRef.current != null) {
-        clearTimeout(loadTimerRef.current);
-        loadTimerRef.current = null;
-      }
+      cancelled = true;
       try {
         document.body.removeAttribute("data-studio-content-loading");
       } catch {
