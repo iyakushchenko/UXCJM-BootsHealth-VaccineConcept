@@ -1,6 +1,5 @@
 import type { JourneyDefinition } from "@/app/orchestra/types";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
-import recTradReserveSignedIn from "@/projects/boots-pharmacy/personas/sarah-jenkins/cjm/recorded/rec-trad-mruvf81h-7bh0.journey.json";
 export {
   AGENTIC_CJM_JOURNEY,
   TRADITIONAL_CJM_JOURNEY,
@@ -20,7 +19,6 @@ type DeployedJourneyFile = {
 };
 
 const RECORDED_CJM_FILES = [
-  recTradReserveSignedIn,
 ] as unknown as DeployedJourneyFile[];
 
 /** Authoritative deployed catalog for Boots Pharmacy / Sarah Jenkins. */
