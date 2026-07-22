@@ -38,8 +38,10 @@ describe("playbackCursorDiagnostic", () => {
 
   it("identifies book step 2 beats", () => {
     expect(isBookStep2BeatId("book-step2")).toBe(true);
+    expect(isBookStep2BeatId("book-step-2")).toBe(true);
     expect(isBookStep2BeatId("book-step2-date")).toBe(true);
     expect(isBookStep2DwellBeatId("book-step2")).toBe(true);
+    expect(isBookStep2DwellBeatId("book-step-2")).toBe(true);
     expect(isBookStep2DwellBeatId("book-step2-date")).toBe(false);
   });
 

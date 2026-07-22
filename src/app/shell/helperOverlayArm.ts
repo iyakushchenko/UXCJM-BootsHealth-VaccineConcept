@@ -15,6 +15,19 @@ import {
   touchAgentTestingOverlay,
 } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { getMcpTestSession } from "@/app/shell/mcpTestGuard";
+import {
+  isQuietHelperSuffix,
+  MUST_STAY_QUIET_SUITE_HELPER_SUFFIXES,
+  QA_SUITE_NO_TOUCH_WRAP_RULE_ID,
+  QA_SUITE_TOUCH_WRAP_DIG,
+} from "@/app/shell/qaSuiteTouchWrapContract";
+
+export {
+  QA_SUITE_NO_TOUCH_WRAP_RULE_ID,
+  QA_SUITE_TOUCH_WRAP_DIG,
+  MUST_STAY_QUIET_SUITE_HELPER_SUFFIXES,
+  isQuietHelperSuffix,
+};
 
 const READ_ONLY_HELPER_SUFFIXES = new Set([
   "AgentTestingOverlay",
@@ -69,10 +82,10 @@ const READ_ONLY_HELPER_SUFFIXES = new Set([
   "HaltPlaybackForPoSignal",
   "ForceClearAgentTestingOverlay",
   "SoftCloseQaLogger",
-  // Page probe / sanity manage start+stop themselves — wrapping touch() nest-bumps
-  // start() and leaves stop() stuck at nest>0 (no sitrep / flaky panel).
-  "RunMcpPageProbe",
-  "RunMcpSanityCheck",
+  // Autonomous QA suite + runners — also gated by isQuietHelperSuffix (R16).
+  ...MUST_STAY_QUIET_SUITE_HELPER_SUFFIXES,
+  // Chat bubble self-test owns Observe/agent open.
+  "RunChatBubbleMotionSelfTest",
   // Full Play prove — owns forceClear/arm/leave; must not double-touch wrap.
   "RunFullPlayProve",
   "RunAgenticFullPlayProve",
@@ -123,7 +136,13 @@ const SELF_LOGGED_HELPER_SUFFIXES = new Set([
 ]);
 
 const ARMED_FLAG = "__studioOverlayArmed";
+const INNER_FN = "__studioOverlayInner";
 const STUDIO_WINDOW_API = /^__(?:proto|studio)[A-Z]/;
+
+type ArmedFn = ((...args: unknown[]) => unknown) & {
+  [ARMED_FLAG]?: boolean;
+  [INNER_FN]?: (...args: unknown[]) => unknown;
+};
 
 function helperSuffix(key: string): string | null {
   if (key.startsWith("__studio")) return key.slice("__studio".length);
@@ -132,12 +151,25 @@ function helperSuffix(key: string): string | null {
 }
 
 function isReadOnlySuffix(suffix: string): boolean {
-  return READ_ONLY_HELPER_SUFFIXES.has(suffix);
+  // Explicit list OR R16 quiet patterns (future *QaSuite* / status polls).
+  return READ_ONLY_HELPER_SUFFIXES.has(suffix) || isQuietHelperSuffix(suffix);
+}
+
+/** Prefer the pre-wrap implementation when a helper was reclassified read-only. */
+function unwrapHelper(fn: (...args: unknown[]) => unknown): (...args: unknown[]) => unknown {
+  const armed = fn as ArmedFn;
+  return armed[ARMED_FLAG] && typeof armed[INNER_FN] === "function"
+    ? armed[INNER_FN]!
+    : fn;
 }
 
 function wrapHelper(suffix: string, fn: (...args: unknown[]) => unknown) {
-  if ((fn as { [ARMED_FLAG]?: boolean })[ARMED_FLAG]) return fn;
-  const wrapped = (...args: unknown[]) => {
+  const inner = unwrapHelper(fn);
+  if (isReadOnlySuffix(suffix)) return inner;
+  if ((fn as ArmedFn)[ARMED_FLAG] && (fn as ArmedFn)[INNER_FN] === inner) {
+    return fn;
+  }
+  const wrapped: ArmedFn = (...args: unknown[]) => {
     // Autonomous QA already owns an active session. Re-touching its own
     // window helpers can confirm a just-raised handoff and pause the runner.
     // Manual agent calls still arm/touch exactly as before.
@@ -156,9 +188,10 @@ function wrapHelper(suffix: string, fn: (...args: unknown[]) => unknown) {
     } catch {
       /* ignore */
     }
-    return fn(...args);
+    return inner(...args);
   };
-  (wrapped as { [ARMED_FLAG]?: boolean })[ARMED_FLAG] = true;
+  wrapped[ARMED_FLAG] = true;
+  wrapped[INNER_FN] = inner;
   return wrapped;
 }
 
@@ -211,17 +244,14 @@ export function armOverlayOnStudioHelpers(): void {
   const w = window as unknown as Record<string, unknown>;
 
   for (const suffix of collectApiSuffixes()) {
-    if (isReadOnlySuffix(suffix)) continue;
     const protoKey = `__proto${suffix}`;
     const studioKey = `__studio${suffix}`;
     const raw = w[protoKey] ?? w[studioKey];
     if (typeof raw !== "function") continue;
-    const wrapped = wrapHelper(
-      suffix,
-      raw as (...args: unknown[]) => unknown,
-    );
-    w[protoKey] = wrapped;
-    w[studioKey] = wrapped;
+    // Read-only (incl. reclassified suite status polls): unwrap any stale touch-wrap.
+    const next = wrapHelper(suffix, raw as (...args: unknown[]) => unknown);
+    w[protoKey] = next;
+    w[studioKey] = next;
   }
 
   // Non-functions (overlay object, getters installed as values) + any leftovers.

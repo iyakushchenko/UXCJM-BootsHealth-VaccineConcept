@@ -15,10 +15,13 @@
 | PLP | …starting **PDP** |
 | PDP | …starting **Home** |
 | Home | …starting **Chat** |
-| Chat | …starting **History/Details** |
+| Chat | …starting **History** |
+| History | …starting **Details** |
 | History/Details | …deleting Book 1–3 Make children |
 
 Arch **rejects** “start next page” / Bea brief / Finn mount for the next screen while the previous page’s Final Pass is not hard-green. **Parallel callsigns remain mandatory** for serious streams. **`Knowledge used:`** remains mandatory on team check ([TEAM.md](./TEAM.md) § Knowledge use).
+
+**Also required on every new/migrated page:** [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 (UXDS + existing UXML first; theme = brand delta only) — sequencing here does not waive inheritance.
 
 ---
 

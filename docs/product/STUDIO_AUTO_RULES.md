@@ -45,8 +45,9 @@
 | R13 | **`playback-diag`** | CJM type-in / step / retreat regressions checkable from console every night | `vitest` (`playbackDiag`) | `__studioPlaybackDiag` / `__studioAssertTypeIn` | Step-forward + retreat smokes + assertTypeIn |
 | R14 | **`agent-testing-midflight`** | Mid-flight QA shell (not helper spam) | `vitest` | overlay APIs | Alarm/Cursor/Scroll + timeline |
 | R15 | **`po-signal-consume`** | PO Alarm/Cursor/Scroll mid-smoke ignored / dump-only / soft-continue | `vitest` (`agentTestingPoSignal` + `smokePoSignalPoll`) | `__studioConsumePoSignal` | Poll each beat; **STOP→FIX→reprove**; latch→consume prove |
+| R16 | **`qa-suite-no-touch-wrap`** | Suite/status window helpers must **never** helper-touch-wrap; polls must not re-arm CONTROL during Observe self-test | `check:felonies` + `vitest` (`qaSuiteTouchWrapContract`) + self-test smoke | `__studioRunQaSelfTestSmoke` | Suite `[mcp-sanity, qa-self-test]` PASS; dig card on FAIL |
 
-**Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table for **CI-gated** rules (R1–R11, R13). **R12** is process-only (docs + director); do not invent a fake CI assert.
+**Code catalog:** `src/app/shell/studioAutoRules.ts` (`STUDIO_AUTO_RULES`) — keep ids in sync with this table for **CI-gated** rules (R1–R11, R13, **R16**). **R12** is process-only (docs + director); do not invent a fake CI assert.
 
 ---
 
@@ -247,6 +248,27 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 **CI:** Vitest latch/consume + `smokePoSignalPoll` (alarm/cursor/scroll abort). Prove: R11 `:5173` PO click → takeover → consume → null; mid-smoke abort with `po-<type>:*` + `diagSnapshot`; type-in cursor visible.  
 **Smokes that poll each beat:** agentic/traditional step-forward + Play (+ home-play). Helper: `smokePoSignalPoll.ts`.  
 **Docs:** [PLAYBACK_DIAG.md](../shell/PLAYBACK_DIAG.md) · [TEAM.md](./TEAM.md) · [PAINPOINTS.md](./PAINPOINTS.md) PP-11/PP-12 · [AGENTS.md](../../AGENTS.md).
+
+---
+
+## R16 — QA suite / status helpers never touch-wrap (HARD)
+
+**Id:** `qa-suite-no-touch-wrap`  
+**Law:** Autonomous QA suite + status/peek window helpers must **not** be helper-touch-wrapped. Live polls (`__studioGetQaSuiteStatus`, etc.) must never re-arm AGENT CONTROL while self-test forceClears + opens Observe.
+
+**Symptom agents will see:** Suite `mcp-sanity` PASS → `qa-self-test` FAIL `dom-observe-open kind=agent phase=control` while direct `sanity → smoke` PASS.
+
+**Probable cause:** `fn.__studioOverlayArmed === true` on a quiet helper. Touch runs before the real call → CONTROL within ~50ms of wipe → `OpenQaLogger({ kind:'observe' })` no-ops on agent lock.
+
+**Where to dig (SSoT):**
+1. `src/app/shell/qaSuiteTouchWrapContract.ts` — dig card + `isQuietHelperSuffix` + `MUST_STAY_QUIET_SUITE_HELPER_SUFFIXES`
+2. `src/app/shell/helperOverlayArm.ts` — must call `isQuietHelperSuffix` / unwrap
+3. `src/app/shell/qaAutonomousSuite.ts` — must not suite-touch before self-test
+
+**Fix:** Keep / add suffix under quiet contract (patterns catch future `*QaSuite*`); hard-reload `:5173` after arm changes. Prove: `forceClear` → poll `GetQaSuiteStatus` ×20 → kind stays non-agent; suite `[mcp-sanity, qa-self-test]` PASS; `!window.__studioGetQaSuiteStatus.__studioOverlayArmed`.
+
+**CI:** `check:felonies` (contract + catalog + helperOverlayArm wire) · `vitest` `qaSuiteTouchWrapContract` · self-test checks `suite-helpers-not-touch-wrapped` + `suite-status-poll-no-rearm` (FAIL detail embeds dig card).  
+**Docs:** [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) · [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md) Quinn/Finn.
 
 ---
 

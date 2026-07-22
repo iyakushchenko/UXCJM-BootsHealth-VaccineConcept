@@ -1189,9 +1189,9 @@ export function useJourneyPlayback({
       ) {
         navigateBeatTab(beat);
       }
-      if (beat.id === "book-step2" && !scenarioBrowseMode) {
+      if (isBookStep2DwellBeatId(beat.id) && !scenarioBrowseMode) {
         await prepareBookStep2Landing(beat);
-      } else if (beat.id === "book-step2") {
+      } else if (isBookStep2DwellBeatId(beat.id)) {
         runtime.closeAllPopups();
         runtime.closeAvailability();
       }

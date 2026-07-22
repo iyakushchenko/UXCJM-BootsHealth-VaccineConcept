@@ -10,15 +10,18 @@
 
 ```
 ┌─────────────────────────────────────────┐
-│  UXDS base  (src/uxds/)                 │
+│  UXDS / UXML BASE  (src/uxds/)          │
 │  Shared structure, roles, type, space   │
-│  Semantic names + :root default values  │
+│  Kits + semantic names + :root defaults │
+│  Keep as mutual as possible across      │
+│  projects (refapp quality bar)          │
 └─────────────────────────────────────────┘
                     ↑ remapped by (optional)
 ┌─────────────────────────────────────────┐
 │  PROJECT styleguide / theme (delta)     │
 │  src/projects/<id>/styleguide/          │
 │  Brand primary, logos, accents, fonts   │
+│  Concept copy cues from coarse Make     │
 │  CSS variables ONLY under               │
 │  [data-studio-project="<id>"]            │
 │  Small helper — not a second DS         │
@@ -27,10 +30,10 @@
 
 | Layer | Owns | Does not own |
 |-------|------|--------------|
-| **UXDS base** | Roles, spacing scale, component anatomy, semantic token **names** + baseline values | Client brand identity |
-| **Project delta** | Remap `--uxds-*` / `--project-*` brand facts under `[data-studio-project]` | Component rules, hover forks, layout hacks, reinventing buttons |
+| **UXDS / UXML BASE** | Roles, spacing, kit anatomy, hover/focus, Accordion/Button/link | Client brand identity |
+| **Project delta** | Remap `--uxds-*` brand facts + logos/fonts from coarse concepts | Component rules, hover forks, layout hacks, reinventing buttons |
 
-Screens compose **UXDS structure** + **optional project brand remaps**.
+**HARD:** Page create must inherit BASE kits first — [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md). Theme grows only when the concept brings a real brand fact.
 
 ---
 

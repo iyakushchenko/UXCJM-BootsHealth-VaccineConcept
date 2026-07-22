@@ -4,7 +4,10 @@ import {
   resolvePlaylistTouchpointIndex,
   type StudioTouchpointEntry,
 } from "@/app/nav/resolveStudioTouchpoint";
-import { beatDirectorScriptLabel } from "@/app/orchestra/journeyBeatDirector";
+import {
+  beatDirectorScriptLabel,
+  isBookStep2LandingBeatId,
+} from "@/app/orchestra/journeyBeatDirector";
 import {
   playbackTransportContractDiagnostic,
   type PlaybackDiagnosticError,
@@ -181,7 +184,10 @@ export function usePlaybackTransportGuard({
           currentBeat?.homeScript ||
           currentBeat?.bookScript ||
           currentBeat?.tabScript ||
-          currentBeat?.recordedClick
+          currentBeat?.recordedClick ||
+          // Recorded CJMs use screenId `book-step-2` without built-in
+          // `onEnter: close-availability`; landing still owns avail teardown.
+          isBookStep2LandingBeatId(currentBeat?.id)
       ),
       screenSettled:
         currentBeat?.protoTab != null &&

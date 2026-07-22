@@ -20,12 +20,14 @@ without rewriting history.
 | REC capture, compile, and honesty | [REC robustness](#topic-rec) · [Recording baseline](#topic-recording-baseline) | Arming, new-CJM proof, labels, scroll-stop, compile/replay |
 | Continuous Play and diagnostics | [Playback completion](#topic-playback) · [Navigation/journeys baseline](#topic-navigation-baseline) | Stalls, end state, scroll/cursor diagnostics, Step/Play parity |
 | QA overlay and PO signals | [Overlay reset/HMR](#topic-overlay) · [Overlay baseline](#topic-overlay-baseline) | ALWAYS CLEAR, alarm/cursor/scroll, teardown, false FAIL |
+| QA suite Observe / touch-wrap (R16) | [Suite Observe race](#topic-suite-observe) · dig [`qaSuiteTouchWrapContract.ts`](../../src/app/shell/qaSuiteTouchWrapContract.ts) | `dom-observe-open kind=agent` after suite sanity |
 | Chat, camera, scroll, and type-in | [Chat camera](#topic-chat) · [Nested scroll host](#topic-scroll) | Progressive bubbles, composer pad, type-in, scroll reversal |
 | Make→React mounts and selectors | [Make ghosts](#topic-hybrid) · [Hybrid baseline](#topic-hybrid-baseline) | Retire/park Make, first-match ghosts, mount/unmount |
 | CSS, UXDS, hover, and fidelity | [Typical DS checks](#topic-ds) · [DS/CSS baseline](#topic-ds-baseline) | Tokens, kit states, loading parity, no invented chrome |
 | URL, modal, and navigation state | [URL/CJM state](#topic-url) · [Modal URL](#topic-modal) | Deep links, modal registry, return/reset behavior |
-| Page migration and Final Pass | [Page Final Pass](#topic-final-pass) | Sequencing, proof, audits, next-page gate |
+| Page migration and Final Pass | [Page Final Pass](#topic-final-pass) · [Page create inheritance](#topic-page-create) | Sequencing, proof, audits, next-page gate; UXDS/UXML reuse |
 | Naming, hygiene, docs, version, CI | [Version](#topic-version) · [Naming](#topic-naming) · [CI](#topic-ci) | Repository conventions and delivery mechanics |
+| **Stuck / don’t know / looping** | **[AGENT_STUCK_ROUTER.md](./AGENT_STUCK_ROUTER.md)** | One dig — do not thrash tokens |
 
 For role-specific mandatory reading, return to
 [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md#retrieve-knowledge-without-reading-the-archive).
@@ -33,6 +35,58 @@ For role-specific mandatory reading, return to
 ---
 
 ## 2026-07-22
+
+### Recorded `modalId: choose-pharmacy` vs live Availability / noSlots (PO / Quinn)
+
+- **Symptom / class:** `all-cjms-fast` FAIL on `rec-*` @ `avail-select-date` — `playback-click-failed` / target-degraded; beat stamps `modalId: "choose-pharmacy"` while Availability date step is live, or prior `avail-choose-location` picked Strand (`hasSlots: false`) → `noSlots` so date cells never exist.
+- **Root cause:** Capture stamped sticky choose-pharmacy modalId onto later avail-* clicks; Play re-applied modal and wiped the date surface. Separately, poisoned REC location with no slots left Play waiting for `[data-studio-action="avail-select-date"]` that cannot appear.
+- **Right fix:** In `recordedClickPlayback.ts`: `keepLiveAvailability` skips modal re-apply when Availability scrim is open; before date/time clicks, `ensureAvailDateSurfaceReady` backs out of noSlots and Choose Location on a slotted store; choose-location prefers slotted when next beat needs date. Hard FAIL on missing targets (no soft-log invent).
+- **Gate:** vitest heal + keep-live-avail units; `all-cjms-fast` 5/5 including `rec-trad-mrvina5r-1xna`. Do not delete PO journeys without capture evidence.
+
+### Page create must inherit UXML + similar UXDS (PO)
+
+- **Symptom / class:** Agents invent page-local accordions/buttons or grow project `theme.css` with layout/hover when asked to create a page.
+- **Root cause:** No hard preflight forcing UXDS map + similar frame + existing kits/pages before JSX.
+- **Right fix:** [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6; Bea inheritance table required; BASE mutual; theme = brand/copy delta only.
+- **Gate:** Arch rejects mount without inheritance stamp; ship sitrep `Inheritance: P1–P6 PASS`.
+
+### QA self-test must not wipe `document.body` (PO / Quinn)
+
+- **Symptom / class:** `__studioRunQaSelfTestSmoke` / pure checks PASS, then every MCP page probe fails host-miss (`[data-studio-react-screen=…]` gone) while URL still shows the screen.
+- **Root cause:** `control-room-interactive-only` set `document.body.innerHTML = …` then `""`, destroying the React Studio root.
+- **Right fix:** Probe click-detail helpers inside an offscreen sandbox node; never replace `body.innerHTML` in live Studio.
+- **Gate:** After self-test, `document.querySelector('[data-studio-react-screen]')` still present; suite `mcp-page-probe` can PASS without reload.
+
+### Fast suite scroll-path-deviation must not block (PO / Quinn)
+
+- **Symptom / class:** `all-cjms-fast` / `play-all-cjms` FAIL `PLAYBACK_DIAGNOSTIC_OPEN` with `Eased scroll deviated Npx` (e.g. 72px on PLP filter beat) while suite copy says motion frames are diagnostic-only. Also: `playback-chat-motion-failed:chops=1` under fast while handoff already soft-logs bubble chop.
+- **Root cause:** Compressed `playbackMs()` ease samples diverge from the easeOut model; `scroll-path-deviation` still opened a blocking diagnostic → suite alarm latch aborted the CJM. Separately, `playJourneySmoke` hard-failed on `chatBubbleMotion.chops/jumps` even when `isFastPlayback()`.
+- **Right fix:** In `playbackScrollMonitor.report`, when `isFastPlayback()`, soft-log `scroll-path-deviation` / `scroll-stutter` via `playbackDiagScroll` and do **not** call `onAnomaly` (no Alarm / FAIL handoff). In `playJourneySmoke`, skip chat-bubble motion hard-fail when `isFastPlayback()`. Demo-speed remains strict.
+- **Gate:** vitest fast-mode monitor; re-run Fast test all CJMs — motion path drift / bubble chop must not stop the suite.
+
+### QA suite: mcp-sanity → self-test Observe race (PO / Quinn)
+
+<a id="topic-suite-observe"></a>
+
+- **Symptom / class:** Suite `mcp-sanity` PASS then `qa-self-test` FAIL `dom-observe-open kind=agent phase=control`. Direct `sanity → smoke` PASS.
+- **Root cause:** `__studioGetQaSuiteStatus` (and other suite APIs) were helper touch-wrapped. Live suite/UI polls re-armed CONTROL ~50ms after self-test `forceClear`, so `OpenQaLogger({ kind:'observe' })` no-op'd on agent lock.
+- **Right fix:** Quiet contract SSoT `qaSuiteTouchWrapContract.ts` (`isQuietHelperSuffix` + MUST_STAY_QUIET list) · `helperOverlayArm` unwraps · Auto-Rule **R16 `qa-suite-no-touch-wrap`** · self-test checks `suite-helpers-not-touch-wrapped` + `suite-status-poll-no-rearm` embed dig card on FAIL.
+- **Agent dig (HARD):** On that symptom open `src/app/shell/qaSuiteTouchWrapContract.ts` (`QA_SUITE_TOUCH_WRAP_DIG`) first — not the page under test. Or use [AGENT_STUCK_ROUTER.md](./AGENT_STUCK_ROUTER.md) row. Prove `!window.__studioGetQaSuiteStatus.__studioOverlayArmed` then suite `[mcp-sanity, qa-self-test]` PASS.
+- **Gate:** `check:felonies` + vitest contract + suite `[mcp-sanity, qa-self-test, mcp-page-probe, validate-all-cjms]` PASS; React host still mounted.
+
+### Engine owns probe wiring — pages register, never if/else the engine (PO)
+
+- **Symptom / class:** Each new migrated screen added Boots imports + `stepsForScreen` branches inside `studioMcpPageProbe.ts`; kits grew Boots-only props (`data-studio-appointment-view-details` on ButtonPrimary).
+- **Root cause:** Page ships treated the engine file as a contribution board.
+- **Right fix:** Engine `mcpPageProbeRegistry` + project `registerMcpPageProbes`; pages stamp `data-studio-action` (engine contract); legacy project attrs stay on the page. Freeze beat-id allowlists in `playbackTransportAnomalies` — no new rescue rows.
+- **Gate:** New screen probe = register only; UXDS kit has no project selector props; `npm test` registry unit.
+
+### Make densify `!important` vs React History host (PO / Uma)
+
+- **Symptom / class:** React Appointment History CSS set Make pad/gap (32/56, CTA 32) but computed styles stayed densified (20/20, CTA 12) — Uma FAIL.
+- **Root cause:** `globals-chrome.css` Make densify rules target child-2 `[data-name=…]` with `!important`. React cards kept Make `data-name`s, so densify won over page CSS.
+- **Right fix:** Gate densify with `:not([data-studio-react-screen])` on History child-2 so React mounts skip densify; leave Details child 1 densified while Make. Do **not** invent Cancel hover to “improve” wire (removed `#c96b6b`).
+- **Gate:** Uma re-measure pad/gap/title/info/CTA; Quinn `__studioRunMcpPageProbe` appointment-history; PAGE FINAL PASS HARD-GREEN.
 
 ### REC/playback target truth — visible box, selected no-op, and unchecked checkbox (PO)
 
@@ -319,6 +373,13 @@ For role-specific mandatory reading, return to
 - **Symptom / class:** Team starts PDP (or next erase-Make page) while PLP (previous) still has open Final Pass gaps — PROVEN/tests green used as a false “open next page” signal.
 - **Gate (GLOBAL sequencing):** **No new migrated page** until previous is **PAGE FINAL PASS hard-green** — [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md). Finn/Uma own checklist + `check:page-final-pass` (single contract; do not duplicate). Arch vetoes next-page brief/mount otherwise. Team check reports `PAGE FINAL PASS — <screenId> — HARD-GREEN | NOT-GREEN`.
 - **Process:** Parallel callsigns still required; **`Knowledge used:`** still mandatory on team check. Board: [NEXT_STEPS.md](./NEXT_STEPS.md) NOW 2e blocks PDP.
+
+<a id="topic-page-create"></a>
+### Page create inheritance — UXDS + existing UXML first (PO / Arch)
+
+- **Symptom / class:** Agents invent page-local controls or grow project theme with layout/hover when asked to create/migrate a page.
+- **Gate (GLOBAL):** [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 before JSX — inventory → similar UXDS frame → existing kits/pages → interactive kits → theme = brand/copy delta only. Bea stamps inheritance table; Arch rejects mount without it.
+- **Process:** UXML/UXDS BASE stays mutual across projects; coarse concepts supply brand/copy cues only.
 
 ### MCP page probe — scroll-into-view + overlay visible every probe (PO / Quinn)
 

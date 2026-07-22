@@ -1,7 +1,7 @@
 {
   "version": 1,
   "projectId": "boots-pharmacy",
-  "updatedAt": "2026-07-20",
+  "updatedAt": "2026-07-22",
   "note": "Hard gate for React-migrated screens. npm run check:parity-proven (via npm test) fails unless each required screen has status=proven, a live auditPath with PROVEN + MCP matrix evidence, and mcpMatrixAt. No merge without this.",
   "requiredScreens": [
     "book-step-1",
@@ -10,7 +10,9 @@
     "plp",
     "pdp",
     "site-pilot",
-    "chat"
+    "chat",
+    "appointment-history",
+    "appointment-details"
   ],
   "screens": [
     {
@@ -84,6 +86,28 @@
         "sha": "acffdb6",
         "date": "2026-07-20",
         "note": "Quinn MCP 20/20 PASS __studioRunMcpPageProbe chat reload:false on 127.0.0.1:5173; Uma PROVEN; PAGE FINAL PASS HARD-GREEN v0.0.60"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "appointment-history",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_APPOINTMENT_HISTORY_PAGE_FINAL_PASS_2026-07-22.md",
+      "mcpMatrixAt": {
+        "sha": "95ccca7",
+        "date": "2026-07-22",
+        "note": "Quinn MCP 8/8 PASS __studioRunMcpPageProbe appointment-history reload:false on localhost:5173; Uma PROVEN (densify gate); View Details → Make Details + restore; PAGE FINAL PASS HARD-GREEN v0.0.108"
+      },
+      "requireMcp": true
+    },
+    {
+      "screenId": "appointment-details",
+      "status": "proven",
+      "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_APPOINTMENT_DETAILS_PAGE_FINAL_PASS_2026-07-22.md",
+      "mcpMatrixAt": {
+        "sha": "95ccca7",
+        "date": "2026-07-22",
+        "note": "Quinn MCP 10/10 PASS __studioRunMcpPageProbe appointment-details reload:false; terminal CTA hide #8762341; Uma PROVEN densify 20/20; crumb → React History; PAGE FINAL PASS HARD-GREEN v0.0.108"
       },
       "requireMcp": true
     }

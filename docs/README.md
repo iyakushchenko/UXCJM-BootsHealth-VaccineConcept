@@ -25,18 +25,20 @@ Choose one route. Large governance and evidence documents are references, not a 
 |----------|-----------------|----------|
 | Product Owner / reviewer | [Vision](./product/UX_STUDIO_VISION.md) → [current board](./product/NEXT_STEPS.md) | [Product Owner brief](./product/PRODUCT_OWNER_BRIEF.md) for decisions and acceptance |
 | Contributor / engineer | [Developer workflow](./product/DEVELOPER_WORKFLOW.md) → [architecture](./product/ARCHITECTURE.md) | The workflow’s task table; [post-change checklist](./product/POST_CHANGE_CHECKLIST.md) before close |
-| Page designer / auditor | [Page build contract](./product/PAGE_BUILD_CONTRACT.md) → [strict audit](./product/FE_UI_UX_AUDIT.md) | [Uma fidelity](./product/UMA_FIDELITY_NOTES.md) and [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
-| QA / proof operator | [Proof router](./shell/PROOF_ROUTER.md) | Open only the deep contract linked from the selected proof row |
+| Page designer / auditor | [Page build contract](./product/PAGE_BUILD_CONTRACT.md) → [Page create inheritance](./product/PAGE_CREATE_INHERITANCE.md) → [strict audit](./product/FE_UI_UX_AUDIT.md) | [Uma fidelity](./product/UMA_FIDELITY_NOTES.md) and [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
+| QA / proof operator | [Proof router](./shell/PROOF_ROUTER.md) · [UXML commands](./shell/UXML_COMMANDS.md) (`uxml rec` / `play` / `play step` / `play step r`) | Open only the deep contract linked from the selected proof row |
 | Agent team / coordinator | [Command doctrine](./product/COMMAND_DOCTRINE.md) → your [team knowledge](./product/TEAM_KNOWLEDGE.md) section | [Team process](./product/TEAM.md), relevant lessons, and current board |
+| **Agent stuck / looping / don’t know** | **[Stuck router](./product/AGENT_STUCK_ROUTER.md)** → one dig | Named dig SSoT only — then [proof router](./shell/PROOF_ROUTER.md) |
 
 ### Route by change surface
 
 | Change | Owning references |
 |--------|-------------------|
-| React page migration | [Page build](./product/PAGE_BUILD_CONTRACT.md) · screen brief/register · [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
+| React page migration | [Page create inheritance](./product/PAGE_CREATE_INHERITANCE.md) · [Page build](./product/PAGE_BUILD_CONTRACT.md) · screen brief/register · [Page Final Pass](./product/PAGE_FINAL_PASS.md) |
 | CSS / UXDS / visual UI | [CSS layers](./product/CSS_BASE_THEME.md) · [DS strictness](./product/DS_STRICTNESS.md) · [FE standards](./product/FE_STANDARDS.md) |
 | URL / modal / shell | [URL](./shell/URL.md) · [shell](./shell/SHELL.md) |
-| Page, Play, REC, chrome, or PO-signal proof | [Proof router](./shell/PROOF_ROUTER.md) |
+| Page, Play, REC, chrome, or PO-signal proof | [Proof router](./shell/PROOF_ROUTER.md) · [UXML commands](./shell/UXML_COMMANDS.md) |
+| Stuck / repetitive FAIL / unknown dig | [Stuck router](./product/AGENT_STUCK_ROUTER.md) |
 | Release / push / CI | [Versioning](./product/VERSIONING.md) · [CI budget](./product/CI_ACTIONS_BUDGET.md) |
 
 ## Reference catalog
@@ -52,7 +54,7 @@ Read only the ownership group relevant to the task. Document authority, lifecycl
 ### Build, design, and acceptance
 
 - [Developer workflow](./product/DEVELOPER_WORKFLOW.md) · [Architecture](./product/ARCHITECTURE.md) · [Naming](./product/NAMING.md) · [Hygiene](./product/HYGIENE.md)
-- [Page build](./product/PAGE_BUILD_CONTRACT.md) · [Page Final Pass](./product/PAGE_FINAL_PASS.md) · [Component library](./product/COMPONENT_LIBRARY.md)
+- [Page build](./product/PAGE_BUILD_CONTRACT.md) · [Page create inheritance](./product/PAGE_CREATE_INHERITANCE.md) · [Page Final Pass](./product/PAGE_FINAL_PASS.md) · [Component library](./product/COMPONENT_LIBRARY.md)
 - [CSS layers](./product/CSS_BASE_THEME.md) · [DS strictness](./product/DS_STRICTNESS.md) · [FE standards](./product/FE_STANDARDS.md) · [visual fidelity](./product/VISUAL_FIDELITY.md) · [interaction fidelity](./product/INTERACTION_FIDELITY.md)
 - [Uma fidelity](./product/UMA_FIDELITY_NOTES.md) · [strict audit](./product/FE_UI_UX_AUDIT.md) · [parity ratchets](./product/PARITY_RATCHETS.md) · [post-change checklist](./product/POST_CHANGE_CHECKLIST.md)
 - [Concept intake](./product/CONCEPT_INTAKE.md) · [project styleguide](./product/PROJECT_STYLEGUIDE.md) · [solution requirements](./product/SOLUTION_REQUIREMENTS.md)

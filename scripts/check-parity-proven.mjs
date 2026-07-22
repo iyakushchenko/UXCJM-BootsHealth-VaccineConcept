@@ -26,6 +26,8 @@ const REACT_MIGRATED_SCREENS = [
   "pdp",
   "site-pilot",
   "chat",
+  "appointment-history",
+  "appointment-details",
 ];
 
 const MCP_EVIDENCE_RE =

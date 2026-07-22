@@ -1,21 +1,94 @@
-# Appointment History — React migration brief
+# Feature brief — Appointment History React migration
 
-**Status:** NEXT · discovery complete · implementation not yet PAGE FINAL PASS  
-**Sequence:** Appointment History first; Appointment Details cannot start until History is hard-green.  
-**Routes:** `screen=appointment-history` → `screen=appointment-details`
+**Project:** `boots-pharmacy`  
+**Callsigns:** Bea (BA) · Finn (FE) · Uma (UI/UX) · Quinn (QA) · Pax (PO sim) · Arch (Director)  
+**Status:** ready (discovery complete · **DO NOT mount React this wave** until Arch opens build)  
+**Updated:** 2026-07-22  
+**Refs:** [APPOINTMENT_HISTORY_MAKE_PARITY_REGISTER.md](./APPOINTMENT_HISTORY_MAKE_PARITY_REGISTER.md) · [NEXT_STEPS.md](../../../product/NEXT_STEPS.md) §0f · [PAGE_FINAL_PASS.md](../../../product/PAGE_FINAL_PASS.md) · data SSoT [`appointments.ts`](../../../../src/projects/boots-pharmacy/data/appointments.ts) (`APPOINTMENTS` + `syncAppointmentHistory`)
 
-## Product contract
+---
 
-- Replace the remaining Make child for Appointment History with a project-scoped React + UXDS screen.
-- Preserve `data-studio-action="appointment-history-view-details"` and the existing Agentic/Traditional director handoff.
-- Keep account/auth truth on the engine `studioAuthSession` SSoT; no page-local auth flag.
-- Retire the Make mount only after visual, interaction, URL, continuous Play, Step Forward, retreat, and PAGE FINAL PASS evidence is green.
-- Loading/empty/updating states and keyboard/focus behavior are required—not deferred polish.
+## Context
 
-## Token-saving proof contract
+Erase-Make next page after Chat **PAGE FINAL PASS HARD-GREEN**: migrate **Appointment History** (`screenId: appointment-history`, Frame child **2**, `left-[14747px]`) to React + UXDS. Make body is hire/order chrome rewritten at runtime to appointment copy (`rewriteAccountAppointmentCopy` + `syncAppointmentHistory`). **Appointment Details** (`screen=appointment-details`, child **1**) stays **Make** this wave — View Details must open the existing Make details screen. Details migration is **closed** until History is PAGE FINAL PASS hard-green.
 
-One QA evidence pack must contain the History landing, View Details click, Details navigation, raw PLAYBACK_DIAG tail, human QA row, selector/action metadata, and parity verdict. Agents should consume the pack summary before opening raw event arrays.
+## Business logic
 
-## Gate
+| Rule | Behavior |
+|------|----------|
+| Data SSoT | **`APPOINTMENTS`** in `appointments.ts` — list length, fields, status, pricing totals, cancellation/refund notes. React must read this array (or shared getters); do **not** fork card copy. |
+| Card count | Exactly `APPOINTMENTS.length` cards (Make exports 3; wire clones to 4 via `ensureHistoryCardCount`). |
+| Status tones | Wire maps status → `active` / `completed` / `cancelled` CSS tone classes; terminal statuses hide Edit/Cancel. |
+| View Details | Sets `setSelectedAppointmentId(appt.id)` then navigates to **existing Make** Appointment Details (`INDEX_APPOINTMENT_DETAILS` / `screen=appointment-details`). |
+| Title link | Card title `Appointment #{id}` is also a details opener (same selection + navigate). |
+| Edit / Cancel | Visible only for **non-terminal** appointments; wire converts Make “Edit Appointment” / “Cancel Appointment” to icon+text **Edit** / **Cancel**. **No** Make navigate/wire destination today — preserve presence + visibility rules; do not invent cancel flows. |
+| Refund row | Cancelled + `refundPendingNote` → “Refund Pending - ” + **Discuss with Site Pilot** → Site Pilot Home with `getAppointmentRefundPilotQuery(appt)`. |
+| Ask Site Pilot | Title help line → Site Pilot Home with `APPOINTMENT_PILOT_QUERY`. |
+| Auth | Engine `studioAuthSession` / `isStudioLoggedIn` SSoT — no page-local auth flag. |
+| Meta | Sorting label = `{N} Appointments displayed`; progress “You've viewed N of N appointments” + full-width Active bar (`syncHistoryMeta`). |
 
-Appointment Details migration remains closed until History passes `check:page-final-pass` and a strict FE/UI/UX audit is PROVEN.
+## Acceptance (Bea → Quinn)
+
+- [x] React host mounts at child **2**; Make retired (`retireMakeUnderPage` / parked)
+- [x] Make wire `syncAppointmentHistory` early-returns when React mounted
+- [x] URL `?project=boots-pharmacy&screen=appointment-history`
+- [x] Cards render from **`APPOINTMENTS`** SSoT (4 demo rows; fields + status tones + conditional refund/cancel reason)
+- [x] **HARD selector:** View Details control = `[data-studio-appointment-view-details="true"]` (not invented `data-studio-action="appointment-history-view-details"`)
+- [x] Title click + View Details → **Make** `screen=appointment-details` with selected id preserved
+- [ ] Traditional CJM `tabScript: "history-view-details"` + `runHistoryViewDetails` still find/click that selector — eyes-on residual (board 0d)
+- [x] Ask Site Pilot + Discuss with Site Pilot handoffs preserved
+- [x] No LEGACY growth for React path
+- [x] Uma audit **PROVEN** + typical DS checks (buttons/links)
+- [x] Quinn MCP `__studioRunMcpPageProbe({ screenId:"appointment-history" })` PASS
+- [x] PAGE FINAL PASS hard-green for `appointment-history` before Details brief opens
+- [x] Loading/empty/updating: honest **N/A** (Make has none) — **forbidden** invent spinner/empty
+
+## Chrome / fidelity (Uma)
+
+- [x] Concept L&F vs Make `Body1` + wired cards (grey card shell, white info block, CTA row)
+- [x] Status color tones (active / completed / cancelled) match wire classes — no invent
+- [x] Typical DS checks: View Details primary · Edit/Cancel icon+text · title/pilot links
+- [x] Account nav + breadcrumbs + footer present as Make (or engine-owned per PAGE_BUILD_CONTRACT)
+- [x] No invent empty/loader overlay
+
+## Mount / FE notes (Finn)
+
+- Mounted 2026-07-22 — `screens/appointment-history/*`; densify gate in `globals-chrome.css` for React History.
+- Folder target: `src/projects/boots-pharmacy/screens/appointment-history/` (`screenId` = folder)
+- Contract: childIndex **2**, `INDEX_APPOINTMENT_HISTORY`, public id `appointment-history`
+- SSoT import: `APPOINTMENTS`, `getSelectedAppointmentId` / `setSelectedAppointmentId`, pilot query helpers from `data/appointments.ts`
+- **Selector contract (HARD — playback):**
+
+  | Control | Required attribute | Notes |
+  |---------|-------------------|--------|
+  | View Details | `data-studio-appointment-view-details="true"` | Used by `playback/traditional.ts` `findVisibleHistoryViewDetails` / `runHistoryViewDetails` |
+  | Edit | `data-studio-appointment-edit="true"` | Wire already stamps this |
+  | Cancel | `data-studio-appointment-cancel="true"` | Wire already stamps this |
+  | Card clone marker (Make only) | `data-studio-appointment-card-clone="true"` | React N/A if rendering from array |
+  | Refund pending row | `data-studio-refund-pending-row` | Conditional |
+  | Cancellation reason row | `data-studio-cancellation-reason-row` | Conditional |
+
+- **Forbidden:** `data-studio-action="appointment-history-view-details"` (invented; breaks Traditional prove).
+- View Details route **this wave:** existing Make appointment-details (child 1) — same as today’s `setCurrent(INDEX_APPOINTMENT_DETAILS)`.
+- Header/footer: follow PLP-style engine chrome; History uses full pharmacy footer per `footerConfig.ts`.
+
+## Prove notes (Quinn)
+
+- R11: `http://localhost:5173/` reuse tab only
+- Probe: `__studioRunMcpPageProbe({ screenId:"appointment-history", reload:false })`
+- Must click/hover ≥1 View Details (`[data-studio-appointment-view-details="true"]`) and assert URL/screen → `appointment-details`
+- Traditional: beat `appointment-history` / script `history-view-details` PASS with React mounted
+- Overlay eyes + scroll-into-view before interact
+- Token-saving evidence pack: History landing · View Details · Details nav · PLAYBACK_DIAG tail · selector metadata · parity verdict
+
+## Pax
+
+- [ ] User-visible? → bump patch? **Y** on first visible React mount / fidelity ship (not discovery docs alone)
+- [ ] Push? **Y** when coherent build ship (R12 batch) — discovery docs may land with wave
+- [ ] Notes/CHANGELOG updated if bump
+
+## Sequence gate (Arch)
+
+1. **NOW:** History discovery brief + register (this doc) — no React mount.  
+2. **NEXT:** History React build → Uma/Quinn → PAGE FINAL PASS hard-green.  
+3. **CLOSED:** Appointment Details React brief/mount until History hard-green.

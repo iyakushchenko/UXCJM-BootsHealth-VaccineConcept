@@ -768,9 +768,15 @@ export function registerStudioMcpHelpers(options: {
       endMcpTestSession(session.id);
     }
     options.abortAll?.();
-    options.dismissDiagnostic();
+    // Quiet — default dismiss latches DIAGNOSTIC_ACK_STOP and poisons next suite.
+    options.dismissDiagnostic({ acknowledgeStop: false, note: "abort-all" });
     disableCursorQaEyes();
     stopAgentTestingOverlay({ force: true, reload: false });
+    try {
+      window.__studioConsumePoSignal?.();
+    } catch {
+      /* hang-safe */
+    }
     logControlPanel("qa:run", { source: "abort-all" });
     return window.__protoStudioState!();
   };

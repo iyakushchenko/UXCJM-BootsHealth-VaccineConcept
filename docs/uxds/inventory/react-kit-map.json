@@ -32,7 +32,12 @@
     },
     {
       "reactModule": "src/uxds/interactions/Accordion.tsx",
-      "figmaNames": ["component.gse.accordion", "component.pdp.accordion"]
+      "figmaNames": [
+        "component.gse.accordion",
+        "component.pdp.accordion",
+        "component.co.product.in.this.order"
+      ],
+      "note": "Page stamps data-name=component.co.product.in.this.order on Accordion root; Item keeps component.gse.accordion (Order Details UXDS frame 11920:238008)."
     }
   ]
 }

@@ -1,0 +1,469 @@
+/**
+ * Appointment History — React screen CSS (no LEGACY growth).
+ * Status tones (Make wire parity — do not invent alternate palette):
+ *   active #5b8fc9 · completed #4a9b72 · cancelled #d4a03a
+ */
+
+.appointment-history {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  color: #3a3a3a;
+  font-family: "Open Sans", sans-serif;
+}
+
+.appointment-history__shell {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 64px;
+  box-sizing: border-box;
+}
+
+.appointment-history__shell-inner {
+  width: 100%;
+  max-width: 1312px;
+  margin: 0 auto;
+}
+
+/* Breadcrumbs — Make module.breadcrumbs */
+.appointment-history__crumbs {
+  background: #fff;
+  padding: 16px 0;
+}
+
+.appointment-history__crumbs-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointment-history__crumb-link {
+  margin: 0;
+  font-size: 10px;
+  line-height: 12px;
+  color: #305854;
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-underline-position: from-font;
+  white-space: nowrap;
+}
+
+.appointment-history__crumb-current {
+  margin: 0;
+  font-size: 10px;
+  line-height: 12px;
+  color: #7a7d87;
+  white-space: nowrap;
+}
+
+.appointment-history__crumb-sep {
+  color: #c3c3c3;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+/* Body — Make Body1 p-[64px] gap 32 */
+.appointment-history__body {
+  background: #fff;
+  padding: 64px 0;
+}
+
+.appointment-history__layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* Left nav — 304px */
+.appointment-history__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 304px;
+  flex-shrink: 0;
+}
+
+.appointment-history__profile {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.appointment-history__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 360px;
+  background: #afafaf;
+  flex-shrink: 0;
+}
+
+.appointment-history__avatar svg {
+  width: 24px;
+  height: 28px;
+}
+
+.appointment-history__profile-text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-history__menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.appointment-history__menu-item {
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-history__menu-item--active {
+  padding: 8px 16px;
+  font-weight: 600;
+  background: #f5f5f5;
+}
+
+.appointment-history__service {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.appointment-history__service-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.appointment-history__service-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-history__service-contact {
+  margin-top: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #305854;
+  text-decoration: underline;
+}
+
+/* Content column */
+.appointment-history__content {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.appointment-history__title h1 {
+  margin: 0;
+  font-size: 39px;
+  font-weight: 700;
+  line-height: 48px;
+  color: #3a3a3a;
+}
+
+.appointment-history__help {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-history__sorting {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+
+.appointment-history__sorting-label {
+  margin: 0;
+  flex: 1 0 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-history__show-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #c3c3c3;
+  border-radius: 360px;
+  background: #fff;
+  color: #3a3a3a;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 24px;
+  cursor: default;
+}
+
+.appointment-history__chevron {
+  display: inline-flex;
+  width: 16px;
+  height: 10px;
+}
+
+.appointment-history__chevron svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.appointment-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Cards — Make grey shell p-[32px] gap-[56px] */
+.appointment-history__card {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  width: 100%;
+  max-width: 976px;
+  padding: 32px;
+  box-sizing: border-box;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #f5f5f5;
+  align-self: stretch;
+}
+
+.appointment-history__card-title {
+  display: inline-flex;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.appointment-history__card-title:hover,
+.appointment-history__card-title:focus-visible {
+  color: #012169;
+  text-decoration: underline;
+}
+
+.appointment-history__card-info {
+  width: 100%;
+  padding: 32px;
+  box-sizing: border-box;
+  border: 1px solid #c3c3c3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.appointment-history__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.appointment-history__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+  width: 100%;
+}
+
+.appointment-history__row-label {
+  flex: 0 1 118px;
+  max-width: 118px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #7a7d87;
+}
+
+.appointment-history__row-value {
+  flex: 1 1 162px;
+  min-width: 162px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #3a3a3a;
+}
+
+.appointment-history__price {
+  display: inline-flex;
+  align-items: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #3a3a3a;
+  white-space: nowrap;
+}
+
+/* Make status tones — documented parity (not invent) */
+.appointment-history__status--active {
+  font-weight: 600;
+  color: #5b8fc9;
+}
+
+.appointment-history__status--completed {
+  font-weight: 600;
+  color: #4a9b72;
+}
+
+.appointment-history__status--cancelled {
+  font-weight: 600;
+  color: #d4a03a;
+}
+
+.appointment-history__refund-link {
+  font-weight: 400;
+  margin-left: 0;
+}
+
+.appointment-history__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Size only — hover/active from UXDS ButtonPrimary commerce */
+.appointment-history__view-details.uxds-btn-primary {
+  min-height: 40px;
+  height: 40px;
+  padding: 8px 16px;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.39px;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.appointment-history__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 360px;
+  background: transparent;
+  color: #5c5c5c;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.36px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Make wire icon-text: no hover color invent — under-match OK */
+.appointment-history__icon-btn--cancel {
+  color: #5c5c5c;
+}
+
+.appointment-history__icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.appointment-history__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Load more — visual only */
+.appointment-history__load-more {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 376px;
+}
+
+.appointment-history__load-more-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.appointment-history__load-more-title p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+  text-align: center;
+  width: 100%;
+}
+
+.appointment-history__progress {
+  display: flex;
+  width: 100%;
+  background: #c3c3c3;
+}
+
+.appointment-history__progress-active {
+  width: 100%;
+  height: 2px;
+  background: #012169;
+}
+
+.appointment-history__load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 230px;
+  height: 48px;
+  padding: 12px 24px;
+  border: 1px solid #afccca;
+  border-radius: 4px;
+  background: #fff;
+  color: #5c5c5c;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.32px;
+  white-space: nowrap;
+  cursor: default;
+}

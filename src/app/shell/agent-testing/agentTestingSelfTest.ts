@@ -61,6 +61,10 @@ import {
 } from "@/app/shell/agent-testing/agentTestingStaleGreen";
 import { shouldBlockQaPlay } from "@/app/shell/agent-testing/agentTestingListen";
 import { formatMcpStatusLabel } from "@/app/shell/agent-testing/agentTestingMcpStatus";
+import {
+  auditQuietHelpersNotTouchWrapped,
+  QA_SUITE_TOUCH_WRAP_DIG,
+} from "@/app/shell/qaSuiteTouchWrapContract";
 
 /**
  * Between discrete UI actions (click, ask, toggle) — slightly faster than human,
@@ -252,25 +256,35 @@ export function runQaSelfTestPureChecks(): QaSelfTestSmokeResult["checks"] {
   );
 
   if (typeof document !== "undefined") {
-    document.body.innerHTML = `
+    // HARD: never wipe `document.body.innerHTML` — that destroys the React Studio
+    // root and leaves URL/screen hosts dead for every following QA suite step.
+    const sandbox = document.createElement("div");
+    sandbox.setAttribute("data-studio-qa-self-test-sandbox", "true");
+    sandbox.style.cssText =
+      "position:fixed;left:-99999px;top:0;width:1px;height:1px;overflow:hidden;pointer-events:none;opacity:0";
+    sandbox.innerHTML = `
       <div class="studio-nav-panel">
         <div class="studio-nav-status-bar"><p class="studio-nav-status-bar__title">PLP</p></div>
         <button data-studio-action="play">Play</button>
       </div>`;
-    const empty = buildClickDetail(
-      document.querySelector(".studio-nav-status-bar")!
-    );
-    const btn = buildClickDetail(document.querySelector("button")!);
-    out.push(
-      check(
-        "control-room-interactive-only",
-        empty === null &&
-          btn?.surface === "control-room" &&
-          /Control room: Play/i.test(btn?.label || ""),
-        `empty=${empty} btn=${btn?.label}`
-      )
-    );
-    document.body.innerHTML = "";
+    document.body.appendChild(sandbox);
+    try {
+      const empty = buildClickDetail(
+        sandbox.querySelector(".studio-nav-status-bar")!
+      );
+      const btn = buildClickDetail(sandbox.querySelector("button")!);
+      out.push(
+        check(
+          "control-room-interactive-only",
+          empty === null &&
+            btn?.surface === "control-room" &&
+            /Control room: Play/i.test(btn?.label || ""),
+          `empty=${empty} btn=${btn?.label}`
+        )
+      );
+    } finally {
+      sandbox.remove();
+    }
   } else {
     out.push(
       check(
@@ -343,6 +357,7 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
       __studioForceClearAgentTestingOverlay?: () => void;
       __studioOpenQaLogger?: (opts?: { kind?: string }) => void;
       __studioQaSessionKind?: () => string;
+      __studioGetQaSuiteStatus?: () => unknown;
       __studioMcpConnectionStatus?: () => { phase?: string; label?: string };
       __studioAgentTestingOverlay?: {
         ringAlarm?: (n?: string) => void;
@@ -361,17 +376,76 @@ export async function runQaSelfTestSmoke(): Promise<QaSelfTestSmokeResult> {
 
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     try {
-      w.__studioForceClearAgentTestingOverlay?.();
-      await sleep(pace.clear);
+      // R16 — quiet suite helpers must not be touch-wrapped (CI + runtime dig).
+      const armAudit = auditQuietHelpersNotTouchWrapped(
+        w as Window & Record<string, unknown>
+      );
+      checks.push(
+        check(
+          "suite-helpers-not-touch-wrapped",
+          armAudit.ok,
+          armAudit.ok
+            ? "quiet suite helpers unarmed"
+            : `armed=${armAudit.armed.join(",")} · ${QA_SUITE_TOUCH_WRAP_DIG}`
+        )
+      );
+
+      // Prior suite step (mcp-sanity) may still be settling / have a deferred
+      // ensureClear. Wipe hard + wait until DOM is gone before Observe open.
+      for (let i = 0; i < 8; i++) {
+        w.__studioForceClearAgentTestingOverlay?.();
+        try {
+          w.__studioConsumePoSignal?.();
+        } catch {
+          /* hang-safe */
+        }
+        await sleep(pace.clear);
+        const still =
+          document.getElementById("agent-testing-overlay") != null ||
+          w.__studioQaSessionKind?.() === "agent";
+        if (!still) break;
+      }
+
+      // R16 — status poll must not re-arm CONTROL after wipe (the original crack).
+      const kindBeforePoll = w.__studioQaSessionKind?.();
+      for (let i = 0; i < 20; i++) {
+        w.__studioGetQaSuiteStatus?.();
+      }
+      await sleep(80);
+      const kindAfterPoll = w.__studioQaSessionKind?.();
+      const overlayAfterPoll =
+        document.getElementById("agent-testing-overlay") != null;
+      const pollClean = kindAfterPoll !== "agent" && !overlayAfterPoll;
+      checks.push(
+        check(
+          "suite-status-poll-no-rearm",
+          pollClean,
+          pollClean
+            ? "GetQaSuiteStatus poll stayed quiet"
+            : `kindBefore=${kindBeforePoll} kindAfter=${kindAfterPoll} overlay=${overlayAfterPoll} · ${QA_SUITE_TOUCH_WRAP_DIG}`
+        )
+      );
+
       w.__studioOpenQaLogger?.({ kind: "observe" });
       await sleep(pace.settle);
+      // One retry if sanity settle raced Observe open into CONTROL.
+      if (w.__studioQaSessionKind?.() !== "observe") {
+        w.__studioForceClearAgentTestingOverlay?.();
+        await sleep(pace.clear);
+        w.__studioOpenQaLogger?.({ kind: "observe" });
+        await sleep(pace.settle);
+      }
       const kind = w.__studioQaSessionKind?.();
       const phase = w.__studioMcpConnectionStatus?.()?.phase;
+      const observeOk =
+        kind === "observe" && (phase === "observe" || phase === "connected");
       checks.push(
         check(
           "dom-observe-open",
-          kind === "observe" && (phase === "observe" || phase === "connected"),
-          `kind=${kind} phase=${phase}`
+          observeOk,
+          observeOk
+            ? `kind=${kind} phase=${phase}`
+            : `kind=${kind} phase=${phase} · ${QA_SUITE_TOUCH_WRAP_DIG}`
         )
       );
 

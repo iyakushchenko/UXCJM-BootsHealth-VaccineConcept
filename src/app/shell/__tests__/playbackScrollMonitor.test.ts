@@ -1,13 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createPlaybackScrollMonitor } from "@/app/shell/playbackScrollMonitor";
+import { setPlaybackTimingMode } from "@/app/shell/playbackTiming";
 
 describe("playbackScrollMonitor", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(0);
+    setPlaybackTimingMode("normal");
   });
 
   afterEach(() => {
+    setPlaybackTimingMode("normal");
     vi.useRealTimers();
   });
 
@@ -114,6 +117,24 @@ describe("playbackScrollMonitor", () => {
     monitor.onAnimationFrame({ scrollTop: 446, frameMs: 16 });
 
     expect(anomalies).toContain("scroll-path-deviation");
+  });
+
+  it("fast playback keeps scroll-path-deviation diagnostic-only (non-blocking)", () => {
+    const anomalies: string[] = [];
+    const monitor = createPlaybackScrollMonitor();
+    monitor.setOnAnomaly((a) => anomalies.push(a.kind));
+    monitor.setActive(true);
+    setPlaybackTimingMode("fast");
+
+    monitor.onAnimationStart({
+      startTop: 0,
+      targetTop: 943,
+      duration: 1000,
+    });
+    vi.advanceTimersByTime(120);
+    monitor.onAnimationFrame({ scrollTop: 446, frameMs: 16 });
+
+    expect(anomalies).toEqual([]);
   });
 
   it("still reports jumps when not in navigation grace", () => {

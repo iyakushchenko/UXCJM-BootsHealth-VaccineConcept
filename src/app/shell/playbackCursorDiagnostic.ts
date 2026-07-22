@@ -106,9 +106,13 @@ const MAX_PATH_SAMPLES = 80;
 const ON_TARGET_DRIFT_FAIL_PX = 0.75;
 const BOOK_STEP2_BEATS = new Set([
   "book-step2",
+  "book-step-2",
   "book-step2-date",
   "book-step2-time",
   "book-step2-reserve",
+  "book-step-2-date",
+  "book-step-2-time",
+  "book-step-2-reserve",
 ]);
 
 const TRAVEL_OR_CLICK_ACTIONS = new Set<PlaybackCursorAction>([
@@ -138,7 +142,7 @@ export function isBookStep2BeatId(beatId: string | undefined | null): boolean {
 }
 
 export function isBookStep2DwellBeatId(beatId: string | undefined | null): boolean {
-  return beatId === "book-step2";
+  return beatId === "book-step2" || beatId === "book-step-2";
 }
 
 export function enableCursorQaEyes(): void {

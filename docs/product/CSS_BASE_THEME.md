@@ -16,6 +16,8 @@
 | **PANEL** | `src/app/nav/**/*.css` (+ future `src/app/shell/**/*.css` if extracted) | Engine chrome only — REC / CJM / cassette |
 | **LEGACY** | Make globals under `src/styles/globals*.css` | Quarantine; **no NEW React page styles here** |
 
+**Theme = delta only (HARD):** Keep UXDS / UXML BASE as mutual as possible across projects. Project `theme.css` remaps brand facts (primary/accent/logo/font) under `[data-studio-project]` — **not** layout, hover forks, or component anatomy. Page create must inherit kits first — [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) · [PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md).
+
 **Global entry import order (mandatory):** BASE → THEME → PANEL → LEGACY.  
 Enforced in [`src/styles/index.css`](../../src/styles/index.css).
 

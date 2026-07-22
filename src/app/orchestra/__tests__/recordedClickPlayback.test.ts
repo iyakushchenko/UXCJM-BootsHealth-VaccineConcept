@@ -177,6 +177,135 @@ describe("playRecordedClick — login interstitial", () => {
     expect(applyStudioModal).not.toHaveBeenCalled();
   });
 
+  it("does not reopen choose-pharmacy over a live Availability date step", async () => {
+    const scrim = document.createElement("div");
+    scrim.className = "studio-avail-scrim";
+    scrim.innerHTML = `<button type="button" data-studio-action="avail-select-date" data-studio-avail-date="June-21">21</button>`;
+    document.body.appendChild(scrim);
+    const applyStudioModal = vi.fn();
+
+    const result = await playRecordedClick(
+      {
+        selectorChain: [
+          '[data-studio-action="avail-select-date"][data-studio-avail-date="June-21"]',
+        ],
+        element: "Select Date",
+        modalId: "choose-pharmacy",
+      },
+      { applyStudioModal },
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(applyStudioModal).not.toHaveBeenCalled();
+    expect(simulateDemoPointerClick).toHaveBeenCalled();
+  });
+
+  it("heals noSlots pharmacy → slotted store before avail-select-date (poisoned REC)", async () => {
+    const scrim = document.createElement("div");
+    scrim.className = "studio-avail-scrim";
+    scrim.innerHTML = `
+      <div data-studio-avail-step="noSlots">
+        <button type="button" data-studio-action="avail-back-to-list">Back to List</button>
+      </div>
+      <div data-studio-avail-step="list" hidden>
+        <article data-studio-avail-store="strand">
+          <p class="proto-avail-store__status">No available slots</p>
+          <button type="button" data-studio-action="avail-choose-location">Boots Strand</button>
+        </article>
+        <article data-studio-avail-store="covent">
+          <button type="button" data-studio-action="avail-choose-location">Boots Covent Garden</button>
+        </article>
+      </div>
+      <div data-studio-avail-step="date" hidden></div>
+    `;
+    document.body.appendChild(scrim);
+
+    const noSlots = scrim.querySelector<HTMLElement>('[data-studio-avail-step="noSlots"]')!;
+    const list = scrim.querySelector<HTMLElement>('[data-studio-avail-step="list"]')!;
+    const dateStep = scrim.querySelector<HTMLElement>('[data-studio-avail-step="date"]')!;
+    const back = scrim.querySelector<HTMLElement>('[data-studio-action="avail-back-to-list"]')!;
+    const covent = scrim.querySelector<HTMLElement>(
+      '[data-studio-avail-store="covent"] [data-studio-action="avail-choose-location"]',
+    )!;
+
+    back.addEventListener("click", () => {
+      noSlots.hidden = true;
+      list.hidden = false;
+    });
+    covent.addEventListener("click", () => {
+      list.hidden = true;
+      dateStep.hidden = false;
+      dateStep.innerHTML = `<button type="button" data-studio-action="avail-select-date" data-studio-avail-date="June-21">21</button>`;
+    });
+
+    const applyStudioModal = vi.fn();
+    const dateBtnSel =
+      '[data-studio-action="avail-select-date"][data-studio-avail-date="June-21"]';
+
+    const result = await playRecordedClick(
+      {
+        selectorChain: [dateBtnSel],
+        element: "Select Date",
+        modalId: "choose-pharmacy",
+      },
+      { applyStudioModal },
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(applyStudioModal).not.toHaveBeenCalled();
+    expect(simulateDemoPointerClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        getAttribute: expect.any(Function),
+      }),
+      expect.objectContaining({ scroll: true }),
+    );
+    const clicked = vi.mocked(simulateDemoPointerClick).mock.calls[0]?.[0] as HTMLElement;
+    expect(clicked.getAttribute("data-studio-avail-date")).toBe("June-21");
+  });
+
+  it("prefers a slotted Choose Location when next beat needs date surface", async () => {
+    const scrim = document.createElement("div");
+    scrim.className = "studio-avail-scrim";
+    scrim.innerHTML = `
+      <article data-studio-avail-store="strand">
+        <p class="proto-avail-store__status">No available slots</p>
+        <button type="button" data-studio-action="avail-choose-location">Boots Strand</button>
+      </article>
+      <article data-studio-avail-store="covent">
+        <button type="button" data-studio-action="avail-choose-location">Boots Covent Garden</button>
+      </article>
+    `;
+    document.body.appendChild(scrim);
+    const covent = scrim.querySelector<HTMLElement>(
+      '[data-studio-avail-store="covent"] [data-studio-action="avail-choose-location"]',
+    )!;
+
+    const result = await playRecordedClick(
+      {
+        selectorChain: [
+          '[data-studio-avail-store="strand"] [data-studio-action="avail-choose-location"]',
+        ],
+        element: "Boots Strand",
+        modalId: "choose-pharmacy",
+      },
+      {
+        nextRecordedClick: {
+          selectorChain: [
+            '[data-studio-action="avail-select-date"][data-studio-avail-date="June-21"]',
+          ],
+          element: "Select Date",
+          modalId: "choose-pharmacy",
+        },
+      },
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(simulateDemoPointerClick).toHaveBeenCalledWith(
+      covent,
+      expect.objectContaining({ scroll: true }),
+    );
+  });
+
   it("never drains the closing login again after its recorded sign-in action", async () => {
     const login = mountLoginModal();
     vi.mocked(simulateDemoPointerClick).mockResolvedValue(true);
@@ -227,6 +356,49 @@ describe("playRecordedClick — login interstitial", () => {
     expect(result).toEqual({ ok: true });
     expect(simulateDemoPointerClick).toHaveBeenCalledWith(
       typhoid,
+      expect.objectContaining({ scroll: true }),
+    );
+  });
+
+  it("skips already-selected date/time without click FAIL (avail handoff)", async () => {
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.setAttribute("data-name", "calendar. date. cell");
+    cell.setAttribute("data-studio-cal-kind", "date");
+    cell.dataset.studioCalSelected = "true";
+    cell.textContent = "24";
+    document.body.appendChild(cell);
+
+    const result = await playRecordedClick({
+      selectorChain: ['[data-name="calendar. date. cell"]'],
+      element: "24",
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(simulateDemoPointerClick).not.toHaveBeenCalled();
+  });
+
+  it("heals View Details to live React CTA — skips Make ghost cards", async () => {
+    document.body.innerHTML = `
+      <div data-studio-react-screen="appointment-history">
+        <div data-name="boots-pharmacy.component.ma.acc.overview.recent.order" style="display:none;width:0;height:0">
+          <div data-name="View details">View details</div>
+        </div>
+        <button type="button" data-studio-action="history-view-details">View details</button>
+      </div>
+    `;
+    const live = document.querySelector<HTMLElement>(
+      '[data-studio-action="history-view-details"]',
+    );
+
+    const result = await playRecordedClick({
+      selectorChain: ['[data-name="View details"]'],
+      element: "View details",
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(simulateDemoPointerClick).toHaveBeenCalledWith(
+      live,
       expect.objectContaining({ scroll: true }),
     );
   });

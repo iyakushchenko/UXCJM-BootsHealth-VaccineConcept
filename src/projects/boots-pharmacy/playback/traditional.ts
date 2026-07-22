@@ -109,6 +109,10 @@ function queryVisibleProtoScreen(childIndex: number): HTMLElement | null {
   return null;
 }
 
+/** Engine contract first; legacy Make attr kept for residual Make History. */
+const HISTORY_VIEW_DETAILS_SEL =
+  '[data-studio-action="history-view-details"], [data-studio-appointment-view-details="true"]';
+
 function findVisibleHistoryViewDetails(
   screen: HTMLElement
 ): HTMLElement | null {
@@ -118,22 +122,26 @@ function findVisibleHistoryViewDetails(
   );
   for (const card of cards) {
     if (!isClickableTarget(card)) continue;
-    const viewBtn = card.querySelector<HTMLElement>(
-      '[data-studio-appointment-view-details="true"]'
-    );
+    const viewBtn = card.querySelector<HTMLElement>(HISTORY_VIEW_DETAILS_SEL);
     if (viewBtn && isClickableTarget(viewBtn)) return viewBtn;
   }
   return (
     Array.from(
-      screen.querySelectorAll<HTMLElement>(
-        '[data-studio-appointment-view-details="true"]'
-      )
+      screen.querySelectorAll<HTMLElement>(HISTORY_VIEW_DETAILS_SEL)
     ).find((btn) => isClickableTarget(btn)) ?? null
   );
 }
 
+function resolveHistoryScreenHost(): HTMLElement | null {
+  const byScreenId = document.querySelector<HTMLElement>(
+    '[data-studio-react-screen="appointment-history"]'
+  );
+  if (byScreenId && isClickableTarget(byScreenId)) return byScreenId;
+  return queryVisibleProtoScreen(2);
+}
+
 function isAppointmentHistoryReady(): boolean {
-  const historyScreen = queryVisibleProtoScreen(2);
+  const historyScreen = resolveHistoryScreenHost();
   if (!historyScreen) return false;
   return Boolean(findVisibleHistoryViewDetails(historyScreen));
 }
@@ -703,13 +711,17 @@ async function runHistoryViewDetails(
   runtime: JourneyRuntime,
   options?: { skip?: boolean }
 ): Promise<boolean> {
-  let screen = await waitForActiveScreen(2);
+  let screen = resolveHistoryScreenHost();
   if (!screen) {
     runtime.goToTab(protoTabIndexForChild(2), {
       instant: options?.skip !== false,
     });
     await delay(options?.skip ? 80 : SETTLE_MS);
-    screen = await waitForActiveScreen(2);
+    for (let i = 0; i < 100 && !screen; i++) {
+      screen = resolveHistoryScreenHost();
+      if (screen) break;
+      await playbackReadinessDelay(50);
+    }
   }
   if (!screen || shouldAbort()) return false;
 
@@ -807,7 +819,10 @@ async function syncTraditionalTabState(
       runtime.closeAvailability();
       runtime.goToTab(protoTabIndexForChild(2), { instant });
       await delay(instant ? 80 : SETTLE_MS);
-      await waitForActiveScreen(2);
+      for (let i = 0; i < 100; i++) {
+        if (resolveHistoryScreenHost()) break;
+        await playbackReadinessDelay(50);
+      }
       return scriptOk();
     }
     default:

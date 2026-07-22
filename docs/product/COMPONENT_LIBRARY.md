@@ -48,10 +48,13 @@ Success metric: a second project can theme + reuse kits without copying Boots pa
 
 ## 4. Agent checklist (page migration)
 
-- [ ] Interactive controls are semantic (`button` / `a` / form fields)
+**HARD preflight:** [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 (UXDS map → similar frame → existing UXML kits/pages → theme delta only).
+
+- [ ] Shared role → look up [UXDS_MAP.md](../uxds/UXDS_MAP.md) + [REACT_KIT_MAP.md](../uxds/REACT_KIT_MAP.md) / `inventory/react-kit-map.json` **first**; reuse existing UXML kit or compose; only then add a new kit and extend the map
+- [ ] Interactive controls are semantic (`button` / `a` / form fields) — no dead decorative “collapsible” headers
 - [ ] `data-name` preserved or intentionally remapped (document if remapped)
 - [ ] Shared role → existing UXDS kit or project chrome (no one-off fork)
-- [ ] Colors via `var(--uxds-…)` + theme remap
+- [ ] Colors via `var(--uxds-…)`; layout/hover in BASE kits — project `theme.css` = **brand delta only** ([PROJECT_STYLEGUIDE.md](./PROJECT_STYLEGUIDE.md))
 - [ ] Make wire left in LEGACY or deleted — not re-exported as “library”
 - [ ] FE audit checklist + blast-radius chrome scan ([FE_UI_UX_AUDIT.md](./FE_UI_UX_AUDIT.md))
 

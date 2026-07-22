@@ -134,13 +134,15 @@ export function getAppointment(id: string): Appointment | undefined {
   return APPOINTMENTS.find((a) => a.id === id);
 }
 
-function isTerminalAppointmentStatus(status: string): boolean {
+/** True when Edit/Cancel should be hidden on History cards. */
+export function isTerminalAppointmentStatus(status: string): boolean {
   return /completed|cancelled|canceled|no[- ]?show|missed|attended/i.test(status);
 }
 
-type AppointmentStatusTone = "completed" | "active" | "cancelled";
+export type AppointmentStatusTone = "completed" | "active" | "cancelled";
 
-function getAppointmentStatusTone(status: string): AppointmentStatusTone {
+/** Status text color tone for History / Details cards. */
+export function getAppointmentStatusTone(status: string): AppointmentStatusTone {
   if (/cancelled|canceled/i.test(status)) return "cancelled";
   if (/completed|attended/i.test(status)) return "completed";
   return "active";
@@ -264,15 +266,18 @@ function convertToIconTextBtn(
 
 function ensureViewDetailsBtn(ctas: HTMLElement): HTMLButtonElement {
   let btn = ctas.querySelector<HTMLButtonElement>(
-    '[data-studio-appointment-view-details="true"]'
+    '[data-studio-action="history-view-details"], [data-studio-appointment-view-details="true"]'
   );
   if (!btn) {
     btn = document.createElement("button");
     btn.type = "button";
+    btn.dataset.studioAction = "history-view-details";
     btn.dataset.studioAppointmentViewDetails = "true";
     btn.className = "proto-avail-btn-primary proto-avail-btn-primary--sm";
     btn.textContent = "View Details";
   }
+  btn.dataset.studioAction = "history-view-details";
+  btn.dataset.studioAppointmentViewDetails = "true";
   ctas.insertBefore(btn, ctas.firstChild);
   return btn;
 }

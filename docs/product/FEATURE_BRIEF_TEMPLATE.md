@@ -17,6 +17,19 @@ _Why this exists in one short paragraph. Link concept / audit / NEXT_STEPS item.
 |------|----------|
 | … | … |
 
+## Inheritance preflight (HARD)
+
+**Required before Finn codes.** Full law: [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md).
+
+| # | UXDS / UXML source | Reuse / compose | Gap (new kit?) |
+|---|--------------------|-----------------|---------------|
+| P1 | inventory `module.*` / `component.*` | | |
+| P2 | similar UXDS frame (node id + URL) | | |
+| P3 | [REACT_KIT_MAP.md](../uxds/REACT_KIT_MAP.md) kits | | |
+| P4 | sibling UXML `screens/…` | | |
+| P5 | interactive kits (no dead headers) | | |
+| P6 | theme = brand delta only | | |
+
 ## Acceptance (Bea → Quinn)
 
 - [ ] …

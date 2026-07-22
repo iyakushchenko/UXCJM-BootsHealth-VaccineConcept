@@ -72,6 +72,7 @@ Never bare callsign alone in team output — always `Name (Role)` as above.
 5. **Quinn MCP prove before PROVEN** — Arch **rejects** FE audit **PROVEN** without MCP localhost real-user evidence ([§ Standing PO commands](#standing-po-commands-hard-process)).  
 6. **Ben CI sitrep** — after push / CI-impacting change, Ben (or Arch wearing Ben with explicit sitrep) runs `gh run list` per [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) §5.  
 7. **PAGE FINAL PASS before next page** — **no new migrated page** until previous is **hard-green** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). Finn/Uma own checklist + `check:page-final-pass` (do not duplicate the contract elsewhere). Parallel callsigns still required; **`Knowledge used:`** still mandatory on team check.
+7b. **PAGE CREATE INHERITANCE** — before coding a new/migrated page: UXDS map + similar frame + existing UXML kits/pages; theme = brand/copy delta only ([PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md)). Bea stamps inheritance table; Arch rejects mount without it.
 
 ### When NOT to parallelize
 
@@ -117,6 +118,14 @@ Do **not** use the exception to skip Quinn MCP / Uma audit on UI ships, **PAGE F
 4. **Quinn (QA):** verify CI / Pages if relevant + **interaction matrix** (hover/click feedback) PASS/FAIL.  
 5. **Ben (BE):** `gh` sitrep when push/CI touched.  
 6. **Arch (Director):** concrete task assignments until blockers cleared / stream green. Steer: Uma checklist + Bea register completeness + Quinn interaction matrix must all be green. **Reject done** if knowledge was write-only (appended but not applied). On page-close / next-page ask: **`PAGE FINAL PASS — <screenId> — HARD-GREEN | NOT-GREEN`** ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)). **Veto** starting the next migrated page until previous is hard-green.
+
+### `uxml rec` / `uxml play` / `uxml play step` / `uxml play step r`
+
+**Trigger:** human PO says the shorthand (or clear equivalent: “record a CJM”, “continuous play”, “step through CJM”, “step with rewind”).
+
+**Owner:** **Quinn (QA)** runs; Ben owns MCP/session hygiene with Quinn.
+
+**Law:** Locked procedures in [UXML_COMMANDS.md](../shell/UXML_COMMANDS.md) — default = **current CJM** unless PO names another; **always** QA overlay + Chrome DevTools MCP watched run on `:5173`. Do **not** invent a parallel path. Map also in [PROOF_ROUTER.md](../shell/PROOF_ROUTER.md).
 
 **Mandatory per-role fidelity lines (UI / Make→React / chrome ships):**
 
@@ -207,6 +216,7 @@ Arch spawns siblings → Bea brief → Finn (+ Uma) build → Quinn prove + Uma 
 | Briefs | Chat-only “we’ll fix it” with no acceptance; next-page brief while previous Final Pass not hard-green |
 | Cross-check | Finn “done” with no Quinn MCP evidence; Uma skipped on UI; Arch stamps PROVEN without MCP |
 | PAGE FINAL PASS | Next migrated page started while previous not hard-green ([PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md)) |
+| PAGE CREATE INHERITANCE | New/migrated page coded without P1–P6 inheritance stamp, or project theme grows layout/hover/component zoo ([PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md)) |
 | Pax | Version/push on user-visible ship without Pax (or human PO) call |
 | Batch ship (R12) | Push after every tiny fix / mid-wave thrash — land local; one push per coherent ship ([STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R12) |
 | Await CI (R12) | `gh run watch` / sleep-poll / wait for Pages after routine push — push and move on; await only HARD-GREEN / release / PO prove |

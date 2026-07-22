@@ -26,6 +26,8 @@ const REACT_MIGRATED_SCREENS = [
   "pdp",
   "site-pilot",
   "chat",
+  "appointment-history",
+  "appointment-details",
 ];
 
 const CHECKLIST_KEYS = [
@@ -43,6 +45,10 @@ const SCREEN_SOURCES = {
   pdp: "src/projects/boots-pharmacy/screens/pdp/PdpScreen.tsx",
   "site-pilot": "src/projects/boots-pharmacy/screens/home/HomeScreen.tsx",
   chat: "src/projects/boots-pharmacy/screens/chat/ChatScreen.tsx",
+  "appointment-history":
+    "src/projects/boots-pharmacy/screens/appointment-history/AppointmentHistoryScreen.tsx",
+  "appointment-details":
+    "src/projects/boots-pharmacy/screens/appointment-details/AppointmentDetailsScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/BookStep1LocationScreen.tsx",
   "book-step-2":
@@ -56,6 +62,10 @@ const SCREEN_MOUNTS = {
   pdp: "src/projects/boots-pharmacy/screens/pdp/mountPdpScreen.tsx",
   "site-pilot": "src/projects/boots-pharmacy/screens/home/mountHomeScreen.tsx",
   chat: "src/projects/boots-pharmacy/screens/chat/mountChatScreen.tsx",
+  "appointment-history":
+    "src/projects/boots-pharmacy/screens/appointment-history/mountAppointmentHistoryScreen.tsx",
+  "appointment-details":
+    "src/projects/boots-pharmacy/screens/appointment-details/mountAppointmentDetailsScreen.tsx",
   "book-step-1":
     "src/projects/boots-pharmacy/screens/book-step-1/mountBookStep1Screen.tsx",
   "book-step-2":
@@ -81,9 +91,10 @@ const BUTTON_PRIMARY_REQUIRED = new Set([
   "book-step-2",
   "book-step-3",
   "chat",
+  "appointment-history",
 ]);
-/** Site Pilot home uses Make component.input.button (mic/send), not ButtonPrimary.
- *  Chat reply pills use ButtonPrimary commerce; composer mic/send stay shared kit. */
+/** Screens that must use UXDS Accordion kit for expand/collapse bands. */
+const ACCORDION_REQUIRED = new Set(["pdp", "appointment-details"]);
 
 const errors = [];
 const fail = (msg) => errors.push(msg);
@@ -221,9 +232,17 @@ for (const screenId of required) {
         ? /PDP_REACT_SCREEN_ID|["']pdp["']/.test(src)
         : screenId === "site-pilot"
           ? /HOME_REACT_SCREEN_ID|["']site-pilot["']/.test(src)
-          : new RegExp(
-              `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
-            ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
+          : screenId === "appointment-history"
+            ? /APPOINTMENT_HISTORY_REACT_SCREEN_ID|["']appointment-history["']/.test(
+                src
+              )
+            : screenId === "appointment-details"
+              ? /APPOINTMENT_DETAILS_REACT_SCREEN_ID|["']appointment-details["']/.test(
+                  src
+                )
+              : new RegExp(
+                  `BOOK_STEP${screenId.slice(-1)}_REACT_SCREEN_ID|["']${screenId}["']`
+                ).test(src) || new RegExp(`["']${screenId}["']`).test(src);
 
   if (!hasReactScreenAttr || !screenIdConst) {
     fail(
@@ -297,6 +316,18 @@ for (const screenId of required) {
     }
   }
 
+  // Accordion bands — must use shared UXDS Accordion kit (interactive; no dead headers).
+  if (ACCORDION_REQUIRED.has(screenId)) {
+    if (
+      !/from\s+["']@\/uxds\/interactions["']/.test(src) ||
+      !/<Accordion[\s>]/.test(code)
+    ) {
+      fail(
+        `${screenId}: expand/collapse band must use UXDS <Accordion> kit (reusable interactive)`
+      );
+    }
+  }
+
   // PLP: no invented filter separators
   if (screenId === "plp") {
     const css = requireFile(
@@ -314,20 +345,6 @@ for (const screenId of required) {
           `${screenId}: .plp__filter-section must not invent border separators (Make has none)`
         );
       }
-    }
-  }
-
-  // PDP: Book now uses ButtonPrimary (above); no SearchField required.
-  // FAQ accordion — PO go: must use shared UXDS Accordion kit (same as PLP filters).
-  // Specs/accordion borders are Make-parity — do not invent separator bans.
-  if (screenId === "pdp") {
-    if (
-      !/from\s+["']@\/uxds\/interactions["']/.test(src) ||
-      !/<Accordion[\s>]/.test(code)
-    ) {
-      fail(
-        `${screenId}: FAQ band must use UXDS <Accordion> kit (PO interactive; was B1 static)`
-      );
     }
   }
 }

@@ -39,7 +39,7 @@ The UI styling contract is named explicitly: `check:text-link-contract`.
 | Task | Read before changing code |
 |------|---------------------------|
 | Any serious work | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md), your section in [TEAM_KNOWLEDGE.md](./TEAM_KNOWLEDGE.md), relevant [LESSONS_LEARNED.md](./LESSONS_LEARNED.md), and [NEXT_STEPS.md](./NEXT_STEPS.md). |
-| React page migration | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md), [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md), [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md), and the screen brief/register. |
+| React page migration | [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 → [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md), [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md), [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md), and the screen brief/register. |
 | CSS, components, or visual UI | [CSS_BASE_THEME.md](./CSS_BASE_THEME.md), [DS_STRICTNESS.md](./DS_STRICTNESS.md), [FE_STANDARDS.md](./FE_STANDARDS.md), and [VISUAL_FIDELITY.md](./VISUAL_FIDELITY.md). |
 | Navigation, URL, or modal | [../shell/URL.md](../shell/URL.md) and the modal registry contract. |
 | Page, playback, recording, chrome, or PO-signal proof | Start with the [proof router](../shell/PROOF_ROUTER.md); open only the deep contract linked from the selected row. |

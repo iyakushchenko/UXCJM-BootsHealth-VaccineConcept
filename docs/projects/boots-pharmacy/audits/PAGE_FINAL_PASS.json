@@ -1,7 +1,7 @@
 {
   "version": 1,
   "projectId": "boots-pharmacy",
-  "updatedAt": "2026-07-20",
+  "updatedAt": "2026-07-22",
   "note": "Hard gate before NEXT page. npm run check:page-final-pass (via npm test) fails unless each required screen has status=proven, full checklist keys true, stampedAt, and source contracts (main/header, BEM=screenId, data-studio-react-screen, make-retired, kits). Policy: docs/product/PAGE_FINAL_PASS.md. Quinn MCP proves after stamp → mcpFinalPass HARD-GREEN opens next page.",
   "requiredScreens": [
     "book-step-1",
@@ -10,7 +10,9 @@
     "plp",
     "pdp",
     "site-pilot",
-    "chat"
+    "chat",
+    "appointment-history",
+    "appointment-details"
   ],
   "screens": [
     {
@@ -285,6 +287,104 @@
           "header": false,
           "main": true,
           "section": true,
+          "aside": false,
+          "makeRetired": true
+        }
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "appointment-history",
+      "status": "proven",
+      "hardGreen": true,
+      "stampedAt": {
+        "sha": "95ccca7",
+        "date": "2026-07-22",
+        "note": "Uma+Finn History React + densify gate; header+main; BEM appointment-history; ButtonPrimary View Details; make-retired via retireMakeUnderPage. Quinn MCP 8/8."
+      },
+      "mcpFinalPass": {
+        "status": "HARD-GREEN",
+        "pass": true,
+        "stampedAt": {
+          "sha": "95ccca7",
+          "date": "2026-07-22",
+          "version": "0.0.108",
+          "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN",
+          "note": "Quinn __studioRunMcpPageProbe({ screenId:\"appointment-history\", reload:false }) 8/8 PASS on localhost:5173. Uma PROVEN densify gate. View Details → Make details + restore. Audit: FE_AUDIT_APPOINTMENT_HISTORY_PAGE_FINAL_PASS_2026-07-22.md"
+        },
+        "url": "http://localhost:5173/?project=boots-pharmacy&screen=appointment-history",
+        "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_APPOINTMENT_HISTORY_PAGE_FINAL_PASS_2026-07-22.md",
+        "matrix": [
+          { "id": "overlay-arm", "pass": true, "detail": "BR panel visible" },
+          { "id": "appointment-history-host", "pass": true },
+          { "id": "appointment-history-make-retired", "pass": true },
+          { "id": "appointment-history-view-details-count", "pass": true },
+          { "id": "appointment-history-view-details-hover", "pass": true },
+          { "id": "appointment-history-view-details-click", "pass": true },
+          { "id": "appointment-history-return-after-details", "pass": true },
+          { "id": "url-screen", "pass": true }
+        ],
+        "landmarks": {
+          "header": true,
+          "main": true,
+          "section": false,
+          "aside": false,
+          "makeRetired": true
+        }
+      },
+      "checklist": {
+        "semanticHtml": true,
+        "bemScreenId": true,
+        "dataStudioHooks": true,
+        "uxdsKits": true,
+        "noInventSeparators": true,
+        "dsStates": true
+      }
+    },
+    {
+      "screenId": "appointment-details",
+      "status": "proven",
+      "hardGreen": true,
+      "stampedAt": {
+        "sha": "95ccca7",
+        "date": "2026-07-22",
+        "note": "Uma+Finn Details React + densify gate; header+main; BEM appointment-details; Edit/Cancel icon+text (no ButtonPrimary); make-retired via retireMakeUnderPage. Quinn MCP 10/10."
+      },
+      "mcpFinalPass": {
+        "status": "HARD-GREEN",
+        "pass": true,
+        "stampedAt": {
+          "sha": "95ccca7",
+          "date": "2026-07-22",
+          "version": "0.0.108",
+          "auditor": "Quinn (QA) MCP + Arch (Director) HARD-GREEN",
+          "note": "Quinn __studioRunMcpPageProbe({ screenId:\"appointment-details\", reload:false }) 10/10 PASS on localhost:5173. Uma PROVEN densify 20/20. Terminal CTA hide. Crumb → React History. Audit: FE_AUDIT_APPOINTMENT_DETAILS_PAGE_FINAL_PASS_2026-07-22.md"
+        },
+        "url": "http://localhost:5173/?project=boots-pharmacy&screen=appointment-details",
+        "auditPath": "docs/projects/boots-pharmacy/audits/FE_AUDIT_APPOINTMENT_DETAILS_PAGE_FINAL_PASS_2026-07-22.md",
+        "matrix": [
+          { "id": "overlay-arm", "pass": true, "detail": "BR panel visible" },
+          { "id": "appointment-details-host", "pass": true },
+          { "id": "appointment-details-make-retired", "pass": true },
+          { "id": "appointment-details-url-screen", "pass": true },
+          { "id": "appointment-details-selected-card", "pass": true },
+          { "id": "appointment-details-edit-cancel-rules", "pass": true },
+          { "id": "appointment-details-edit-hover", "pass": true },
+          { "id": "appointment-details-cancel-hover", "pass": true },
+          { "id": "appointment-details-crumb-back", "pass": true },
+          { "id": "url-screen", "pass": true }
+        ],
+        "landmarks": {
+          "header": true,
+          "main": true,
+          "section": false,
           "aside": false,
           "makeRetired": true
         }

@@ -1,0 +1,2043 @@
+{
+  "meta": {
+    "purpose": "Make-only interaction inventory baseline BEFORE React migration",
+    "screenId": "appointment-history",
+    "projectId": "boots-pharmacy",
+    "capturedAt": "2026-07-22T09:01:21.887Z",
+    "capturedBy": "Quinn (QA)",
+    "captureMethod": "Chrome DevTools MCP + __studioMapCurrentInteractions (localhost:5173 live tab)",
+    "host": "http://localhost:5173/?project=boots-pharmacy&screen=appointment-history&persona=sarah-jenkins&cjm=off&experience=agentic",
+    "hostState": "Make (no React host for appointment-history)",
+    "helper": "await window.__studioMapCurrentInteractions()",
+    "knowledgeUsed": "TEAM_KNOWLEDGE Quinn + INTERACTION_INVENTORY.md + PROOF_ROUTER.md",
+    "reactMigrationClaim": false,
+    "notes": [
+      "readinessPass=false is EXPECTED on Make: duplicate View Details cannot form unique ready-target selectors; most hooks missing-stable-target.",
+      "Inventory mapper stableSelector does not treat data-studio-appointment-view-details as unique (and 4 matches would fail uniqueness).",
+      "Post-React: re-run map; require readinessPass=true for primary CTAs; reconcile every removed/renamed target — unexplained loss blocks PAGE FINAL PASS."
+    ],
+    "quinnCtaNotes": {
+      "viewDetailsSelector": "[data-studio-appointment-view-details=\"true\"]",
+      "viewDetailsDom": [
+        {
+          "index": 0,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true"
+        },
+        {
+          "index": 1,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true"
+        },
+        {
+          "index": 2,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true"
+        },
+        {
+          "index": 3,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true"
+        }
+      ],
+      "inventoryViewDetailsTargetIds": [
+        "button-4",
+        "button-6",
+        "button-8",
+        "button-11"
+      ],
+      "cards": [
+        {
+          "index": 0,
+          "isClone": false,
+          "heading": "Appointment #1411527",
+          "viewDetails": false,
+          "edit": false,
+          "cancel": false,
+          "refundPilot": false
+        },
+        {
+          "index": 1,
+          "isClone": false,
+          "heading": "Appointment #1411527",
+          "viewDetails": true,
+          "edit": true,
+          "cancel": true,
+          "refundPilot": false
+        },
+        {
+          "index": 2,
+          "isClone": false,
+          "heading": "Appointment #1090595",
+          "viewDetails": true,
+          "edit": false,
+          "cancel": false,
+          "refundPilot": false
+        },
+        {
+          "index": 3,
+          "isClone": false,
+          "heading": "Appointment #990587",
+          "viewDetails": true,
+          "edit": true,
+          "cancel": true,
+          "refundPilot": false
+        },
+        {
+          "index": 4,
+          "isClone": true,
+          "heading": "Appointment #8762341",
+          "viewDetails": true,
+          "edit": true,
+          "cancel": true,
+          "refundPilot": true
+        }
+      ],
+      "editHookCount": 3,
+      "cancelHookCount": 3,
+      "reactHost": false,
+      "cardDataName": "boots-pharmacy.component.ma.acc.overview.recent.order",
+      "cardCloneAttr": "data-studio-appointment-card-clone=\"true\""
+    },
+    "reconcilePostReact": {
+      "steps": [
+        "Navigate http://localhost:5173/?project=boots-pharmacy&screen=appointment-history with React host mounted",
+        "await window.__studioMapCurrentInteractions()",
+        "Save React map beside this baseline with dated filename",
+        "Diff totals + named CTAs: View Details / Edit / Cancel / Ask Site Pilot / Discuss with Site Pilot / Load more / breadcrumbs / appointment title links",
+        "Require readinessPass=true for primary Studio hooks (prefer unique data-studio-action or data-studio-target per card, or card-scoped view-details + appointment id)",
+        "Unexplained target loss or missing View Details blocks PAGE FINAL PASS",
+        "Do not treat Make readinessPass=false as React FAIL — this file is pre-migration evidence only"
+      ],
+      "mustPreserveSelectors": [
+        "[data-studio-appointment-view-details=\"true\"]",
+        "[data-studio-appointment-edit=\"true\"]",
+        "[data-studio-appointment-cancel=\"true\"]"
+      ]
+    }
+  },
+  "inventory": {
+    "kind": "studio-interaction-inventory",
+    "schemaVersion": 1,
+    "generatedAt": "2026-07-22T09:01:21.887Z",
+    "projectId": "boots-pharmacy",
+    "scope": "current",
+    "pass": true,
+    "readinessPass": false,
+    "totals": {
+      "ready-target": 0,
+      "semantic-ready": 38,
+      "visual-candidate": 25,
+      "disabled": 0,
+      "invalid": 8
+    },
+    "surfaces": [
+      {
+        "surfaceId": "appointment-history",
+        "label": "Appointment History",
+        "kind": "screen",
+        "totals": {
+          "ready-target": 0,
+          "semantic-ready": 38,
+          "visual-candidate": 25,
+          "disabled": 0,
+          "invalid": 8
+        },
+        "items": [
+          {
+            "targetId": "div-0",
+            "selector": null,
+            "tag": "div",
+            "role": "link",
+            "type": null,
+            "name": "Boots Pharmacy home",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 129.6875,
+              "width": 175,
+              "height": 34
+            }
+          },
+          {
+            "targetId": "div-1",
+            "selector": null,
+            "tag": "div",
+            "role": "link",
+            "type": null,
+            "name": "Home",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 750.078125,
+              "y": 114.6875,
+              "width": 37.78125,
+              "height": 64
+            }
+          },
+          {
+            "targetId": "span-2",
+            "selector": null,
+            "tag": "span",
+            "role": "link",
+            "type": null,
+            "name": "Ask Site Pilot",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 845.34375,
+              "y": 358.6875,
+              "width": 76.59375,
+              "height": 15
+            }
+          },
+          {
+            "targetId": "p-3",
+            "selector": null,
+            "tag": "p",
+            "role": "link",
+            "type": null,
+            "name": "Appointment #1411527",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 494.6875,
+              "width": 936,
+              "height": 28
+            }
+          },
+          {
+            "targetId": "button-4",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "View Details",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 840.6875,
+              "width": 103.796875,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "p-5",
+            "selector": null,
+            "tag": "p",
+            "role": "link",
+            "type": null,
+            "name": "Appointment #1090595",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 944.6875,
+              "width": 936,
+              "height": 28
+            }
+          },
+          {
+            "targetId": "button-6",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "View Details",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 1290.6875,
+              "width": 103.796875,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "p-7",
+            "selector": null,
+            "tag": "p",
+            "role": "link",
+            "type": null,
+            "name": "Appointment #990587",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 1394.6875,
+              "width": 936,
+              "height": 28
+            }
+          },
+          {
+            "targetId": "button-8",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "View Details",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 1740.6875,
+              "width": 103.796875,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "p-9",
+            "selector": null,
+            "tag": "p",
+            "role": "link",
+            "type": null,
+            "name": "Appointment #8762341",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 1844.6875,
+              "width": 936,
+              "height": 28
+            }
+          },
+          {
+            "targetId": "span-10",
+            "selector": null,
+            "tag": "span",
+            "role": "link",
+            "type": null,
+            "name": "Discuss with Site Pilot",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 910.21875,
+              "y": 1978.6875,
+              "width": 127.15625,
+              "height": 15
+            }
+          },
+          {
+            "targetId": "button-11",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "View Details",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 2234.6875,
+              "width": 103.796875,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "button-12",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Vaccination",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 2592.6875,
+              "width": 69.625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-13",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "NHS Stop Smoking Service",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 2632.6875,
+              "width": 159.34375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-14",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Practice Plus",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 2672.6875,
+              "width": 76.6875,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-15",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Physiotherapist Online",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 2712.6875,
+              "width": 137.421875,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-16",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Online GP Appointment",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 2752.6875,
+              "width": 143.734375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-17",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Skin Scanning",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 2592.6875,
+              "width": 83.4375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-18",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Mole Scanning",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 2632.6875,
+              "width": 88.3125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-19",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Help with problem skin",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 2672.6875,
+              "width": 140.15625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-20",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "FAQs",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 2592.6875,
+              "width": 31.25,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-21",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Contact us",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 2632.6875,
+              "width": 64.25,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-22",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Pick up and delivery",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 2672.6875,
+              "width": 120.8125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-23",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Off-label medicines",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 2712.6875,
+              "width": 117.015625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-24",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Store locator",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 2752.6875,
+              "width": 77.90625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-25",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Careers",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 2592.6875,
+              "width": 46.84375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-26",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Meet the team",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 2632.6875,
+              "width": 88.78125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-27",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Patient guide",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 2672.6875,
+              "width": 79.8125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-28",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Terms and conditions",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 2712.6875,
+              "width": 131.078125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-29",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Privacy policy",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 2752.6875,
+              "width": 81.328125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-30",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Sign up",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 539.421875,
+              "y": 2913.6875,
+              "width": 104.578125,
+              "height": 46
+            }
+          },
+          {
+            "targetId": "button-31",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "X (Twitter)",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 677,
+              "y": 2936.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-32",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Instagram",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 725,
+              "y": 2936.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-33",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Facebook",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 773,
+              "y": 2936.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-34",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Google",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 821,
+              "y": 2936.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-35",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Our Services",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1069,
+              "y": 2936.6875,
+              "width": 107.90625,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "button-36",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Find a store",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1192.90625,
+              "y": 2936.6875,
+              "width": 125.03125,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "a-37",
+            "selector": null,
+            "tag": "a",
+            "role": null,
+            "type": null,
+            "name": "Using Our Pharmacy Services",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": "https://www.boots.com/boots-pharmacy-frequently-asked-questions-faqs",
+            "rect": {
+              "x": 974.671875,
+              "y": 3095.6875,
+              "width": 136.21875,
+              "height": 14
+            }
+          },
+          {
+            "targetId": "p-38",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Home",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 212.6875,
+              "width": 26.6875,
+              "height": 12
+            }
+          },
+          {
+            "targetId": "p-39",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Account Overview",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 343.6875,
+              "y": 212.6875,
+              "width": 80.59375,
+              "height": 12
+            }
+          },
+          {
+            "targetId": "p-40",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "+44 20 7123 4567",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 938.6875,
+              "width": 328,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "p-41",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Contact us",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1002.6875,
+              "width": 304,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "p-42",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "1411527",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 799,
+              "y": 572.6875,
+              "width": 758,
+              "height": 20
+            }
+          },
+          {
+            "targetId": "div-43",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 756.796875,
+              "y": 844.6875,
+              "width": 69.234375,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "div-44",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 768.796875,
+              "y": 852.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "svg-45",
+            "selector": null,
+            "tag": "svg",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 768.796875,
+              "y": 852.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-46",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 792.796875,
+              "y": 852.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-47",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 792.796875,
+              "y": 852.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-48",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 838.03125,
+              "y": 844.6875,
+              "width": 85.203125,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "div-49",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 850.03125,
+              "y": 852.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-50",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 874.03125,
+              "y": 852.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-51",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 874.03125,
+              "y": 852.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-52",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "1090595",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 799,
+              "y": 1022.6875,
+              "width": 758,
+              "height": 20
+            }
+          },
+          {
+            "targetId": "p-53",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "990587",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 799,
+              "y": 1472.6875,
+              "width": 758,
+              "height": 20
+            }
+          },
+          {
+            "targetId": "div-54",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 756.796875,
+              "y": 1744.6875,
+              "width": 69.234375,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "div-55",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 768.796875,
+              "y": 1752.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "svg-56",
+            "selector": null,
+            "tag": "svg",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 768.796875,
+              "y": 1752.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-57",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 792.796875,
+              "y": 1752.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-58",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 792.796875,
+              "y": 1752.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-59",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 838.03125,
+              "y": 1744.6875,
+              "width": 85.203125,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "div-60",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 850.03125,
+              "y": 1752.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-61",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 874.03125,
+              "y": 1752.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-62",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 874.03125,
+              "y": 1752.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-63",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "8762341",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 799,
+              "y": 1922.6875,
+              "width": 758,
+              "height": 20
+            }
+          },
+          {
+            "targetId": "div-64",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Load more",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 921,
+              "y": 2384.6875,
+              "width": 376,
+              "height": 48
+            }
+          },
+          {
+            "targetId": "div-65",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Load more",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 921,
+              "y": 2384.6875,
+              "width": 376,
+              "height": 48
+            }
+          },
+          {
+            "targetId": "div-66",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Load more",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 921,
+              "y": 2384.6875,
+              "width": 376,
+              "height": 48
+            }
+          },
+          {
+            "targetId": "[data-name=\"icon\\=plus\"]",
+            "selector": "[data-name=\"icon\\=plus\"]",
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 1057.53125,
+              "y": 2400.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "svg-68",
+            "selector": null,
+            "tag": "svg",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 1057.53125,
+              "y": 2400.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-69",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Load more",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 1081.53125,
+              "y": 2400.6875,
+              "width": 78.921875,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-70",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Load more",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 1081.53125,
+              "y": 2400.6875,
+              "width": 78.921875,
+              "height": 16
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-0"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-1"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "span-2"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-3"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-4"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-5"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-6"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-7"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-8"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-9"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "span-10"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-11"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-12"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-13"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-14"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-15"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-16"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-17"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-18"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-19"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-20"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-21"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-22"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-23"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-24"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-25"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-26"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-27"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-28"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-29"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-30"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-31"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-32"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-33"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-34"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-35"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-36"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "a-37"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-38"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-39"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-40"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-41"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-42"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-43"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "div-44"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-44"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "svg-45"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "svg-45"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-46"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-47"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-48"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "div-49"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-49"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-50"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-51"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-52"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-53"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-54"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "div-55"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-55"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "svg-56"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "svg-56"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-57"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-58"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-59"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "div-60"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-60"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-61"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-62"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-63"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-64"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-65"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-66"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "[data-name=\"icon\\=plus\"]"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "svg-68"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "svg-68"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-69"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-70"
+          }
+        ]
+      }
+    ],
+    "errors": []
+  }
+}

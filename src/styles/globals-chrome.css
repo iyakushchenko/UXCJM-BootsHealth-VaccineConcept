@@ -2165,9 +2165,10 @@
   width: 100% !important;
 }
 
-/* Order cards — Figma hardcodes w-[976px]; fill the remaining column */
-.studio-viewport > div > div:nth-child(1) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"],
-.studio-viewport > div > div:nth-child(2) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"] {
+/* Order cards — Figma hardcodes w-[976px]; fill the remaining column.
+ * HARD: skip when React History/Details mounted (page has data-studio-react-screen). */
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen]) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"],
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen]) [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"] {
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
@@ -2178,10 +2179,10 @@
 }
 
 /* Card title — “Appointment #…” (Figma 25px; slightly smaller for balance) */
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > p {
   font-size: 20px !important;
@@ -2189,34 +2190,34 @@
 }
 
 /* Inner white detail panel — softer border, tighter padding */
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > .pointer-events-none[aria-hidden],
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > .pointer-events-none[aria-hidden] {
   border-color: #ebebeb !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > div:not([aria-hidden]),
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > div:not([aria-hidden]) {
   padding: 20px !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > div:not([aria-hidden])
   > div,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   > .bg-white
   > div:not([aria-hidden])
@@ -2224,30 +2225,30 @@
   gap: 2px !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="row"],
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="row"] {
   gap: 8px 20px !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"],
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"] {
   gap: 12px !important;
   align-items: center !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   .proto-avail-btn-primary--sm,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   .proto-avail-btn-primary--sm {
@@ -2255,19 +2256,19 @@
 }
 
 /* Appointment card detail rows — Figma exports ~10–12px; bump for readability */
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="row"]
   p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="row"]
   p,
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="component.product.price"]
   p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="component.product.price"]
   p {
@@ -2306,33 +2307,33 @@
   color: #01318f !important;
 }
 
-/* Appointment Cancel CTA — navy label; hover icon → coral/red */
-.studio-viewport > div > div:nth-child(1)
+/* Appointment Cancel CTA — Make-only (gated off React hosts; no invent Cancel hover on React). */
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]
   p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]
   p,
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:hover
   p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:hover
   p,
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:active
   p,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:active
@@ -2340,13 +2341,13 @@
   color: #012169 !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]
   svg
   path,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]
@@ -2355,25 +2356,25 @@
   transition: stroke 0.18s ease, fill 0.18s ease !important;
 }
 
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:hover
   svg
   path,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:hover
   svg
   path,
-.studio-viewport > div > div:nth-child(1)
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:active
   svg
   path,
-.studio-viewport > div > div:nth-child(2)
+.studio-viewport > div > div:nth-child(2):not([data-studio-react-screen])
   [data-name="boots-pharmacy.component.ma.acc.overview.recent.order"]
   [data-name="CTAs"]
   [data-studio-appointment-cancel="true"]:active
@@ -2390,10 +2391,10 @@
   align-self: center !important;
 }
 
-/* Order summary + contact/payment blocks */
-.studio-viewport > div > div:nth-child(1) [data-name="component.co.buyer.info.static"],
-.studio-viewport > div > div:nth-child(1) [data-name="component.co.product.in.this.order"],
-.studio-viewport > div > div:nth-child(1) [data-name="Info Blocks / Order Summary/NO"] {
+/* Order summary + contact/payment blocks — Make Details only */
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen]) [data-name="component.co.buyer.info.static"],
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen]) [data-name="component.co.product.in.this.order"],
+.studio-viewport > div > div:nth-child(1):not([data-studio-react-screen]) [data-name="Info Blocks / Order Summary/NO"] {
   width: 100% !important;
   max-width: 100% !important;
 }

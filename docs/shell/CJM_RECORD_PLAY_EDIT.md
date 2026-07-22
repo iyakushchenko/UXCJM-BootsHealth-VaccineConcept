@@ -24,8 +24,9 @@ CJM is **not** an imperative director novel. It is a **tab script**: targets fro
 
 | Prove | API | Rule |
 |-------|-----|------|
-| **REC robustness** | `__studioRunRecNewCjmProve({ experience?, label?, captureUntil? })` | **ALWAYS CLEAR** → **human pace** (`REC_USER_PACE_MS`) → arm REC → capture (scroll-stops + CTAs) → **modal drain** if `&modal=` (e.g. choose-pharmacy) → Add as CJM → Play **that** `journeyId`. `captureUntil`: `plp-book`, `pdp-book`, `book-location`, `book-schedule`, or `book-confirmation`. **FORBIDDEN:** built-in Play as REC prove; skipping open modals; 50ms spam clicks. |
-| **Play journey** | `__studioRunFullPlayProve({ journeyId \| experience })` | **ALWAYS CLEAR** (`requireFreshQaSession`, no skip) → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve`. Smoke `__protoRunTraditionalPlaySmoke` tears down overlay. |
+| **REC robustness** · **`uxml rec`** | `__studioRunRecNewCjmProve({ experience?, label?, captureUntil? })` | **ALWAYS CLEAR** → **human pace** (`REC_USER_PACE_MS`) → arm REC → capture (scroll-stops + CTAs) → **modal drain** if `&modal=` (e.g. choose-pharmacy) → Add as CJM → Play **that** `journeyId`. `captureUntil`: `plp-book`, `pdp-book`, `book-location`, `book-schedule`, or `book-confirmation`. **FORBIDDEN:** built-in Play as REC prove; skipping open modals; 50ms spam clicks. |
+| **Play journey** · **`uxml play`** | `__studioRunFullPlayProve({ journeyId \| experience })` | **ALWAYS CLEAR** (`requireFreshQaSession`, no skip) → full Play → peak assert → leave pause. Thin presets: `__studioRunAgenticFullPlayProve` / `__studioRunTraditionalFullPlayProve`. Smoke `__protoRunTraditionalPlaySmoke` tears down overlay. Default journey = current CJM. |
+| **Stepped** · **`uxml play step`** / **+ rewind** · **`uxml play step r`** | Step-forward smokes ± retreat smokes | Locked in [UXML_COMMANDS.md](./UXML_COMMANDS.md). |
 
 **REC arm (agents only):** `__studioArmRecCapture()` — **ALWAYS CLEAR QA first** → CJM off → REC mode ON → CREATE NEW CJM → ● Start. Latch: `__studioAssertRecLive()`. **ALWAYS CLEAR + human pace + modal drain are code law** — not reminders. URL `modal=` is navigable state — never ignore.
 

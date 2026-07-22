@@ -144,6 +144,18 @@ import {
   mountHomeScreen,
   unmountHomeScreen,
 } from "@/projects/boots-pharmacy/screens/home/mountHomeScreen";
+import {
+  isAppointmentHistoryReactMounted,
+  mountAppointmentHistoryScreen,
+  unmountAppointmentHistoryScreen,
+} from "@/projects/boots-pharmacy/screens/appointment-history/mountAppointmentHistoryScreen";
+import { APPOINTMENT_HISTORY_CHILD_INDEX } from "@/projects/boots-pharmacy/screens/appointment-history/appointmentHistoryContract";
+import {
+  isAppointmentDetailsReactMounted,
+  mountAppointmentDetailsScreen,
+  unmountAppointmentDetailsScreen,
+} from "@/projects/boots-pharmacy/screens/appointment-details/mountAppointmentDetailsScreen";
+import { APPOINTMENT_DETAILS_CHILD_INDEX } from "@/projects/boots-pharmacy/screens/appointment-details/appointmentDetailsContract";
 import { CHAT_REACT_MOUNT_ENABLED, isChatReactMounted } from "@/projects/boots-pharmacy/screens/chat/mountChatScreen";
 import { useBootsChatScreenMount } from "@/projects/boots-pharmacy/screens/chat/useBootsChatScreenMount";
 import {
@@ -1684,6 +1696,41 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     return () => unmountHomeScreen();
   }, []);
 
+  // Appointment History — React + UXDS migration (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== APPOINTMENT_HISTORY_CHILD_INDEX) {
+      unmountAppointmentHistoryScreen();
+      return;
+    }
+
+    mountAppointmentHistoryScreen({
+      onOpenDetails: () => setCurrent(INDEX_APPOINTMENT_DETAILS),
+      onAskSitePilot: () => goSitePilotHome(APPOINTMENT_PILOT_QUERY),
+      onSitePilotHome: goSitePilotHome,
+    });
+  }, [current, goSitePilotHome, INDEX_APPOINTMENT_DETAILS]);
+
+  useEffect(() => {
+    return () => unmountAppointmentHistoryScreen();
+  }, []);
+
+  // Appointment Details — React + UXDS migration (retires Make HTML for this screen only)
+  useLayoutEffect(() => {
+    if (SCREENS[current]?.childIndex !== APPOINTMENT_DETAILS_CHILD_INDEX) {
+      unmountAppointmentDetailsScreen();
+      return;
+    }
+
+    mountAppointmentDetailsScreen({
+      onGoHistory: () => setCurrent(INDEX_APPOINTMENT_HISTORY),
+      onSitePilotHome: goSitePilotHome,
+    });
+  }, [current, goSitePilotHome, INDEX_APPOINTMENT_HISTORY]);
+
+  useEffect(() => {
+    return () => unmountAppointmentDetailsScreen();
+  }, []);
+
   useBootsChatScreenMount(SCREENS[current]?.childIndex, {
     openAvailabilityRef: openAvailabilityToolRef,
     setCurrent,
@@ -2874,9 +2921,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     }
   }, [current]);
 
-  // Tab 8 — Appointment History: realistic cards + title links → tab 9
+  // Tab 8 — Appointment History: Make wire only when React host is not mounted
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 2) return;
+    if (isAppointmentHistoryReactMounted()) return;
     const page = document.querySelector(
       ".studio-viewport > div > div:nth-child(2)"
     ) as HTMLElement | null;
@@ -2901,9 +2949,10 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
     };
   }, [current, goSitePilotHome]);
 
-  // Tab 9 — Appointment Details: reflect selected list item
+  // Tab 9 — Appointment Details: Make wire only when React host is not mounted
   useEffect(() => {
     if (SCREENS[current]?.childIndex !== 1) return;
+    if (isAppointmentDetailsReactMounted()) return;
     const page = document.querySelector(
       ".studio-viewport > div > div:nth-child(1)"
     ) as HTMLElement | null;

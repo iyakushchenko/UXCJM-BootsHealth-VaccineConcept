@@ -15,6 +15,6 @@ Shipped React under `src/uxds/` maps to Figma master names on `↳  01 Component
 | `PromoMessageStrip.tsx` | `component.content.slot.promo.2`, `component.gse.product.tile.promotion` | Promo / message strip |
 | `FilterChipToggle.tsx` | `component.plp.filter.text.item`, `component.plp.filter.quick.view` | PLP filter pill toggle |
 | `Disclosure.tsx` | `component.plp.filter.accordion`, `component.footer.accordion.item` | Expand/collapse disclosure |
-| `Accordion.tsx` | `component.gse.accordion`, `component.pdp.accordion` | Multi-section accordion |
+| `Accordion.tsx` | `component.gse.accordion`, `component.pdp.accordion` · compose under `component.co.product.in.this.order` (Order/Appointment Details) | Multi-section accordion |
 
 **Gate:** `npm run check:uxds-inventory` requires ≥5 kit rows (currently 8).

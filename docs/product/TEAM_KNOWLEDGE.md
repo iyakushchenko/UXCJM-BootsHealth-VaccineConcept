@@ -15,11 +15,13 @@ entries only when a symptom, surface, or gate points there.
 
 | Need | Read now | Open next only if relevant |
 |------|----------|----------------------------|
+| **Stuck / same FAIL twice / don’t know** | **[AGENT_STUCK_ROUTER.md](./AGENT_STUCK_ROUTER.md)** → one dig row | Named dig SSoT only — never thrash |
 | Start serious work | Your [per-hat section](#per-hat-knowledge-must-re-read-before-serious-work) + current task brief | [Lessons topic index](./LESSONS_LEARNED.md#topic-index) for the touched surface |
 | Choose or sequence work | [Arch](#arch-director) + [NEXT_STEPS.md](./NEXT_STEPS.md) | Forecast, painpoints, and chronological ship archive |
 | Build a React screen | [Finn](#finn-fe) + [Bea](#bea-ba) | Page contract, screen register, CSS/DS and hybrid-mount lessons |
 | Audit a visible screen | [Uma](#uma-uiux) + [Quinn](#quinn-qa) | Fidelity checklist, interaction/probe lessons, project audit evidence |
-| Record or play a journey | [Finn](#finn-fe) + [Quinn](#quinn-qa) | REC/playback topic lessons and shell recipes |
+| Record or play a journey | [Finn](#finn-fe) + [Quinn](#quinn-qa) + **[UXML_COMMANDS.md](../shell/UXML_COMMANDS.md)** (`uxml rec` / `play` / `play step` / `play step r`) | REC/playback topic lessons and shell recipes |
+| Prove localhost green | [PROOF_ROUTER.md](../shell/PROOF_ROUTER.md) · [UXML_COMMANDS.md](../shell/UXML_COMMANDS.md) | One blessed helper / standing-command row |
 | Version, push, or inspect CI | [Ben](#ben-be) + [Pax](#pax-po-sim) | Version/CI lessons and R12 |
 | Report a ship | [Sitrep template](#sitrep-template--knowledge-improved) | Append to the archive only after stating what was applied |
 
@@ -32,6 +34,7 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 
 | Artifact | Path | Why |
 |----------|------|-----|
+| **Stuck router (token budget)** | [AGENT_STUCK_ROUTER.md](./AGENT_STUCK_ROUTER.md) | Same FAIL twice / unknown → one dig — no thrash |
 | Lessons (append-only) | [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) | Failure classes → gates |
 | **PO painpoints (trackable)** | [PAINPOINTS.md](./PAINPOINTS.md) | Living OPEN→COMPLETE board — do not lose PO sentiments |
 | **Studio Auto-Rules** | [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) | Recurring PO pain → CI/MCP gates (do not re-ask) |
@@ -62,6 +65,7 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | Must re-read | Focus |
 |--------------|--------|
 | This index + [TEAM.md](./TEAM.md) | Dispatch, team check, knowledge-use gate |
+| **[AGENT_STUCK_ROUTER.md](./AGENT_STUCK_ROUTER.md)** | Same FAIL twice / unknown → one dig; reject token thrash |
 | [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) §0 / §6–§7 | Parallel siblings, distrust handoffs, strict interface audit |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next migrated page until previous hard-green |
 | [TEAM_RETRO_2026-07-19_PLP.md](./TEAM_RETRO_2026-07-19_PLP.md) | After HARD-GREEN: micro-retro → this index (Reflex) |
@@ -75,8 +79,9 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 
 | Must re-read | Focus |
 |--------------|--------|
-| [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) | Readiness of acceptance |
+| [FEATURE_BRIEF_TEMPLATE.md](./FEATURE_BRIEF_TEMPLATE.md) | Readiness of acceptance + **Inheritance preflight** table |
 | Project `features/*.md` + **Make register** for the screen | Every Make band **before** Finn codes (incl. loader mechanism) |
+| [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) | P1–P6 UXDS/UXML reuse before brief “ready” |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | No next-page brief until previous hard-green |
 | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0 | Loading/empty/updating = P0 rows when Make has them |
 | LESSONS: Make→React fidelity, wrong preloader · PLP retro | Register completeness; no invent acceptance |
@@ -88,6 +93,10 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | Must re-read | Focus |
 |--------------|--------|
 | [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md) · [FE_STANDARDS.md](./FE_STANDARDS.md) · [MOTION.md](./MOTION.md) | React + UXDS, column, nowrap; Motion via `@/uxds/motion` |
+| [../uxds/UXDS_MAP.md](../uxds/UXDS_MAP.md) · [../uxds/REACT_KIT_MAP.md](../uxds/REACT_KIT_MAP.md) | **Before any control:** inventory name → reuse kit or compose; extend map when shipping new kit |
+| [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) | P1–P6 hard; theme delta only |
+| [COMPONENT_LIBRARY.md](./COMPONENT_LIBRARY.md) | Semantic interactive; extract-on-second-use; no dead headers |
+| Engine MCP probe | **Register** via `registerMcpPageProbes` — never grow `studioMcpPageProbe` if/else; stamp `data-studio-action` |
 | [DS_STRICTNESS.md](./DS_STRICTNESS.md) · [CSS_BASE_THEME.md](./CSS_BASE_THEME.md) | No near-dups; BASE→THEME→PANEL→LEGACY |
 | [NAMING.md](./NAMING.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) | `data-studio-*`, domain folders |
 | [PAGE_FINAL_PASS.md](./PAGE_FINAL_PASS.md) | Co-own checklist + `check:page-final-pass` with Uma; no next mount until previous hard-green |
@@ -95,8 +104,9 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | LESSONS: hybrid mount, createRoot unmount, search/icon, DS hover · invent chrome | Do not re-ship known fail classes; under-match Make |
 | Screen brief + register for the page | Mount gates / Make-retired |
 | [../shell/URL.md](../shell/URL.md) + modal guard | **Modal URL registry** + `data-studio-modal` before any dialog ship |
+| **R16 — new `__studio*` suite/status helpers** | Before shipping a polled window API: `isQuietHelperSuffix` / `MUST_STAY_QUIET` in `qaSuiteTouchWrapContract.ts` — never leave it touch-wrapped |
 
-**Knowledge used tip:** FE standards + PAGE_FINAL_PASS + LESSONS for the control class being touched + URL modal table when shipping dialogs.
+**Knowledge used tip:** FE standards + UXDS_MAP/REACT_KIT_MAP reuse-first + PAGE_FINAL_PASS + LESSONS for the control class + URL modal table when shipping dialogs + **R16 quiet helpers**.
 
 **REC/playback invariant (2026-07-22):** One shared interaction contract owns REC and Play. Native/ARIA/action semantics are required; already-selected idempotent options are rejected; stateful controls must actually transition; visible-content geometry beats wrapper-centre geometry. Never fix a journey by id/persona/route exception.
 
@@ -111,7 +121,7 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | Make register for the screen | Side-by-side bands |
 | **§0b section vertical rhythm** — MCP measure gap/padding (price→recipient→body→booster) before any fidelity IN PROGRESS claim | [UMA_FIDELITY_NOTES.md](./UMA_FIDELITY_NOTES.md) §0b · doctrine |
 
-**Knowledge used tip:** UMA notes §0/§0a/**§0b rhythm** + PAGE_FINAL_PASS + LESSONS DS hover / loading.
+**Knowledge used tip:** UMA notes §0/§0a/**§0b rhythm** + PAGE_FINAL_PASS + LESSONS DS hover / loading · **Make densify vs React `data-name` hosts** (2026-07-22 History) · **UXDS_MAP + REACT_KIT_MAP before any page control** (reuse Accordion / kits; no dead headers).
 
 ### Quinn (QA)
 
@@ -121,14 +131,16 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | [../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md](../shell/QA_LOGGING_AND_PLAYBACK_RECIPE.md) | Play ≡ Step; type-in REQUIRED; per-char QA FORBIDDEN; ALWAYS CLEAR; Save Log; dump-on-FAIL; `CHAT_LOADING_DUMP_ALL`=cjm=off |
 | [../shell/CJM_RECORD_PLAY_EDIT.md](../shell/CJM_RECORD_PLAY_EDIT.md) | Guitar tabs; Book Step2 already-selected → **24/16:30**; agentic prove `__studioRunAgenticFullPlayProve` |
 | [../shell/RECORDING.md](../shell/RECORDING.md) — MCP / overlay / page probe | `__studioRunMcpPageProbe`, sitrep, stay-on-page |
+| **[../shell/UXML_COMMANDS.md](../shell/UXML_COMMANDS.md)** — standing prove shortcuts | `uxml rec` / `uxml play` / `uxml play step` / `uxml play step r` — default current CJM; QA + DevTools watched; no invent |
 | LESSONS: overlay eyes, MCP matrix, **scroll-into-view**, **overlay visible every probe**, false PROVEN, **fixed localhost / reuse tab** | Prove fail classes |
 | [PARITY_RATCHETS.md](./PARITY_RATCHETS.md) · `check:parity-proven` | Gate honesty — no PROVEN without MCP log |
 | [VERSIONING.md](./VERSIONING.md) DoD when bump | Chip = package.json |
 | [../shell/URL.md](../shell/URL.md) modal ids + **canonical `localhost:5173`** | Prove deep-link / overlay registry; never invent ports |
-| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · R13 · **R15** | `list_pages` → reuse tab; PLAYBACK_DIAG assertTypeIn; **poll `__studioConsumePoSignal` each beat** |
+| [STUDIO_AUTO_RULES.md](./STUDIO_AUTO_RULES.md) R11 · R13 · **R15** · **R16** | `list_pages` → reuse tab; PLAYBACK_DIAG assertTypeIn; **poll `__studioConsumePoSignal` each beat**; **suite status helpers never touch-wrap** |
 | **PO Alarm / Cursor / Scroll mid-flight** | Alarm = sequence mismatch. **Live latch first** (`__studioAgentTestingTakeover`) — dump secondary. On alarm: pause + investigate (e.g. progressive bubbles) |
+| **R16 dig — suite Observe FAIL** | Symptom `dom-observe-open kind=agent` after suite sanity → open `qaSuiteTouchWrapContract.ts` dig card first (not the page under test) |
 
-**Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + **R15 PO signal consume** + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
+**Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + **R15 PO signal consume** + **R16 qa-suite-no-touch-wrap dig** + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
 
 **REC/playback proof invariant (2026-07-22):** A cursor press is not PASS. QA requires a real target and, for checkbox/radio/selection controls, an observed state change. Ghost or selected-no-op clicks fail immediately and must not enter the recording.
 
@@ -179,6 +191,46 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 
 Append-only evidence follows. Search by stream, surface, error code, or callsign; use the
 retrieval table and LESSONS topic index before scanning by date.
+
+**Knowledge improved** (2026-07-22 · stream: AGENT_STUCK_ROUTER token budget · local):
+- Pain: Agents smashed unknown/repetitive FAILs burning tokens instead of reading dig SSoT.
+- Worked: Lean stuck router (symptom → one file) wired AGENTS §0 + director + TEAM_KNOWLEDGE retrieve + PROOF_ROUTER handoff.
+- Keep: New critical fail class → one stuck-router row + dig card same ship; never thrash twice.
+
+**Knowledge improved** (2026-07-22 · stream: R16 qa-suite-no-touch-wrap guardrail · local):
+- Pain: Suite Observe race was fixed once, but agents had no dig path / CI latch — PO rage “guardrail so no one misses it”.
+- Worked: SSoT dig card + pattern quiet suffixes + felony + self-test FAIL embeds dig · TEAM_KNOWLEDGE Quinn/Finn.
+- Keep: New polled `__studio*` helpers must pass `isQuietHelperSuffix` / MUST_STAY_QUIET before ship.
+
+**Knowledge improved** (2026-07-22 · stream: engine-first probe registry · local):
+- Pain: page ships patched engine `stepsForScreen` + Boots props on UXDS ButtonPrimary.
+- Worked: `mcpPageProbeRegistry` + Boots `registerMcpPageProbes`; History uses `data-studio-action=history-view-details`; anomaly allowlist FREEZE.
+- Keep: engine owns contracts; pages register recipes / stamp actions — never dictate engine branches.
+
+**Knowledge improved** (2026-07-22 · stream: PAGE CREATE INHERITANCE guardrails · local docs):
+- Pain: page asks skipped UXDS/UXML reuse; theme risked becoming a second DS.
+- Worked: locked [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 + brief table + director/AGENTS/doctrine wire; BASE mutual / theme = brand delta.
+- Keep: Arch rejects mount without inheritance stamp; Accordion/kit reuse before invent.
+
+**Knowledge improved** (2026-07-22 · stream: Appointment Details PAGE FINAL PASS HARD-GREEN · tip `95ccca7` tree · v0.0.108):
+- Arch (Director): History HARD-GREEN → Details Final Pass; erase-Make History/Details closed; Reflex before Book Make delete — applied: NEXT_STEPS 0g/7b · PAGE_FINAL_PASS.json · PARITY_PROVEN
+- Bea (BA): Details register · Date/Time SSoT bind · omit Shipping under-match — applied: APPOINTMENT_DETAILS_* 
+- Finn (FE): mount child 1 + densify gate + deferred unmount — applied: screens/appointment-details · globals-chrome
+- Uma (UI/UX): PROVEN densify 20/20 · no Cancel invent — applied: UMA_FIDELITY_APPOINTMENT_DETAILS
+- Quinn (QA): 10/10 + terminal CTA hide #8762341 · rematch readinessPass true — applied: probe audit · inventory REACT
+- Ben (BE): requiredScreens appointment-details (no ButtonPrimary required) — applied: check-page-final-pass · check-parity-proven
+- Pax (PO sim): Details HARD-GREEN local; Book Make delete + Traditional 0d next — applied: this stamp
+- Pain/Worked/Keep: Details densify truth ≠ History 32/56 — measure per-screen densify; Keep no invent accordion/Shipping; extract shared account chrome next
+
+**Knowledge improved** (2026-07-22 · stream: Appointment History PAGE FINAL PASS HARD-GREEN · tip `95ccca7` tree · v0.0.108):
+- Arch (Director): Chat HARD-GREEN → History Final Pass; Details unblocked; Reflex before Details brief — applied: NEXT_STEPS 0f/7 · PAGE_FINAL_PASS.json · PARITY_PROVEN
+- Bea (BA): register + selector HARD `data-studio-appointment-view-details` — applied: MAKE_PARITY_REGISTER · APPOINTMENT_HISTORY_REACT
+- Finn (FE): mount + densify `:not([data-studio-react-screen])` on History child-2 — applied: screens/appointment-history · globals-chrome.css
+- Uma (UI/UX): FAIL→PROVEN (32/56 · CTA 32 · no Cancel invent) — applied: UMA_FIDELITY_APPOINTMENT_HISTORY · LESSONS densify
+- Quinn (QA): 8/8 View Details → Make Details + restore; re-prove after densify — applied: appointmentHistoryMcpProbeSteps · probe audit
+- Ben (BE): requiredScreens + SCREEN_SOURCES/MOUNTS for appointment-history — applied: check-page-final-pass · check-parity-proven
+- Pax (PO sim): History HARD-GREEN local; Details next; no push until coherent ship ask — applied: this stamp
+- Pain/Worked/Keep: densify `!important` beat React CSS via Make `data-name` → gate densify off React hosts; Keep measure-before-PROVEN + no invent hover
 
 **Knowledge improved** (2026-07-21 · stream: prove FAIL camera flake + PO latch wipe · local):
 - Arch (Director): Mid-prove FAIL must escalate immediately — not wrap-up only — applied: this ship · LESSONS

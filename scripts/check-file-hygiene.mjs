@@ -34,9 +34,9 @@ const ALLOWLIST = {
   "src/app/App.tsx": 2160, // + declarative scenario transition floor; orchestration extraction is a separate refactor
   "src/app/shell/agent-testing/agentTestingOverlay.ts": 4800, // + Reset capture-off + ring restore coalesce + Save Log silent pause
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
-  "src/app/shell/studioMcpHelpers.ts": 1380, // + Traditional keep-overlay full Play prove window API
+  "src/app/shell/studioMcpHelpers.ts": 1390, // + abortAll quiet dismiss (no DIAGNOSTIC_ACK_STOP poison)
   "src/app/scenario/demoCursor.ts": 2250, // + lifecycle visibility guard / steady graphic diagnostics; split is a separate engine refactor
-  "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4840, // + page-land only on screen change (no isPlaying yank)
+  "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4900, // + Appointment Details React mount + Make wire early-return
   "src/projects/boots-pharmacy/data/plpListing.ts": 2000, // Make PLP DOM; retire with PLP React
 };
 

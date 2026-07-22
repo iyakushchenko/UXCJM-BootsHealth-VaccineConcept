@@ -5,6 +5,8 @@ import { BOOTS_PHARMACY_POPUP_TOUCHPOINTS } from "@/projects/boots-pharmacy/touc
 import { BOOTS_PHARMACY_PLAYBACK } from "@/projects/boots-pharmacy/playback";
 import { BootsPharmacyProjectView } from "@/projects/boots-pharmacy/wire/BootsPharmacyProjectView";
 import * as bootsPharmacyContent from "@/projects/boots-pharmacy/content";
+/** Engine MCP probe recipes — register before any probe run. */
+import "@/projects/boots-pharmacy/screens/registerMcpPageProbes";
 
 export const BOOTS_PHARMACY_PROJECT: ProjectDefinition = {
   id: formatProjectId("boots", "pharmacy"),

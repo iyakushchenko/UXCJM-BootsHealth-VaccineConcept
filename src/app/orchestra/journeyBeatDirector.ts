@@ -114,8 +114,28 @@ export function findJourneyBeat(
   return beats.find((beat) => beat.id === beatId);
 }
 
+/** Built-in CJM: `book-step2`. Recorded/screenId: `book-step-2`. */
+export function isBookStep2LandingBeatId(
+  beatId: string | undefined | null
+): boolean {
+  return beatId === "book-step2" || beatId === "book-step-2";
+}
+
+/** Landing + date/time/reserve funnel (both id spellings). */
+export function isBookStep2FamilyBeatId(
+  beatId: string | undefined | null
+): boolean {
+  if (!beatId) return false;
+  return (
+    beatId === "book-step2" ||
+    beatId.startsWith("book-step2-") ||
+    beatId === "book-step-2" ||
+    beatId.startsWith("book-step-2-")
+  );
+}
+
 function isBookStep2FunnelBeat(beat: JourneyBeat | undefined): boolean {
-  return beat?.id?.startsWith("book-step2") ?? false;
+  return isBookStep2FamilyBeatId(beat?.id);
 }
 
 /** Close book-step1 overlays before the book-step2 dwell lands (wire state can lag one frame). */
@@ -123,7 +143,7 @@ export function prepareBeatIndexAdvance(
   runtime: Pick<JourneyRuntime, "closeAllPopups" | "closeAvailability">,
   nextBeat: JourneyBeat | undefined
 ): void {
-  if (nextBeat?.id !== "book-step2") return;
+  if (!isBookStep2LandingBeatId(nextBeat?.id)) return;
   runtime.closeAllPopups();
   runtime.closeAvailability();
 }

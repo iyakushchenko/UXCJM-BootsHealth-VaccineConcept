@@ -13,6 +13,7 @@ import {
   playbackDiagLog,
   type PlayEndAtStartAssertResult,
 } from "@/app/shell/playbackDiag";
+import { isFastPlayback } from "@/app/shell/playbackTiming";
 import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
 
 export type PlayJourneySmokeState = {
@@ -249,10 +250,13 @@ export async function runPlayJourneyToStartSmoke(options: {
         peakCounter,
       };
     }
+    // Fast QA suite: bubble jump/chop samples stay diagnostic-only (same
+    // contract as scroll-path soft-log / all-cjms-fast copy). Demo speed stays strict.
     if (
-      diag.chatBubbleMotion.jumps > 0 ||
-      diag.chatBubbleMotion.chops > 0 ||
-      diag.chatBubbleMotion.skippedPhaseNotes.length > 0
+      !isFastPlayback() &&
+      (diag.chatBubbleMotion.jumps > 0 ||
+        diag.chatBubbleMotion.chops > 0 ||
+        diag.chatBubbleMotion.skippedPhaseNotes.length > 0)
     ) {
       return {
         pass: false,

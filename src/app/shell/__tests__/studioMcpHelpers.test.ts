@@ -82,6 +82,39 @@ describe("studioMcpHelpers", () => {
     expect(win.__protoEnsureCleanStudio?.().diagnosticOpen).toBe(false);
   });
 
+  it("abortAll quietly dismisses diagnostic without acknowledgeStop latch", () => {
+    const dismissCalls: Array<{ acknowledgeStop?: boolean; note?: string } | undefined> =
+      [];
+    const win = {
+      __protoControlPanelLog: [],
+    } as Window & { __protoControlPanelLog: unknown[] };
+    vi.stubGlobal("window", win);
+
+    registerStudioMcpHelpers({
+      dismissDiagnostic: (opts) => {
+        dismissCalls.push(opts);
+      },
+      isDiagnosticOpen: () => true,
+      getState: () => ({
+        journeyMode: false,
+        scrollLock: false,
+        label: null,
+        counter: null,
+        beatId: null,
+        availStep: null,
+      }),
+      abortAll: () => {},
+    });
+
+    win.__protoAbortAll?.();
+    expect(dismissCalls.length).toBeGreaterThanOrEqual(1);
+    expect(dismissCalls[0]).toEqual({
+      acknowledgeStop: false,
+      note: "abort-all",
+    });
+    expect(dismissCalls.every((c) => c?.acknowledgeStop === false)).toBe(true);
+  });
+
   it("switches orchestra mode via MCP helper", () => {
     let mode: "agentic-cjm" | "traditional-cjm" = "agentic-cjm";
     const win = {

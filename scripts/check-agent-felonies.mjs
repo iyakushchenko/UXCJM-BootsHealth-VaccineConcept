@@ -715,6 +715,7 @@ if (!fs.existsSync(wirePath)) {
       "theme-brand-active",
       "robo-cursor-native-feedback",
       "fixed-localhost-reuse-tab",
+      "qa-suite-no-touch-wrap",
     ]) {
       if (!catalogSrc.includes(`"${id}"`) && !catalogSrc.includes(`'${id}'`)) {
         fail(
@@ -759,6 +760,103 @@ if (!fs.existsSync(wirePath)) {
       if (!doc.includes("list_pages") || !doc.includes("new_page")) {
         fail(
           `FELONY ${RULE_ID}: STUDIO_AUTO_RULES.md must stamp Chrome MCP list_pages / new_page reuse practice`
+        );
+      }
+    }
+  }
+
+  // --- 12) Auto-Rule qa-suite-no-touch-wrap — suite status polls must not re-arm CONTROL ---
+  {
+    const RULE_ID = "qa-suite-no-touch-wrap";
+    const contractPath = path.join(
+      ROOT,
+      "src",
+      "app",
+      "shell",
+      "qaSuiteTouchWrapContract.ts"
+    );
+    const armPath = path.join(ROOT, "src", "app", "shell", "helperOverlayArm.ts");
+    if (!fs.existsSync(contractPath)) {
+      fail(`FELONY ${RULE_ID}: missing qaSuiteTouchWrapContract.ts (dig SSoT)`);
+    } else {
+      const contractSrc = fs.readFileSync(contractPath, "utf8");
+      for (const needle of [
+        "qa-suite-no-touch-wrap",
+        "QA_SUITE_TOUCH_WRAP_DIG",
+        "isQuietHelperSuffix",
+        "GetQaSuiteStatus",
+        "MUST_STAY_QUIET_SUITE_HELPER_SUFFIXES",
+      ]) {
+        if (!contractSrc.includes(needle)) {
+          fail(
+            `FELONY ${RULE_ID}: qaSuiteTouchWrapContract.ts missing ${needle}`
+          );
+        }
+      }
+    }
+    if (!fs.existsSync(armPath)) {
+      fail(`FELONY ${RULE_ID}: missing helperOverlayArm.ts`);
+    } else {
+      const armSrc = fs.readFileSync(armPath, "utf8");
+      if (!armSrc.includes("isQuietHelperSuffix")) {
+        fail(
+          `FELONY ${RULE_ID}: helperOverlayArm.ts must call isQuietHelperSuffix (R16 pattern shield)`
+        );
+      }
+      if (!armSrc.includes("qaSuiteTouchWrapContract")) {
+        fail(
+          `FELONY ${RULE_ID}: helperOverlayArm.ts must import qaSuiteTouchWrapContract`
+        );
+      }
+    }
+    const autoRulesDoc = path.join(
+      ROOT,
+      "docs",
+      "product",
+      "STUDIO_AUTO_RULES.md"
+    );
+    if (fs.existsSync(autoRulesDoc)) {
+      const doc = fs.readFileSync(autoRulesDoc, "utf8");
+      if (!doc.includes("qa-suite-no-touch-wrap")) {
+        fail(
+          `FELONY ${RULE_ID}: STUDIO_AUTO_RULES.md must document qa-suite-no-touch-wrap (R16)`
+        );
+      }
+    }
+  }
+
+  // --- 13) AGENT_STUCK_ROUTER — token-budget dig law must stay wired ---
+  {
+    const RULE_ID = "agent-stuck-router";
+    const stuckPath = path.join(
+      ROOT,
+      "docs",
+      "product",
+      "AGENT_STUCK_ROUTER.md"
+    );
+    const agentsPath = path.join(ROOT, "AGENTS.md");
+    if (!fs.existsSync(stuckPath)) {
+      fail(
+        `FELONY ${RULE_ID}: missing docs/product/AGENT_STUCK_ROUTER.md (stuck → one dig)`
+      );
+    } else {
+      const stuckSrc = fs.readFileSync(stuckPath, "utf8");
+      for (const needle of [
+        "STOP thrashing",
+        "qaSuiteTouchWrapContract",
+        "PROOF_ROUTER",
+        "same FAIL",
+      ]) {
+        if (!stuckSrc.includes(needle)) {
+          fail(`FELONY ${RULE_ID}: AGENT_STUCK_ROUTER.md missing ${needle}`);
+        }
+      }
+    }
+    if (fs.existsSync(agentsPath)) {
+      const agentsSrc = fs.readFileSync(agentsPath, "utf8");
+      if (!agentsSrc.includes("AGENT_STUCK_ROUTER.md")) {
+        fail(
+          `FELONY ${RULE_ID}: AGENTS.md must point agents at AGENT_STUCK_ROUTER.md`
         );
       }
     }
@@ -852,5 +950,5 @@ if (errors.length) {
 }
 
 console.log(
-  "[check:felonies] OK — filenames, PANEL CSS, data-proto, BOOTS stubs, channel, version chip, overlay eyes, modal URL sync, agent-teardown-clean, auth-ssot, fixed-localhost-reuse-tab"
+  "[check:felonies] OK — filenames, PANEL CSS, data-proto, BOOTS stubs, channel, version chip, overlay eyes, modal URL sync, agent-teardown-clean, auth-ssot, fixed-localhost-reuse-tab, qa-suite-no-touch-wrap, agent-stuck-router"
 );

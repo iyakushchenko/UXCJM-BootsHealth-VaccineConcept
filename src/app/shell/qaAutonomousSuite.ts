@@ -404,7 +404,12 @@ async function runTest(test: QaSuiteTest): Promise<unknown> {
     case "validate-all-cjms": return validateAllJourneys();
     case "map-current-interactions": return window.__studioMapCurrentInteractions?.();
     case "map-all-interactions": return window.__studioMapAllInteractions?.();
-    case "qa-self-test": return window.__studioRunQaSelfTestSmoke?.();
+    case "qa-self-test": {
+      // Do not pre-touch / pre-clear here — smoke owns Observe open and wiping.
+      // Extra suite forceClear raced sanity ensureClear and left CONTROL stuck
+      // (LESSONS 2026-07-22). Direct sanity→smoke PASS without this.
+      return window.__studioRunQaSelfTestSmoke?.();
+    }
     case "control-room-traditional": return window.__protoRunTraditionalControlRoomRobotQa?.();
     case "play-agentic": return window.__studioRunFullPlayProve?.({ experience: "agentic" });
     case "play-traditional": return window.__studioRunFullPlayProve?.({ experience: "traditional" });
@@ -419,7 +424,11 @@ async function runRemaining(token: number): Promise<void> {
     const testStartedAt = Date.now();
     const testStartedAtIso = new Date(testStartedAt).toISOString();
     status = { ...status, phase: "running", current: test.id, failure: null };
-    window.__studioAgentTestingOverlay?.touch(`QA suite · ${status.index + 1}/${status.total} · ${test.id}`);
+    // qa-self-test must open Observe itself — suite touch would force CONTROL and
+    // fail dom-observe-open (LESSONS 2026-07-22). Sanity/probe own their own arm.
+    if (test.id !== "qa-self-test" && test.id !== "mcp-sanity" && test.id !== "mcp-page-probe") {
+      window.__studioAgentTestingOverlay?.touch(`QA suite · ${status.index + 1}/${status.total} · ${test.id}`);
+    }
     publish();
     let result: unknown;
     try {

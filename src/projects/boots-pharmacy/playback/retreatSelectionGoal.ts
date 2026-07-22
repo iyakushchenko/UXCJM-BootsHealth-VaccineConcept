@@ -196,6 +196,7 @@ export function checkRetreatSelectionGoal(
     case "avail-book":
       return availBookGoal();
     case "book-step2":
+    case "book-step-2":
       return bookStep2DefaultGoal();
     default:
       break;

@@ -18,6 +18,7 @@
 
 ## Agent law (do not skip)
 
+0. **Page create:** [PAGE_CREATE_INHERITANCE.md](../product/PAGE_CREATE_INHERITANCE.md) P1–P6 — inventory + similar UXDS frame + existing UXML kits/pages + theme delta only.  
 1. **Before inventing a control or token**, look it up in `inventory/variables.json` / `inventory/components.json`. Prefer the existing Figma path name.
 2. **One Figma `component.*` / `module.*` → one React module** under `src/uxds/` (or project `ui/` only when truly brand-specific). Record the mapping in `react-kit-map.json` when you ship a kit.
 3. **Reuse first** — compose from existing React kits + inventory names. Do not clone Make HTML or invent parallel CSS token names ([../product/DS_STRICTNESS.md](../product/DS_STRICTNESS.md) · [../product/CONCEPT_INTAKE.md](../product/CONCEPT_INTAKE.md) mode B).

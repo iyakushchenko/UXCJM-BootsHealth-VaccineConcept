@@ -3,7 +3,8 @@
 **Status:** Locked direction (Product Owner, 2026-07-19)  
 **Applies to:** Concept UI inside `src/projects/<project-id>/`  
 **Ready to consume a concept frame?** Yes — first frame also stands up `src/uxds/` token bridge + React module pattern. Existing Boots Make wire stays until replaced screen-by-screen.  
-**Intake:** PO feeds are often early/messy; agent upgrades — [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md).
+**Intake:** PO feeds are often early/messy; agent upgrades — [CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md).  
+**Inheritance (HARD):** Before any new/migrated page — [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 (UXDS map → similar frame → existing UXML kits/pages → theme delta only).
 
 ---
 
@@ -16,6 +17,8 @@ Early concept (messy OK)  →  Agent: React + UXDS upgrade  →  Project screens
 ```
 
 Figma Make / static strips are **intent only**. Not the architecture we grow.
+
+**Page create law:** Check existing UXML + similar UXDS page first; inherit kits/structure; project theme = brand/copy delta only — [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md).
 
 ---
 

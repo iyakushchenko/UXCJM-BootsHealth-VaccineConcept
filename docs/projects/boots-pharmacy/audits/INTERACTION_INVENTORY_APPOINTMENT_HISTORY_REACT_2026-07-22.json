@@ -1,0 +1,48 @@
+{
+  "kind": "studio-interaction-inventory",
+  "note": "Post-React rematch for appointment-history (2026-07-22). Compare to MAKE_BASELINE. readinessPass improved false→true; invalid 8→0; View Details still 4.",
+  "generatedAt": "2026-07-22T09:10:47.652Z",
+  "projectId": "boots-pharmacy",
+  "scope": "current",
+  "pass": true,
+  "readinessPass": true,
+  "totals": {
+    "ready-target": 0,
+    "semantic-ready": 42,
+    "visual-candidate": 0,
+    "disabled": 2,
+    "invalid": 0
+  },
+  "surfaceId": "appointment-history",
+  "reactHost": true,
+  "viewDetails": 4,
+  "playbackSelectors": {
+    "viewDetails": "[data-studio-appointment-view-details=\"true\"]",
+    "edit": "[data-studio-appointment-edit=\"true\"]",
+    "cancel": "[data-studio-appointment-cancel=\"true\"]"
+  },
+  "baselineCompare": {
+    "makeFile": "INTERACTION_INVENTORY_APPOINTMENT_HISTORY_MAKE_BASELINE_2026-07-22.json",
+    "makeReadinessPass": false,
+    "makeInvalid": 8,
+    "reactReadinessPass": true,
+    "reactInvalid": 0
+  },
+  "historyRelevantTargets": [
+    { "name": "Ask Site Pilot", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Appointment #1411527", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "View Details", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Edit", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Cancel", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Appointment #1090595", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "View Details", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Appointment #990587", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "View Details", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Edit", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Cancel", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Appointment #8762341", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Discuss with Site Pilot", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "View Details", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Load more", "tag": "button", "readiness": "disabled" }
+  ]
+}

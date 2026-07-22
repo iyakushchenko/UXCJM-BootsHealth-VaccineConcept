@@ -93,6 +93,13 @@ export const STUDIO_AUTO_RULES: readonly StudioAutoRule[] = [
     ciGate: "vitest",
     mcpAssert: "__studioConsumePoSignal",
   },
+  {
+    id: "qa-suite-no-touch-wrap",
+    title:
+      "QA suite/status helpers must never helper-touch-wrap — polls must not re-arm CONTROL (R16 dig: qaSuiteTouchWrapContract)",
+    ciGate: "check:felonies",
+    mcpAssert: "__studioRunQaSelfTestSmoke",
+  },
 ] as const;
 
 /** Ids Arch/Ben expect wired — felony scan fails if catalog drops one. */

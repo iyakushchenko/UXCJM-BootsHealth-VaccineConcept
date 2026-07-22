@@ -251,4 +251,17 @@ describe("detectStrayPopupOnBeat", () => {
       })
     ).toBeNull();
   });
+
+  it("ignores recorded screenId book-step-2 landing when it owns avail teardown", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "book-step-2",
+        beatKind: "tab-landing",
+        beatOwnsInteraction: true,
+        screenSettled: true,
+        availabilityOpen: true,
+      })
+    ).toBeNull();
+  });
 });

@@ -1,0 +1,48 @@
+{
+  "kind": "studio-interaction-inventory",
+  "note": "Post-React rematch for appointment-details (2026-07-22). Captured on cancelled #8762341 after Quinn terminal CTA prove. Compare to MAKE_BASELINE: readinessPass false→true; invalid 3→0. Edit/Cancel correctly absent on terminal sample (non-terminal Edit/Cancel proved via MCP probe 10/10 on default #1411527).",
+  "generatedAt": "2026-07-22T09:51:18.760Z",
+  "projectId": "boots-pharmacy",
+  "scope": "current",
+  "pass": true,
+  "readinessPass": true,
+  "totals": {
+    "ready-target": 0,
+    "semantic-ready": 30,
+    "visual-candidate": 0,
+    "disabled": 0,
+    "invalid": 0
+  },
+  "surfaceId": "appointment-details",
+  "reactHost": true,
+  "selectedAppointmentId": "8762341",
+  "selectedStatus": "Cancelled",
+  "playbackSelectors": {
+    "historyCrumb": "[data-studio-appointment-history-crumb=\"true\"]",
+    "edit": "[data-studio-appointment-edit=\"true\"]",
+    "cancel": "[data-studio-appointment-cancel=\"true\"]",
+    "viewDetails": "[data-studio-appointment-view-details=\"true\"]"
+  },
+  "playbackDomCounts": {
+    "historyCrumb": 1,
+    "edit": 0,
+    "cancel": 0,
+    "viewDetails": 0
+  },
+  "baselineCompare": {
+    "makeFile": "INTERACTION_INVENTORY_APPOINTMENT_DETAILS_MAKE_BASELINE_2026-07-22.json",
+    "makeReadinessPass": false,
+    "makeInvalid": 3,
+    "reactReadinessPass": true,
+    "reactInvalid": 0
+  },
+  "detailsRelevantTargets": [
+    { "name": "Appointment history", "tag": "button", "readiness": "semantic-ready" },
+    { "name": "Discuss with Site Pilot", "tag": "button", "readiness": "semantic-ready" }
+  ],
+  "quinnNotes": [
+    "Terminal sample: Edit/Cancel + CTAs host omitted — PASS (extra prove).",
+    "Non-terminal Edit/Cancel hover + rules proved in MCP recipe (softSkip not used — both hovered).",
+    "Do NOT claim PROVEN / PAGE FINAL PASS from this rematch alone."
+  ]
+}

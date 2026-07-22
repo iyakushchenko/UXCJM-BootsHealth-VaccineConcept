@@ -1,0 +1,1401 @@
+{
+  "meta": {
+    "purpose": "Make-only interaction inventory baseline BEFORE React migration",
+    "screenId": "appointment-details",
+    "projectId": "boots-pharmacy",
+    "capturedAt": "2026-07-22T09:40:10.655Z",
+    "capturedBy": "Quinn (QA)",
+    "captureMethod": "Chrome DevTools MCP + __studioMapCurrentInteractions (localhost:5173 live tab)",
+    "host": "http://localhost:5173/?project=boots-pharmacy&screen=appointment-details&persona=sarah-jenkins&cjm=off&experience=agentic",
+    "hostState": "Make (no React host for appointment-details)",
+    "helper": "await window.__studioMapCurrentInteractions()",
+    "knowledgeUsed": "TEAM_KNOWLEDGE Quinn + INTERACTION_INVENTORY.md + LESSONS overlay/R11/interaction-inventory/false-PROVEN",
+    "reactMigrationClaim": false,
+    "selectedAppointmentId": "1411527",
+    "selectionPath": "History View Details / deep-link → screen=appointment-details with live Make content",
+    "notes": [
+      "readinessPass=false is EXPECTED on Make: Edit/Cancel lack unique ready-target selectors (data-studio-appointment-edit/cancel not in mapper stableSelector set); most hooks missing-stable-target.",
+      "Ghost: History View Details BUTTON[data-studio-appointment-view-details=true] may remain display:none in DOM — not a live Details CTA.",
+      "No Ask Site Pilot on this Details appointment (#1411527).",
+      "Back/return = breadcrumb Appointment history (inventory semantic-ready).",
+      "Post-React: re-run map; require readinessPass=true for primary CTAs; reconcile every removed/renamed target — unexplained loss blocks PAGE FINAL PASS.",
+      "Do NOT claim PROVEN from this baseline."
+    ],
+    "quinnCtaNotes": {
+      "editSelector": "[data-studio-appointment-edit=\"true\"]",
+      "cancelSelector": "[data-studio-appointment-cancel=\"true\"]",
+      "viewDetailsSelector": "[data-studio-appointment-view-details=\"true\"]",
+      "editDom": [
+        {
+          "index": 0,
+          "tag": "DIV",
+          "className": "content-stretch flex gap-[8px] h-[32px] items-center justify-center px-[12px] py-[8px] relative rounded-[360px] shrink-0",
+          "text": "Edit",
+          "attr": "true",
+          "dataName": "component.input.button",
+          "visible": true,
+          "display": "flex",
+          "rect": {
+            "x": 641,
+            "y": 735,
+            "width": 69,
+            "height": 32
+          }
+        }
+      ],
+      "cancelDom": [
+        {
+          "index": 0,
+          "tag": "DIV",
+          "className": "content-stretch flex gap-[8px] h-[32px] items-center justify-center px-[12px] py-[8px] relative rounded-[360px] shrink-0",
+          "text": "Cancel",
+          "attr": "true",
+          "dataName": "component.input.button",
+          "visible": true,
+          "display": "flex",
+          "rect": {
+            "x": 722,
+            "y": 735,
+            "width": 85,
+            "height": 32
+          }
+        }
+      ],
+      "viewDetailsDom": [
+        {
+          "index": 0,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true",
+          "dataName": null,
+          "visible": false,
+          "display": "none",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ],
+      "ghosts": [
+        {
+          "index": 0,
+          "tag": "BUTTON",
+          "className": "proto-avail-btn-primary proto-avail-btn-primary--sm",
+          "text": "View Details",
+          "attr": "true",
+          "dataName": null,
+          "visible": false,
+          "display": "none",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ],
+      "backTarget": {
+        "targetId": "p-2",
+        "name": "Appointment history",
+        "tag": "p",
+        "readiness": "semantic-ready",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      "inventoryEditTargetIds": [
+        "div-33",
+        "div-36",
+        "p-37"
+      ],
+      "inventoryCancelTargetIds": [
+        "div-38",
+        "div-40",
+        "p-41"
+      ],
+      "editHookCount": 1,
+      "cancelHookCount": 1,
+      "viewDetailsLiveCount": 0,
+      "viewDetailsGhostCount": 1,
+      "askSitePilot": false,
+      "reactHost": false,
+      "appointmentId": "1411527",
+      "editCancelDataName": "component.input.button"
+    },
+    "playbackSelectors": {
+      "edit": "[data-studio-appointment-edit=\"true\"]",
+      "cancel": "[data-studio-appointment-cancel=\"true\"]",
+      "viewDetails": "[data-studio-appointment-view-details=\"true\"]",
+      "backBreadcrumbName": "Appointment history"
+    },
+    "detailsRelevantTargets": [
+      {
+        "targetId": "div-0",
+        "name": "Boots Pharmacy home",
+        "tag": "div",
+        "readiness": "semantic-ready",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "div-1",
+        "name": "Home",
+        "tag": "div",
+        "readiness": "semantic-ready",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "p-2",
+        "name": "Appointment history",
+        "tag": "p",
+        "readiness": "semantic-ready",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "p-29",
+        "name": "Home",
+        "tag": "p",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "p-32",
+        "name": "1411527",
+        "tag": "p",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "div-33",
+        "name": "Edit",
+        "tag": "div",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "div-36",
+        "name": "Edit",
+        "tag": "div",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "p-37",
+        "name": "Edit",
+        "tag": "p",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "div-38",
+        "name": "Cancel",
+        "tag": "div",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "div-40",
+        "name": "Cancel",
+        "tag": "div",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      },
+      {
+        "targetId": "p-41",
+        "name": "Cancel",
+        "tag": "p",
+        "readiness": "visual-candidate",
+        "selector": null,
+        "issues": [
+          "missing-stable-target"
+        ]
+      }
+    ],
+    "reconcilePostReact": {
+      "steps": [
+        "Navigate http://localhost:5173/?project=boots-pharmacy&screen=appointment-details with React host mounted and a selected appointment",
+        "await window.__studioMapCurrentInteractions()",
+        "Save React map beside this baseline with dated filename",
+        "Diff totals + named CTAs: Edit / Cancel / Appointment history back / breadcrumbs / Ask Site Pilot if present",
+        "Require readinessPass=true for primary Studio hooks (unique data-studio-action or data-studio-target)",
+        "Unexplained target loss or missing Edit/Cancel blocks PAGE FINAL PASS",
+        "Do not treat Make readinessPass=false as React FAIL — this file is pre-migration evidence only",
+        "Ghost display:none View Details from History must not be counted as Details CTA"
+      ],
+      "mustPreserveSelectors": [
+        "[data-studio-appointment-edit=\"true\"]",
+        "[data-studio-appointment-cancel=\"true\"]"
+      ]
+    }
+  },
+  "inventory": {
+    "kind": "studio-interaction-inventory",
+    "schemaVersion": 1,
+    "generatedAt": "2026-07-22T09:40:10.655Z",
+    "projectId": "boots-pharmacy",
+    "scope": "current",
+    "pass": true,
+    "readinessPass": false,
+    "totals": {
+      "ready-target": 0,
+      "semantic-ready": 29,
+      "visual-candidate": 10,
+      "disabled": 0,
+      "invalid": 3
+    },
+    "surfaces": [
+      {
+        "surfaceId": "appointment-details",
+        "label": "Appointment Details",
+        "kind": "screen",
+        "totals": {
+          "ready-target": 0,
+          "semantic-ready": 29,
+          "visual-candidate": 10,
+          "disabled": 0,
+          "invalid": 3
+        },
+        "items": [
+          {
+            "targetId": "div-0",
+            "selector": null,
+            "tag": "div",
+            "role": "link",
+            "type": null,
+            "name": "Boots Pharmacy home",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 119.6875,
+              "width": 175,
+              "height": 34
+            }
+          },
+          {
+            "targetId": "div-1",
+            "selector": null,
+            "tag": "div",
+            "role": "link",
+            "type": null,
+            "name": "Home",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 750.078125,
+              "y": 104.6875,
+              "width": 37.78125,
+              "height": 64
+            }
+          },
+          {
+            "targetId": "p-2",
+            "selector": null,
+            "tag": "p",
+            "role": "link",
+            "type": null,
+            "name": "Appointment history",
+            "source": "aria",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 343.6875,
+              "y": 202.6875,
+              "width": 88.390625,
+              "height": 12
+            }
+          },
+          {
+            "targetId": "button-3",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Vaccination",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1574.6875,
+              "width": 69.625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-4",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "NHS Stop Smoking Service",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1614.6875,
+              "width": 159.34375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-5",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Practice Plus",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1654.6875,
+              "width": 76.6875,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-6",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Physiotherapist Online",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1694.6875,
+              "width": 137.421875,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-7",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Online GP Appointment",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 1734.6875,
+              "width": 143.734375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-8",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Skin Scanning",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 1574.6875,
+              "width": 83.4375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-9",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Mole Scanning",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 1614.6875,
+              "width": 88.3125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-10",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Help with problem skin",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 621,
+              "y": 1654.6875,
+              "width": 140.15625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-11",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "FAQs",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 1574.6875,
+              "width": 31.25,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-12",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Contact us",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 1614.6875,
+              "width": 64.25,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-13",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Pick up and delivery",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 1654.6875,
+              "width": 120.8125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-14",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Off-label medicines",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 1694.6875,
+              "width": 117.015625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-15",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Store locator",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 957,
+              "y": 1734.6875,
+              "width": 77.90625,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-16",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Careers",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 1574.6875,
+              "width": 46.84375,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-17",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Meet the team",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 1614.6875,
+              "width": 88.78125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-18",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Patient guide",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 1654.6875,
+              "width": 79.8125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-19",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Terms and conditions",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 1694.6875,
+              "width": 131.078125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-20",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Privacy policy",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1293,
+              "y": 1734.6875,
+              "width": 81.328125,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "button-21",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Sign up",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 539.421875,
+              "y": 1895.6875,
+              "width": 104.578125,
+              "height": 46
+            }
+          },
+          {
+            "targetId": "button-22",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "X (Twitter)",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 677,
+              "y": 1918.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-23",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Instagram",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 725,
+              "y": 1918.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-24",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Facebook",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 773,
+              "y": 1918.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-25",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Google",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 821,
+              "y": 1918.6875,
+              "width": 32,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "button-26",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Our Services",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1069,
+              "y": 1918.6875,
+              "width": 107.90625,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "button-27",
+            "selector": null,
+            "tag": "button",
+            "role": null,
+            "type": "button",
+            "name": "Find a store",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": null,
+            "rect": {
+              "x": 1192.90625,
+              "y": 1918.6875,
+              "width": 125.03125,
+              "height": 40
+            }
+          },
+          {
+            "targetId": "a-28",
+            "selector": null,
+            "tag": "a",
+            "role": null,
+            "type": null,
+            "name": "Using Our Pharmacy Services",
+            "source": "native",
+            "readiness": "semantic-ready",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": true,
+            "href": "https://www.boots.com/boots-pharmacy-frequently-asked-questions-faqs",
+            "rect": {
+              "x": 974.671875,
+              "y": 2077.6875,
+              "width": 136.21875,
+              "height": 14
+            }
+          },
+          {
+            "targetId": "p-29",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Home",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 202.6875,
+              "width": 26.6875,
+              "height": 12
+            }
+          },
+          {
+            "targetId": "p-30",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "+44 20 7123 4567",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 928.6875,
+              "width": 328,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "p-31",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Contact us",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 285,
+              "y": 992.6875,
+              "width": 304,
+              "height": 24
+            }
+          },
+          {
+            "targetId": "p-32",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "1411527",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 799,
+              "y": 466.6875,
+              "width": 758,
+              "height": 20
+            }
+          },
+          {
+            "targetId": "div-33",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 641,
+              "y": 734.6875,
+              "width": 69.234375,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "div-34",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 653,
+              "y": 742.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "svg-35",
+            "selector": null,
+            "tag": "svg",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name",
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 653,
+              "y": 742.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-36",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 677,
+              "y": 742.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-37",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Edit",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 677,
+              "y": 742.6875,
+              "width": 21.234375,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-38",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 722.234375,
+              "y": 734.6875,
+              "width": 85.203125,
+              "height": 32
+            }
+          },
+          {
+            "targetId": "[data-name=\"icon\\=cancel\"]",
+            "selector": "[data-name=\"icon\\=cancel\"]",
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "",
+            "source": "css-candidate",
+            "readiness": "invalid",
+            "issues": [
+              "missing-accessible-name"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 734.234375,
+              "y": 742.6875,
+              "width": 16,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "div-40",
+            "selector": null,
+            "tag": "div",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 758.234375,
+              "y": 742.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          },
+          {
+            "targetId": "p-41",
+            "selector": null,
+            "tag": "p",
+            "role": null,
+            "type": null,
+            "name": "Cancel",
+            "source": "css-candidate",
+            "readiness": "visual-candidate",
+            "issues": [
+              "missing-stable-target"
+            ],
+            "enabled": true,
+            "focusable": false,
+            "href": null,
+            "rect": {
+              "x": 758.234375,
+              "y": 742.6875,
+              "width": 37.203125,
+              "height": 16
+            }
+          }
+        ],
+        "issues": [
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-0"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-1"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-2"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-3"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-4"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-5"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-6"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-7"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-8"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-9"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-10"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-11"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-12"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-13"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-14"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-15"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-16"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-17"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-18"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-19"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-20"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-21"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-22"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-23"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-24"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-25"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-26"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "button-27"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "a-28"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-29"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-30"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-31"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-32"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-33"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "div-34"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-34"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "svg-35"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "svg-35"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-36"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-37"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-38"
+          },
+          {
+            "code": "missing-accessible-name",
+            "targetId": "[data-name=\"icon\\=cancel\"]"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "div-40"
+          },
+          {
+            "code": "missing-stable-target",
+            "targetId": "p-41"
+          }
+        ]
+      }
+    ],
+    "errors": []
+  }
+}

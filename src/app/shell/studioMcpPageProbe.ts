@@ -37,14 +37,18 @@ import {
 } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
 import { isMakeParkedForScreen } from "@/projects/boots-pharmacy/screens/retireMakeUnderPage";
+/** Ensure Boots screen recipes are registered before probe resolve. */
+import "@/projects/boots-pharmacy/screens/registerMcpPageProbes";
 import {
   beginMcpTestSession,
   endMcpTestSession,
   getMcpTestSession,
   requestMcpTestAbort,
 } from "@/app/shell/mcpTestGuard";
-import { sitePilotMcpProbeSteps } from "@/projects/boots-pharmacy/screens/home/sitePilotMcpProbeSteps";
-import { chatMcpProbeSteps } from "@/projects/boots-pharmacy/screens/chat/chatMcpProbeSteps";
+import {
+  resolveMcpPageProbeSteps,
+  type McpPageProbeStep,
+} from "@/app/shell/mcpPageProbeRegistry";
 import {
   disableCursorQaEyes,
   enableCursorQaEyes,
@@ -94,32 +98,7 @@ export type McpPageProbeOptions = {
 const MAX_PROBE_REVEALS = 24;
 let probeRevealCount = 0;
 
-type ProbeStep = {
-  id: string;
-  /** CSS selector relative to document. */
-  selector: string;
-  /**
-   * click — robo-click (refuses if under overlay).
-   * assert — presence / custom assert.
-   * refuse-click — PASS only when overlay is open AND click is refused.
-   * reveal — scroll prototype root to target (no click); proves below-fold visibility.
-   * hover — robo-hover dwell + optional assert (CSS :hover may be rule-checked).
-   */
-  action?: "click" | "assert" | "refuse-click" | "reveal" | "hover";
-  /** Optional assert after click / for assert-only steps. */
-  assert?: () => boolean | string;
-  /** Extra wait after click (ms) for loaders / reveal. */
-  settleMs?: number;
-  /** Poll assert until true or timeout (assert steps). */
-  waitMs?: number;
-  /**
-   * When selector is missing, PASS with detail instead of FAIL.
-   * Use sparingly for temporary optional bands — prefer hard FAIL once mounted.
-   */
-  softSkipIfMissing?: boolean;
-  /** Detail logged when soft-skipping a missing selector. */
-  softSkipDetail?: string;
-};
+type ProbeStep = McpPageProbeStep;
 
 function normalizeText(el: Element | null | undefined): string {
   return (el?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -1018,14 +997,6 @@ function pdpProbeSteps(): ProbeStep[] {
   ];
 }
 
-/**
- * Site Pilot (Agentic Home) — full matrix in sitePilotMcpProbeSteps.ts.
- * Overlay-arm + url-screen injected by runMcpPageProbe.
- */
-function sitePilotProbeSteps(): ProbeStep[] {
-  return sitePilotMcpProbeSteps() as ProbeStep[];
-}
-
 function bookStepProbeSteps(screenId: string): ProbeStep[] {
   return [
     {
@@ -1039,11 +1010,20 @@ function bookStepProbeSteps(screenId: string): ProbeStep[] {
   ];
 }
 
+/**
+ * Engine resolve order:
+ * 1. Project registry (Boots `registerMcpPageProbes` — site-pilot/chat/history/details)
+ * 2. Built-in PLP/PDP matrices (still colocated until extracted)
+ * 3. Book-step host stubs
+ *
+ * Do **not** add new screen if/else + Boots imports here — register instead.
+ */
 function stepsForScreen(screenId: string): ProbeStep[] | null {
+  const registered = resolveMcpPageProbeSteps(screenId);
+  if (registered) return registered;
+
   if (screenId === "plp") return plpProbeSteps();
   if (screenId === "pdp") return pdpProbeSteps();
-  if (screenId === "site-pilot") return sitePilotProbeSteps();
-  if (screenId === "chat") return chatMcpProbeSteps() as ProbeStep[];
   if (
     screenId === "book-step-1" ||
     screenId === "book-step-2" ||

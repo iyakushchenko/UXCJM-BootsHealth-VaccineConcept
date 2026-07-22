@@ -63,6 +63,8 @@ Do **not** refuse a concept because it is “not on the design system.”
 Do **not** slavishly copy broken structure.  
 **Upgrade** toward UXDS while preserving the PO’s intent.
 
+**HARD inheritance:** Before coding, run [PAGE_CREATE_INHERITANCE.md](./PAGE_CREATE_INHERITANCE.md) P1–P6 — similar UXDS frame + existing UXML kits/pages first; project theme = brand/copy delta only.
+
 ---
 
 ## 4. Quality bar for early concepts

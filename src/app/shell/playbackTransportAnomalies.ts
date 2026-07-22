@@ -12,7 +12,12 @@ export type TransportAnomaly = {
   detail?: string;
 };
 
-/** Manual director chains that legitimately skip playlist frames in a single step. */
+/** Manual director chains that legitimately skip playlist frames in a single step.
+ *
+ * FREEZE (PO 2026-07-22 — engine owns behavior): do **not** add new beat-id /
+ * journey-id allowlist exceptions here. Prefer playlist metadata or director
+ * chain contracts. Existing Boots keys below are residual debt until migrated.
+ */
 function isAllowedPlaylistFrameSkip(options: {
   prevTouchpointKey?: string;
   nextTouchpointKey: string;

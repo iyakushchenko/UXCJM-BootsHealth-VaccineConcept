@@ -1,0 +1,557 @@
+/**
+ * Appointment Details — React screen CSS (no LEGACY growth).
+ * Densified Make live parity (pad/gap 20/20, CTA 12) — globals densify gated off React host.
+ * Status tones (Make wire parity — do not invent alternate palette):
+ *   active #5b8fc9 · completed #4a9b72 · cancelled #d4a03a
+ * Cancel: no invent hover (#c96b6b forbidden).
+ */
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #fff;
+  color: #3a3a3a;
+  font-family: "Open Sans", sans-serif;
+}
+
+.appointment-details__shell {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 64px;
+  box-sizing: border-box;
+}
+
+.appointment-details__shell-inner {
+  width: 100%;
+  max-width: 1312px;
+  margin: 0 auto;
+}
+
+/* Breadcrumbs — Make module.breadcrumbs */
+.appointment-details__crumbs {
+  background: #fff;
+  padding: 16px 0;
+}
+
+.appointment-details__crumbs-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointment-details__crumb-link {
+  margin: 0;
+  font-size: 10px;
+  line-height: 12px;
+  color: #305854;
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-underline-position: from-font;
+  white-space: nowrap;
+}
+
+.appointment-details__crumb-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.appointment-details__crumb-current {
+  margin: 0;
+  font-size: 10px;
+  line-height: 12px;
+  color: #7a7d87;
+  white-space: nowrap;
+}
+
+.appointment-details__crumb-sep {
+  color: #c3c3c3;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+/* Body — Make Body1 p-[64px] gap 32 */
+.appointment-details__body {
+  background: #fff;
+  padding: 64px 0;
+}
+
+.appointment-details__layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* Left nav — 304px */
+.appointment-details__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 304px;
+  flex-shrink: 0;
+}
+
+.appointment-details__profile {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.appointment-details__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 360px;
+  background: #afafaf;
+  flex-shrink: 0;
+}
+
+.appointment-details__avatar svg {
+  width: 24px;
+  height: 28px;
+}
+
+.appointment-details__profile-text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.appointment-details__menu-item {
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__menu-item--active {
+  padding: 8px 16px;
+  font-weight: 600;
+  background: #f5f5f5;
+}
+
+.appointment-details__service {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.appointment-details__service-title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.appointment-details__service-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__service-contact {
+  margin-top: 0;
+  font-size: 13px;
+  line-height: 24px;
+  color: #305854;
+  text-decoration: underline;
+}
+
+/* Content column */
+.appointment-details__content {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.appointment-details__page-title {
+  margin: 0;
+  font-size: 39px;
+  font-weight: 700;
+  line-height: 48px;
+  color: #3a3a3a;
+}
+
+/* Card — densified Make live: p-[20px] gap-[20px] */
+.appointment-details__card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 976px;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #f5f5f5;
+  align-self: stretch;
+}
+
+.appointment-details__card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #3a3a3a;
+}
+
+.appointment-details__card-info {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 1px solid #c3c3c3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.appointment-details__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.appointment-details__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+  width: 100%;
+}
+
+.appointment-details__row-label {
+  flex: 0 1 118px;
+  max-width: 118px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #7a7d87;
+}
+
+.appointment-details__row-value {
+  flex: 1 1 162px;
+  min-width: 162px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #3a3a3a;
+}
+
+.appointment-details__price {
+  display: inline-flex;
+  align-items: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #3a3a3a;
+  white-space: nowrap;
+}
+
+.appointment-details__status--active {
+  font-weight: 600;
+  color: #5b8fc9;
+}
+
+.appointment-details__status--completed {
+  font-weight: 600;
+  color: #4a9b72;
+}
+
+.appointment-details__status--cancelled {
+  font-weight: 600;
+  color: #d4a03a;
+}
+
+.appointment-details__refund-link {
+  font-weight: 400;
+  margin-left: 0;
+}
+
+.appointment-details__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.appointment-details__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 360px;
+  background: transparent;
+  color: #5c5c5c;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: -0.36px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Make wire icon-text: no invent Cancel hover — under-match OK */
+.appointment-details__icon-btn--cancel {
+  color: #5c5c5c;
+}
+
+.appointment-details__icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.appointment-details__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Vaccinations — UXDS Accordion kit (interactive; body = SSoT fields) */
+.appointment-details__vaccinations {
+  width: 100%;
+}
+
+.appointment-details__vaccinations-item {
+  width: 100%;
+}
+
+.appointment-details__vaccinations-trigger {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.appointment-details__vaccinations-title {
+  flex: 1 0 0;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__vaccinations-body {
+  padding: 12px 0 0;
+}
+
+.appointment-details__vaccinations-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.appointment-details__vaccinations-meta-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.appointment-details__vaccinations-meta-row dt {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #5c5c5c;
+}
+
+.appointment-details__vaccinations-meta-row dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #3a3a3a;
+}
+
+/* Appointment Summary — omit hire Shipping rows */
+.appointment-details__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.appointment-details__summary-title {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.appointment-details__summary-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+  font-size: 13px;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__summary-row > span:first-child {
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.appointment-details__summary-row > span:last-child {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.appointment-details__summary-total {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+  padding-top: 16px;
+  border-top: 1px solid #d6d6d6;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #3a3a3a;
+}
+
+.appointment-details__summary-total > span:first-child {
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.appointment-details__summary-total > span:last-child {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Static buyer / payment chrome */
+.appointment-details__buyer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 56px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.appointment-details__buyer-col {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 477px;
+  min-width: 184px;
+}
+
+.appointment-details__buyer-heading {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #3a3a3a;
+}
+
+.appointment-details__buyer-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.appointment-details__buyer-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #7a7d87;
+}
+
+.appointment-details__buyer-name {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 12px;
+  color: #3a3a3a;
+}
+
+.appointment-details__buyer-value {
+  margin: 0;
+  font-size: 10px;
+  line-height: 12px;
+  color: #3a3a3a;
+}
+
+.appointment-details__buyer-address {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appointment-details__buyer-address-method {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.appointment-details__buyer-address-method > .appointment-details__buyer-block {
+  flex: 1 0 0;
+  min-width: 144px;
+}
+
+.appointment-details__payment-method {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  align-items: center;
+}
+
+.appointment-details__visa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 32px;
+  border: 1px solid #d6d6d6;
+  border-radius: 4px;
+  background: #e6e6e6;
+  color: #5c5c5c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}

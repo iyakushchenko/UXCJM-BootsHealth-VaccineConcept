@@ -7,6 +7,7 @@ import type {
   JourneyRuntime,
   TabScriptId,
 } from "@/app/orchestra/types";
+import { isBookStep2LandingBeatId } from "@/app/orchestra/journeyBeatDirector";
 import { abortAvailabilityPlayback } from "./availability";
 import { runAvailabilityScript } from "./availability";
 import { abortBookPlayback } from "./book";
@@ -57,7 +58,7 @@ async function syncDwellRetreat(
   beat: JourneyBeat,
   options?: { instant?: boolean; preserveHandoff?: boolean }
 ): Promise<void> {
-  if (beat.id === "book-step2") {
+  if (isBookStep2LandingBeatId(beat.id)) {
     await syncBookStep2LandingRetreat({
       instant: options?.instant,
       preserveHandoff: options?.preserveHandoff,
@@ -86,7 +87,7 @@ function checkRetreatViewportGoal(
       : null;
   }
 
-  if (beat.id === "book-step2" || beat.bookScript === "select-book-date") {
+  if (isBookStep2LandingBeatId(beat.id) || beat.bookScript === "select-book-date") {
     return {
       expectsAnchor: true,
       domGoalMet: bookStep2DefaultDomGoalMet(),

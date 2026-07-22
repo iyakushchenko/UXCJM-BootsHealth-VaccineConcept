@@ -9,6 +9,8 @@ import {
   type ScrollAnomaly,
   type ScrollSample,
 } from "@/app/shell/playbackScrollAnomalies";
+import { playbackDiagScroll } from "@/app/shell/playbackDiag";
+import { isFastPlayback } from "@/app/shell/playbackTiming";
 import { isChatPullUpScrollLocked } from "@/projects/boots-pharmacy/screens/chat/chatMotion";
 
 /** Tab / screen changes — eased camera mid-flight must not FAIL path deviation. */
@@ -131,6 +133,25 @@ export function createPlaybackScrollMonitor(): PlaybackScrollMonitor {
 
   const report = (anomaly: ScrollAnomaly) => {
     if (!active || reported || !onAnomaly) return;
+    // Fast QA suite contract: motion-frame samples stay diagnostic-only.
+    // Compressed rAF under playbackMs() can land tens of px off the ease model
+    // without a functional miss — never open a blocking FAIL/Alarm (LESSONS /
+    // all-cjms-fast description). Route/modal/counter guards stay strict.
+    if (
+      isFastPlayback() &&
+      (anomaly.kind === "scroll-path-deviation" || anomaly.kind === "scroll-stutter")
+    ) {
+      try {
+        playbackDiagScroll({
+          detail: `fast-diag-only · ${anomaly.kind}: ${anomaly.message}${
+            anomaly.detail ? ` · ${anomaly.detail}` : ""
+          }`,
+        });
+      } catch {
+        /* hang-safe */
+      }
+      return;
+    }
     reported = true;
     onAnomaly(anomaly);
   };
