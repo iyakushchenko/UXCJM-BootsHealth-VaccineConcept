@@ -105,7 +105,9 @@ Manual console experiments should omit reload (default `false`). Journey/`__prot
 
 **Deep links:** see [URL.md](./URL.md). Do not use `?proof=*` for agent status.
 
-**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open. **Studio nav** (`.studio-nav-panel-host` z `11000`) stays above concept lightboxes; the agent-testing capture hole clears the nav band so Step/Play/REC stay clickable while page clicks stay blocked. **Viewport frame** is a full-overlay inset ring (`__frame`) so nav-panel DS popups stay inside the frame; **REC live → orange** (`data-rec=live`); MCP CONTROL → gold when not recording.
+**Z-index:** the overlay root (`.studio-agent-testing-overlay`) paints at `z-index: 2147483646` on `document.body` — **above** Boots Availability / Choose Pharmacy (`.studio-avail-scrim` ~10200). Sitrep must remain readable with the avail tool open. **Studio nav** (`.studio-nav-panel-host` z `11000`) stays above concept lightboxes; the agent-testing capture hole clears the nav band so Step/Play/REC stay clickable while page clicks stay blocked. **Viewport frame** reserves a 10px shell gutter before its full-overlay inset ring (`__frame`) paints, so it never covers concept or nav UI; **REC live → orange** (`data-rec=live`); MCP CONTROL → gold when not recording.
+
+**Terminal modal handoff:** when a modal CTA requests a destination page, selection state, popup close, and target navigation are one visual transaction. The shell's `transitionSetCurrent` closes the active project's transient UI in the same callback as the screen update; the project's tab-change layout effect remains a safety net. During journey playback the terminal script returns immediately and leaves the modal mounted as a visual bridge until that atomic target commit. Post-click dwell belongs on the destination, never between modal close and target mount.
 
 ---
 

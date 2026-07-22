@@ -104,9 +104,12 @@ export function detectTouchpointAheadOfBeat(options: {
   };
 }
 
-/** Beat landed but a modal overlay is still open (e.g. availability after choose-location). */
+/** A non-overlay destination settled while a modal from the prior step is still live. */
 export function detectStrayPopupOnBeat(options: {
   beatId?: string;
+  beatKind?: string;
+  beatOwnsInteraction?: boolean;
+  screenSettled?: boolean;
   isScripting?: boolean;
   availabilityOpen?: boolean;
   loginPopupOpen?: boolean;
@@ -115,7 +118,14 @@ export function detectStrayPopupOnBeat(options: {
   quickViewOpen?: boolean;
 }): TransportAnomaly | null {
   if (options.isScripting) return null;
-  if (options.beatId !== "book-step2") return null;
+  // Only a settled tab landing establishes that the destination screen owns
+  // the viewport. Overlay and screen-frame beats may legitimately own nested
+  // popups; cross-screen handoffs may keep one as a bridge until tab commit.
+  if (
+    options.beatKind !== "tab-landing" ||
+    options.beatOwnsInteraction ||
+    !options.screenSettled
+  ) return null;
 
   // Stale React `availabilityOpen` without a live scrim is not a stray popup.
   const availScrimLive =
@@ -134,8 +144,10 @@ export function detectStrayPopupOnBeat(options: {
 
   return {
     kind: "stray-popup-on-beat",
-    message: `Popup still open on Book Step 2 (${open.join(", ")})`,
-    detail: `beat=${options.beatId}`,
+    message: `Popup still open after the destination settled (${open.join(", ")})`,
+    detail: [options.beatId ? `beat=${options.beatId}` : "", `kind=${options.beatKind ?? "unknown"}`]
+      .filter(Boolean)
+      .join(" "),
   };
 }
 

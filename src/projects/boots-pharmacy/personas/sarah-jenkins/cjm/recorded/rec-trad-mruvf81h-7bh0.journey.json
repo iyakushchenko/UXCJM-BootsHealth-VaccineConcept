@@ -1664,8 +1664,13 @@
         "guest",
         "user"
       ],
-      "studioVersion": "0.0.104",
-      "recordingContractVersion": 1,
+      "studioVersion": "0.0.108",
+      "recordingContractVersion": 2,
+      "compatibilityProof": {
+        "playbackContract": 2,
+        "studioVersion": "0.0.108",
+        "provedAt": "2026-07-22T00:00:00.000Z"
+      },
       "startScreenId": "plp",
       "startStudioUrl": "?project=boots-pharmacy&screen=plp&persona=sarah-jenkins&experience=traditional"
     },

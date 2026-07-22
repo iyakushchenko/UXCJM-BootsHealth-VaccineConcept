@@ -1088,22 +1088,24 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
         storeId: store.id,
       });
       setChosenBookingSlot(slot);
-      closeAvailabilityTool();
       if (studioJourneyMode) {
-        // Journey transport + beat-enter own tab/beat — no deferred wire timeline hacks.
+        // Journey transport owns the target tab/beat and its tab-change layout
+        // effect owns popup teardown. Keep the modal mounted as a visual bridge
+        // until that target commit; closing here exposes the source page alone.
         return;
       }
-      window.setTimeout(() => {
-        setCurrent(INDEX_BOOK_STEP2);
-        const datetimeBeatIndex =
-          activeJourney?.beats.findIndex((beat) => beat.id === "book-step-2") ??
-          -1;
-        if (datetimeBeatIndex >= 0) {
-          setJourneyBeatIndex((current) =>
-            current < datetimeBeatIndex ? datetimeBeatIndex : current
-          );
-        }
-      }, 0);
+      // React batches target navigation + popup close into one commit. Never
+      // defer target navigation: that exposes the source page for one frame.
+      setCurrent(INDEX_BOOK_STEP2);
+      closeAvailabilityTool();
+      const datetimeBeatIndex =
+        activeJourney?.beats.findIndex((beat) => beat.id === "book-step-2") ??
+        -1;
+      if (datetimeBeatIndex >= 0) {
+        setJourneyBeatIndex((current) =>
+          current < datetimeBeatIndex ? datetimeBeatIndex : current
+        );
+      }
     },
     [activeJourney, setCurrent, setJourneyBeatIndex, studioJourneyMode]
   );

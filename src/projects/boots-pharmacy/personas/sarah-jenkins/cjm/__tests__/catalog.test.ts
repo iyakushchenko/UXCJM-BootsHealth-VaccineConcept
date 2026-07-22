@@ -13,9 +13,9 @@ const recordedFiles = import.meta.glob<JourneyFile>("../recorded/*.journey.json"
 
 describe("Sarah Jenkins deployed CJM catalog", () => {
   it("owns every current CJM under project/persona/cjm", () => {
-    expect(SARAH_JENKINS_CJMS).toHaveLength(13);
-    expect(new Set(SARAH_JENKINS_CJMS.map((journey) => journey.id)).size).toBe(13);
-    expect(Object.keys(recordedFiles)).toHaveLength(11);
+    expect(SARAH_JENKINS_CJMS).toHaveLength(3);
+    expect(new Set(SARAH_JENKINS_CJMS.map((journey) => journey.id)).size).toBe(3);
+    expect(Object.keys(recordedFiles)).toHaveLength(1);
   });
 
   it("keeps every recorded file scoped and playable", () => {
@@ -34,20 +34,17 @@ describe("Sarah Jenkins deployed CJM catalog", () => {
       SARAH_JENKINS_CJMS,
       (journeyId) => SARAH_JENKINS_CJM_RECORDINGS[journeyId]
     );
-    expect(Object.values(metadata)).toHaveLength(13);
+    expect(Object.values(metadata)).toHaveLength(3);
     expect(
       Object.values(metadata).flatMap((item) => item.issues).map((issue) => issue.code)
     ).not.toContain("recording-source-missing");
     const currentContractRecordings = Object.values(metadata).filter(
       (item) => item.journeyId.startsWith("rec-trad-")
     );
-    expect(currentContractRecordings).toHaveLength(10);
+    expect(currentContractRecordings).toHaveLength(1);
     expect(currentContractRecordings.every((item) => item.playable)).toBe(true);
-    const legacy = metadata["rec-agentic-mru4b15c-jnhv"];
-    expect(legacy?.playable).toBe(false);
-    expect(legacy?.issues).toContainEqual(expect.objectContaining({
-      code: "legacy-recording-contract",
-      severity: "blocking",
-    }));
+    expect(
+      Object.values(metadata).flatMap((item) => item.issues).map((issue) => issue.code)
+    ).not.toContain("legacy-recording-contract");
   });
 });

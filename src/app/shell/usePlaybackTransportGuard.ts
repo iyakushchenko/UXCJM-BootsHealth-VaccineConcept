@@ -174,6 +174,19 @@ export function usePlaybackTransportGuard({
 
     const strayPopup = detectStrayPopupOnBeat({
       beatId: currentBeat?.id,
+      beatKind: currentBeat?.kind,
+      beatOwnsInteraction: Boolean(
+        currentBeat?.onEnter ||
+          currentBeat?.availScript ||
+          currentBeat?.homeScript ||
+          currentBeat?.bookScript ||
+          currentBeat?.tabScript ||
+          currentBeat?.recordedClick
+      ),
+      screenSettled:
+        currentBeat?.protoTab != null &&
+        snapshot.expectedTabIndex != null &&
+        snapshot.currentTabIndex === snapshot.expectedTabIndex,
       isScripting: snapshot.isScripting,
       availabilityOpen: snapshot.availabilityOpen,
       loginPopupOpen: snapshot.loginPopupOpen,

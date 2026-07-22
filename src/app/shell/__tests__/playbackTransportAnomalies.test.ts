@@ -155,10 +155,12 @@ describe("detectStrayPopupOnBeat", () => {
     document.body.innerHTML = "";
   });
 
-  it("flags availability overlay still open on book-step2", () => {
+  it("flags a live popup after a non-overlay destination settles", () => {
     document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     const anomaly = detectStrayPopupOnBeat({
       beatId: "book-step2",
+      beatKind: "tab-landing",
+      screenSettled: true,
       availabilityOpen: true,
     });
     expect(anomaly?.kind).toBe("stray-popup-on-beat");
@@ -169,6 +171,8 @@ describe("detectStrayPopupOnBeat", () => {
     expect(
       detectStrayPopupOnBeat({
         beatId: "book-step2",
+        beatKind: "tab-landing",
+        screenSettled: true,
         availabilityOpen: true,
       })
     ).toBeNull();
@@ -178,27 +182,70 @@ describe("detectStrayPopupOnBeat", () => {
     expect(
       detectStrayPopupOnBeat({
         beatId: "book-step2",
+        beatKind: "tab-landing",
+        screenSettled: true,
         availabilityOpen: false,
         loginPopupOpen: false,
       })
     ).toBeNull();
   });
 
-  it("ignores other beats", () => {
+  it("ignores popup-owning overlay beats", () => {
     document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     expect(
       detectStrayPopupOnBeat({
         beatId: "choose-location",
+        beatKind: "overlay",
+        screenSettled: true,
         availabilityOpen: true,
       })
     ).toBeNull();
   });
 
-  it("ignores book-step2 while director script is still running", () => {
+  it("ignores a visual bridge until the destination settles", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "any-destination",
+        beatKind: "tab-landing",
+        screenSettled: false,
+        availabilityOpen: true,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores popups owned by a screen-frame scenario", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "interactive-chat",
+        beatKind: "screen-frames",
+        screenSettled: true,
+        availabilityOpen: true,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores a popup owned by a scripted tab interaction", () => {
+    document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
+    expect(
+      detectStrayPopupOnBeat({
+        beatId: "sign-in",
+        beatKind: "tab-landing",
+        beatOwnsInteraction: true,
+        screenSettled: true,
+        availabilityOpen: true,
+      })
+    ).toBeNull();
+  });
+
+  it("ignores a settled beat while its director script is still running", () => {
     document.body.innerHTML = `<div class="studio-avail-scrim"></div>`;
     expect(
       detectStrayPopupOnBeat({
         beatId: "book-step2",
+        beatKind: "tab-landing",
+        screenSettled: true,
         isScripting: true,
         availabilityOpen: true,
       })

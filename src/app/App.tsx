@@ -1876,7 +1876,13 @@ export default function App() {
   }, [current]);
 
   const transitionSetCurrent = useCallback((index: number) => {
-    runNavTransitionRef.current(() => setCurrent(index));
+    runNavTransitionRef.current(() => {
+      // Screen navigation and transient-UI teardown are one shell commit. This
+      // prevents any project modal from painting over its destination—or
+      // exposing the source page alone—regardless of who requested navigation.
+      wireApiRef.current?.closeAllPopups();
+      setCurrent(index);
+    });
   }, []);
 
   const bridge = useMemo(

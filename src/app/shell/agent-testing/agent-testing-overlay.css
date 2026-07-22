@@ -10,6 +10,7 @@
  * (synced from .studio-nav-panel-host). Sitrep panel stays BR; PO transport always available.
  */
 .studio-agent-testing-overlay {
+  --studio-agent-testing-frame-size: 10px;
   --qa-fg-neutral: #c7ccd5;
   --qa-fg-info: #8ec5ff;
   --qa-fg-success: #69d391;
@@ -23,6 +24,27 @@
   pointer-events: none;
   font-family: "Open Sans", ui-sans-serif, system-ui, sans-serif;
   color: #f2f2f2;
+}
+
+/*
+ * The QA/REC frame is a viewport gutter, not paint over product UI. The shell
+ * contracts by the exact frame width while a visible frame is active, leaving
+ * the overlay ring to occupy reserved space only.
+ */
+body:has(
+    .studio-agent-testing-overlay:is([data-active="true"], [data-settling="true"]):is(
+        [data-rec="live"],
+        [data-mcp="control"],
+        [data-mcp="pending"],
+        [data-mcp="error"]
+      )
+  )
+  #root {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  overflow: hidden;
 }
 
 .studio-agent-testing-overlay[data-active="true"],
@@ -68,20 +90,20 @@
 }
 
 .studio-agent-testing-overlay[data-mcp="control"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
-  box-shadow: inset 0 0 0 10px #e6b84d;
+  box-shadow: inset 0 0 0 var(--studio-agent-testing-frame-size) #e6b84d;
 }
 
 .studio-agent-testing-overlay[data-mcp="pending"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
-  box-shadow: inset 0 0 0 10px #8ec5ff;
+  box-shadow: inset 0 0 0 var(--studio-agent-testing-frame-size) #8ec5ff;
 }
 
 .studio-agent-testing-overlay[data-mcp="error"]:not([data-rec="live"]) .studio-agent-testing-overlay__frame {
-  box-shadow: inset 0 0 0 10px #ff8a8a;
+  box-shadow: inset 0 0 0 var(--studio-agent-testing-frame-size) #ff8a8a;
 }
 
 /* REC live — orange viewport frame (beats gold for visibility). */
 .studio-agent-testing-overlay[data-rec="live"] .studio-agent-testing-overlay__frame {
-  box-shadow: inset 0 0 0 10px #ff8c1a;
+  box-shadow: inset 0 0 0 var(--studio-agent-testing-frame-size) #ff8c1a;
 }
 
 /* Transparent click sink — blocks page interaction without a lightbox.

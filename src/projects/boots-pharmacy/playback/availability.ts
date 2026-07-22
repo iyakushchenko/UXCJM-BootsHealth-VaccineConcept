@@ -206,7 +206,9 @@ async function runBookNow(options?: { skip?: boolean }): Promise<boolean> {
   }
 
   await simulateDemoPointerClick(bookBtn, { shouldAbort });
-  await delay(400);
+  // Terminal modal actions hand control straight back to transport. A post-click
+  // dwell paints the source page after the modal closes and before its target
+  // screen lands; presentation dwell belongs on the destination beat instead.
   return !shouldAbort();
 }
 

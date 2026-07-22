@@ -609,7 +609,14 @@ For role-specific mandatory reading, return to
 
 ---
 
+## 2026-07-22 — Modal target handoff and QA frame gutter
+
+- **A modal close is not a navigation beat.** A terminal modal CTA must not close, wait, and then navigate: that exposes the source page and makes an atomic user intent look broken. The shell screen-transition callback must close project transient UI in the same React batch as navigation; during CJM playback return immediately and retain the modal as a visual bridge until that atomic target commit. Put any presentation dwell on the destination.
+- **Diagnostic chrome must consume its own space.** A viewport ring painted over the product hides edge controls and falsifies visual QA. Reserve a shell gutter equal to the ring width, then paint the ring only inside that gutter.
+- **CJM warnings are product debt, not decoration.** If recorded CJMs predate the current playback contract, either prove/migrate a small current set or delete stale non-protected entries. Clean both deployed file-backed CJMs and origin-local `studio-recorded-cjm:*` storage when validating localhost; otherwise the global warning count keeps reporting old browser state after the repo is clean.
+
+---
+
 ## How to append
 
 Add a `## YYYY-MM-DD` section with concrete bullets (symptom → root cause → gate). Link the audit SHA or commit when relevant.
-
