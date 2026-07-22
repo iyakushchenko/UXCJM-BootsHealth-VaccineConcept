@@ -9,6 +9,7 @@ import {
 import type { JourneyDefinition } from "@/app/orchestra/types";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import { getStudioRelease } from "@/app/shell/studioRelease";
+import { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingContract";
 
 const journey: JourneyDefinition = {
   id: "rec-proof",
@@ -42,7 +43,7 @@ describe("recorded journey playback proof", () => {
     );
     expect(updated?.metadata?.studioVersion).toBe("0.0.0");
     expect(updated?.metadata?.compatibilityProof).toMatchObject({
-      playbackContract: 1,
+      playbackContract: CJM_PLAYBACK_CONTRACT_VERSION,
       studioVersion: getStudioRelease().version,
     });
   });
@@ -61,7 +62,7 @@ describe("recorded journey playback proof", () => {
     );
     expect(updated?.metadata?.studioVersion).toBe("0.0.0");
     expect(updated?.metadata?.compatibilityProof).toMatchObject({
-      playbackContract: 1,
+      playbackContract: CJM_PLAYBACK_CONTRACT_VERSION,
       studioVersion: getStudioRelease().version,
     });
     expect(recording.metadata?.compatibilityProof).toBeUndefined();

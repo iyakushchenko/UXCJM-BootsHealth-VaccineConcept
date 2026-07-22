@@ -844,17 +844,26 @@ export function playbackDiagChatBubbleMotion(options: {
     bubblePrevTransformY.set(id, options.y);
   }
 
-  const prevLayoutDelta = bubblePrevLayoutDeltaY.get(id);
-  const layoutDiscontinuity = typeof deltaY === "number" && prevLayoutDelta != null
-    ? deltaY - prevLayoutDelta
-    : null;
+  // Compare layout velocity only between consecutive animation frames.
+  // Milestones intentionally report deltaY=0; seeding from mount/start made
+  // the first legitimate camera co-travel frame look like a hard jump.
+  const prevLayoutDelta =
+    phase === "frame" ? bubblePrevLayoutDeltaY.get(id) : null;
+  const layoutDiscontinuity =
+    phase === "frame" && typeof deltaY === "number" && prevLayoutDelta != null
+      ? deltaY - prevLayoutDelta
+      : null;
   if (layoutDiscontinuity != null && Math.abs(layoutDiscontinuity) > CHAT_BUBBLE_JUMP_LAYOUT_PX) {
     jump = true;
     jumpReason = jumpReason
       ? `${jumpReason}; layout ΔΔY=${layoutDiscontinuity}`
       : `layout ΔΔY=${layoutDiscontinuity}`;
   }
-  if (typeof deltaY === "number") bubblePrevLayoutDeltaY.set(id, deltaY);
+  if (phase === "frame" && typeof deltaY === "number") {
+    bubblePrevLayoutDeltaY.set(id, deltaY);
+  } else if (phase === "mount" || phase === "animate-start") {
+    bubblePrevLayoutDeltaY.delete(id);
+  }
 
   let chop = options.chop === true;
   let chopReason = options.chopReason ?? null;

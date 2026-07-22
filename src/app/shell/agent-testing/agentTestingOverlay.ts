@@ -118,7 +118,12 @@ import {
   peekQaAgentPresence,
   touchQaAgentPresence,
 } from "@/app/shell/agent-testing/agentTestingPresence";
-import { isRecordingActive, subscribeRecordingSession } from "@/app/recording/recordingSession";
+import {
+  getActiveRecordingSession,
+  isRecordingActive,
+  subscribeRecordingSession,
+} from "@/app/recording/recordingSession";
+import { buildRecordingTimeline } from "@/app/shell/agent-testing/agentTestingRecordingTimeline";
 import {
   armQaChatLoadingWatch,
   disarmQaChatLoadingWatch,
@@ -668,9 +673,23 @@ function renderTimeline(): void {
 
 /** Keep the QA console honest about both outer tests and nested CJM/page work. */
 function syncQaSuiteProgress(root: HTMLElement): void {
-  const status = getAutonomousQaSuiteStatus();
   const count = root.querySelector<HTMLElement>(".studio-agent-testing-overlay__suite-progress-count");
   const title = root.querySelector<HTMLElement>(".studio-agent-testing-overlay__timeline-wrap .studio-agent-testing-overlay__bar-title");
+  if (isRecordingActive()) {
+    const rec = buildRecordingTimeline(getActiveRecordingSession());
+    if (count) {
+      count.hidden = false;
+      count.textContent = `REC · ${rec.stepCount} ${rec.stepCount === 1 ? "step" : "steps"}`;
+      count.title = `${rec.stepCount} recorded journey ${rec.stepCount === 1 ? "step" : "steps"}`;
+    }
+    if (title) title.textContent = `REC touchpoints · ${rec.stepCount}`;
+    timelineKeys = rec.items;
+    renderTimeline();
+    root.removeAttribute("data-suite-phase");
+    root.style.removeProperty("--qa-suite-progress");
+    return;
+  }
+  const status = getAutonomousQaSuiteStatus();
   if (!status.suiteId || status.phase === "idle") {
     count?.setAttribute("hidden", "");
     root.removeAttribute("data-suite-phase");
@@ -2377,6 +2396,7 @@ function armRecordingXorWatch(): void {
     recordingSessionUnsub = subscribeRecordingSession(() => {
       try {
         syncQaCaptureWithRecording();
+        syncSessionChrome();
       } catch {
         /* hang-safe */
       }

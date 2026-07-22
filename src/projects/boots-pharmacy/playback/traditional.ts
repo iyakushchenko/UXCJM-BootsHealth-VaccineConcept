@@ -17,6 +17,7 @@ import {
   simulateDemoPointerHover,
 } from "@/app/scenario/demoCursor";
 import { getPrototypeScrollRoot, scrollCameraToOrigin } from "@/app/scenario/playbackScroll";
+import { playbackReadinessDelay } from "@/app/scenario/playbackReadiness";
 import { PROJECT_SCREENS } from "@/projects/boots-pharmacy/screens/screens";
 import {
   scriptAborted,
@@ -84,7 +85,7 @@ async function waitForSelector(
   for (let i = 0; i < tries; i++) {
     const el = root.querySelector<HTMLElement>(selector);
     if (el) return el;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -97,7 +98,7 @@ async function waitForActiveScreen(childIndex: number): Promise<HTMLElement | nu
   for (let i = 0; i < 100; i++) {
     const screen = document.querySelector<HTMLElement>(screenSelector(childIndex));
     if (screen && isClickableTarget(screen)) return screen;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -144,7 +145,7 @@ async function waitForVisibleTarget(
   for (let i = 0; i < 100; i++) {
     const target = find(root);
     if (target && isClickableTarget(target)) return target;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -322,7 +323,7 @@ async function pollForLoginPopup(tries = 40): Promise<HTMLElement | null> {
     if (shouldAbort()) return null;
     const card = document.querySelector<HTMLElement>(".proto-login-card");
     if (card && isClickableTarget(card)) return card;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -330,7 +331,7 @@ async function pollForLoginPopup(tries = 40): Promise<HTMLElement | null> {
 async function waitForLoginPopupClosed(): Promise<void> {
   for (let i = 0; i < 60; i++) {
     if (!document.querySelector<HTMLElement>(".proto-login-card")) return;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
 }
 
@@ -516,7 +517,7 @@ async function waitForBookStep1ChosenSlot(screen: HTMLElement): Promise<boolean>
       ".book-step-1__chosen, .proto-chosen-slot"
     );
     if (slot && !slot.closest("[data-studio-make-retired]")) return true;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return false;
 }
@@ -642,7 +643,7 @@ async function runBookLocationPick(
     if (!scrim) break;
     runtime.closeAvailability();
     runtime.closeAllPopups();
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
 
   const scrimStillOpen = Boolean(
@@ -693,7 +694,7 @@ async function waitForFirstHistoryViewDetails(
   for (let i = 0; i < 80; i++) {
     const viewBtn = findVisibleHistoryViewDetails(screen);
     if (viewBtn) return viewBtn;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }

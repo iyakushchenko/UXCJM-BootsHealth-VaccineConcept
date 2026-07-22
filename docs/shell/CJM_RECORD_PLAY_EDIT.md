@@ -59,7 +59,7 @@ Same cursor for agentic / traditional / REC / chat — see [PLAYBACK.md](./PLAYB
 - **Step parks; continuous Play stays** at last interaction — except **composer submit** (always park away).
 - **Early hand** on interactive edge during travel.
 - Type-in holds journey park pose; cancel mid-travel settles (hang lesson).
-- **Agent REC demo:** robo-cursor visible for agent-driven clicks; scroll uses eased camera (not abrupt jump) where feasible.
+- **Agent REC demo (HARD):** agent-driven clicks use `__studioSimulateDemoPointerClick` — never silent DevTools `.click()` — so the existing robo-cursor, hand/arrow state, target validation, and eased camera remain visible. Nested modal lists own their scroll; the page behind the overlay must not move.
 ## Exceptions (deeper, keep thin)
 
 - **Prebuilt chat / persona docks** — progressive frames, type-in, thinking camera. Prefer rails docs over inventing a second Play path. → [CHAT_PAGE_RAILS.md](../projects/boots-pharmacy/features/CHAT_PAGE_RAILS.md)

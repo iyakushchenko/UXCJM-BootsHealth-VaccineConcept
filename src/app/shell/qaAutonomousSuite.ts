@@ -165,6 +165,25 @@ function passOf(result: unknown): boolean {
   return value.pass === true || value.ok === true;
 }
 
+function failureMessageOf(result: unknown): string {
+  const rows = (result as { results?: unknown } | null)?.results;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return "Test returned a non-passing result";
+  }
+  const last = rows[rows.length - 1] as {
+    journeyId?: unknown;
+    result?: { failureStep?: unknown; errors?: unknown };
+  };
+  const step =
+    typeof last?.result?.failureStep === "string"
+      ? last.result.failureStep
+      : "non-passing-result";
+  const details = Array.isArray(last?.result?.errors)
+    ? last.result.errors.filter((item): item is string => typeof item === "string").slice(0, 2)
+    : [];
+  return `${String(last?.journeyId ?? "CJM")} · ${step}${details.length ? ` · ${details.join("; ")}` : ""}`;
+}
+
 function compactJourneyProof(result: unknown, journeyId?: unknown, pass?: unknown) {
   const proof = result as {
     journeyId?: unknown;
@@ -200,7 +219,14 @@ function compactCompletedResult(testId: QaSuiteTestId, result: unknown): unknown
   };
 }
 
-type JourneySummary = { id: string; label: string; beatCount: number; beatIds: string[] };
+type JourneySummary = {
+  id: string;
+  label: string;
+  beatCount: number;
+  beatIds: string[];
+  playable?: boolean;
+  issues?: Array<{ code: string; detail: string; severity?: string }>;
+};
 
 function activeJourneyId(): string | null {
   const state = (window as Window & { __protoStudioState?: () => { orchestraMode?: string } }).__protoStudioState?.();
@@ -306,6 +332,27 @@ async function proveAllJourneys(playbackSpeed: "normal" | "fast" = "normal"): Pr
     // Count the on-air journey, not just completed ones: the panel must never
     // appear stalled while an honest playback prove is under way.
     setScope(index + 1);
+    if (journey.playable === false) {
+      const blocking = (journey.issues ?? []).filter(
+        (issue) => issue.severity === "blocking",
+      );
+      const result = {
+        pass: false,
+        journeyId: journey.id,
+        failureStep: "cjm-compatibility-blocked",
+        errors: blocking.map((issue) => `${issue.code}: ${issue.detail}`),
+      };
+      results.push({ journeyId: journey.id, pass: false, result });
+      const label = labels[index];
+      items[index] = { label, outcome: "fail" };
+      window.__studioAgentTestingOverlay?.markTimeline?.(label, "fail");
+      window.__studioAgentTestingOverlay?.logStep?.({
+        label: `CJM blocked · ${journey.label} · ${blocking.map((issue) => issue.code).join(", ") || "incompatible"}`,
+        outcome: "fail",
+      });
+      setScope(index + 1);
+      return { pass: false, results };
+    }
     const result = await proveJourney(journey.id, playbackSpeed);
     const pass = passOf(result);
     results.push({ journeyId: journey.id, pass, result });
@@ -377,7 +424,7 @@ async function runRemaining(token: number): Promise<void> {
     let result: unknown;
     try {
       result = await runTest(test);
-      if (!passOf(result)) throw new Error("Test returned a non-passing result");
+      if (!passOf(result)) throw new Error(failureMessageOf(result));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const finishedAt = Date.now();

@@ -103,6 +103,7 @@ function pickHonestClickTarget(
 
 async function pacedClick(sel: string, label: string): Promise<boolean> {
   await recUserPace("beforeCta");
+  const beforeUrl = window.location.href;
   const target =
     pickHonestClickTarget([sel]) ??
     document.querySelector<HTMLElement>(sel);
@@ -125,7 +126,9 @@ async function pacedClick(sel: string, label: string): Promise<boolean> {
   if (!drain.ok) {
     throw new Error(drain.reason ?? `modal drain failed (${drain.modalId})`);
   }
-  await recUserPace("afterScreenChange");
+  if (drain.drained || window.location.href !== beforeUrl) {
+    await recUserPace("afterScreenChange");
+  }
   return ok;
 }
 

@@ -93,6 +93,28 @@ describe("autonomous QA suite", () => {
     expect(window.__studioRunFullPlayProve).toHaveBeenCalledTimes(2);
   });
 
+  it("blocks an incompatible CJM before cursor playback", async () => {
+    window.__protoListJourneys = () => [
+      {
+        id: "legacy",
+        label: "Legacy route",
+        beatCount: 2,
+        beatIds: ["one", "two"],
+        playable: false,
+        issues: [{
+          code: "legacy-recording-contract",
+          detail: "Route contract is stale",
+          severity: "blocking",
+        }],
+      },
+    ];
+    window.__studioRunFullPlayProve = vi.fn(async () => ({ pass: true }));
+    window.__studioStartQaSuite?.(["play-all-cjms"]);
+    await settle();
+    expect(window.__studioGetQaSuiteStatus?.().phase).toBe("paused-failure");
+    expect(window.__studioRunFullPlayProve).not.toHaveBeenCalled();
+  });
+
   it("retains every all-CJM result and reports the real journey count", async () => {
     window.__protoListJourneys = () => Array.from({ length: 13 }, (_, index) => ({
       id: `journey-${index + 1}`,

@@ -354,6 +354,7 @@ function StoreCard({
           <button
             type="button"
             className="uxds-link proto-avail-link"
+            data-studio-action="avail-show-on-map"
             onClick={onShowMap}
           >
             Show on map
@@ -969,6 +970,7 @@ export default function AvailabilityTool({
                   <button
                     type="button"
                     role="tab"
+                    data-studio-action="avail-view-list"
                     aria-selected={step === "list"}
                     className={
                       step === "list"
@@ -982,6 +984,7 @@ export default function AvailabilityTool({
                   <button
                     type="button"
                     role="tab"
+                    data-studio-action="avail-view-map"
                     aria-selected={step === "map"}
                     className={
                       step === "map"
@@ -1102,6 +1105,7 @@ export default function AvailabilityTool({
               <button
                 type="button"
                 className="proto-avail-btn-primary"
+                data-studio-action="avail-back-to-list"
                 onClick={() => goList()}
               >
                 <img src={iconArrows} alt="" width={16} height={16} />
@@ -1202,6 +1206,7 @@ export default function AvailabilityTool({
               <button
                 type="button"
                 className="proto-avail-btn-secondary"
+                data-studio-action="avail-back-to-list"
                 onClick={() => goList()}
               >
                 <img
@@ -1275,6 +1280,7 @@ export default function AvailabilityTool({
               <button
                 type="button"
                 className="proto-avail-btn-secondary"
+                data-studio-action="avail-back-to-date"
                 onClick={() => setStep("date")}
               >
                 <img

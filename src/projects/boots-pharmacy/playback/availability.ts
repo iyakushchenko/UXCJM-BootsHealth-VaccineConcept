@@ -6,6 +6,7 @@ import {
   removeDemoCursor,
   simulateDemoPointerClick,
 } from "@/app/scenario/demoCursor";
+import { playbackReadinessDelay } from "@/app/scenario/playbackReadiness";
 import {
   animateScrollElementIntoView,
   animateScrollTo,
@@ -60,7 +61,7 @@ async function waitForAvailCard(): Promise<HTMLElement | null> {
   for (let i = 0; i < 100; i++) {
     const card = availCard();
     if (card) return card;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -72,7 +73,7 @@ async function waitForSelector(
   for (let i = 0; i < 80; i++) {
     const el = card.querySelector<HTMLElement>(selector);
     if (el) return el;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -80,7 +81,7 @@ async function waitForSelector(
 async function waitForDateStep(card: HTMLElement): Promise<boolean> {
   for (let i = 0; i < 80; i++) {
     if (card.querySelector(".proto-avail-calendars")) return true;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return false;
 }
@@ -97,7 +98,7 @@ async function findDateCell(
     );
     const cell = cells.find((el) => el.textContent?.trim() === String(day));
     if (cell) return cell;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -212,7 +213,7 @@ async function runBookNow(options?: { skip?: boolean }): Promise<boolean> {
 async function waitForStoreList(card: HTMLElement): Promise<boolean> {
   for (let i = 0; i < 80; i++) {
     if (card.querySelector("[data-studio-avail-store]")) return true;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return false;
 }
@@ -345,7 +346,7 @@ export async function runSelectLocationStore(
 
   for (let i = 0; i < 80; i++) {
     if (!availCard()) return true;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
 
   return false;
@@ -363,7 +364,7 @@ async function runSelectLocation(options?: { skip?: boolean }): Promise<Playback
     if (card.querySelector(".proto-avail-calendars")) {
       return scriptOk();
     }
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
 
   if (

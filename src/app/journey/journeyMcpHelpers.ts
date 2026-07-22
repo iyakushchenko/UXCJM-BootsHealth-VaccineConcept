@@ -16,10 +16,14 @@ import {
 } from "@/app/journey/journeyRuntimeStore";
 import type { PersonaId, ProjectId } from "@/projects/types";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
+import type { CjmOptionMetadata } from "@/app/recording/recordingMetadata";
+
+export type JourneyMcpSummary = ReturnType<typeof summarizeJourney> &
+  Pick<CjmOptionMetadata, "playable" | "issues">;
 
 declare global {
   interface Window {
-    __protoListJourneys?: () => ReturnType<typeof summarizeJourney>[];
+    __protoListJourneys?: () => JourneyMcpSummary[];
     __protoExportJourney?: (journeyId?: string) => string | null;
     __protoExportJourneyBundle?: () => string;
     __protoImportJourney?: (json: string) => JourneyFile;
@@ -37,6 +41,7 @@ export function registerJourneyMcpHelpers(options: {
   projectId: ProjectId;
   personaId: PersonaId;
   getJourneys: () => JourneyDefinition[];
+  getJourneyMetadata: (journeyId: string) => CjmOptionMetadata;
   getActiveJourneyId?: () => string | undefined;
   onJourneysApplied?: () => void;
   /** After import — select that journey as active orchestra CJM (beat honesty). */
@@ -52,7 +57,14 @@ export function registerJourneyMcpHelpers(options: {
   };
 
   window.__protoListJourneys = () =>
-    options.getJourneys().map((journey) => summarizeJourney(journey));
+    options.getJourneys().map((journey) => {
+      const metadata = options.getJourneyMetadata(journey.id);
+      return {
+        ...summarizeJourney(journey),
+        playable: metadata.playable,
+        issues: metadata.issues,
+      };
+    });
 
   window.__protoExportJourney = (journeyId) => {
     const journey = resolveJourney(journeyId);

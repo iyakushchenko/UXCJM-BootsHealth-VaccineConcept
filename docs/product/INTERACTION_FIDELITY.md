@@ -118,6 +118,9 @@ Shared modules still expose stable hooks for recording/playback:
 
 - `data-name`, `data-studio-*` as in [../shell/RECORDING.md](../shell/RECORDING.md)
 - Screen registry + journey beats per [PAGE_BUILD_CONTRACT.md](./PAGE_BUILD_CONTRACT.md)
+- Native/ARIA action semantics (`button`, `a[href]`, roles) and observable state (`checked`, `aria-checked`, `aria-selected`, stable state hooks). A large decorative wrapper is not a target merely because it has a box.
+- Idempotent selected options (current date/time/tab/radio) are not valid targets. Toggle controls remain actionable because off/on is a real state transition.
+- Stateful clicks pass only when state changes. Cursor-on-target without checkbox/radio/selection change is a hard diagnostic failure.
 
 ---
 

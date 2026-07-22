@@ -423,6 +423,25 @@ describe("getPrototypeScrollRoot", () => {
     expect(getPrototypeScrollRoot(plp)).toBe(proto);
   });
 
+  it("prefers a nested modal scroll region for lower interactive targets", () => {
+    document.body.innerHTML = `
+      <div class="studio-scroll--prototype" style="height:400px;overflow:auto">
+        <div class="studio-avail-scrim">
+          <div class="proto-avail-card">
+            <div id="store-list" style="height:240px;overflow-y:auto">
+              <button id="lower-store">Choose Location</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    const list = document.getElementById("store-list")!;
+    Object.defineProperty(list, "scrollHeight", { value: 900, configurable: true });
+    Object.defineProperty(list, "clientHeight", { value: 240, configurable: true });
+
+    expect(getPrototypeScrollRoot(document.getElementById("lower-store"))).toBe(list);
+  });
+
   it("does not prefer chat column when ?screen= is a non-chat page", () => {
     window.history.replaceState({}, "", "/?screen=book-step-3");
     document.body.innerHTML = `

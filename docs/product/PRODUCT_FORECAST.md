@@ -62,7 +62,7 @@ Shareable `?project=&screen=` (+ `&modal=` for blocking lightboxes e.g. `choose-
 
 ### 2. Recording fidelity — v2 MATRIX + COMPILE VERTICAL LANDED
 
-`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay. **Director-script** + **retreat-sync**. **Compile→journeys** overlays CJM slot. Capture gaps (beat-enter / scroll / typed-text) largely closed at tip; compile still gaps scroll/typed.
+`kind: "screen"` + `applyStudioScreen` landed. **Demo-click + human REC click** replay. **Director-script** + **retreat-sync**. **Compile→journeys** overlays CJM slot. The shared interaction contract rejects ghost DOM boxes and already-selected idempotent options, verifies checkbox/radio/selection state changes, aims at visible content inside oversized targets, and owns nested modal scroll. Capture gaps (beat-enter / scroll / typed-text) are replayable; compiled CJMs still report typed-text gaps honestly.
 
 ### 3. Interaction fidelity — ONGOING
 
@@ -131,6 +131,8 @@ Documented handshake ([X_SUITE_INTEGRATION.md](./X_SUITE_INTEGRATION.md)). Autom
 |------|------------|
 | Visual / style zoo | DS strictness + strict interface audit PROVEN |
 | Dead UI “recordings” | Interaction fidelity gate |
+| CJM-specific rescue branches / brittle route order | One shared interaction engine; no journey-id/persona exceptions; cross-route proof |
+| Page migration breaks existing recordings | Preserve semantic action/state hooks + run interaction inventory and recorded-playback compatibility before retirement |
 | URL / session fight | URL wins; replaceState sync |
 | Agent overlay sticky | Strip ephemeral; nest-aware stop |
 | CI Actions burn | Slim default CI |

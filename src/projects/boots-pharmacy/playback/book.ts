@@ -7,6 +7,7 @@ import {
   resetDemoCursorTravelOrigin,
   simulateDemoPointerClick,
 } from "@/app/scenario/demoCursor";
+import { playbackReadinessDelay } from "@/app/scenario/playbackReadiness";
 import {
   animateDemoTargetIntoView,
   cancelPlaybackScroll,
@@ -291,7 +292,7 @@ async function waitForBookStep2Screen(): Promise<HTMLElement | null> {
     if (shouldAbort()) return null;
     const screen = bookStep2Screen();
     if (screen) return screen;
-    await delay(40);
+    await playbackReadinessDelay(40);
   }
   return null;
 }
@@ -356,7 +357,7 @@ async function findBookDateCell(
       `[data-name="calendar. date. cell"][data-studio-cal-kind="date"][data-studio-cal-month="${month}"][data-studio-cal-value="${day}"]`
     );
     if (cell && cell.dataset.studioCalUnavailable !== "true") return cell;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -371,7 +372,7 @@ async function findBookTimeCell(
       `[data-name="calendar. date. cell"][data-studio-cal-kind="time"][data-studio-cal-value="${time}"]`
     );
     if (cell && cell.dataset.studioCalUnavailable !== "true") return cell;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }
@@ -489,7 +490,7 @@ async function waitForReserveButton(
     if (shouldAbort()) return null;
     const btn = findReserveAppointmentButton(screen);
     if (btn) return btn;
-    await delay(40);
+    await playbackReadinessDelay(40);
   }
   return null;
 }
@@ -503,7 +504,7 @@ async function waitForBookTimeAnchor(
       '[data-name="calendar. date. cell"][data-studio-cal-kind="time"]'
     );
     if (cell) return cell;
-    await delay(50);
+    await playbackReadinessDelay(50);
   }
   return null;
 }

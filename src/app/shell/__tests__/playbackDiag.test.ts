@@ -152,6 +152,34 @@ describe("playbackDiag", () => {
     expect(events.every((event) => !event?.bubble?.jump && !event?.bubble?.chop)).toBe(true);
   });
 
+  it("does not compare the first animation frame with the mount milestone", () => {
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    playbackDiagChatBubbleMotion({
+      id: "r-first",
+      phase: "mount",
+      y: 14,
+      deltaY: 0,
+      trace: { scrollLock: true, deltaScrollTop: 0 },
+    });
+    playbackDiagChatBubbleMotion({
+      id: "r-first",
+      phase: "animate-start",
+      y: 14,
+      deltaY: 0,
+      trace: { scrollLock: true, deltaScrollTop: 0 },
+    });
+    const firstFrame = playbackDiagChatBubbleMotion({
+      id: "r-first",
+      phase: "frame",
+      y: 12,
+      deltaY: -15.59,
+      trace: { scrollLock: true, deltaScrollTop: 15.59 },
+    });
+
+    expect(firstFrame?.bubble?.jump).toBe(false);
+    expect(firstFrame?.bubble?.chop).toBe(false);
+  });
+
   it("flags a discontinuous co-travel step", () => {
     vi.spyOn(console, "info").mockImplementation(() => {});
     for (const velocity of [4, 5]) {

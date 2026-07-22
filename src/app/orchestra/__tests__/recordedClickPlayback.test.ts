@@ -156,6 +156,27 @@ describe("playRecordedClick — login interstitial", () => {
     expect(applyStudioModal).not.toHaveBeenCalled();
   });
 
+  it("keeps an already-open availability modal instead of resetting its step", async () => {
+    const modal = document.createElement("div");
+    modal.setAttribute("data-studio-modal", "choose-pharmacy");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `<button data-studio-action="avail-back-to-list">Back to List</button>`;
+    document.body.appendChild(modal);
+    const applyStudioModal = vi.fn();
+
+    const result = await playRecordedClick(
+      {
+        selectorChain: ['[data-studio-action="avail-back-to-list"]'],
+        element: "Back to List",
+        modalId: "choose-pharmacy",
+      },
+      { applyStudioModal },
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(applyStudioModal).not.toHaveBeenCalled();
+  });
+
   it("never drains the closing login again after its recorded sign-in action", async () => {
     const login = mountLoginModal();
     vi.mocked(simulateDemoPointerClick).mockResolvedValue(true);
@@ -187,5 +208,26 @@ describe("playRecordedClick — login interstitial", () => {
     if (!result.ok) {
       expect(result.step).toBe("recorded-click:blocked-by-modal");
     }
+  });
+
+  it("uses the recorded label to disambiguate repeated component selectors", async () => {
+    document.body.innerHTML = `
+      <div data-name="component.plp.tile.title"><a href="#pdp">Chickenpox</a></div>
+      <div data-name="component.plp.tile.title"><a href="#pdp">Typhoid</a></div>
+    `;
+    const typhoid = Array.from(document.querySelectorAll("a")).find(
+      (link) => link.textContent === "Typhoid",
+    );
+
+    const result = await playRecordedClick({
+      selectorChain: ['[data-name="component.plp.tile.title"]'],
+      element: "Typhoid",
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(simulateDemoPointerClick).toHaveBeenCalledWith(
+      typhoid,
+      expect.objectContaining({ scroll: true }),
+    );
   });
 });

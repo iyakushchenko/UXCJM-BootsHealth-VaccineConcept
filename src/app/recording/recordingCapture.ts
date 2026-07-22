@@ -32,6 +32,7 @@ import type {
 import { playbackDiagRecCapture } from "@/app/shell/playbackDiag";
 import { parseStudioUrl } from "@/app/shell/studioUrl";
 import { trackStudioModalForQa } from "@/app/shell/qaModalTrack";
+import { isAlreadySelectedNoopTarget } from "@/app/scenario/demoInteractionContract";
 
 let snapshotProvider: (() => RecordingSnapshot | undefined) | null = null;
 let lastTouchpointKey: string | undefined;
@@ -68,6 +69,25 @@ export function getRecordingSnapshot(): RecordingSnapshot | undefined {
 
 /** Build a selector chain from demo-click target for future replay. */
 export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
+  const leafTag = (el.tagName ?? "").toLowerCase();
+  const leafHasOwnContract = Boolean(
+    el.getAttribute("data-name") ||
+      el.getAttribute("data-studio-action") ||
+      el.getAttribute("data-studio-avail-store") ||
+      el.getAttribute("data-studio-beat"),
+  );
+  const leafSelector = !leafHasOwnContract
+    ? leafTag === "a" && el.hasAttribute("href")
+      ? "a[href]"
+      : leafTag === "button" ||
+          leafTag === "input" ||
+          leafTag === "select" ||
+          leafTag === "textarea"
+        ? leafTag
+        : el.getAttribute("role") === "button"
+          ? '[role="button"]'
+          : null
+    : null;
   // Unique calendar cells first — bare data-name / action climb is non-unique.
   // Book Step 2 uses the same data-studio-cal-* attrs as the book director.
   const bookDate = el.closest<HTMLElement>(
@@ -112,19 +132,8 @@ export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
     }
   }
 
-  // Prefer a unique studio action on the click target — ignore noisy ancestors
-  // (progress "Step N", breadcrumbs) that break nested resolve.
-  const selfAction = el.getAttribute("data-studio-action");
-  if (selfAction) {
-    return [`[data-studio-action="${selfAction}"]`];
-  }
-
-  // Climb to nearest studio action (glyph clicks inside CTAs).
-  const actionHost = el.closest<HTMLElement>("[data-studio-action]");
-  if (actionHost) {
-    const action = actionHost.getAttribute("data-studio-action");
-    if (action) return [`[data-studio-action="${action}"]`];
-  }
+  // Repeated controls need their owning entity before the shared action.
+  // Example: every pharmacy card exposes `avail-choose-location`.
   const availStore = el.closest<HTMLElement>("[data-studio-avail-store]");
   if (availStore) {
     const storeId = availStore.getAttribute("data-studio-avail-store");
@@ -139,6 +148,19 @@ export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
     }
   }
 
+  // Prefer a unique studio action on the click target — ignore noisy ancestors
+  // (progress "Step N", breadcrumbs) that break nested resolve.
+  const selfAction = el.getAttribute("data-studio-action");
+  if (selfAction) {
+    return [`[data-studio-action="${selfAction}"]`];
+  }
+
+  // Climb to nearest studio action (glyph clicks inside CTAs).
+  const actionHost = el.closest<HTMLElement>("[data-studio-action]");
+  if (actionHost) {
+    const action = actionHost.getAttribute("data-studio-action");
+    if (action) return [`[data-studio-action="${action}"]`];
+  }
   const chain: string[] = [];
   let node: HTMLElement | null = el;
 
@@ -191,7 +213,9 @@ export function buildPlaybackSelectorChain(el: HTMLElement): string[] {
     return [];
   }
 
-  return [...new Set(chain.filter((s) => s !== "#root"))];
+  const stableChain = [...new Set(chain.filter((s) => s !== "#root"))];
+  if (leafSelector) stableChain.push(leafSelector);
+  return stableChain;
 }
 
 type PlaybackSelectorRoot = Pick<ParentNode, "querySelector" | "querySelectorAll">;
@@ -923,6 +947,14 @@ export function refineRecordingClickTarget(el: HTMLElement): HTMLElement {
   const action = el.closest<HTMLElement>("[data-studio-action]");
   if (action) return action;
 
+  // Shared engine contract: prefer the real native/ARIA action over a
+  // decorative span or wide wrapper. This also makes checkbox replay target
+  // the control that owns state instead of an inert child.
+  const interactive = el.closest<HTMLElement>(
+    "button, a[href], input:not([type='hidden']), select, textarea, label[for], label:has(input), summary, option, [role='button'], [role='link'], [role='checkbox'], [role='radio'], [role='switch'], [role='tab'], [role='option']"
+  );
+  if (interactive) return interactive;
+
   // Do NOT invent a click by picking the first CTA under a coarse module shell
   // (module.plp.tiles). Padding-inside-tile is handled above via tile closest.
   return el;
@@ -972,7 +1004,8 @@ export function resolveRecordingHumanClickTarget(
 export function shouldCaptureRecordingHumanClick(event: Event): boolean {
   if (!isRecordingActive()) return false;
   if (!("isTrusted" in event) || event.isTrusted !== true) return false;
-  return resolveRecordingHumanClickTarget(event.target) != null;
+  const target = resolveRecordingHumanClickTarget(event.target);
+  return Boolean(target && !isAlreadySelectedNoopTarget(target));
 }
 
 /** Concise human labels for STEPS / nav — scrub Make-ish attr soup. */
@@ -1034,6 +1067,16 @@ function onRecordingHumanClick(event: Event): void {
   if (!shouldCaptureRecordingHumanClick(event)) return;
   const target = resolveRecordingHumanClickTarget(event.target);
   if (!target) return;
+  if (isAlreadySelectedNoopTarget(target)) {
+    playbackDiagRecCapture({
+      detail: "demo-click REJECTED — already-selected option is not a REC target",
+      eventKind: "demo-click",
+      found: true,
+      usable: false,
+      clickOk: false,
+    });
+    return;
+  }
   const chain = buildPlaybackSelectorChain(target);
   if (chain.length === 0) {
     playbackDiagRecCapture({

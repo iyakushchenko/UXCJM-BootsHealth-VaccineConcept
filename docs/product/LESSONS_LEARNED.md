@@ -32,6 +32,15 @@ For role-specific mandatory reading, return to
 
 ---
 
+## 2026-07-22
+
+### REC/playback target truth — visible box, selected no-op, and unchecked checkbox (PO)
+
+- **Symptom / class:** Agent REC clicked an already-selected Book Step 2 date; wide PLP links looked like empty-space clicks; ghost boxes on legacy Details could be reported as clicks; checkbox cursor press did not guarantee the checkbox changed.
+- **Root cause:** Shared cursor treated any visible non-disabled rectangle as clickable, always aimed at its geometric centre, captured before verifying outcome, and had no universal idempotent-selection rule.
+- **Right fix:** One engine contract: require native/ARIA/action semantics; reject selected idempotent options before travel; target visible text/content inside oversized actions; read checkbox/radio/selection state before click and require a transition before logging PASS or REC capture. Toggle-off remains valid; selected radio/date/tab no-op does not.
+- **Gate:** `demoInteractionContract` units + cursor interaction tests + cross-route localhost REC/playback. Page migrations preserve semantic action/state hooks; no CJM-id rescue branches.
+
 ## 2026-07-21
 
 ### Agentic prove flake — early path-deviation + stale DIAGNOSTIC_ACK_STOP (PO)
@@ -522,6 +531,10 @@ For role-specific mandatory reading, return to
 
 <a id="topic-recording-baseline"></a>
 ### Recording
+
+- **REC session truth must survive module churn** — module-local singleton state can split under Vite HMR: the UI shows REC live while a newly loaded helper sees no session. Keep the runtime on one browser-global store; sessionStorage remains page-refresh recovery, not the live coordination bus. Arm must stop both stale active **and paused** drafts before Start. Gate: recording recovery/arm tests + NEW-CJM localhost prove.
+- **Shared dropdown iteration can detach sibling nodes** — Project/Persona/Orchestra use the same menu shell; opening the wrong menu can remount later siblings and invalidate a captured node list. Resolve the intended control by semantic action/ARIA identity first (`orchestra-mode-select`), then its controlled listbox. Gate: real CREATE NEW arm.
+- **Selected no-ops are invalid at both boundaries** — rejecting an already-selected date/time/radio only during playback leaves a poison event in the recording. Reject in trusted human capture phase and before robo-cursor travel; toggles remain valid only when state changes. Do not exempt legacy pages.
 
 - **Demo-click replay needs stable targets** — prefer `data-studio-action` on the click element; stop the selector chain there. Ancestor `data-name` noise (progress "Step N", breadcrumbs) breaks nested resolve.
 - **Replay ≠ screen advance** — re-firing Continue proves interaction parity even when product logic opens a picker (no location yet). Do not require step navigation for a demo-click PROVE.

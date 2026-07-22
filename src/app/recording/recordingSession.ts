@@ -15,16 +15,33 @@ import {
   subscribeStudioAuthAudit,
 } from "@/app/shell/studioAuthSession";
 import { getStudioRelease } from "@/app/shell/studioRelease";
+import { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingContract";
 
 const SESSION_VERSION = 1 as const;
 const DEDUPE_WINDOW_MS = 80;
 const RECORDING_RECOVERY_STORAGE_KEY = "studioRecordingRecoveryV1";
 
-let activeSession: RecordingSession | null = null;
-let lastSession: RecordingSession | null = null;
-let paused = false;
-let nextRecordingAuthor: "agent" | "user" | null = null;
-const listeners = new Set<() => void>();
+type RecordingRuntime = {
+  activeSession: RecordingSession | null;
+  lastSession: RecordingSession | null;
+  paused: boolean;
+  nextRecordingAuthor: "agent" | "user" | null;
+  listeners: Set<() => void>;
+  hydrated: boolean;
+};
+
+const RECORDING_RUNTIME_KEY = "__studioRecordingRuntimeV1";
+const runtimeHost = globalThis as typeof globalThis & {
+  [RECORDING_RUNTIME_KEY]?: RecordingRuntime;
+};
+const runtime = runtimeHost[RECORDING_RUNTIME_KEY] ??= {
+  activeSession: null,
+  lastSession: null,
+  paused: false,
+  nextRecordingAuthor: null,
+  listeners: new Set<() => void>(),
+  hydrated: false,
+};
 
 type PersistedRecordingRecovery = {
   active: RecordingSession | null;
@@ -45,13 +62,13 @@ function isRestorableSession(value: unknown): value is RecordingSession {
 function persistRecordingRecovery(): void {
   if (typeof sessionStorage === "undefined") return;
   try {
-    if (!activeSession && !lastSession) {
+    if (!runtime.activeSession && !runtime.lastSession) {
       sessionStorage.removeItem(RECORDING_RECOVERY_STORAGE_KEY);
       return;
     }
     const payload: PersistedRecordingRecovery = {
-      active: activeSession,
-      last: lastSession,
+      active: runtime.activeSession,
+      last: runtime.lastSession,
     };
     sessionStorage.setItem(RECORDING_RECOVERY_STORAGE_KEY, JSON.stringify(payload));
   } catch {
@@ -66,10 +83,10 @@ function hydrateRecordingRecovery(): void {
     if (!raw) return;
     const parsed = JSON.parse(raw) as Partial<PersistedRecordingRecovery>;
     if (isRestorableSession(parsed.active)) {
-      activeSession = { ...parsed.active, paused: true };
-      paused = true;
+      runtime.activeSession = { ...parsed.active, paused: true };
+      runtime.paused = true;
     }
-    if (isRestorableSession(parsed.last)) lastSession = parsed.last;
+    if (isRestorableSession(parsed.last)) runtime.lastSession = parsed.last;
     persistRecordingRecovery();
   } catch {
     try {
@@ -80,22 +97,23 @@ function hydrateRecordingRecovery(): void {
   }
 }
 
-hydrateRecordingRecovery();
-if (typeof window !== "undefined") {
+if (!runtime.hydrated) hydrateRecordingRecovery();
+runtime.hydrated = true;
+if (typeof window !== "undefined" && !runtime.activeSession && !runtime.lastSession) {
   for (const delay of [0, 100, 300]) {
     window.setTimeout(() => {
-      if (!activeSession && !lastSession) hydrateRecordingRecovery();
+      if (!runtime.activeSession && !runtime.lastSession) hydrateRecordingRecovery();
     }, delay);
   }
 }
 
 subscribeStudioAuthAudit((loggedIn) => {
-  if (!activeSession) return;
+  if (!runtime.activeSession) return;
   const state = loggedIn ? "user" : "guest";
-  const current = activeSession.metadata?.authStates ?? [];
+  const current = runtime.activeSession.metadata?.authStates ?? [];
   if (current.includes(state)) return;
-  activeSession.metadata = {
-    ...activeSession.metadata,
+  runtime.activeSession.metadata = {
+    ...runtime.activeSession.metadata,
     authStates: [...current, state],
   };
   persistRecordingRecovery();
@@ -103,26 +121,26 @@ subscribeStudioAuthAudit((loggedIn) => {
 });
 
 function notifyRecordingListeners(): void {
-  for (const listener of listeners) {
+  for (const listener of runtime.listeners) {
     listener();
   }
 }
 
 /** Subscribe to session start/stop/pause/stage changes (Studio UI + tests). */
 export function subscribeRecordingSession(listener: () => void): () => void {
-  listeners.add(listener);
+  runtime.listeners.add(listener);
   return () => {
-    listeners.delete(listener);
+    runtime.listeners.delete(listener);
   };
 }
 
 export function getLastRecordingSession(): RecordingSession | null {
-  return lastSession;
+  return runtime.lastSession;
 }
 
 /** Stage a stopped or imported session for export / replay. */
 export function stageRecordingSession(session: RecordingSession): void {
-  lastSession = session;
+  runtime.lastSession = session;
   persistRecordingRecovery();
   notifyRecordingListeners();
 }
@@ -187,7 +205,7 @@ function isDuplicate(
 }
 
 export function isRecordingActive(): boolean {
-  return activeSession != null && !paused;
+  return runtime.activeSession != null && !runtime.paused;
 }
 
 /**
@@ -236,11 +254,11 @@ export function countRecordingSteps(
 }
 
 export function isRecordingPaused(): boolean {
-  return activeSession != null && paused;
+  return runtime.activeSession != null && runtime.paused;
 }
 
 export function getActiveRecordingSession(): RecordingSession | null {
-  return activeSession;
+  return runtime.activeSession;
 }
 
 export type StartRecordingOptions = {
@@ -254,7 +272,7 @@ export type StartRecordingOptions = {
 
 /** Agent-only REC helpers stage provenance before using the same visible Start button. */
 export function stageNextRecordingAuthor(author: "agent" | "user"): void {
-  nextRecordingAuthor = author;
+  runtime.nextRecordingAuthor = author;
 }
 
 export function startRecording(options: StartRecordingOptions = {}): RecordingSession {
@@ -271,13 +289,13 @@ export function startRecording(options: StartRecordingOptions = {}): RecordingSe
     }
   }
   const recordedFrom = options.metadata?.recordedFrom ?? "dev";
-  const stagedAuthor = nextRecordingAuthor;
-  nextRecordingAuthor = null;
+  const stagedAuthor = runtime.nextRecordingAuthor;
+  runtime.nextRecordingAuthor = null;
   const author =
     recordedFrom === "mcp"
       ? "agent"
       : options.metadata?.author ?? stagedAuthor ?? "user";
-  activeSession = {
+  runtime.activeSession = {
     id: newSessionId(),
     version: SESSION_VERSION,
     startedAt: new Date().toISOString(),
@@ -294,44 +312,44 @@ export function startRecording(options: StartRecordingOptions = {}): RecordingSe
       author,
       authStates: [isStudioLoggedIn() ? "user" : "guest"],
       studioVersion: getStudioRelease().version,
-      recordingContractVersion: 1,
+      recordingContractVersion: CJM_PLAYBACK_CONTRACT_VERSION,
       ...options.metadata,
       // MCP provenance cannot be downgraded by caller metadata.
       ...(recordedFrom === "mcp" ? { author: "agent" as const } : {}),
     },
   };
-  paused = false;
+  runtime.paused = false;
   persistRecordingRecovery();
   notifyRecordingListeners();
-  return activeSession;
+  return runtime.activeSession;
 }
 
 export function pauseRecording(): boolean {
-  if (!activeSession) return false;
-  paused = true;
-  activeSession.paused = true;
+  if (!runtime.activeSession) return false;
+  runtime.paused = true;
+  runtime.activeSession.paused = true;
   persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
 }
 
 export function resumeRecording(): boolean {
-  if (!activeSession) return false;
-  paused = false;
-  activeSession.paused = false;
+  if (!runtime.activeSession) return false;
+  runtime.paused = false;
+  runtime.activeSession.paused = false;
   persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
 }
 
 export function stopRecording(): RecordingSession | null {
-  if (!activeSession) return null;
-  activeSession.stoppedAt = new Date().toISOString();
-  activeSession.paused = false;
-  const finished = activeSession;
-  activeSession = null;
-  paused = false;
-  lastSession = finished;
+  if (!runtime.activeSession) return null;
+  runtime.activeSession.stoppedAt = new Date().toISOString();
+  runtime.activeSession.paused = false;
+  const finished = runtime.activeSession;
+  runtime.activeSession = null;
+  runtime.paused = false;
+  runtime.lastSession = finished;
   persistRecordingRecovery();
   notifyRecordingListeners();
   return finished;
@@ -342,9 +360,9 @@ export function stopRecording(): RecordingSession | null {
  * Refuses while a live session is armed — Stop first.
  */
 export function clearStagedRecordingSession(): boolean {
-  if (activeSession != null) return false;
-  if (lastSession == null) return false;
-  lastSession = null;
+  if (runtime.activeSession != null) return false;
+  if (runtime.lastSession == null) return false;
+  runtime.lastSession = null;
   persistRecordingRecovery();
   notifyRecordingListeners();
   return true;
@@ -354,15 +372,15 @@ export function appendRecordingEvent(
   event: RecordedEvent,
   options?: { force?: boolean }
 ): RecordingSession | null {
-  if (!activeSession || paused) return null;
-  if (!options?.force && isDuplicate(activeSession, event)) {
-    return activeSession;
+  if (!runtime.activeSession || runtime.paused) return null;
+  if (!options?.force && isDuplicate(runtime.activeSession, event)) {
+    return runtime.activeSession;
   }
-  activeSession.events.push(event);
+  runtime.activeSession.events.push(event);
   persistRecordingRecovery();
   // STEPS counter + REC UI subscribe via useSyncExternalStore — must notify.
   notifyRecordingListeners();
-  return activeSession;
+  return runtime.activeSession;
 }
 
 export function appendRecordingEventWithSnapshot(
@@ -399,8 +417,9 @@ export function deserializeRecordingSession(raw: string): RecordingSession {
 
 /** Test-only — clears active session state. */
 export function resetRecordingSessionForTests(): void {
-  activeSession = null;
-  lastSession = null;
-  paused = false;
-  listeners.clear();
+  runtime.activeSession = null;
+  runtime.lastSession = null;
+  runtime.paused = false;
+  runtime.nextRecordingAuthor = null;
+  runtime.listeners.clear();
 }

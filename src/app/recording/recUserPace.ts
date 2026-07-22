@@ -5,22 +5,22 @@
 
 export const REC_USER_PACE_MS = {
   /** Pause to “read” after a screen / URL change. */
-  afterScreenChange: 1800,
+  afterScreenChange: 700,
   /** Brief beat before clicking a primary CTA. */
-  beforeCta: 900,
+  beforeCta: 220,
   /** Settle after a product click before the next action. */
-  afterClick: 1200,
+  afterClick: 420,
   /** Default gap between unrelated beats. */
-  betweenBeats: 1100,
+  betweenBeats: 400,
   /**
    * Scroll-stop dwell — must stay ≥ SCROLL_STOP_DWELL_MS (2s) + small buffer
    * so camera beats compile cleanly.
    */
-  scrollStopSettle: 2400,
+  scrollStopSettle: 2100,
   /** Wait for blocking modal DOM + URL `&modal=` to land. */
-  modalOpenWait: 900,
+  modalOpenWait: 350,
   /** Settle after pharmacy / modal confirm before next page CTA. */
-  modalPickSettle: 1100,
+  modalPickSettle: 500,
 } as const;
 
 export type RecUserPaceKey = keyof typeof REC_USER_PACE_MS;

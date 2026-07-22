@@ -170,10 +170,10 @@ export type RecordingSessionMetadata = {
   /** UX Studio release that created the session. */
   studioVersion?: string;
   /** Metadata/diagnostic contract for forward compatibility checks. */
-  recordingContractVersion?: 1;
+  recordingContractVersion?: number;
   /** Latest successful playback proof; separate from immutable recording provenance. */
   compatibilityProof?: {
-    playbackContract: 1;
+    playbackContract: number;
     studioVersion: string;
     provedAt: string;
   };

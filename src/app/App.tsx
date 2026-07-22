@@ -1733,6 +1733,7 @@ export default function App() {
       projectId: studioProjectId,
       personaId: studioPersonaId,
       getJourneys: () => studioJourneys,
+      getJourneyMetadata: (journeyId) => cjmMetadataById[journeyId],
       getActiveJourneyId: () => activeJourney?.id,
       onJourneysApplied: refreshJourneysAfterImport,
       onSelectJourney: (journeyId) => {
@@ -1743,6 +1744,7 @@ export default function App() {
     });
   }, [
     activeJourney?.id,
+    cjmMetadataById,
     refreshJourneysAfterImport,
     setOrchestraModeId,
     studioJourneys,

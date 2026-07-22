@@ -28,7 +28,7 @@ Figma Make / static strips are **intent only**. Not the architecture we grow.
 | **Interaction** | Anticipated controls must work before recording is expected — shared kits under `src/uxds/interactions/` ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)) |
 | **Reuse** | Maximize UXDS + internal ready components + interaction kits; when PO asks for a page “from what we have,” compose — don’t invent ([CONCEPT_INTAKE.md](./CONCEPT_INTAKE.md) §5 mode B) |
 | **Patterns** | Styleguide patterns reused across projects; brand identity stays in the project delta |
-| **Wiring for Studio** | Stable `data-name` / `data-studio-*` / screen registry so playback + recording keep working |
+| **Wiring for Studio** | Semantic native controls plus stable `data-name` / `data-studio-*` / screen registry so playback + recording keep working. Preserve action identity and state (`aria-selected` / `aria-checked` / stable selection hooks), not layout coordinates. |
 
 ---
 
@@ -84,10 +84,10 @@ Boots remains the **first rabbit**: we prove the rebuild pipeline on Boots, then
 5. Compose React screen; **match concept visuals**; use UXDS for structure/reuse, not a visual redesign. Apply [FE_STANDARDS.md](./FE_STANDARDS.md) (shell/logo column, icon+text nowrap, scoped CSS).
 6. **Audit prior Make/concept handlers** on that screen; migrate each to React props / shared kits (behavior parity). Mark React-owned controls so Make DOM mutators skip them.
 7. **Build anticipated interactivity** from page context (and CJM deck when provided) via shared kits — CTAs, filters, accordions, forms, etc. ([INTERACTION_FIDELITY.md](./INTERACTION_FIDELITY.md)). Prefer library reuse over one-off scripts.
-8. Register screen + stable `data-*` hooks for cursor, touchpoints, recording.
+8. Register screen + stable semantic action/state hooks for cursor, touchpoints, and recording. A migration may redesign layout, but it must preserve screen ids, action intent, modal ownership, and observable selected/checked state; never leave a visual-only wrapper as the replay target.
 9. Run **Map current page interactions**. Fix `invalid`; review every `semantic-ready`/`visual-candidate`; compare migrations against the legacy baseline and explain any retired target.
 10. Wire journey beats / scripts as needed (thin; not duplicate DS behavior).
-11. Smoke: browse + happy-path controls respond (including migrated Make behaviors) + one playback path that hits the screen.
+11. Smoke: browse + happy-path controls respond (including migrated Make behaviors) + existing recorded playback paths that hit the screen. No silent target skip: a removed/renamed action requires an explicit compatibility migration or PO retirement.
 12. Only then treat the page as **record-ready**; attach/download the inventory result in the page handoff.
 
 ---

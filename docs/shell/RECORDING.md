@@ -319,7 +319,13 @@ When `applyWireIntent` is wired (App / MCP):
 
 **ALWAYS CLEAR is code law** (not a reminder): `__studioArmRecCapture`, `__studioRunRecNewCjmProve`, and `__studioRunFullPlayProve` call `requireFreshQaSession()` first — `forceClear` + fresh `start` with **no skip flag**. If arm is bypassed, `startRecording` also ensures QA overlay is active (or forceClears + starts).
 
-**Human pace is code law:** agent REC / `__studioRunRecNewCjmProve` use `REC_USER_PACE_MS` (`src/app/recording/recUserPace.ts`) — read after screen change, before CTA, after click, scroll-stop ≥2.4s. Not optional.
+**Human pace is code law:** agent REC / `__studioRunRecNewCjmProve` use `REC_USER_PACE_MS` (`src/app/recording/recUserPace.ts`) — capable-human action gaps (hundreds of ms), short screen/modal readiness, and scroll-stop ≥2s only when intentionally capturing a camera pause. Ordinary pointer actions use the shared cursor engine's travel/click/settle timing; do not add a long arbitrary pause after every click and do not use 50ms click spam.
+
+**Visible agent REC is code law:** every agent-driven REC click MUST go through `simulateDemoPointerClick` / `__studioSimulateDemoPointerClick` so the PO sees the same shared robo-cursor and eased camera used by playback. A silent DevTools `.click()` / `evaluate_script` click is forbidden for REC proof. The camera resolves the nearest scrollable owner first (including a modal's nested list) and must never scroll the page behind an open overlay. Repeated generic controls must capture their entity scope (for example store id → `Choose Location`), and playback must keep an already-open modal mounted between its recorded actions.
+
+**Target truth is code law:** a visible rectangle is not automatically clickable. The shared engine refuses ghost/non-semantic boxes, disabled controls, and already-selected idempotent options before cursor travel. Checkbox/switch toggles remain valid, but PASS requires observable state change after the press. Wide links/buttons aim at visible text/content rather than an empty geometric centre. These failures are red QA diagnostics and are never recorded as playable events.
+
+This applies to unmigrated legacy pages too: missing semantics are evidence to repair the page contract, never permission to capture a ghost click. Human capture rejects an already-selected radio/date/time in the capture phase; agent capture uses the same pre-click guard through the shared robo-cursor.
 
 **Modal `&modal=` is code law:** if URL has `modal=choose-pharmacy` (or any blocking modal), drain before the next beat (`recModalDrain.ts` / `afterRecClickDrainModal`). Book Step 1 Continue with no location opens choose-pharmacy — pick a pharmacy (`avail-choose-location`); never rush past. REC captures modal open; Play stamps `recordedClick.modalId` and re-opens before click.
 
@@ -368,6 +374,8 @@ Prefer `__studio*`; `__proto*` aliases remain. Export / replay / compile fall ba
 
 **Metadata/provenance (engine-wide):** new sessions stamp `metadata.author`, first-seen `metadata.authStates`, `metadata.studioVersion`, and `metadata.recordingContractVersion`. Auth comes only from `studioAuthSession`; project packages consume that SSoT. Agent arm stages `author=agent` before clicking the real Start control. Agent saves require an explicit semantic user-journey title and reject QA/test/prove placeholders. The CJM picker derives compact metadata + compatibility diagnostics from the persisted raw session. Structural failures block; release drift requests a playable re-test. Each passing autonomous playback adds `metadata.compatibilityProof` with the playback-contract version, tested Studio version, and timestamp without rewriting the recording's creation version.
 
+REC runtime state is browser-global, not module-local. UI controls, capture listeners, DevTools helpers, and QA therefore share one session across Vite hot updates; a recovered page-load draft pauses safely, while an arm always stops a stale paused draft before creating a new session.
+
 **Not compiled (honest gaps — use REC ↺ replay for fidelity):** `demo-click` with unusable selectors (`#root` / empty — fix with `data-studio-action` on product CTAs), `typed-text`, unknown wire intents / unknown beat-enter ids, bare `scroll` without a following click **and** without `scroll-stop`. Built-in persona `journeys.ts` is not auto-edited.
 
 ### Hit targets (capture)
@@ -403,7 +411,7 @@ Full field contract: [PLAYBACK_DIAG.md](./PLAYBACK_DIAG.md).
 | `scroll` | Debounced scroll → **`selectorChain` / `anchorSelector`** (viewport target); `scrollTop` not persisted | `applyScroll` → engine `animateScrollElementIntoView`; **scrollTop-only refused** |
 | `typed-text` | Debounced trusted text field `input`/`change` (needs selector chain) | `applyTypedText` → native value + events |
 
-Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-home-query` / `agentic-chat-query` / `avail-notify-email`. Password / checkbox / radio / file / chrome skipped.
+Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-home-query` / `agentic-chat-query` / `avail-notify-email`. Typed-text capture skips password / checkbox / radio / file / chrome; checkbox/radio **clicks** use normal `demo-click` capture and must prove a state transition.
 
 ---
 
@@ -412,7 +420,7 @@ Stable field selectors: `data-studio-action="avail-search-query"` / `agentic-hom
 | v3 (now) | Later |
 |----------|-------|
 | In-memory session + recording JSON download + **Add as CJM** (title + localStorage **journey + raw recording**) | Auto-commit into persona `journeys.ts` / `data/journeys/` |
-| Studio REC deck + MCP helpers | Nested scroll containers beyond prototype root |
+| Studio REC deck + MCP helpers + nearest-owner nested scroll | Cross-document/iframe scroll |
 | Transport + screen + dwell + demo-click + human REC click + **beat-enter + scroll-to-target + typed-text** | Drag / contenteditable / rich form widgets |
 | Director-script + retreat-sync via shared script apply | — |
 | **Compile v2 → free CJM id** with **playable `recordedClick` beats** (`rec-…`) | typed-text → beats; edit `journeys.ts` source automatically |

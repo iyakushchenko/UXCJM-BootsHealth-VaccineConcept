@@ -154,6 +154,8 @@ The PO may override with a clear product veto (“wrong priority for the busines
 | Studio purpose (early) | Discovery, ideation, solution proofing, hypothesis validation |
 | Governance style | Summarizer-shaped docs/contracts; not a Figma-plugin clone |
 | Engine vs projects | `src/app/` engine; `src/projects/<id>/` concepts |
+| **One interaction engine** | REC, recorded playback, built-in journeys, QA, and agent driving share the same cursor/camera/target contract in `src/app/`. A failing CJM is evidence of an engine or page-contract gap — never permission for a journey-id, persona, route-order, or one-recording special case. Fix the reusable contract and prove more than one route/order. |
+| **Journey compatibility** | Product/page changes must preserve stable semantic actions, screen ids, modal ownership, and selection/state hooks. Existing CJMs are regression contracts: incompatible targets block playback and surface diagnostics; silent skips, “soft pass,” and custom rescue branches are forbidden. |
 | Workspace | **`E:\UX\ux-studio` only** — abandoned `UXCJM-*` clones must not be edited |
 | Quality bar | Lean CI (test + build); Playwright smoke on-demand only — [CI_ACTIONS_BUDGET.md](./CI_ACTIONS_BUDGET.md) |
 | Pages base | Deploy `/ux-studio/`; do not hardcode absolute roots that break Pages |

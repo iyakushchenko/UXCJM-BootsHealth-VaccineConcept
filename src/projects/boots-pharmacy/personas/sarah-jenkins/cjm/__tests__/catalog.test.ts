@@ -44,10 +44,10 @@ describe("Sarah Jenkins deployed CJM catalog", () => {
     expect(currentContractRecordings).toHaveLength(10);
     expect(currentContractRecordings.every((item) => item.playable)).toBe(true);
     const legacy = metadata["rec-agentic-mru4b15c-jnhv"];
-    expect(legacy?.playable).toBe(true);
+    expect(legacy?.playable).toBe(false);
     expect(legacy?.issues).toContainEqual(expect.objectContaining({
       code: "legacy-recording-contract",
-      severity: "warning",
+      severity: "blocking",
     }));
   });
 });

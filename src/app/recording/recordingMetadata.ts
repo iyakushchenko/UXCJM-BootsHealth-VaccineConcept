@@ -1,8 +1,8 @@
 import type { JourneyDefinition } from "@/app/orchestra/types";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import { getStudioRelease } from "@/app/shell/studioRelease";
-
-export const CJM_PLAYBACK_CONTRACT_VERSION = 1 as const;
+import { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingContract";
+export { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingContract";
 
 function hasCurrentCompatibilityProof(session: RecordingSession): boolean {
   const proof = session.metadata?.compatibilityProof;
@@ -73,14 +73,21 @@ export function buildCjmOptionMetadata(
       severity: "blocking",
     });
   }
-  if (
+  const recordedContract = session?.metadata?.recordingContractVersion;
+  if (session && recordedContract == null && !currentProof) {
+    issues.push({
+      code: "legacy-recording-contract",
+      detail: "Recording predates the current target and route contract. Playback is blocked until it is re-recorded or migrated and proven against this Studio version.",
+      severity: "blocking",
+    });
+  } else if (
     session &&
-    session.metadata?.recordingContractVersion !== CJM_PLAYBACK_CONTRACT_VERSION &&
+    recordedContract !== CJM_PLAYBACK_CONTRACT_VERSION &&
     !currentProof
   ) {
     issues.push({
-      code: "legacy-recording-contract",
-      detail: "Recording predates the current metadata contract; run playback to establish a current compatibility proof.",
+      code: "playback-contract-retest-required",
+      detail: `Recorded against playback contract v${String(recordedContract)}; re-test against v${CJM_PLAYBACK_CONTRACT_VERSION} before relying on this CJM.`,
       severity: "warning",
     });
   }

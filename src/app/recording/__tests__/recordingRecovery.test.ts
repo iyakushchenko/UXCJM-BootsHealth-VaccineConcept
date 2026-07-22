@@ -3,8 +3,15 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+function resetBrowserRecordingRuntime(): void {
+  delete (globalThis as typeof globalThis & {
+    __studioRecordingRuntimeV1?: unknown;
+  }).__studioRecordingRuntimeV1;
+}
+
 describe("recording refresh recovery", () => {
   beforeEach(() => {
+    resetBrowserRecordingRuntime();
     sessionStorage.clear();
     document.body.innerHTML = `
       <button role="switch" aria-label="REC on" aria-checked="true"></button>
@@ -12,6 +19,7 @@ describe("recording refresh recovery", () => {
   });
 
   afterEach(() => {
+    resetBrowserRecordingRuntime();
     sessionStorage.clear();
     document.body.innerHTML = "";
     vi.resetModules();
@@ -26,6 +34,7 @@ describe("recording refresh recovery", () => {
       durationMs: 500,
     });
 
+    resetBrowserRecordingRuntime();
     vi.resetModules();
     const restored = await import("@/app/recording/recordingSession");
     expect(restored.isRecordingActive()).toBe(false);
@@ -41,6 +50,7 @@ describe("recording refresh recovery", () => {
     expect(latePayload).toBeTruthy();
 
     sessionStorage.clear();
+    resetBrowserRecordingRuntime();
     vi.resetModules();
     const nextPage = await import("@/app/recording/recordingSession");
     expect(nextPage.getActiveRecordingSession()).toBeNull();

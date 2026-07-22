@@ -36,6 +36,13 @@ import {
   isDemoCursorHotspotOnTarget,
 } from "@/app/scenario/demoCursorOnTarget";
 import {
+  hasDemoInteractionContract,
+  isAlreadySelectedNoopTarget,
+  readDemoInteractionState,
+  resolveDemoTargetPoint,
+  waitForDemoInteractionStateChange,
+} from "@/app/scenario/demoInteractionContract";
+import {
   animate,
   MOTION_EASE_IN_OUT,
   type AnimationPlaybackControls,
@@ -55,6 +62,7 @@ import {
   type CursorTransportMode,
   type PostInteractionParkDecision,
 } from "@/app/scenario/demoCursorEngine";
+import { randomInRange, sampleDemoCursorRestPosition } from "@/app/scenario/demoCursorRest";
 
 export { isDemoCursorHotspotOnTarget } from "@/app/scenario/demoCursorOnTarget";
 export {
@@ -103,10 +111,6 @@ const CTA_HOVER_DWELL_MS = 220;
 const CURSOR_EXIT_MS = 1600;
 const CURSOR_EXIT_DRIFT_PX = 10;
 const CURSOR_FADE_MS = 480;
-/** Parked robo-cursor in CJM — inset from the right edge, lower-right resting pose. */
-const CURSOR_REST_RIGHT_INSET_RATIO = 0.08;
-const CURSOR_REST_Y_RATIO = 0.54;
-const CURSOR_PARK_DRIFT_PX = 20;
 /** @deprecated Prefer CURSOR_ENGINE_PARK_TRAVEL_MS — kept as local alias. */
 const CURSOR_PARK_TRAVEL_MS = CURSOR_ENGINE_PARK_TRAVEL_MS;
 /**
@@ -447,10 +451,6 @@ export function reviveDemoCursorAfterJourneyEndRetreat(): void {
   void parkDemoCursorAtRest({ force: true, reason: "journey-end-revive" });
 }
 
-function randomInRange(min: number, max: number): number {
-  return min + Math.random() * (max - min);
-}
-
 export function resolveDemoCursorRestPosition(options?: {
   /** When true, sample a new drift offset even if a park pose already exists. */
   resample?: boolean;
@@ -458,21 +458,7 @@ export function resolveDemoCursorRestPosition(options?: {
   if (parkedRestAnchor && !options?.resample) {
     return parkedRestAnchor;
   }
-  const baseLeft = Math.round(
-    window.innerWidth * (1 - CURSOR_REST_RIGHT_INSET_RATIO) - 37
-  );
-  const baseTop = Math.round(window.innerHeight * CURSOR_REST_Y_RATIO);
-  const driftX = randomInRange(-CURSOR_PARK_DRIFT_PX, CURSOR_PARK_DRIFT_PX);
-  const driftY = randomInRange(-CURSOR_PARK_DRIFT_PX, CURSOR_PARK_DRIFT_PX);
-  const margin = 16;
-  const next = {
-    left: Math.round(
-      Math.max(margin, Math.min(window.innerWidth - 37 - margin, baseLeft + driftX))
-    ),
-    top: Math.round(
-      Math.max(margin, Math.min(window.innerHeight - 40 - margin, baseTop + driftY))
-    ),
-  };
+  const next = sampleDemoCursorRestPosition(window.innerWidth, window.innerHeight);
   parkedRestAnchor = next;
   return next;
 }
@@ -1698,11 +1684,7 @@ export function isClickableTarget(target: HTMLElement): boolean {
 }
 
 export function targetCenter(target: HTMLElement): { x: number; y: number } {
-  const rect = target.getBoundingClientRect();
-  return {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2,
-  };
+  return resolveDemoTargetPoint(target);
 }
 
 function cursorPositionForTarget(target: HTMLElement): { left: number; top: number } {
@@ -1958,6 +1940,38 @@ export async function simulateDemoPointerClick(
     return false;
   }
 
+  if (!hasDemoInteractionContract(clickTarget)) {
+    const ghost = describeCursorTarget(clickTarget);
+    playbackDiagTarget({
+      selector: ghost,
+      found: true,
+      element: clickTarget,
+      detail: "click target REJECTED — ghost/non-interactive DOM box",
+    });
+    playbackDiagClick({
+      ok: false,
+      selector: ghost,
+      detail: "click FAIL — ghost target has no semantic action contract",
+    });
+    return false;
+  }
+
+  if (isAlreadySelectedNoopTarget(clickTarget)) {
+    const selected = describeCursorTarget(clickTarget);
+    playbackDiagTarget({
+      selector: selected,
+      found: true,
+      element: clickTarget,
+      detail: "click target REJECTED — already-selected idempotent option",
+    });
+    playbackDiagClick({
+      ok: false,
+      selector: selected,
+      detail: "click FAIL — already-selected option is not a valid target",
+    });
+    return false;
+  }
+
   const selector = describeCursorTarget(clickTarget);
   const rect = clickTarget.getBoundingClientRect();
   const bbox = {
@@ -2038,6 +2052,7 @@ export async function simulateDemoPointerClick(
   const pressRoot =
     resolveUsableDemoClickTarget(interactionRoot) ?? clickTarget;
   const dispatchEvents = options?.dispatchPointerEvents !== false;
+  const stateBefore = readDemoInteractionState(clickTarget);
 
   // HARD: tip must be on target before any press/click. Re-aim once; else FAIL
   // (never target.click() while visually off-cell — false selection path).
@@ -2178,8 +2193,29 @@ export async function simulateDemoPointerClick(
     target: describeCursorTarget(pressRoot),
     animated: true,
   });
-  notePlaybackDemoClick(pressRoot);
   clickTarget.click();
+  if (
+    stateBefore &&
+    !(await waitForDemoInteractionStateChange(clickTarget, stateBefore))
+  ) {
+    setDemoInteractionHover(pressRoot, false, { x, y });
+    playbackDiagClick({
+      ok: false,
+      selector,
+      bbox,
+      detail: `click FAIL — ${stateBefore.kind} state did not change`,
+    });
+    playbackDiagCursor({
+      detail: "ON-TARGET press but UI state unchanged",
+      onTarget: true,
+      parked: false,
+    });
+    await releaseDemoCursorAfterScript();
+    return false;
+  }
+  // REC captures only a verified action. A press without state change is
+  // diagnostic evidence, never a playable event.
+  notePlaybackDemoClick(pressRoot);
   notePlaybackCursorEvent("click", {
     target: describeCursorTarget(pressRoot),
     animated: true,

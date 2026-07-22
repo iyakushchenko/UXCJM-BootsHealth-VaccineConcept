@@ -15,6 +15,13 @@ export type PageJiggleSample = {
   motionPresence: boolean;
 };
 
+function scheduleFrame(callback: FrameRequestCallback): boolean {
+  const raf = globalThis.requestAnimationFrame;
+  if (typeof raf !== "function") return false;
+  raf(callback);
+  return true;
+}
+
 function resolvePageRoot(
   screenId: string,
   rootSelector?: string
@@ -56,17 +63,18 @@ export function samplePageJiggle(
 ): void {
   const waitStart = performance.now();
   const begin = () => {
+    if (typeof document === "undefined") return;
     const root = resolvePageRoot(screenId, rootSelector);
     if (!root || !wireMountSettled()) {
       if (performance.now() - waitStart < 600) {
-        requestAnimationFrame(begin);
+        scheduleFrame(begin);
         return;
       }
       if (!root) return;
     }
     runCapture(screenId, root, maxFrames);
   };
-  requestAnimationFrame(begin);
+  scheduleFrame(begin);
 }
 
 function runCapture(
@@ -95,12 +103,12 @@ function runCapture(
     });
     count++;
     if (count < maxFrames) {
-      requestAnimationFrame(capture);
+      scheduleFrame(capture);
     } else {
       reportJiggle(screenId, samples);
     }
   };
-  requestAnimationFrame(capture);
+  scheduleFrame(capture);
 }
 
 function reportJiggle(screenId: string, samples: PageJiggleSample[]): void {

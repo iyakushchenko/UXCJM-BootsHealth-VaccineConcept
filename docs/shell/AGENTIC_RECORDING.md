@@ -1,6 +1,6 @@
-# Agentic recording (potential / future)
+# Agent-driven recording
 
-**Status:** playbook for a **future** agent capability — **not** a claim that Studio ships fully automated agentic recording today. Manual REC deck, MCP helpers, and Add-as-CJM are shipped; this document describes an intended **agent-driven** workflow the PO may enable later.
+**Status:** operational playbook. Manual REC, visible agent driving, MCP helpers, Add-as-CJM, and exact recorded playback are shipped. Automatic CJM derivation from arbitrary research artifacts remains assisted rather than a standalone product feature.
 
 Cross-link: [RECORDING.md](./RECORDING.md) (shipped capture / replay / compile).
 
@@ -17,7 +17,20 @@ When the PO wants a new CJM without hand-driving every click:
 
 ---
 
-## Agent playbook (proposed)
+## Agent playbook (hard process)
+
+Before recording, the agent MUST:
+
+1. Reuse the existing `http://localhost:5173/` tab and run **ALWAYS CLEAR**.
+2. Arm via `__studioArmRecCapture()` and assert `__studioAssertRecLive().ok === true`.
+3. Drive every click through `__studioSimulateDemoPointerClick`; silent protocol `.click()` is forbidden.
+4. Move at capable-human pace: normal pointer travel plus short reaction gaps; ≥2s only for an intentional scroll-stop/camera pause.
+5. Treat every open modal as blocking navigable state; finish or close it before acting behind it.
+6. Never target an already-selected date/time/tab/radio. Choose another meaningful option or omit the no-op.
+7. Stop immediately on `false`, ghost target, unchanged stateful control, cursor miss, blocked modal, or QA alarm. Do not continue and do not save a broken event.
+8. Stop REC, give the CJM a semantic human journey name, save it, then play **that exact new `rec-*` journey**. PASS requires exact peak, zero click failures/skips, and clean reset.
+
+This process is engine-wide. Do not add a journey-id/persona/route-order exception to make one recording pass.
 
 ### Inputs (PO)
 
@@ -66,6 +79,7 @@ Honesty rule: under-match over invent. No invented hover, loaders, or screens no
 | Export selected saved journey JSON (Download on saved CJM) | Yes (control-room Download) |
 | MCP `__studioStartRecording` / export / import | Yes |
 | Auto-derive CJM from persona artifact links | **No** — this playbook |
+| Agent-driven REC on available screens with visible shared cursor | **Yes** |
 | Auto-record full CJM across missing screens | **No** — blocked by UX CONCEPT gap report |
 
 ---

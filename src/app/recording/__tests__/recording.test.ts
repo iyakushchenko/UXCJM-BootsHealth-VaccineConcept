@@ -21,6 +21,7 @@ import {
   subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
 import { setStudioLoggedIn } from "@/app/shell/studioAuthSession";
+import { CJM_PLAYBACK_CONTRACT_VERSION } from "@/app/recording/recordingContract";
 import type { RecordingSession } from "@/app/recording/recordingTypes";
 import {
   compileRecordingToBeatTimeline,
@@ -191,7 +192,7 @@ describe("recordingSession", () => {
     expect(session.metadata).toMatchObject({
       author: "agent",
       authStates: ["guest"],
-      recordingContractVersion: 1,
+      recordingContractVersion: CJM_PLAYBACK_CONTRACT_VERSION,
     });
     setStudioLoggedIn(true);
     expect(getActiveRecordingSession()?.metadata?.authStates).toEqual([
@@ -518,6 +519,21 @@ describe("recording human click capture", () => {
         target: btn,
       } as unknown as Event)
     ).toBe(true);
+  });
+
+  it("never captures an already-selected radio option as a REC action", () => {
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.checked = true;
+    document.body.appendChild(radio);
+    startRecording();
+
+    expect(
+      shouldCaptureRecordingHumanClick({
+        isTrusted: true,
+        target: radio,
+      } as unknown as Event)
+    ).toBe(false);
   });
 
   it("omits journey beatId on browse REC demo-clicks", () => {
@@ -1164,6 +1180,30 @@ describe("buildPlaybackSelectorChain", () => {
 
     expect(buildPlaybackSelectorChain(timeBtn)).toEqual([
       '[data-name="calendar. date. cell"][data-studio-cal-kind="time"][data-studio-cal-value="16:30"]',
+    ]);
+  });
+
+  it("keeps an interactive leaf after a shared component wrapper", () => {
+    document.body.innerHTML = `
+      <div data-name="component.plp.tile.title"><a href="#pdp">Typhoid</a></div>
+    `;
+    const link = document.querySelector<HTMLElement>("a")!;
+    expect(buildPlaybackSelectorChain(link)).toEqual([
+      '[data-name="component.plp.tile.title"]',
+      "a[href]",
+    ]);
+  });
+
+  it("scopes repeated availability actions to their pharmacy", () => {
+    document.body.innerHTML = `
+      <article data-studio-avail-store="strand">
+        <button data-studio-action="avail-choose-location">Choose Location</button>
+      </article>
+    `;
+    const button = document.querySelector<HTMLElement>("button")!;
+    expect(buildPlaybackSelectorChain(button)).toEqual([
+      '[data-studio-avail-store="strand"]',
+      '[data-studio-action="avail-choose-location"]',
     ]);
   });
 });

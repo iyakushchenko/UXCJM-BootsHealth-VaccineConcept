@@ -5,6 +5,7 @@ import {
   settleDemoCursorAfterInteraction,
   simulateDemoPointerClick,
 } from "@/app/scenario/demoCursor";
+import { playbackReadinessDelay } from "@/app/scenario/playbackReadiness";
 import type { HomeScriptId } from "@/app/orchestra/types";
 import {
   playbackDiagTypeInEnd,
@@ -126,7 +127,7 @@ async function waitForHomeTextarea(): Promise<HTMLTextAreaElement | null> {
       "textarea.proto-agentic-query, textarea.site-pilot-composer__query"
     );
     if (ta && !ta.closest("[data-studio-make-retired]")) return ta;
-    await delay(40);
+    await playbackReadinessDelay(40);
   }
   return null;
 }

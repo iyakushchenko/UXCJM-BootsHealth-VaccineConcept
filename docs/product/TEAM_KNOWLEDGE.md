@@ -98,6 +98,8 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 
 **Knowledge used tip:** FE standards + PAGE_FINAL_PASS + LESSONS for the control class being touched + URL modal table when shipping dialogs.
 
+**REC/playback invariant (2026-07-22):** One shared interaction contract owns REC and Play. Native/ARIA/action semantics are required; already-selected idempotent options are rejected; stateful controls must actually transition; visible-content geometry beats wrapper-centre geometry. Never fix a journey by id/persona/route exception.
+
 ### Uma (UI/UX)
 
 | Must re-read | Focus |
@@ -127,6 +129,8 @@ onboarding path. Do not reread it end-to-end unless reconstructing a regression.
 | **PO Alarm / Cursor / Scroll mid-flight** | Alarm = sequence mismatch. **Live latch first** (`__studioAgentTestingTakeover`) — dump secondary. On alarm: pause + investigate (e.g. progressive bubbles) |
 
 **Knowledge used tip:** RECORDING MCP + PLAYBACK_DIAG + **R15 PO signal consume** + LESSONS overlay/scroll + fixed-localhost-reuse-tab.
+
+**REC/playback proof invariant (2026-07-22):** A cursor press is not PASS. QA requires a real target and, for checkbox/radio/selection controls, an observed state change. Ghost or selected-no-op clicks fail immediately and must not enter the recording.
 
 ### Ben (BE)
 
@@ -529,6 +533,14 @@ retrieval table and LESSONS topic index before scanning by date.
 3. **No invent / DS hover** — Uma signs typical DS checks; Quinn MCP-hovers ≥1 SearchField; invent chrome = FAIL.
 4. **False PROVEN ban** — Arch rejects PROVEN without MCP evidence log; PO dispute revokes until re-prove.
 5. **Reflex** — after each PAGE FINAL PASS HARD-GREEN, Arch runs micro-retro (Pain/Worked/Keep lean) and appends **Knowledge improved** here before opening the next migrated page.
+
+**Knowledge improved** (2026-07-22 · stream: universal REC/playback interaction contract · local):
+- Arch (Director): CJM/persona/route-order exceptions are forbidden; recordings are regression contracts over semantic page actions.
+- Bea (BA): legacy-page ghost clicks are requirements failures, not forgivable playback gaps.
+- Finn (FE): migrations preserve screen/action/modal/state identity; oversized links expose a visible-content aim point.
+- Uma (UI/UX): cursor press must visually land on content and stateful controls must visibly change.
+- Quinn (QA): selected no-ops, ghost targets, cursor misses, and unchanged state are red hard failures; contract drift requires explicit re-proof.
+- Ben (BE): REC live state is one browser-runtime store across HMR; sessionStorage is recovery only.
 
 ---
 

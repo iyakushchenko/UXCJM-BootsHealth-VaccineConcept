@@ -719,6 +719,23 @@ function queryActiveChatColumnScrollRoot(
   return null;
 }
 
+function queryNearestScrollableAncestor(
+  from: HTMLElement,
+): HTMLElement | null {
+  let node = from.parentElement;
+  while (node && node !== document.body) {
+    try {
+      const overflowY = getComputedStyle(node).overflowY;
+      const canScroll = /^(auto|scroll|overlay)$/.test(overflowY);
+      if (canScroll && node.scrollHeight > node.clientHeight + 1) return node;
+    } catch {
+      // A non-browser test double may not expose computed styles.
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
+
 /**
  * Active prototype scroll host.
  * Prefer `.chat__column` when React Chat owns overflow (outer pane is
@@ -726,6 +743,12 @@ function queryActiveChatColumnScrollRoot(
  */
 export function getPrototypeScrollRoot(from?: HTMLElement | null): HTMLElement | null {
   if (from) {
+    // Modal lists, drawers and other nested scroll regions own their camera.
+    // Falling through to the page host leaves lower controls off-screen and
+    // makes the robo-cursor appear to click in mid-air.
+    const nested = queryNearestScrollableAncestor(from);
+    if (nested) return nested;
+
     const chatColumn = from.closest<HTMLElement>(".chat__column");
     if (chatColumn && isActiveChatColumnScrollHost(chatColumn)) {
       return chatColumn;
@@ -773,7 +796,19 @@ function shouldSkipPrototypePageScroll(
   scrollEl?: HTMLElement | null
 ): boolean {
   if (isPrototypePageScrollLocked(scrollEl)) return true;
-  if (target && isPrototypeOverlayTarget(target)) return true;
+  if (target && isPrototypeOverlayTarget(target)) {
+    const overlay = target.closest<HTMLElement>(
+      ".studio-avail-scrim, .proto-avail-card",
+    );
+    // Never move the page behind an overlay. A scroll region owned by that
+    // overlay is safe and must remain camera-addressable.
+    return (
+      !overlay ||
+      !scrollEl ||
+      typeof overlay.contains !== "function" ||
+      !overlay.contains(scrollEl)
+    );
+  }
   return false;
 }
 

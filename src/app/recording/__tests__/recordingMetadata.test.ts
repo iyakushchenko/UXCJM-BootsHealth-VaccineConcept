@@ -27,7 +27,7 @@ function session(): RecordingSession {
       authStates: ["guest", "user"],
       recordedFrom: "ui",
       studioVersion: getStudioRelease().version,
-      recordingContractVersion: 1,
+      recordingContractVersion: 2,
     },
   };
 }
@@ -64,7 +64,7 @@ describe("recording metadata", () => {
       severity: "warning",
     }));
     prior.metadata!.compatibilityProof = {
-      playbackContract: 1,
+      playbackContract: 2,
       studioVersion: getStudioRelease().version,
       provedAt: "2026-07-21T19:00:00.000Z",
     };
@@ -78,17 +78,17 @@ describe("recording metadata", () => {
     const legacy = session();
     legacy.metadata = { recordedFrom: "ui" };
     const pendingLegacy = buildCjmOptionMetadata(journey, legacy);
-    expect(pendingLegacy.playable).toBe(true);
+    expect(pendingLegacy.playable).toBe(false);
     expect(pendingLegacy.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: "legacy-recording-contract",
-          severity: "warning",
+          severity: "blocking",
         }),
       ])
     );
     legacy.metadata.compatibilityProof = {
-      playbackContract: 1,
+      playbackContract: 2,
       studioVersion: getStudioRelease().version,
       provedAt: "2026-07-21T20:00:00.000Z",
     };

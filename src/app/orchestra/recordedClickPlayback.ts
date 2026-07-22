@@ -8,7 +8,9 @@ import {
 } from "@/app/scenario/demoCursor";
 import { scrollCameraToTarget } from "@/app/scenario/playbackScroll";
 import {
+  findTopmostBlockingModal,
   isBlockingModalOpen,
+  normalizeStudioModalId,
   resolveClickTargetRespectingModal,
 } from "@/app/shell/studioModalGuard";
 import {
@@ -25,12 +27,65 @@ import {
 } from "@/app/recording/recModalDrain";
 import { isFastPlayback, playbackMs } from "@/app/shell/playbackTiming";
 
+function normalizeRecordedClickLabel(value: string | undefined): string {
+  return (value ?? "")
+    .replace(/…|\.\.\.$/g, "")
+    .replace(/([A-Za-z])\d+$/, "$1")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function resolveRecordedClickByLabel(
+  click: JourneyBeatRecordedClick,
+  root: ParentNode,
+): HTMLElement | null {
+  const expected = normalizeRecordedClickLabel(click.element);
+  if (!expected) return null;
+
+  for (let index = click.selectorChain.length - 1; index >= 0; index -= 1) {
+    let nodes: NodeListOf<HTMLElement>;
+    try {
+      nodes = root.querySelectorAll<HTMLElement>(click.selectorChain[index]);
+    } catch {
+      continue;
+    }
+    const matches = Array.from(nodes)
+      .flatMap((node) => {
+        const interactiveSelector =
+          'button, a[href], input, select, textarea, [role="button"], [role="link"], [data-studio-action]';
+        const interactive = node.matches(interactiveSelector)
+          ? [node]
+          : Array.from(node.querySelectorAll<HTMLElement>(interactiveSelector));
+        return (interactive.length > 0 ? interactive : [node]).map((candidate) =>
+          resolveUsableDemoClickTarget(candidate),
+        );
+      })
+      .filter((node): node is HTMLElement => Boolean(node))
+      .filter((node, nodeIndex, all) => all.indexOf(node) === nodeIndex)
+      .filter((node) => {
+        const actual = normalizeRecordedClickLabel(
+          node.getAttribute("aria-label") ?? node.textContent ?? undefined,
+        );
+        return (
+          actual === expected ||
+          (expected.length >= 5 && actual.startsWith(expected))
+        );
+      });
+    if (matches.length === 1) return matches[0];
+  }
+  return null;
+}
+
 function resolveRecordedClickTarget(
   click: JourneyBeatRecordedClick
 ): HTMLElement | null {
-  const resolved = resolvePlaybackSelectorChain(click.selectorChain, document);
+  const modal = findTopmostBlockingModal();
+  const semantic = resolveRecordedClickByLabel(click, modal ?? document);
+  const resolved = semantic ?? resolvePlaybackSelectorChain(click.selectorChain, document);
   const modalResolved = resolveClickTargetRespectingModal(resolved, {
     resolveInModal: (modal) =>
+      resolveRecordedClickByLabel(click, modal) ??
       resolvePlaybackSelectorChain(click.selectorChain, modal),
   });
   return resolveUsableDemoClickTarget(modalResolved);
@@ -44,6 +99,19 @@ function isLoginRecordedAction(click: JourneyBeatRecordedClick | undefined): boo
           /data-studio-action=["']login-sign-in["']/.test(selector)
         ))
   );
+}
+
+function isRecordedModalAlreadyOpen(modalId: string | undefined): boolean {
+  const expected = normalizeStudioModalId(modalId);
+  if (!expected) return false;
+  const modal = findTopmostBlockingModal();
+  if (!modal) return false;
+  const liveRaw =
+    modal.getAttribute("data-studio-modal") ??
+    modal
+      .querySelector<HTMLElement>("[data-studio-modal]")
+      ?.getAttribute("data-studio-modal");
+  return normalizeStudioModalId(liveRaw) === expected;
 }
 
 /** React/filter updates may replace a matching node between resolve and click. */
@@ -94,8 +162,7 @@ export async function playRecordedClick(
   // A preceding recorded action may already have opened this modal. Reopening
   // it races the URL bridge / exit animation and can detach the real CTA while
   // the cursor is travelling. A recorded click always acts on the live modal.
-  const modalAlreadyOpen =
-    click.modalId === "login" && isLoginModalOpenInDom();
+  const modalAlreadyOpen = isRecordedModalAlreadyOpen(click.modalId);
   const isLoginAction = isLoginRecordedAction(click);
   const nextBeatOwnsLogin = isLoginRecordedAction(options?.nextRecordedClick);
   if (click.modalId && !modalAlreadyOpen && options?.applyStudioModal) {

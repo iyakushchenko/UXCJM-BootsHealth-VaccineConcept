@@ -128,17 +128,26 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
     return { ok: true, via: "already" };
   }
 
-  // Project / Persona / Orchestra all share .studio-nav-journey-menu — find Orchestra.
-  const menus = Array.from(
-    document.querySelectorAll<HTMLElement>(".studio-nav-journey-menu")
+  // Resolve the orchestra trigger semantically. Iterating all shared dropdown
+  // wrappers is unsafe: opening/closing Project or Persona may remount the
+  // sibling React menus and leave a stale node list before Orchestra is read.
+  const directTrigger = document.querySelector<HTMLButtonElement>(
+    'button[data-studio-action="orchestra-mode-select"], button[aria-label^="Orchestra mode:"]'
   );
+  const fallbackTriggers = Array.from(
+    document.querySelectorAll<HTMLButtonElement>(
+      ".studio-nav-journey-menu__trigger"
+    )
+  );
+  const triggers = directTrigger
+    ? [directTrigger]
+    : fallbackTriggers.filter((trigger) =>
+        /^Orchestra mode:/i.test(trigger.getAttribute("aria-label") ?? "")
+      );
   let orchestraTrigger: HTMLButtonElement | null = null;
   let optionLabels: string[] = [];
 
-  for (const menu of menus) {
-    const trigger = menu.querySelector<HTMLButtonElement>(
-      ".studio-nav-journey-menu__trigger"
-    );
+  for (const trigger of triggers) {
     if (!trigger || trigger.disabled) continue;
     if (trigger.getAttribute("aria-expanded") !== "true") {
       trigger.click();
@@ -148,10 +157,15 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
         Math.max(40, Math.min(80, settle || 60))
       );
     }
-    const panel = menu.querySelector<HTMLElement>('[role="listbox"]');
+    const menu = trigger.closest<HTMLElement>(".studio-nav-journey-menu");
+    const panelId = trigger.getAttribute("aria-controls");
+    const panel =
+      (panelId ? document.getElementById(panelId) : null) ??
+      menu?.querySelector<HTMLElement>('[role="listbox"]') ??
+      null;
     const label = panel?.getAttribute("aria-label") ?? "";
     const options = Array.from(
-      menu.querySelectorAll<HTMLButtonElement>('[role="option"]')
+      panel?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []
     );
     const labels = options.map((o) => (o.textContent ?? "").trim());
     if (label === "Orchestra mode" || labels.some((t) => /CREATE\s*NEW/i.test(t))) {
@@ -178,11 +192,6 @@ async function pickCreateNewCjmViaUi(settle: number): Promise<{
         await delay(settle / 2);
       }
       break;
-    }
-    // Wrong menu (Project/Persona) — close and continue
-    if (trigger.getAttribute("aria-expanded") === "true") {
-      trigger.click();
-      await delay(settle / 2);
     }
   }
 
@@ -304,7 +313,7 @@ export async function armRecCapture(
       stopBtn.click();
       await delay(settle);
     }
-    if (isRecordingActive()) {
+    if (isRecordingActive() || isRecordingPaused()) {
       stopRecording();
       await delay(settle);
     }
