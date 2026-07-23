@@ -126,4 +126,35 @@ describe("analyzeChatBubbleMotionSamples", () => {
     expect(r.ok).toBe(true);
     expect(r.summary.maxAbsDeltaY).toBe(4);
   });
+
+  /**
+   * PP-14 reopen (2026-07-21): "self-test 8/8 is necessary not sufficient —
+   * layout ΔY during co-travel was excluded from the hard gate." Reproduces
+   * that exact gap: transform `y` eases perfectly smoothly (so the old
+   * `continuousY` check stays green) while the composited layoutY (transform
+   * + independent camera scroll) oscillates back and forth within the
+   * |ΔΔY|<=10 magnitude cap — never a single "jump", but visually a jittery
+   * non-monotonic wobble a human eye reads as choppy. Before this fix the
+   * self-test could not see this because it only ever checked transform `y`
+   * for monotonic descent; layoutY was capped by magnitude only.
+   */
+  it("FAIL on layoutY co-travel wobble that stays under the |ΔΔY|<=10 magnitude cap (PP-14)", () => {
+    const samples = cleanBubble("r1", true);
+    const frames = samples.filter((s) => s.bubble?.phase === "frame");
+    // Smooth transform-only descent (identical to cleanBubble) — continuousY
+    // must stay true. Composited layoutY wobbles: down, down, UP, down, down.
+    const layoutYs = [500, 494, 488, 491, 485, 479];
+    frames.forEach((f, i) => {
+      f.bubble!.layoutY = layoutYs[i] ?? layoutYs[layoutYs.length - 1];
+    });
+    const r = analyzeChatBubbleMotionSamples(samples, ["r1"]);
+    const r1 = r.bubbles.find((b) => b.id === "r1");
+    expect(r1?.continuousY).toBe(true);
+    expect(r1?.continuousLayoutY).toBe(false);
+    expect(r1?.ok).toBe(false);
+    expect(r1?.detail).toMatch(/layoutY not continuous/);
+    expect(r.ok).toBe(false);
+    const layoutCheck = r.checks.find((c) => c.id === "layout-continuous");
+    expect(layoutCheck?.ok).toBe(false);
+  });
 });

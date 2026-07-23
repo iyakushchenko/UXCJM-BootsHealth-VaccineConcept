@@ -45,6 +45,11 @@ export type ChatBubbleMotionBubbleResult = {
   /** Reply only — thinking→reply handoff logged. */
   hasThinkingHandoff: boolean;
   continuousY: boolean;
+  /**
+   * Layout (screen-space, co-travel-composited) monotonic-descent check —
+   * PP-14: closes the gap where only isolated transform `y` was gated.
+   */
+  continuousLayoutY: boolean;
   yHead?: number | null;
   yTail?: number | null;
   detail?: string;
@@ -78,17 +83,34 @@ function ySeries(samples: PlaybackDiagEvent[]): number[] {
 }
 
 /**
- * Continuous ease: frame y should mostly decrease (or stay) toward 0 —
- * no up-spike > 2px after motion started descending.
+ * Layout (screen-space) series — includes camera co-travel scroll, unlike
+ * the isolated transform `y`. PP-14 reopen (2026-07-21): the hard gate only
+ * ever checked `y` (transform) for monotonic descent and capped layout only
+ * by |ΔΔY| <= 10 (magnitude, not sign). A transform+scroll pair that each
+ * ease smoothly but drift out of phase can oscillate within that 10px band
+ * (e.g. -2,+3,-4,+2 px) — self-test green, eye sees jitter. This series lets
+ * the same monotonicity check run against the composited on-screen position.
  */
-function isContinuousEase(ys: number[]): boolean {
+function layoutYSeries(samples: PlaybackDiagEvent[]): number[] {
+  return samples
+    .filter(
+      (s) => s.bubble?.phase === "frame" && typeof s.bubble.layoutY === "number"
+    )
+    .map((s) => s.bubble!.layoutY as number);
+}
+
+/**
+ * Continuous ease: frame position should mostly decrease (or stay) toward 0 —
+ * no up-spike > reverseThresholdPx after motion started descending.
+ */
+function isContinuousEase(ys: number[], reverseThresholdPx = 2): boolean {
   if (ys.length < 3) return ys.length > 0;
   let sawDescent = false;
   for (let i = 1; i < ys.length; i++) {
     const d = ys[i]! - ys[i - 1]!;
     if (d < -0.05) sawDescent = true;
     // After descent started, forbid large upward jumps (choppy reverse).
-    if (sawDescent && d > 2) return false;
+    if (sawDescent && d > reverseThresholdPx) return false;
   }
   return true;
 }
@@ -129,6 +151,7 @@ export function analyzeChatBubbleMotionSamples(
         hasAnimateEnd: false,
         hasThinkingHandoff: false,
         continuousY: false,
+        continuousLayoutY: false,
         detail: "no samples",
       });
       continue;
@@ -188,6 +211,14 @@ export function analyzeChatBubbleMotionSamples(
     }
     const ys = ySeries(list);
     const continuousY = isContinuousEase(ys);
+    const layoutYs = layoutYSeries(list);
+    // Layout series co-travels scroll — reuse the same monotonic-descent
+    // shape check so a jittery transform+scroll composite (each individually
+    // under the |ΔΔY|<=10 magnitude cap) can no longer read as green.
+    // No layoutY samples recorded (older dumps / synthetic fixtures) → this
+    // check has nothing to judge and must not manufacture a FAIL.
+    const continuousLayoutY =
+      layoutYs.length === 0 ? true : isContinuousEase(layoutYs);
     const kind = bubbleKind(id);
     const hasMount = phases.includes("mount");
     const hasAnimateStart = phases.includes("animate-start");
@@ -209,6 +240,7 @@ export function analyzeChatBubbleMotionSamples(
         jumps === 0 &&
         chops === 0 &&
         continuousY &&
+        continuousLayoutY &&
         hasThinkingHandoff &&
         maxAbsDeltaY <= 10 &&
         maxAbsDeltaTransformY <= 4.5 &&
@@ -222,6 +254,9 @@ export function analyzeChatBubbleMotionSamples(
     if (jumps > 0) detailParts.push(`jumps=${jumps}`);
     if (chops > 0) detailParts.push(`chops=${chops}`);
     if (!entryPaint && !continuousY) detailParts.push("y not continuous");
+    if (!entryPaint && !continuousLayoutY) {
+      detailParts.push("layoutY not continuous (co-travel jitter)");
+    }
     if (!entryPaint && maxAbsDeltaY > 10) {
       detailParts.push(`layoutΔΔY=${maxAbsDeltaY.toFixed(1)}>10`);
     }
@@ -250,6 +285,7 @@ export function analyzeChatBubbleMotionSamples(
       hasAnimateEnd,
       hasThinkingHandoff: phases.includes("thinking-handoff"),
       continuousY,
+      continuousLayoutY,
       yHead: ys[0] ?? null,
       yTail: ys.length ? ys[ys.length - 1]! : null,
       detail: detailParts.length ? detailParts.join("; ") : "clean",
@@ -293,6 +329,17 @@ export function analyzeChatBubbleMotionSamples(
         .filter((b) => b.kind === "reply" && b.sampleCount > 0)
         .every((b) => b.hasThinkingHandoff),
       detail: "r* thinking→reply",
+    },
+    {
+      // PP-14 reopen (2026-07-21): layout ΔY during camera co-travel was
+      // excluded from the hard gate — only isolated transform `y` was
+      // checked for monotonic descent. Named check so this can't silently
+      // regress back into `bubbles-ok` noise.
+      id: "layout-continuous",
+      ok: bubbles
+        .filter((b) => b.sampleCount > 0)
+        .every((b) => b.continuousLayoutY),
+      detail: `${bubbles.filter((b) => b.continuousLayoutY).length}/${bubbles.length} layoutY continuous`,
     },
   ];
 
