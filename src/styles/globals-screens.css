@@ -604,66 +604,6 @@
   gap: 0 !important;
   align-items: stretch !important;
 }
-.proto-chosen-slot > .proto-chosen-tile {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #f2f2f2;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #ffffff;
-  box-sizing: border-box;
-}
-.proto-chosen-slot > .proto-chosen-tile .proto-chosen-map,
-.proto-chosen-slot > .proto-chosen-tile [data-name="image 61"] {
-  border-radius: 0 !important;
-  overflow: hidden;
-}
-.proto-chosen-slot > .proto-chosen-tile .proto-chosen-map-bg,
-.proto-chosen-slot > .proto-chosen-tile [data-name="image 61"] img {
-  border-radius: 0 !important;
-}
-.proto-chosen-slot > .proto-chosen-tile .proto-chosen-store-card {
-  margin: 0 !important;
-  width: 100%;
-  background: #ffffff !important;
-  border-radius: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-/* Kill the store card’s own border so it doesn’t split the tile */
-.proto-chosen-slot > .proto-chosen-tile .proto-chosen-store-card > [aria-hidden] {
-  display: none !important;
-}
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"],
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"]:hover,
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"]:active {
-  cursor: pointer;
-  background: transparent !important;
-  height: 32px !important;
-  gap: 8px !important;
-  box-shadow: none !important;
-}
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"] p,
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"] span {
-  color: #5c5c5c !important;
-  font-size: 12px !important;
-}
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"]:hover p,
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"]:hover span {
-  color: #000000 !important;
-}
-.proto-chosen-slot .proto-chosen-store-card [data-studio-change-loc="true"]:hover svg path {
-  fill: #012169 !important;
-}
-/* Hide any leftover Choose/Chosen CTAs on the page card */
-.proto-chosen-slot .proto-chosen-store-card [data-name="component.input.button"]:not([data-studio-change-loc="true"]) {
-  display: none !important;
-}
-/* Map is embedded above — no “Show on map” on the page card */
-.proto-chosen-slot .proto-chosen-store-card [data-studio-hide-show-on-map="true"] {
-  display: none !important;
-}
 
 /* Store card columns: address+hours (left) | From you+CTA (right, top-aligned) */
 .proto-store-main-row {
@@ -704,11 +644,6 @@
   align-items: center !important;
   gap: 24px !important;
   min-width: max-content !important;
-}
-
-/* Book Appointment — hide Figma cursor affordance on location search */
-.studio-viewport > div > div:nth-child(7) [data-name=".utility / cursor"] {
-  display: none !important;
 }
 
 /* PDP + PLP — hide Figma cursor (Sarah playback simulates clicks) */
@@ -1060,36 +995,7 @@
   outline-offset: 2px;
 }
 
-/* Remove any leftover cloned duplicates under the location tile */
-.proto-chosen-slot > .proto-chosen-checkbox {
-  display: none !important;
-}
-
-/* Chosen-location page map — Covent Garden asset + SVG pin + drag */
-.proto-chosen-slot .proto-chosen-map {
-  position: relative !important;
-  overflow: hidden;
-}
-.proto-chosen-map-viewport {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  border-radius: inherit;
-}
-.proto-chosen-map-viewport.proto-chosen-map-dragging {
-  cursor: grabbing;
-}
-.proto-chosen-map-surface {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 140%;
-  height: 140%;
-  will-change: transform;
-}
+/* Chosen-location page map bg — shared by the React Book Step 1 store tile */
 .proto-chosen-map-bg {
   position: absolute;
   inset: 0;
@@ -1099,25 +1005,6 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
-}
-.proto-chosen-slot .proto-page-map-pin {
-  position: absolute;
-  left: 52%;
-  top: 46%;
-  transform: translate(-50%, -100%);
-  z-index: 2;
-  pointer-events: auto;
-  cursor: pointer;
-  filter: drop-shadow(0 2px 5px rgba(1, 33, 105, 0.4));
-}
-.proto-chosen-slot .proto-page-map-pin:hover {
-  filter: drop-shadow(0 3px 7px rgba(1, 33, 105, 0.55));
-}
-.proto-chosen-slot .proto-page-map-pin svg {
-  display: block;
-  width: 40px;
-  height: 55px;
-  pointer-events: none;
 }
 
 /* Fake map controls (compass / + / −) — bottom-right, visual only */
