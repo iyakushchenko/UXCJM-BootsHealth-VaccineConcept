@@ -110,7 +110,7 @@ export function resolveQaPopupActionsChrome(
   if (state === "suite-running") {
     return {
       state,
-      suitePickerVisible: !isUserAgenticQaMode(input.sessionKind),
+      suitePickerVisible: true,
       primary: {
         kind: "running",
         label: "Running…",
@@ -124,13 +124,29 @@ export function resolveQaPopupActionsChrome(
   }
 
   if (state === "agentic-user") {
+    // Suite selected in manual/observe → show Run CTA
+    if (input.selectedSuiteId) {
+      return {
+        state,
+        suitePickerVisible: true,
+        primary: {
+          kind: "run-test",
+          label: "Run",
+          hidden: false,
+          disabled: false,
+          ariaDisabled: false,
+          title: input.suiteDescription ?? "Run selected test",
+        },
+        runTestUnavailable: false,
+      };
+    }
     const label = resolveCaptureToggleLabel({
       capturePaused: input.capturePaused,
       sessionHadProgress: input.sessionHadProgress,
     });
     return {
       state,
-      suitePickerVisible: false,
+      suitePickerVisible: true,
       primary: {
         kind: "capture",
         label,
@@ -150,12 +166,12 @@ export function resolveQaPopupActionsChrome(
       primary: {
         kind: "run-test",
         label: "Run Test",
-        hidden: false,
-        disabled: false,
-        ariaDisabled: false,
-        title: input.suiteDescription ?? "Run selected autonomous QA suite",
+        hidden: true,
+        disabled: true,
+        ariaDisabled: true,
+        title: "Agent-driven — suite will run automatically",
       },
-      runTestUnavailable: false,
+      runTestUnavailable: true,
     };
   }
 
@@ -170,10 +186,10 @@ export function resolveQaPopupActionsChrome(
     primary: {
       kind: "capture",
       label,
-      hidden: false,
-      disabled: false,
-      ariaDisabled: false,
-      title: captureTitle(input.sessionKind, label),
+      hidden: true,
+      disabled: true,
+      ariaDisabled: true,
+      title: "Agent-driven — capture controlled by agent",
     },
     runTestUnavailable: true,
   };
@@ -181,5 +197,5 @@ export function resolveQaPopupActionsChrome(
 
 /** Click path: only suite-armed may launch a suite from the primary CTA. */
 export function canActivateRunTestFromPopup(state: QaPopupActionState): boolean {
-  return state === "suite-armed";
+  return state === "suite-armed" || state === "agentic-user";
 }

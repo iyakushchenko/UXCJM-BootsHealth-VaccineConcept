@@ -59,7 +59,8 @@ export function StudioNavVersionChip({
         data-connected="false"
         aria-live="polite"
         data-studio-mcp-hint="true"
-        title="Agent MCP — idle — in-app testing latch (not Cursor MCP)"
+        title="Agent disconnected — no active QA session (In-app testing latch (not Cursor MCP))"
+        aria-label="Agent disconnected — no active QA session"
       >
         <McpGlyphIcon />
       </span>

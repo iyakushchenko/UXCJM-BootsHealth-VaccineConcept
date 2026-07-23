@@ -84,9 +84,9 @@ window.__studioForceClearAgentTestingOverlay?.()
 | cjm-beat-honesty | Y | Active `rec-*` → Beat n/3 not orchestra Steps 1/11 as Beat |
 | session-finale-line | Y | `RESULT · PASS/FAIL — …` before teardown |
 | no-ghost-obs-when-closed | Y | softClose/forceClear → header MCP hint hidden; no OBS/CTRL; `studioMcpStatus` cleared |
-| mcp-diode-observe | Y | Observe open → fuchsia diode + `AGENT — OBSERVE` |
-| mcp-diode-control | Y | Agent handoff → green diode + `AGENT — CONTROL` (+ gold 10px) |
-| mcp-diode-pending | Y | AskUser → blue pulse diode + PENDING |
+| mcp-glyph-observe | Y | Observe open → persistent glyph green + panel text `Agent MCP — connected · observe` |
+| mcp-glyph-control | Y | Agent handoff → persistent glyph green + panel text `Agent MCP — connected · control` (+ gold 10px viewport border) |
+| mcp-glyph-pending | Y | AskUser → panel text `Agent MCP — connected · awaiting reply` |
 | dual-message-bridge | Y | Ask twice → two prompts; two replies clear PENDING |
 | observe-rec-cjm-play | Y | REC+OBSERVE → Add CJM → Play while observe logs clicks |
 

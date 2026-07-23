@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StudioNavLogo } from "@/app/nav/StudioNavLogo";
 import { getStudioRelease } from "@/app/shell/studioRelease";
+import { useSuppressDialogAutoFocusRing } from "@/app/shell/useSuppressDialogAutoFocusRing";
 
 function CloseIcon() {
   return (
@@ -14,6 +15,7 @@ function CloseIcon() {
 export function StudioNavProductAbout({ disabled = false }: { disabled?: boolean }) {
   const release = getStudioRelease();
   const [open, setOpen] = useState(false);
+  const { panelRef } = useSuppressDialogAutoFocusRing<HTMLDivElement>();
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerInsideRef = useRef(false);
   const closedWhileHoveredRef = useRef(false);
@@ -76,6 +78,7 @@ export function StudioNavProductAbout({ disabled = false }: { disabled?: boolean
       <Dialog.Portal>
         <Dialog.Overlay className="studio-nav-product-about__overlay" />
         <Dialog.Content
+          ref={panelRef}
           className="studio-nav-product-about__panel"
           data-studio-modal="uxml-about"
           onEscapeKeyDown={(event) => {

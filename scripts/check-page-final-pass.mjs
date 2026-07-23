@@ -57,6 +57,20 @@ const SCREEN_SOURCES = {
     "src/projects/boots-pharmacy/screens/book-step-3/BookStep3ConfirmationScreen.tsx",
 };
 
+/**
+ * screenId → extra shared-component source files composed into the screen.
+ * Gate checks (ButtonPrimary/Accordion/etc.) scan these too so extracting a
+ * shared component (e.g. AppointmentCard) doesn't false-fail the contract.
+ */
+const SCREEN_EXTRA_SOURCES = {
+  "appointment-history": [
+    "src/projects/boots-pharmacy/screens/shared/AppointmentCard.tsx",
+  ],
+  "appointment-details": [
+    "src/projects/boots-pharmacy/screens/shared/AppointmentCard.tsx",
+  ],
+};
+
 const SCREEN_MOUNTS = {
   plp: "src/projects/boots-pharmacy/screens/plp/mountPlpScreen.tsx",
   pdp: "src/projects/boots-pharmacy/screens/pdp/mountPdpScreen.tsx",
@@ -218,7 +232,10 @@ for (const screenId of required) {
   const mount = requireFile(mountRel);
   if (!src || !mount) continue;
 
-  const code = stripComments(src);
+  const extraSrc = (SCREEN_EXTRA_SOURCES[screenId] || [])
+    .map((rel) => read(rel) || "")
+    .join("\n");
+  const code = stripComments(src + "\n" + extraSrc);
 
   // Root data-studio-react-screen
   const reactScreenRe = new RegExp(

@@ -41,6 +41,7 @@ export {
   askUserInQa,
   escalateObserveToAgentSession,
   unlockObserveSession,
+  takeControlSession,
   getAgentTestingMcpConnectionStatus,
   appendAgentTestingPoNote,
   appendAgentTestingUserMessage,

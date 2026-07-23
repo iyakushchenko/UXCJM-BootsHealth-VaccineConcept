@@ -31,7 +31,7 @@ describe("agentTestingSession", () => {
     expect(bugIconClosesSession()).toBe(true);
     expect(isLoggerStyleSession()).toBe(true);
     expect(shouldBlockPageClicks()).toBe(false);
-    expect(titleForSessionKind("manual")).toBe("MANUAL TEST");
+    expect(titleForSessionKind("manual")).toBe("Manual QA");
   });
 
   it("agent lock: no dismiss, bug does not close, blocks page clicks", () => {
@@ -41,7 +41,7 @@ describe("agentTestingSession", () => {
     expect(bugIconClosesSession()).toBe(false);
     expect(isLoggerStyleSession()).toBe(false);
     expect(shouldBlockPageClicks()).toBe(true);
-    expect(titleForSessionKind("agent")).toBe("AGENT TESTING");
+    expect(titleForSessionKind("agent")).toBe("Agent control");
   });
 
   it("observe: dismissible, bug does not toggle-close, logger-style", () => {

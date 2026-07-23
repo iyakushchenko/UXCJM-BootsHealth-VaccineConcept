@@ -157,7 +157,7 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 
 **Agent intervene:** takeover confirm / wipe handoff / observe escalate → **fresh AGENT SESSION** (elapsed reset + boundary log). Old manual elapsed does not continue.
 
-**FAIL handoff freeze:** while `Caught error. Handing off to agent….` is open, Play/SF/jump/camera are hard-frozen (`__studioIsQaProgressFrozen()`). Confirm takeover starts a new session **and lifts freeze** so agent can drive; Resume also clears any leftover freeze.
+**FAIL handoff freeze:** while `Caught error. Ask agent with the prompt: uxml control` is open, Play/SF/jump/camera are hard-frozen (`__studioIsQaProgressFrozen()`). Confirm takeover starts a new session **and lifts freeze** so agent can drive; Resume also clears any leftover freeze.
 
 **Message RTT:** Send → `Message delivered · awaiting agent consume`; consume → `Message consumed · RTT Nms`. PENDING timeout floors via measured RTT (`__studioQaMessageRttStats()`). **Presence XOR:** `ONLINE` when agent recently touched (≤8s) **or** `Last seen Ns ago` when stale — never both. Green diode only when `data-presence=online`. **Auto-pause guard rail:** stale ≥8s → pause capture + halt Play (same as leave, no `QA_PAUSE_HALT`); return via `resumeForAgentReturn()`.
 
@@ -172,7 +172,7 @@ Action sitrep (Save Log / Pause / Close / Reset) stays visible — denser meanin
 On PlaybackDiagnostic / Alarm / Bubble JUMP / FAIL:
 
 1. Progress **pauses immediately**
-2. QA log: `Caught error. Handing off to agent....`
+2. QA log: `Caught error. Ask agent with the prompt: uxml control`
 3. After **real** agent handshake (`touch` / `consumePoSignal` / `ackDiagnostic` / `__studioConfirmFailTakeover`): `Agent take over confirmed. In progress`
 4. Then: `Please wait... Agent will resume on completion`
 5. Agent investigates under CONTROL, then clears / resumes
@@ -222,19 +222,20 @@ Not the same as `sessionKind: manual` (bug-icon free logger). Module: `agentTest
 
 ### QA latch status (not Cursor MCP)
 
-**Studio `AGENT — CONTROL/OBSERVE` is not Cursor Chrome-DevTools MCP.** It means the **in-app agent-testing / QA gate session** is active (latch + overlay). Cursor may drive the browser via DevTools MCP independently; the status line only reflects Studio's own CONTROL/OBSERVE/PENDING latch. Tooltip: *In-app testing latch (not Cursor MCP)*. Legacy helper names (`__studioMcpConnectionStatus`, CSS `mcp-*`) stay for API stability.
+**Studio's internal `control`/`observe`/`pending` phases are not Cursor Chrome-DevTools MCP.** They mean the **in-app agent-testing / QA gate session** is active (latch + overlay). Cursor may drive the browser via DevTools MCP independently; the status only reflects Studio's own latch. Tooltip: *In-app testing latch (not Cursor MCP)*. `formatMcpStatusLabel` (`AGENT — CONTROL` etc.) is a legacy internal/tooltip label kept for API stability and self-test assertions — the **visible** chrome (header + panel) uses the plainer text below. Legacy helper names (`__studioMcpConnectionStatus`, CSS `mcp-*`) stay for API stability.
 
-Primary: **lean muted status line** under Message/Send with a **live connection diode** (same camera-lens LED language as playback/REC). Short nav hint beside bug icon (CTRL / OBS / PENDING) only while overlay is **actually open** (gate + `data-active`) — never ghost when closed. **Close × / softClose / forceClear** always wipe AGENT mode (no stuck CONTROL after prove waves).
+Primary: **persistent MCP glyph** (mcp-server stroke icon, same asset in header nav + panel) — never hidden, muted silver at rest, green only while a session is actually live (CONTROL additionally requires fresh agent presence — stale/offline CONTROL never glows green, PO trust). Beside it, a **persistent honest status line** under Message/Send (`formatHonestMcpPanelText` in `agentTestingMcpChrome.ts`) — short, industry-plain text, not the internal `AGENT — …` jargon. **Close × / softClose / forceClear** always drop back to `Agent MCP — disconnected` (no stuck CONTROL after prove waves).
 
-| Phase | Label | Diode | Viewport |
-|-------|-------|-------|----------|
-| STARTING | `AGENT — STARTING` | pulse cool | — |
-| READY | `AGENT — READY` | pulse cool (brief) | — |
-| CONTROL | `AGENT — CONTROL` (+ `· PLAYBACK` / `· MANUAL`) | bright green | **10px gold** |
-| OBSERVE | `AGENT — OBSERVE` | fuchsia | — |
-| CONTROL · PENDING | `AGENT — CONTROL · PENDING` (+ kind) | blue pulse | **10px blue** |
-| ERROR | `AGENT — ERROR: …` | red | **10px red** |
-| Idle / closed | hidden | off | none |
+| Phase | Panel text | Glyph | Viewport |
+|-------|-----------|-------|----------|
+| connecting | `Agent MCP — connecting…` | silver | — |
+| connected | `Agent MCP — connected` | silver | — |
+| control (presence online) | `Agent MCP — connected · control` | **green** | **10px gold** |
+| control (stale/offline) | `Agent MCP — connected · control` | silver | **10px gold** |
+| observe | `Agent MCP — connected · observe` | green | — |
+| pending | `Agent MCP — connected · awaiting reply` | green | **10px blue** |
+| error | `Agent MCP — connection error` | silver | **10px red** |
+| idle / closed | `Agent MCP — disconnected` | silver | none |
 
 **PENDING timeout (default 60s):** auto-pause capture + log `MCP pending timed out (Ns) — paused; resume when ready`. Override: `window.__studioQaPendingTimeoutMs`. Clear on user Reply/Send.
 

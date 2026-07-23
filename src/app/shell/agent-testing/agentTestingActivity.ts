@@ -58,7 +58,7 @@ export function formatActivityStatus(
   if (kind === "manual") {
     switch (phase) {
       case "paused":
-        return "Paused";
+        return "Ready";
       case "running":
         return tip ? `Capturing — ${tip}` : "Capturing";
       case "settling":

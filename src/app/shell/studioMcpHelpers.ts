@@ -45,6 +45,7 @@ import {
   DEFAULT_SETTLE_MS,
   forceClearAgentTestingOverlay,
   installAgentTestingOverlayApi,
+  isAgentTestingOverlayActive,
   logAgentTestingOverlay,
   preArmAgentTestingOverlay,
   scheduleAgentTestingOverlayEnsureClear,
@@ -53,6 +54,7 @@ import {
   touchAgentTestingOverlay,
   uninstallAgentTestingOverlayApi,
 } from "@/app/shell/agent-testing/agentTestingOverlay";
+import { getSessionKind } from "@/app/shell/agent-testing/agentTestingSession";
 import { armOverlayOnStudioHelpers } from "@/app/shell/helperOverlayArm";
 import {
   mcpDelay as delay,
@@ -784,7 +786,16 @@ export function registerStudioMcpHelpers(options: {
     // Quiet — default dismiss latches DIAGNOSTIC_ACK_STOP and poisons next suite.
     options.dismissDiagnostic({ acknowledgeStop: false, note: "abort-all" });
     disableCursorQaEyes();
-    stopAgentTestingOverlay({ force: true, reload: false });
+    // "Abort all" stops in-flight Play/journey/recording — it must never
+    // nuke a live PO-owned Manual/Observe QA session (2026-07-23 self-test
+    // dead-end/kind-hijack bug: running "QA tool health" from a Manual QA
+    // popup force-killed + rebuilt the panel as AGENT kind).
+    const poOwnsSession =
+      isAgentTestingOverlayActive() &&
+      (getSessionKind() === "manual" || getSessionKind() === "observe");
+    if (!poOwnsSession) {
+      stopAgentTestingOverlay({ force: true, reload: false });
+    }
     try {
       window.__studioConsumePoSignal?.();
     } catch {
@@ -846,13 +857,24 @@ export function registerStudioMcpHelpers(options: {
   window.__protoRunMcpSanityCheck = async () => {
     window.__protoAbortAll?.();
     let pass = false;
-    startAgentTestingOverlay("AGENT TESTING - preparing...");
+    // A PO-owned Manual/Observe QA session already open must not be
+    // silently hijacked into AGENT TESTING kind by this internal
+    // diagnostic (2026-07-23 self-test kind-hijack bug — "QA tool health"
+    // run from a Manual QA popup ended up locked under agent + dead-end
+    // Finale). Only cold-start fresh AGENT kind when nothing owns the
+    // panel yet; otherwise nest into whichever session already owns it.
+    const ownedByOtherSession = isAgentTestingOverlayActive();
+    if (ownedByOtherSession) {
+      touchAgentTestingOverlay("AGENT TESTING - preparing...", { preserveLogger: true });
+    } else {
+      startAgentTestingOverlay("AGENT TESTING - preparing...");
+    }
     try {
       await preArmAgentTestingOverlay({
         preArmMs: DEFAULT_PREARM_MS,
         title: "AGENT TESTING - preparing...",
       });
-      touchAgentTestingOverlay("AGENT TESTING - mcp-sanity");
+      touchAgentTestingOverlay("AGENT TESTING - mcp-sanity", { preserveLogger: true });
       logAgentTestingOverlay("sanity: start");
       logAgentTestingOverlay("sanity: retreat baseline");
       const baseline = runSmokeRetreatChecks();
@@ -883,19 +905,25 @@ export function registerStudioMcpHelpers(options: {
         state: window.__protoStudioState?.(),
       };
     } finally {
-      try {
-        // Stay on current screen - do not bounce to hub after chrome sanity.
-        // Default no reload (crash-safe); pass reload:true only when needed.
-        stopAgentTestingOverlay({
-          reload: false,
-          resetToHub: false,
-          settleMs: DEFAULT_SETTLE_MS,
-          result: pass ? "pass" : "fail",
-        });
-      } catch {
-        forceClearAgentTestingOverlay();
+      // Nested into a PO-owned session we did not start — never settle/
+      // Finale it just because this sub-check finished; the outer suite
+      // runner (or the PO) owns that session's lifecycle
+      // (2026-07-23 self-test dead-end/kind-hijack bug).
+      if (!ownedByOtherSession) {
+        try {
+          // Stay on current screen - do not bounce to hub after chrome sanity.
+          // Default no reload (crash-safe); pass reload:true only when needed.
+          stopAgentTestingOverlay({
+            reload: false,
+            resetToHub: false,
+            settleMs: DEFAULT_SETTLE_MS,
+            result: pass ? "pass" : "fail",
+          });
+        } catch {
+          forceClearAgentTestingOverlay();
+        }
+        scheduleAgentTestingOverlayEnsureClear(DEFAULT_SETTLE_MS + 1000);
       }
-      scheduleAgentTestingOverlayEnsureClear(DEFAULT_SETTLE_MS + 1000);
     }
   };
 

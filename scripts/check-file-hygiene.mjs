@@ -32,9 +32,9 @@ const ALLOWLIST = {
   // Engine / hybrid monsters — prefer domain split over bumping.
   "src/app/orchestra/useJourneyPlayback.ts": 2265, // + waitForContentLoadSettled director gate (content-load-ssot hardening, 2026-07-22)
   "src/app/App.tsx": 2160, // + declarative scenario transition floor; orchestration extraction is a separate refactor
-  "src/app/shell/agent-testing/agentTestingOverlay.ts": 4800, // + Reset capture-off + ring restore coalesce + Save Log silent pause
+  "src/app/shell/agent-testing/agentTestingOverlay.ts": 4850, // + preArm ownership-aware touch guard + Reset un-seal/repaint-title fix (2026-07-23)
   "src/app/nav/studioNavPanel.css": 1700, // + MCP status hint near version/bug
-  "src/app/shell/studioMcpHelpers.ts": 1420, // pre-existing overage (Play/step-forward prove helpers) — split is a separate engine refactor
+  "src/app/shell/studioMcpHelpers.ts": 1450, // + mcp-sanity ownership-aware start/touch/stop guard (self-test kind-hijack fix, 2026-07-23)
   "src/app/shell/playbackDiag.ts": 1700, // pre-existing overage (diag report + PLAYBACK_DIAG log surface) — split is a separate engine refactor
   "src/app/scenario/demoCursor.ts": 2250, // + lifecycle visibility guard / steady graphic diagnostics; split is a separate engine refactor
   "src/projects/boots-pharmacy/wire/BootsPharmacyProjectView.tsx": 4900, // + Appointment Details React mount + Make wire early-return

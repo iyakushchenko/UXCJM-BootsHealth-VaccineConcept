@@ -2,6 +2,12 @@
 
 > _Append a bullet on coherent commits via `npm run notes:append -- --lane="<lane>" --intent="<text>"`. Preview with `npm run notes:preview`. On `npm run release:patch` this section is promoted to `## v<X.Y.Z> - DDMMYY` and a fresh empty `## Current` is re-inserted. Policy: `docs/product/VERSIONING.md`._
 
+- **project:** Boots: extract shared AppointmentCard (screens/shared/) so Appointment History and Appointment Details reuse one card component/CSS -- History adopted Details' densified Make-live spacing/typography instead of stale Figma 32/56 spacing
+- **shell:** Fix self-test kind-hijack: mcp-sanity from Manual QA no longer force-clears/agent-locks the panel
+- **shell:** Fix Reset not repainting title after a suite-run Finale seal on an active session
+- **shell:** Fix kind-hijack for remaining self-test entry points (mcp-page-probe + shared withMcpTestSession wrapper behind retreat/step-forward/play smokes + robot QA) so Manual/Observe QA sessions keep their own kind through any suite test, not only mcp-sanity
+- **shell:** Test current page now polls the shared PO-signal gate (Alarm/diagnostic) each step, so a real control-room Alarm firing mid-probe fails the run instead of silently coalescing into RESULT PASS
+
 ## v0.0.108 - 220726
 - **shell:** All 13 Boots Sarah CJMs live-proven through fail-fast QA; legacy recordings can earn current compatibility proof, camera anomaly tolerance avoids compositor false positives, and suite logs report truthful per-CJM results
 - **engine:** Enterprise-demo cursor hardening: declared tap areas show a steady hand at the hit edge, disabled or stale targets cannot press, modal state is rechecked before action, and autonomous QA remains alive through long 13-CJM runs

@@ -1,7 +1,7 @@
 /**
  * Appointment History — React screen CSS (no LEGACY growth).
- * Status tones (Make wire parity — do not invent alternate palette):
- *   active #5b8fc9 · completed #4a9b72 · cancelled #d4a03a
+ * Appointment item card L&F lives in screens/shared/appointment-card.css —
+ * shared with Appointment Details (see AppointmentCard.tsx).
  */
 
 /* Host must stretch full width like every other migrated screen —
@@ -168,180 +168,11 @@
   width: 100%;
 }
 
-/* Cards — Make grey shell p-[32px] gap-[56px] */
-.appointment-history__card {
-  display: flex;
-  flex-direction: column;
-  gap: 56px;
-  width: 100%;
-  max-width: 976px;
-  padding: 32px;
-  box-sizing: border-box;
-  border: 1px solid #d6d6d6;
-  border-radius: 8px;
-  background: #f5f5f5;
-  align-self: stretch;
-}
+/* Appointment item card — shared component/CSS:
+   screens/shared/AppointmentCard.tsx + appointment-card.css
+   (.appointment-card*). Do not re-add page-local card CSS here. */
 
-.appointment-history__card-title {
-  display: inline-flex;
-  align-self: flex-start;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 25px;
-  font-weight: 600;
-  line-height: 32px;
-  color: #3a3a3a;
-  text-align: left;
-  cursor: pointer;
-}
-
-.appointment-history__card-title:hover,
-.appointment-history__card-title:focus-visible {
-  color: #012169;
-  text-decoration: underline;
-}
-
-.appointment-history__card-info {
-  width: 100%;
-  padding: 32px;
-  box-sizing: border-box;
-  border: 1px solid #c3c3c3;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.appointment-history__rows {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.appointment-history__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  align-items: center;
-  width: 100%;
-}
-
-.appointment-history__row-label {
-  flex: 0 1 118px;
-  max-width: 118px;
-  font-size: 13px;
-  line-height: 20px;
-  color: #7a7d87;
-}
-
-.appointment-history__row-value {
-  flex: 1 1 162px;
-  min-width: 162px;
-  font-size: 13px;
-  line-height: 20px;
-  color: #3a3a3a;
-}
-
-.appointment-history__price {
-  display: inline-flex;
-  align-items: flex-start;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 20px;
-  color: #3a3a3a;
-  white-space: nowrap;
-}
-
-/* Make status tones — documented parity (not invent) */
-.appointment-history__status--active {
-  font-weight: 600;
-  color: #5b8fc9;
-}
-
-.appointment-history__status--completed {
-  font-weight: 600;
-  color: #4a9b72;
-}
-
-.appointment-history__status--cancelled {
-  font-weight: 600;
-  color: #d4a03a;
-}
-
-.appointment-history__refund-link {
-  font-weight: 400;
-  margin-left: 0;
-}
-
-.appointment-history__ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 32px;
-  align-items: center;
-  width: 100%;
-}
-
-/* Size only — hover/active from UXDS ButtonPrimary commerce */
-.appointment-history__view-details.uxds-btn-primary {
-  min-height: 40px;
-  height: 40px;
-  padding: 8px 16px;
-  font-size: 13px;
-  line-height: 16px;
-  letter-spacing: -0.39px;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.appointment-history__icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 32px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 360px;
-  background: transparent;
-  color: #5c5c5c;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  letter-spacing: -0.36px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.appointment-history__icon-btn--cancel {
-  color: #5c5c5c;
-}
-
-/* Hover/focus — same tertiary icon+text language as PLP Quick View
-   (.plp__tertiary): no background wash, label -> #000, icon -> link
-   color. Reusing that exact treatment, not inventing a new one. */
-.appointment-history__icon-btn:hover,
-.appointment-history__icon-btn:active {
-  background: transparent;
-  color: #000;
-}
-
-.appointment-history__icon-btn:hover [data-name="icon=edit"] svg path {
-  fill: var(--uxds-text-link-link);
-}
-
-.appointment-history__icon-btn:hover [data-name="icon=cancel"] svg path {
-  stroke: var(--uxds-text-link-link);
-}
-
-.appointment-history__icon-btn:focus-visible {
-  outline: 2px solid var(--uxds-border-border-focus, var(--uxds-text-link-link));
-  outline-offset: 2px;
-}
-
+/* icon=plus wrapper — used by the load-more button below */
 .appointment-history__icon {
   display: inline-flex;
   width: 16px;

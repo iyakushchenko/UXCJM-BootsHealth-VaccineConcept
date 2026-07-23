@@ -46,7 +46,10 @@ Do this shell **around** the blessed helper — all-in-one QA + DevTools:
 | **`uxml play step`** | **Stepped** Play (Step forward through the playlist) | Agentic: `await window.__protoRunAgenticStepForwardSmoke?.({ timeoutMs: 600_000 })` · Traditional: `await window.__protoRunTraditionalStepForwardSmoke?.({ timeoutMs: 600_000 })` | `{ pass: true }` (or smoke `pass`); each beat polled for PO signals |
 | **`uxml play step r`** | Stepped Play **including rewind** (Step back / retreat) | (1) same as **`uxml play step`**, then (2) retreat: agentic `__protoRunRetreatSmoke` / `__protoRunAgenticRetreatSmoke` · traditional `__protoRunTraditionalRetreatSmoke` | Both segments PASS; Step back buttons exercised |
 
-Aliases (same meaning): `uxml record` → `uxml rec`; `uxml playback` / `uxml continuous play` → `uxml play`; `uxml step` → `uxml play step`; `uxml step rewind` / `uxml play step rewind` → `uxml play step r`.
+| **`uxml control`** | Agent **connects** to the live page and actively drives it (clicks, evaluates, proves). **Context-aware:** before connecting, check previous QA state and any pending requests/errors so context is not lost | `select_page({ pageId, bringToFront: true })` → `evaluate_script: window.__studioAgentTestingOverlay?.touch?.('uxml-control')` | Header + QA icon green; panel "Agent connected via MCP. Mode: control"; PO sees agent driving |
+| **`uxml observe`** | Agent **connects** to the live page but does **NOT** click/block user — just monitors DevTools + QA for changes/regressions in context of a task | `select_page({ pageId, bringToFront: true })` → `evaluate_script: window.__studioAgentTestingOverlay?.touch?.('uxml-observe')` + open logger in observe: `openAgentTestingLogger({ kind: 'observe' })` | Header + QA icon green; panel "Agent connected via MCP. Mode: observe"; user keeps full control of the page |
+
+Aliases (same meaning): `uxml record` → `uxml rec`; `uxml playback` / `uxml continuous play` → `uxml play`; `uxml step` → `uxml play step`; `uxml step rewind` / `uxml play step rewind` → `uxml play step r`; `uxml connect` → `uxml control`.
 
 ---
 

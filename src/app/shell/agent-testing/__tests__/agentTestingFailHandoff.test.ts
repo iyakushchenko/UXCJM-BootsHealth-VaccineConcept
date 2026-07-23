@@ -25,7 +25,7 @@ describe("agentTestingFailHandoff", () => {
       log: (l) => logs.push(l),
     });
     expect(pauses).toEqual(["scroll-anomaly"]);
-    expect(logs[0]).toBe("Caught error. Handing off to agent....");
+    expect(logs[0]).toBe("Caught error. Ask agent with the prompt: uxml control");
     expect(isFailHandoffPending()).toBe(true);
     expect(
       confirmAgentFailTakeover({

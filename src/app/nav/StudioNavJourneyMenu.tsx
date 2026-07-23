@@ -10,6 +10,7 @@ import { StudioNavDeleteRecordedCjm } from "@/app/nav/StudioNavDeleteRecordedCjm
 import { StudioNavCjmMetadata } from "@/app/nav/StudioNavCjmMetadata";
 import type { CjmOptionMetadata } from "@/app/recording/recordingMetadata";
 import {
+  clearStagedRecordingSession,
   getActiveRecordingSession,
   subscribeRecordingSession,
 } from "@/app/recording/recordingSession";
@@ -96,7 +97,14 @@ export function StudioNavJourneyMenu({
         });
         return;
       }
+      // Freshly entering CREATE NEW (not just re-affirming an already-selected
+      // draft) — discard any leftover staged/stopped session so the STEPS
+      // counter starts at 0 for the new, empty CJM (no-ops while REC is live).
+      const enteringFresh = !createNewSelectedRef.current;
       setIdleCreateNew(true);
+      if (enteringFresh) {
+        clearStagedRecordingSession();
+      }
       logControlPanel("studio:create-new-cjm", {
         autoRecOn: true,
         previousRecMode: recModeRef.current,
@@ -113,6 +121,8 @@ export function StudioNavJourneyMenu({
   // the picker after the user leaves Rec).
   const createNewSelected =
     recMode && (recordingLive || idleCreateNew);
+  const createNewSelectedRef = useRef(createNewSelected);
+  createNewSelectedRef.current = createNewSelected;
 
   useEffect(() => {
     onCreateNewSelectedChangeRef.current?.(createNewSelected);
@@ -192,7 +202,14 @@ export function StudioNavJourneyMenu({
         });
         return;
       }
+      // Freshly entering CREATE NEW (not just re-affirming an already-selected
+      // draft) — discard any leftover staged/stopped session so the STEPS
+      // counter starts at 0 for the new, empty CJM (no-ops while REC is live).
+      const enteringFresh = !createNewSelected;
       setIdleCreateNew(true);
+      if (enteringFresh) {
+        clearStagedRecordingSession();
+      }
       logControlPanel("studio:create-new-cjm", {
         autoRecOn: true,
         previousRecMode: recMode,

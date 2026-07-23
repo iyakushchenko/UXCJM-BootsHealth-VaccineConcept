@@ -46,6 +46,7 @@ import {
   escalateObserveToAgent,
   getSessionKind,
   hintForSessionKind,
+  hintForSuiteSelection,
   isAgentLocked,
   isAwaitingUserReply,
   isLoggerStyleSession,
@@ -69,6 +70,7 @@ import {
   clearNavMcpHintDom,
   deriveLiveMcpStatus,
   isMcpChromeLive as isMcpChromeLivePure,
+  MCP_GLYPH_SVG_MARKUP,
   paintMcpChromeDom,
 } from "@/app/shell/agent-testing/agentTestingMcpChrome";
 import {
@@ -132,7 +134,12 @@ import {
   disarmQaChatLoadingWatch,
 } from "@/app/shell/agent-testing/agentTestingChatLoadingWatch";
 import { buildQaAgentResumeCard, isQaAgentOfflineForMessage } from "@/app/shell/agent-testing/agentTestingResumeCard";
-import { QA_SUITE_COLLECTION, getAutonomousQaSuiteStatus, getQaSuiteDefinition } from "@/app/shell/qaAutonomousSuite";
+import {
+  QA_SUITE_COLLECTION,
+  getAutonomousQaSuiteStatus,
+  getQaSuiteDefinition,
+  resetAutonomousQaSuiteStatus,
+} from "@/app/shell/qaAutonomousSuite";
 import { registerQaDiagnosticOpenHandler } from "@/app/shell/playbackDiagQaBridge";
 import {
   clearStalePlaybackDiagnostic,
@@ -219,8 +226,8 @@ const ELAPSED_TICK_MS = 1000;
 const PERSIST_KEY = "agentTestingOverlay";
 const INTRO_SEEN_KEY = "agentTestingOverlayIntroSeen";
 const CONTINUE_KEY = "protoAgentTestingOverlayContinue";
-const DEFAULT_TITLE = "AGENT TESTING";
-const PREPARE_TITLE = "AGENT TESTING - preparing...";
+const DEFAULT_TITLE = "Agent control";
+const PREPARE_TITLE = "Agent control — preparing…";
 /** Alarm dump + latch — agents consume via __studioConsumePoSignal. */
 const ALARM_AGENT_PROMPT =
   "PO Alarm — investigate sequence/expected-steps mismatch. Call __studioConsumePoSignal(), inspect sitrep/timeline/diag, then fix or ask PO.";
@@ -392,6 +399,8 @@ let logEntries: AgentTestingLogEntry[] = [];
 /** Coalesce rapid log pushes into one DOM rebuild per animation frame. */
 let logDomFlushRaf = 0;
 let sessionTitle = DEFAULT_TITLE;
+/** Kind the painted title reflects — syncSessionChrome() self-heals drift (2026-07-23). */
+let lastTitleKind: AgentTestingSessionKind = "manual";
 let nest = 0;
 let safetyTimer: ReturnType<typeof setTimeout> | null = null;
 let idleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -440,8 +449,8 @@ export function resolveAgentTestingOverlayTitle(title?: string): string {
   if (!raw) return DEFAULT_TITLE;
   if (/__(?:studio|proto)/i.test(raw)) return DEFAULT_TITLE;
   if (/ensureCleanStudio/i.test(raw)) return DEFAULT_TITLE;
-  // Allow short labels like "AGENT TESTING - mcp-sanity" / "MANUAL TEST"
-  if (/^AGENT TESTING\b/i.test(raw) && raw.length <= 48) return raw;
+  // Allow short labels like "Agent control — …" / "Automated QA — …" / "MANUAL TEST"
+  if (/^(?:Agent control|Automated QA|AGENT TESTING)\b/i.test(raw) && raw.length <= 48) return raw;
   if (/^MANUAL TEST\b/i.test(raw) && raw.length <= 48) return raw;
   if (raw.length > 48) return DEFAULT_TITLE;
   return raw;
@@ -698,8 +707,16 @@ function syncQaSuiteProgress(root: HTMLElement): void {
     return;
   }
   const status = getAutonomousQaSuiteStatus();
-  if (!status.suiteId || status.phase === "idle") {
+  // Free Mode (no suite selected) or an idle/absent suite run must never
+  // surface a previous suite's pass/fail touchpoints — clearing timelineKeys
+  // here is belt-and-suspenders alongside Reset wiping the suite status
+  // itself (both must hold for stale "QA tool health"-style chips to die).
+  if (!selectedQaSuiteId || !status.suiteId || status.phase === "idle") {
     count?.setAttribute("hidden", "");
+    if (timelineKeys.length > 0) {
+      timelineKeys = [];
+      renderTimeline();
+    }
     root.removeAttribute("data-suite-phase");
     root.style.removeProperty("--qa-suite-progress");
     return;
@@ -1002,6 +1019,8 @@ function startFreshAgentInterventionSession(source: string): void {
   clearAgentTestingFinaleSeal();
   setQaDiagSessionMeta({ finaleSealed: false });
   setSessionKind("agent");
+  // Was setSessionKind("agent") only — title stayed stale "Manual QA" (2026-07-23 desync bug).
+  paintSessionKindTitle("agent");
   setAwaitingUserReply(false);
   clearMcpPending();
   signalMcpConnect();
@@ -1315,8 +1334,8 @@ export function formatSitrepHint(
 }
 
 export function formatSitrepHeldHint(result: AgentTestingOverlayResult = "neutral"): string {
-  const flag = result === "pass" ? "PASS - " : result === "fail" ? "FAIL - " : "";
-  return `${flag}Held open — Close when done`;
+  const flag = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "";
+  return flag || "";
 }
 
 function readLiveAgentControlKind(): AgentControlKind | null {
@@ -1367,7 +1386,9 @@ function refreshActivityDom(): void {
   const el = root?.querySelector<HTMLElement>(".studio-agent-testing-overlay__activity");
   if (!el || !root) return;
   const label = formatActivityStatus(activityPhase, activityDetail, getSessionKind());
-  el.textContent = label;
+  const labelEl = el.querySelector<HTMLElement>(".studio-agent-testing-overlay__activity-label");
+  if (labelEl) labelEl.textContent = label;
+  else el.textContent = label;
   el.dataset.phase = activityPhase;
   root.dataset.phase = activityPhase;
   const kind = getSessionKind();
@@ -1433,13 +1454,58 @@ function closeManualSession(reason: string): void {
 /** Instant clear of log / ring / timer — fresh session; capture stays OFF until CAPTURE/Resume. */
 function resetManualSession(): void {
   if (!canUserDismissSession() && (active || settling)) return;
-  if (!active) return;
-  if (!logDirty) return;
+  // Held SESSION FINALE (post "Keep open") leaves active=false forever —
+  // Reset was a dead-end no-op there (disabled button) because this bailed
+  // on `!active` before ever un-sealing the sitrep. Un-seal back to a live
+  // session of the same kind first, then fall through to the normal wipe
+  // below (2026-07-23 Reset-in-Finale dead-end bug).
+  const resumingFromHeld = !active && settleHeld;
+  if (!active && !resumingFromHeld) return;
+  if (!resumingFromHeld && !logDirty) return;
+  if (resumingFromHeld) {
+    settling = false;
+    settleHeld = false;
+    settleResult = "neutral";
+    settleReload = false;
+    clearSettleTimer();
+    clearEnsureClearTimer();
+    active = true;
+    if (hasDomQuery()) {
+      const root = document.getElementById(ROOT_ID);
+      if (root) {
+        root.dataset.active = "true";
+        root.dataset.settling = "false";
+        delete root.dataset.settleHeld;
+        delete root.dataset.result;
+      }
+    }
+    setKeepOpenVisible(false);
+    syncClickGuard();
+  }
+  // A RESULT finale (`appendFinale` — called by every autonomous suite run,
+  // even from a still-fully-active Manual/Observe session, not only the
+  // settled/held sitrep) stamps the title/badge directly and seals the log.
+  // Reset must always un-seal + repaint the title back to the live kind's
+  // default — it never did outside the settleHeld branch, so a self-test
+  // run from an active session left "PASS/FAIL — session finale" frozen
+  // forever even though Reset itself was clickable and "worked"
+  // (2026-07-23 Reset-doesn't-reset-title bug).
+  clearAgentTestingFinaleSeal();
+  setQaDiagSessionMeta({ finaleSealed: false });
+  setResultBadge("neutral");
+  paintSessionKindTitle(getSessionKind());
   logQaToolbarAction("Reset · wipe log/ring/timer");
   // Stale FAIL modal must not keep blocking Play after Session reset.
   dismissStaleDiagForSession("qa-session-reset");
   try {
     clearPoSignal();
+  } catch {
+    /* hang-safe */
+  }
+  // A previously completed/failed suite run must not keep showing its
+  // pass/fail touchpoints (e.g. "QA tool health") once the session resets.
+  try {
+    resetAutonomousQaSuiteStatus();
   } catch {
     /* hang-safe */
   }
@@ -1753,6 +1819,10 @@ function syncSessionChrome(): void {
   root.dataset.owner = kind;
   root.dataset.kind = kind;
   root.dataset.capture = capturePaused ? "paused" : "on";
+  // Self-heal drift class (LESSONS 2026-07-23) — never lag Take control / MCP row below.
+  if (!settling && lastTitleKind !== kind) {
+    paintSessionKindTitle(kind);
+  }
   setQaSessionLock(active || settling ? kind : null);
   syncClickGuard();
   syncDiagAckChrome();
@@ -1771,16 +1841,33 @@ function syncSessionChrome(): void {
   const resetBtn = root.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__reset");
   if (resetBtn) {
     resetBtn.hidden = locked;
-    const resetOk = !locked && active && !settling && logDirty;
+    // Held SESSION FINALE (post "Keep open") must stay Reset-able — it was a
+    // dead-end no-op otherwise (2026-07-23 Reset-in-Finale dead-end bug).
+    const resetOk = !locked && (settleHeld || (active && !settling && logDirty));
     resetBtn.disabled = !resetOk;
     resetBtn.title = locked
       ? "Agent session locked"
-      : !logDirty
-        ? "Reset — available after new log events"
-        : "Reset session — clear log, ring, and timer";
+      : settleHeld
+        ? "Reset — start a fresh session (clears the Finale log)"
+        : !logDirty
+          ? "Reset — available after new log events"
+          : "Reset session — clear log, ring, and timer";
   }
 
   const suiteStatus = getAutonomousQaSuiteStatus();
+  const takeControlBtn = root.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__take-control");
+  if (takeControlBtn) {
+    takeControlBtn.hidden = kind === "manual";
+    // Suite runner is authoritative for "a test is running"; settling covers
+    // the wrap-up window. Idle agent/observe sessions (waiting, not mid-test)
+    // stay reclaimable.
+    const runningSuite = suiteStatus?.phase === "running";
+    const busy = runningSuite || settling;
+    takeControlBtn.disabled = busy;
+    takeControlBtn.title = busy
+      ? "Take control — unavailable while a test is running"
+      : "Take control — switch this session back to manual";
+  }
   const actions = resolveQaPopupActionsChrome({
     active,
     settling,
@@ -1812,13 +1899,29 @@ function syncSessionChrome(): void {
   }
   const suiteSelect = root.querySelector<HTMLSelectElement>(".studio-agent-testing-overlay__suite-select");
   if (suiteSelect) {
-    suiteSelect.disabled = !actions.suitePickerVisible;
+    const agentDriven = getSessionKind() === "agent";
+    suiteSelect.disabled = !actions.suitePickerVisible || agentDriven;
+    if (agentDriven && suiteSelect.value !== "") {
+      suiteSelect.value = "";
+    }
     suiteSelect.setAttribute("aria-hidden", actions.suitePickerVisible ? "false" : "true");
-    if (suiteSelect.value !== selectedQaSuiteId) {
+    if (!agentDriven && suiteSelect.value !== selectedQaSuiteId) {
       suiteSelect.value = selectedQaSuiteId;
     }
   }
   syncQaSuiteProgress(root);
+
+  // MCP status row is irrelevant in manual mode — hide entirely.
+  const mcpStatusRow = root.querySelector<HTMLElement>(".studio-agent-testing-overlay__mcp-status");
+  if (mcpStatusRow) mcpStatusRow.hidden = kind === "manual";
+
+  // Dynamic hint: reflect selected suite description when suite is selected.
+  if (!settling) {
+    const suiteDesc = selectedQaSuiteId
+      ? getQaSuiteDefinition(selectedQaSuiteId)?.description
+      : undefined;
+    setHint(hintForSuiteSelection(selectedQaSuiteId, suiteDesc));
+  }
 
   const elapsed = root.querySelector<HTMLElement>(".studio-agent-testing-overlay__elapsed");
   if (elapsed) {
@@ -2045,7 +2148,8 @@ function ensureOverlayChrome(root: HTMLElement): void {
   header.querySelectorAll(".studio-agent-testing-overlay__mcp").forEach((el) => {
     el.remove();
   });
-  let toolbar = header.querySelector<HTMLElement>(".studio-agent-testing-overlay__toolbar");
+  let toolbar = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__toolbar")
+    ?? header.querySelector<HTMLElement>(".studio-agent-testing-overlay__toolbar");
   if (!toolbar) {
     toolbar = document.createElement("div");
     toolbar.className = "studio-agent-testing-overlay__toolbar";
@@ -2056,29 +2160,30 @@ function ensureOverlayChrome(root: HTMLElement): void {
       toolbar.appendChild(clockEl);
       toolbar.appendChild(actionsEl);
     } else {
-      header.appendChild(toolbar);
+      panel.appendChild(toolbar);
     }
   }
 
-  // Migrate Dismiss → Close (X) + Reset
+  // Migrate Dismiss → Close (X) inline with title
   const legacyDismiss = header.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dismiss");
   legacyDismiss?.remove();
-  let headerActions = header.querySelector<HTMLElement>(".studio-agent-testing-overlay__header-actions");
-  if (!headerActions) {
-    headerActions = document.createElement("div");
-    headerActions.className = "studio-agent-testing-overlay__header-actions";
-    header.appendChild(headerActions);
+  // Take control link — inline with title, before Close (X)
+  if (!header.querySelector(".studio-agent-testing-overlay__take-control")) {
+    const takeControl = document.createElement("button");
+    takeControl.type = "button";
+    takeControl.className = "studio-agent-testing-overlay__take-control uxds-link";
+    takeControl.hidden = true;
+    takeControl.title = "Take control — switch this session back to manual";
+    takeControl.textContent = "Take control";
+    takeControl.addEventListener("click", () => {
+      takeControlSession("click");
+    });
+    const closeRef = header.querySelector(".studio-agent-testing-overlay__close");
+    if (closeRef) header.insertBefore(takeControl, closeRef);
+    else header.appendChild(takeControl);
   }
-  if (!headerActions.querySelector(".studio-agent-testing-overlay__reset")) {
-    const reset = document.createElement("button");
-    reset.type = "button";
-    reset.className = "studio-agent-testing-overlay__reset";
-    reset.textContent = "Reset";
-    reset.title = "Reset session — clear log, ring, and timer";
-    reset.addEventListener("click", () => resetManualSession());
-    headerActions.appendChild(reset);
-  }
-  if (!headerActions.querySelector(".studio-agent-testing-overlay__close")) {
+  // Close button belongs directly in the header (beside title)
+  if (!header.querySelector(".studio-agent-testing-overlay__close")) {
     const close = document.createElement("button");
     close.type = "button";
     close.className = "studio-agent-testing-overlay__close";
@@ -2086,17 +2191,53 @@ function ensureOverlayChrome(root: HTMLElement): void {
     close.title = "Close — stop capture";
     close.textContent = "×";
     close.addEventListener("click", () => closeManualSession("close-x"));
-    headerActions.appendChild(close);
+    header.appendChild(close);
   }
-  // Save Log inline on the right of the control row
+  // Remove legacy header-actions container (Reset + Save Log now live in session bar)
+  const legacyHeaderActions = header.querySelector(".studio-agent-testing-overlay__header-actions");
+  legacyHeaderActions?.remove();
+
+  // Move toolbar out of header if nested (legacy layout) — into controls wrapper
+  const nestedToolbar = header.querySelector(".studio-agent-testing-overlay__toolbar");
+  if (nestedToolbar) {
+    let controlsWrap = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__controls");
+    if (!controlsWrap) {
+      controlsWrap = document.createElement("div");
+      controlsWrap.className = "studio-agent-testing-overlay__controls";
+      const sessionBarRef = panel.querySelector(".studio-agent-testing-overlay__session");
+      const after = sessionBarRef?.nextSibling ?? header.nextSibling;
+      if (after) panel.insertBefore(controlsWrap, after);
+      else panel.appendChild(controlsWrap);
+    }
+    controlsWrap.insertBefore(nestedToolbar, controlsWrap.firstChild);
+  }
+
+  // Reset + Save Log inside session bar
+  const sessionBar = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__session");
+  let sessionActions = sessionBar?.querySelector<HTMLElement>(".studio-agent-testing-overlay__session-actions");
+  if (sessionBar && !sessionActions) {
+    sessionActions = document.createElement("div");
+    sessionActions.className = "studio-agent-testing-overlay__session-actions";
+    sessionBar.appendChild(sessionActions);
+  }
+  if (sessionActions && !sessionActions.querySelector(".studio-agent-testing-overlay__reset")) {
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "studio-agent-testing-overlay__reset";
+    reset.textContent = "Reset";
+    reset.title = "Reset — clear log and timer; dropdown selection stays";
+    reset.addEventListener("click", () => resetManualSession());
+    sessionActions.appendChild(reset);
+  }
+  // Save Log in session bar
   const strayDump = panel.querySelector<HTMLButtonElement>(
     ".studio-agent-testing-overlay__actions .studio-agent-testing-overlay__dump",
   );
-  let dumpBtn = headerActions.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dump");
-  if (!dumpBtn && strayDump) {
-    headerActions.appendChild(strayDump);
+  let dumpBtn = sessionActions?.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__dump") ?? null;
+  if (sessionActions && !dumpBtn && strayDump) {
+    sessionActions.appendChild(strayDump);
     dumpBtn = strayDump;
-  } else if (!dumpBtn) {
+  } else if (sessionActions && !dumpBtn) {
     dumpBtn = document.createElement("button");
     dumpBtn.type = "button";
     dumpBtn.className = "studio-agent-testing-overlay__dump";
@@ -2105,33 +2246,81 @@ function ensureOverlayChrome(root: HTMLElement): void {
     dumpBtn.addEventListener("click", () => {
       downloadCurrentAgentTestingLog();
     });
-    headerActions.appendChild(dumpBtn);
+    sessionActions.appendChild(dumpBtn);
   } else if (strayDump && strayDump !== dumpBtn) {
     strayDump.remove();
   }
 
-  // Lean MCP status line under Message/Send (diode + muted label)
+  // Session bar must sit directly after header (before toolbar)
+  if (sessionBar && sessionBar.previousElementSibling !== header) {
+    if (header.nextSibling) panel.insertBefore(sessionBar, header.nextSibling);
+    else panel.appendChild(sessionBar);
+  }
+
+  // Ensure __controls wrapper contains toolbar + hint
+  let controls = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__controls");
+  const toolbarEl = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__toolbar");
+  if (!controls && toolbarEl) {
+    controls = document.createElement("div");
+    controls.className = "studio-agent-testing-overlay__controls";
+    toolbarEl.replaceWith(controls);
+    controls.appendChild(toolbarEl);
+  }
+  // Move toolbar inside controls if it escaped
+  if (controls && toolbarEl && toolbarEl.parentElement !== controls) {
+    controls.insertBefore(toolbarEl, controls.firstChild);
+  }
+  // Controls wrapper must sit after session bar
+  if (controls && sessionBar && controls.previousElementSibling !== sessionBar) {
+    if (sessionBar.nextSibling) panel.insertBefore(controls, sessionBar.nextSibling);
+    else panel.appendChild(controls);
+  }
+
+  // Elapsed timer belongs inside activity bar (not toolbar clock)
+  const activityEl = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__activity");
+  const strayElapsed = toolbarEl?.querySelector<HTMLElement>(".studio-agent-testing-overlay__elapsed");
+  if (activityEl && strayElapsed) {
+    activityEl.appendChild(strayElapsed);
+  }
+  // Ensure activity has label wrapper
+  if (activityEl && !activityEl.querySelector(".studio-agent-testing-overlay__activity-label")) {
+    const txt = activityEl.childNodes[0];
+    if (txt && txt.nodeType === Node.TEXT_NODE) {
+      const span = document.createElement("span");
+      span.className = "studio-agent-testing-overlay__activity-label";
+      span.textContent = txt.textContent ?? "";
+      txt.replaceWith(span);
+    }
+  }
+
+  // Remove legacy "Session" bar-title (duplicated the word "Session" in the line)
+  sessionBar?.querySelector(".studio-agent-testing-overlay__bar-title")?.remove();
+
+  // Persistent MCP status line under Message/Send — glyph + honest phase text.
+  const isManualSession = getSessionKind() === "manual";
   let mcpStatus = panel.querySelector<HTMLElement>(".studio-agent-testing-overlay__mcp-status");
   if (!mcpStatus) {
     mcpStatus = document.createElement("div");
     mcpStatus.className = "studio-agent-testing-overlay__mcp-status";
-    mcpStatus.hidden = true;
+    mcpStatus.hidden = isManualSession;
     mcpStatus.innerHTML =
-      '<span class="studio-agent-testing-overlay__mcp-diode" data-phase="idle" hidden aria-hidden="true"></span>' +
-      '<span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>';
+      `<span class="studio-agent-testing-overlay__mcp-glyph" data-connected="false" aria-hidden="true">${MCP_GLYPH_SVG_MARKUP}</span>` +
+      '<span class="studio-agent-testing-overlay__mcp" data-connected="false">Agent disconnected</span>';
   } else {
+    mcpStatus.hidden = isManualSession;
     mcpStatus.querySelectorAll(".studio-agent-testing-overlay__mcp-mode").forEach((el) => el.remove());
     if (!mcpStatus.querySelector(".studio-agent-testing-overlay__mcp")) {
       mcpStatus.innerHTML =
-        '<span class="studio-agent-testing-overlay__mcp-diode" data-phase="idle" hidden aria-hidden="true"></span>' +
-        '<span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>';
+        `<span class="studio-agent-testing-overlay__mcp-glyph" data-connected="false" aria-hidden="true">${MCP_GLYPH_SVG_MARKUP}</span>` +
+        '<span class="studio-agent-testing-overlay__mcp" data-connected="false">Agent disconnected</span>';
     }
-    if (!mcpStatus.querySelector(".studio-agent-testing-overlay__mcp-diode")) {
-      const d = document.createElement("span");
-      d.className = "studio-agent-testing-overlay__mcp-diode";
-      d.setAttribute("aria-hidden", "true");
-      d.hidden = true;
-      mcpStatus.insertBefore(d, mcpStatus.firstChild);
+    if (!mcpStatus.querySelector(".studio-agent-testing-overlay__mcp-glyph")) {
+      const g = document.createElement("span");
+      g.className = "studio-agent-testing-overlay__mcp-glyph";
+      g.setAttribute("aria-hidden", "true");
+      g.dataset.connected = "false";
+      g.innerHTML = MCP_GLYPH_SVG_MARKUP;
+      mcpStatus.insertBefore(g, mcpStatus.firstChild);
     }
   }
   const note = panel.querySelector(".studio-agent-testing-overlay__note");
@@ -2145,15 +2334,10 @@ function ensureOverlayChrome(root: HTMLElement): void {
     session.className = "studio-agent-testing-overlay__session";
     session.setAttribute("aria-label", "Session context");
     session.innerHTML = `
-      <p class="studio-agent-testing-overlay__bar-title">Session</p>
-      <p class="studio-agent-testing-overlay__session-line">Session: Localhost:5173 - Checking…</p>
+      <p class="studio-agent-testing-overlay__session-line">Localhost:5173 - Checking…</p>
     `;
-    const activity = panel.querySelector(".studio-agent-testing-overlay__activity");
-    if (activity?.nextSibling) {
-      panel.insertBefore(session, activity.nextSibling);
-    } else {
-      panel.appendChild(session);
-    }
+    if (header.nextSibling) panel.insertBefore(session, header.nextSibling);
+    else panel.appendChild(session);
     panel.querySelector(".studio-agent-testing-overlay__sitrep")?.remove();
   }
 
@@ -2162,9 +2346,16 @@ function ensureOverlayChrome(root: HTMLElement): void {
   if (!hint) {
     hint = document.createElement("p");
     hint.className = "studio-agent-testing-overlay__hint";
-    const activity = panel.querySelector(".studio-agent-testing-overlay__activity");
-    if (activity) panel.insertBefore(hint, activity);
-    else panel.appendChild(hint);
+    const controlsWrap = panel.querySelector(".studio-agent-testing-overlay__controls");
+    if (controlsWrap) controlsWrap.appendChild(hint);
+    else {
+      const activity = panel.querySelector(".studio-agent-testing-overlay__activity");
+      if (activity) panel.insertBefore(hint, activity);
+      else panel.appendChild(hint);
+    }
+  } else if (hint.parentElement === panel) {
+    const controlsWrap = panel.querySelector(".studio-agent-testing-overlay__controls");
+    if (controlsWrap) controlsWrap.appendChild(hint);
   }
   if (!hint.querySelector(".studio-agent-testing-overlay__hint-text")) {
     const prior = (hint.textContent || "").trim();
@@ -2457,6 +2648,12 @@ function disarmRecordingXorWatch(): void {
  * `withMcpTestSession` smokes), while director is on-air, or mid type-in.
  */
 function maybeAutoPauseOnStalePresence(ageMs: number): void {
+  // Heartbeat keeps ticking after a kind flip unless disarmed — scope to agent/observe (2026-07-23).
+  const kind = getSessionKind();
+  if (kind !== "agent" && kind !== "observe") {
+    autoPausedForStalePresence = false;
+    return;
+  }
   if (isQaProveModeActive()) {
     autoPausedForStalePresence = false;
     // Keep presence fresh so ONLINE stays honest during long proves.
@@ -2681,35 +2878,36 @@ function ensureRoot(): HTMLElement | null {
       <div class="studio-agent-testing-overlay__header">
         <p class="studio-agent-testing-overlay__badge" hidden></p>
         <p class="studio-agent-testing-overlay__title">${DEFAULT_TITLE}</p>
+        <button type="button" class="studio-agent-testing-overlay__take-control uxds-link" hidden title="Take control — switch this session back to manual">Take control</button>
+        <button type="button" class="studio-agent-testing-overlay__close" title="Close — stop capture" aria-label="Close">×</button>
+      </div>
+      <div class="studio-agent-testing-overlay__session" aria-label="Session context">
+        <p class="studio-agent-testing-overlay__session-line">Localhost:5173 - Checking…</p>
+        <div class="studio-agent-testing-overlay__session-actions">
+          <button type="button" class="studio-agent-testing-overlay__reset" title="Reset — clear log and timer; dropdown selection stays" disabled>Reset</button>
+          <button type="button" class="studio-agent-testing-overlay__dump" title="Download lean dump JSON when paused or idle">Save Log</button>
+        </div>
+      </div>
+      <div class="studio-agent-testing-overlay__controls">
         <div class="studio-agent-testing-overlay__toolbar">
           <label class="studio-agent-testing-overlay__suite-picker">
-            <span class="sr-only">Select test</span>
-            <select id="studio-qa-suite-select" name="studio-qa-suite" class="studio-agent-testing-overlay__suite-select" aria-label="Select test">
-              <option value="">Select test</option>
+            <span class="sr-only">Select mode</span>
+            <select id="studio-qa-suite-select" name="studio-qa-suite" class="studio-agent-testing-overlay__suite-select" aria-label="Select mode">
+              <option value="">Free Mode</option>
               ${QA_SUITE_COLLECTION.map((suite) => `<option value="${suite.id}">${suite.label}</option>`).join("")}
             </select>
             <span class="studio-agent-testing-overlay__suite-progress-count" hidden></span>
           </label>
           <div class="studio-agent-testing-overlay__clock">
-            <span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span>
             <button type="button" class="studio-agent-testing-overlay__capture-toggle" hidden title="Start capture">CAPTURE</button>
           </div>
-          <div class="studio-agent-testing-overlay__header-actions">
-            <button type="button" class="studio-agent-testing-overlay__reset" title="Reset session — clear log, ring, and timer" disabled>Reset</button>
-            <button type="button" class="studio-agent-testing-overlay__close" title="Close — stop capture" aria-label="Close">×</button>
-            <button type="button" class="studio-agent-testing-overlay__dump" title="Download lean dump JSON when paused or idle">Save Log</button>
-          </div>
         </div>
+        <p class="studio-agent-testing-overlay__hint">
+          <span class="studio-agent-testing-overlay__hint-text">Page visible — mid-flight QA below.</span>
+          <button type="button" class="studio-agent-testing-overlay__keep-open uxds-link" hidden title="Cancel auto-close — keep sitrep open">Keep open</button>
+        </p>
       </div>
-      <p class="studio-agent-testing-overlay__hint">
-        <span class="studio-agent-testing-overlay__hint-text">Page visible — mid-flight QA below.</span>
-        <button type="button" class="studio-agent-testing-overlay__keep-open uxds-link" hidden title="Cancel auto-close — keep sitrep open">Keep open</button>
-      </p>
-      <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false">Idle</p>
-      <div class="studio-agent-testing-overlay__session" aria-label="Session context">
-        <p class="studio-agent-testing-overlay__bar-title">Session</p>
-        <p class="studio-agent-testing-overlay__session-line">Session: Localhost:5173 - Checking…</p>
-      </div>
+      <p class="studio-agent-testing-overlay__activity" data-phase="idle" data-live="false"><span class="studio-agent-testing-overlay__activity-label">Idle</span><span class="studio-agent-testing-overlay__elapsed" title="Elapsed">0:00</span></p>
       <div class="studio-agent-testing-overlay__timeline-wrap" hidden>
         <p class="studio-agent-testing-overlay__bar-title">Touchpoints</p>
         <div class="studio-agent-testing-overlay__timeline" aria-label="Touchpoint progress"></div>
@@ -2726,14 +2924,17 @@ function ensureRoot(): HTMLElement | null {
         <input type="text" class="studio-agent-testing-overlay__note-input" name="user-message" maxlength="280" placeholder="Message" aria-label="Message" />
         <button type="submit" class="studio-agent-testing-overlay__note-submit">Send</button>
       </form>
-      <div class="studio-agent-testing-overlay__mcp-status" hidden>
-        <span class="studio-agent-testing-overlay__mcp-diode" data-phase="idle" hidden aria-hidden="true"></span>
-        <span class="studio-agent-testing-overlay__mcp" data-phase="idle" hidden></span>
+      <div class="studio-agent-testing-overlay__mcp-status">
+        <span class="studio-agent-testing-overlay__mcp-glyph" data-connected="false" aria-hidden="true">${MCP_GLYPH_SVG_MARKUP}</span>
+        <span class="studio-agent-testing-overlay__mcp" data-connected="false">Agent disconnected</span>
       </div>
     </div>
   `;
   const closeBtn = root.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__close");
   closeBtn?.addEventListener("click", () => closeManualSession("close-x"));
+  root.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__take-control")?.addEventListener("click", () => {
+    takeControlSession("click");
+  });
   root.querySelector<HTMLButtonElement>(".studio-agent-testing-overlay__keep-open")?.addEventListener("click", () => {
     holdSettleOpen("click");
   });
@@ -2756,14 +2957,14 @@ function ensureRoot(): HTMLElement | null {
         capturePaused,
         sessionHadProgress,
       });
-      if (canActivateRunTestFromPopup(actions.state)) {
+      if (actions.primary.kind === "run-test" && canActivateRunTestFromPopup(actions.state)) {
         const suite = getQaSuiteDefinition(selectedQaSuiteId);
         if (!suite || suiteStatus.phase === "running") return;
         window.__studioStartQaSuite?.([...suite.tests], { suiteId: suite.id });
         syncSessionChrome();
         return;
       }
-      // agentic-user / prove / idle — never launch suite from leftover selection
+      // Free mode / idle — toggle capture
       toggleCapturePause();
     });
   const suiteSelect = root.querySelector<HTMLSelectElement>(".studio-agent-testing-overlay__suite-select");
@@ -2993,6 +3194,15 @@ function setTitle(title: string): void {
   if (!hasDomQuery()) return;
   const el = document.querySelector<HTMLElement>(".studio-agent-testing-overlay__title");
   if (el) el.textContent = title;
+}
+
+/** SSoT for "title reflects sessionKind X" — kind transitions go through this so `lastTitleKind` tracks what's painted. */
+function paintSessionKindTitle(kind: AgentTestingSessionKind, override?: string): string {
+  const resolved = resolveAgentTestingOverlayTitle(override?.trim() || titleForSessionKind(kind));
+  sessionTitle = resolved;
+  lastTitleKind = kind;
+  setTitle(resolved);
+  return resolved;
 }
 
 function setResultBadge(result: AgentTestingOverlayResult): void {
@@ -3300,9 +3510,9 @@ export function startAgentTestingOverlay(title?: string): void {
   autoPausedForStalePresence = false;
   touchQaAgentPresence("overlay-start");
   armPresenceHeartbeatWithAutoPause();
-  const resolved = resolveAgentTestingOverlayTitle(title ?? titleForSessionKind("agent"));
-  sessionTitle = resolved;
   const root = ensureRoot();
+  // ensureRoot() must run first — paint needs the title node in the DOM.
+  const resolved = paintSessionKindTitle("agent", title);
   if (root) {
     root.dataset.active = "true";
     root.dataset.settling = "false";
@@ -3313,7 +3523,6 @@ export function startAgentTestingOverlay(title?: string): void {
     syncAgentTestingNavClearance(ROOT_ID, root);
   }
   syncClickGuard();
-  setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind("agent"));
   setActivityPhase("running");
@@ -3361,11 +3570,17 @@ export async function preArmAgentTestingOverlay(options?: { preArmMs?: number; t
   const title = resolveAgentTestingOverlayTitle(options?.title ?? PREPARE_TITLE);
   if (!active) {
     startAgentTestingOverlay(title);
+    ensureAgentTestingOverlayDomArmed(title);
   } else {
-    sessionTitle = title;
-    setTitle(title);
+    // A PO-owned MANUAL/OBSERVE session already active must not be
+    // silently retitled/hijacked by an internal diagnostic pre-arm
+    // (2026-07-23 self-test kind-hijack bug) — reuse the same
+    // ownership-aware guard as touchAgentTestingOverlay instead of a raw
+    // ensureAgentTestingOverlayDomArmed/setTitle overwrite (which is
+    // kind-blind and would stamp "AGENT TESTING - preparing..." straight
+    // over a live "Manual QA" title).
+    touchAgentTestingOverlay(title, { preserveLogger: true });
   }
-  ensureAgentTestingOverlayDomArmed(title);
   setResultBadge("neutral");
   pushLogEntry({
     atMs: Date.now(),
@@ -3601,9 +3816,8 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
   settleResult = "neutral";
   signalMcpConnect();
 
-  const resolved = resolveAgentTestingOverlayTitle(options?.title ?? titleForSessionKind(target));
-  sessionTitle = resolved;
   const root = ensureRoot();
+  const resolved = paintSessionKindTitle(target, options?.title);
   if (root) {
     root.dataset.active = "true";
     root.dataset.settling = "false";
@@ -3620,7 +3834,6 @@ function applyQaHandoff(options?: QaHandoffOptions): void {
   setQaDiagLoggerMode(isLoggerStyleSession(target));
   setQaDiagSessionMeta({ sessionKind: target, awaitingReply: false });
   syncClickGuard();
-  setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind(target));
   setActivityPhase("running");
@@ -3671,9 +3884,7 @@ export function escalateObserveToAgentSession(reason = "escalate"): boolean {
   signalMcpConnect();
   syncClickGuard();
   setQaDiagLoggerMode(false);
-  const resolved = titleForSessionKind("agent");
-  sessionTitle = resolved;
-  setTitle(resolved);
+  paintSessionKindTitle("agent");
   setHint(hintForSessionKind("agent"));
   pushLogEntry({
     atMs: Date.now(),
@@ -3697,9 +3908,7 @@ export function unlockObserveSession(): boolean {
   signalMcpConnect();
   syncClickGuard();
   setQaDiagLoggerMode(true);
-  const resolved = titleForSessionKind("observe");
-  sessionTitle = resolved;
-  setTitle(resolved);
+  paintSessionKindTitle("observe");
   setHint(hintForSessionKind("observe"));
   pushLogEntry({
     atMs: Date.now(),
@@ -3710,6 +3919,36 @@ export function unlockObserveSession(): boolean {
   });
   setActivityPhase("running");
   setQaDiagSessionMeta({ sessionKind: "observe", awaitingReply: false });
+  syncSessionChrome();
+  syncCaptureWatch();
+  return true;
+}
+
+/**
+ * PO "Take control" — reclaim from agent/observe back to manual.
+ * Keeps log/ring/session state (no wipe) unlike softClose/forceClear.
+ */
+export function takeControlSession(reason = "take-control"): boolean {
+  const kind = getSessionKind();
+  if (kind === "manual") return false;
+  setSessionKind("manual");
+  setAwaitingUserReply(false);
+  clearMcpPending();
+  clearQaAgentPresence(); // drop stale heartbeat so it can't leak into manual (2026-07-23)
+  autoPausedForStalePresence = false;
+  syncClickGuard();
+  setQaDiagLoggerMode(true);
+  paintSessionKindTitle("manual");
+  setHint(hintForSessionKind("manual"));
+  pushLogEntry({
+    atMs: Date.now(),
+    timeLabel: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    label: `Take control → manual (${reason})`,
+    outcome: "ok",
+    kind: "system",
+  });
+  setActivityPhase(capturePaused ? "paused" : "running");
+  setQaDiagSessionMeta({ sessionKind: "manual", awaitingReply: false });
   syncSessionChrome();
   syncCaptureWatch();
   return true;
@@ -3802,13 +4041,16 @@ export function openAgentTestingLogger(options?: OpenQaLoggerOptions | string): 
   capturePaused = hydrateRestore ? opts.hydrateCapturePaused === true : kind === "manual";
   if (kind === "agent" || kind === "observe") {
     signalMcpConnect();
+    touchQaAgentPresence("logger-open");
+    armPresenceHeartbeatWithAutoPause();
   } else {
     clearMcpConnectionError();
+    clearQaAgentPresence(); // fresh manual open must not inherit prior agent presence (2026-07-23)
+    autoPausedForStalePresence = false;
   }
   if (settling) abandonSettleForRearch();
-  const resolved = resolveAgentTestingOverlayTitle(opts.title?.trim() || titleForSessionKind(kind));
-  sessionTitle = resolved;
   const root = ensureRoot();
+  const resolved = paintSessionKindTitle(kind, opts.title);
   if (root) {
     root.dataset.active = "true";
     root.dataset.settling = "false";
@@ -3821,7 +4063,6 @@ export function openAgentTestingLogger(options?: OpenQaLoggerOptions | string): 
   settling = false;
   nest = Math.max(nest, 1);
   syncClickGuard();
-  setTitle(resolved);
   setResultBadge("neutral");
   setHint(hintForSessionKind(kind));
   if (!sessionStartedAt) {
@@ -3895,6 +4136,8 @@ export function softCloseAgentTestingLogger(reason = "soft-close"): void {
   clearMcpPending();
   clearMcpConnectionError();
   resetMcpStatusLatches();
+  clearQaAgentPresence(); // no agent to disconnect from once closed to manual (2026-07-23)
+  autoPausedForStalePresence = false;
   capturePaused = false;
   setQaDiagLoggerMode(false);
   nest = 0;
@@ -4312,6 +4555,9 @@ export function installAgentTestingOverlayApi(): void {
     clearIdleTimer();
     clearSafetyTimer();
     clearEnsureClearTimer();
+    // Force header icon to disconnected immediately — never flash green from
+    // stale persist/hydrate before presence heartbeat catches up.
+    clearNavMcpHintDom();
   }
   const api: OverlayApi = {
     start: startAgentTestingOverlay,

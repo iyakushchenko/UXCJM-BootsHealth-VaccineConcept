@@ -6,6 +6,7 @@ import {
   DEFAULT_PREARM_MS,
   DEFAULT_SETTLE_MS,
   forceClearAgentTestingOverlay,
+  isAgentTestingOverlayActive,
   logAgentTestingOverlay,
   preArmAgentTestingOverlay,
   scheduleAgentTestingOverlayEnsureClear,
@@ -71,17 +72,29 @@ export async function withMcpTestSession<T>(
   const resetToJourneyStart = sessionOptions?.resetToJourneyStart === true;
   const resetToHub =
     !resetToJourneyStart && sessionOptions?.resetToHub === true;
-  // HARD — always wipe prior QA before a new smoke/prove session.
-  // forceClear also ends prove-mode — re-arm below so step-forward / retreat /
-  // play smokes survive long type-in (>8s) without agent-stale abort.
-  forceClearAgentTestingOverlay();
-  startAgentTestingOverlay("AGENT TESTING — preparing…");
+  // A PO-owned Manual/Observe QA session already open must not be silently
+  // force-cleared + hijacked into AGENT TESTING kind by an internal suite
+  // test (2026-07-23 self-test kind-hijack bug class — this is the SHARED
+  // wrapper behind play/prove/validate/map-interactions, so every suite
+  // test besides mcp-sanity/page-probe ran through this same bug). Only
+  // cold-start a fresh AGENT session when nothing owns the panel yet;
+  // otherwise nest into whichever session already owns it — never wipe it.
+  const ownedByOtherSession = isAgentTestingOverlayActive();
+  if (ownedByOtherSession) {
+    touchAgentTestingOverlay("AGENT TESTING — preparing…", { preserveLogger: true });
+  } else {
+    // HARD — always wipe prior QA before a new smoke/prove session.
+    // forceClear also ends prove-mode — re-arm below so step-forward / retreat /
+    // play smokes survive long type-in (>8s) without agent-stale abort.
+    forceClearAgentTestingOverlay();
+    startAgentTestingOverlay("AGENT TESTING — preparing…");
+  }
   try {
     await preArmAgentTestingOverlay({
       preArmMs: sessionOptions?.preArmMs ?? DEFAULT_PREARM_MS,
       title: "AGENT TESTING — preparing…",
     });
-    touchAgentTestingOverlay(`AGENT TESTING — ${label}`);
+    touchAgentTestingOverlay(`AGENT TESTING — ${label}`, { preserveLogger: true });
     beginQaProveMode(`mcp-test-session:${label}`);
     logAgentTestingOverlay(`session: ${label}`);
     const out = await run();
@@ -103,16 +116,22 @@ export async function withMcpTestSession<T>(
     } catch {
       /* hang-safe */
     }
-    try {
-      stopAgentTestingOverlay({
-        reload: sessionOptions?.reload !== false,
-        resetToJourneyStart,
-        resetToHub,
-        settleMs,
-        result: sessionResult,
-      });
-    } catch {
-      forceClearAgentTestingOverlay();
+    // Nested into a PO-owned session we did not start — never settle/Finale
+    // it just because this internal test finished; the outer suite runner
+    // (or the PO) owns that session's lifecycle (2026-07-23 kind-hijack bug).
+    if (!ownedByOtherSession) {
+      try {
+        stopAgentTestingOverlay({
+          reload: sessionOptions?.reload !== false,
+          resetToJourneyStart,
+          resetToHub,
+          settleMs,
+          result: sessionResult,
+        });
+      } catch {
+        forceClearAgentTestingOverlay();
+      }
+      scheduleAgentTestingOverlayEnsureClear(settleMs + 1000);
     }
     try {
       resetStudioAfterAgentTest({
@@ -122,7 +141,6 @@ export async function withMcpTestSession<T>(
     } catch {
       /* never leave sticky &modal= after session end */
     }
-    scheduleAgentTestingOverlayEnsureClear(settleMs + 1000);
     disableCursorQaEyes();
     endMcpTestSession(id);
   }

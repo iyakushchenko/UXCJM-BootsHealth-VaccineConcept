@@ -158,9 +158,11 @@ Deep links stay on that origin, e.g. `http://localhost:5173/?project=boots-pharm
 **Chrome DevTools MCP / agent practice (felony):**
 
 1. `list_pages`  
-2. If a Studio tab exists → `select_page` then `navigate_page` (or evaluate in place)  
+2. If a Studio tab exists → `select_page` (**with `bringToFront: true`**) then `navigate_page` (or evaluate in place)  
 3. `new_page` **only** when the page list is empty  
 4. Never open a second window “just in case”
+
+**PO visibility (HARD):** `select_page` defaults `bringToFront` to **not set** — the CDP tab is real (it is the PO's actual Chrome, same window as their other tabs) but stays in whatever OS window it was in, silently, if you omit this. Always pass `select_page({ pageId, bringToFront: true })` before a live prove/demo the PO is meant to watch, or the automation is 100% real but invisible on their screen (Cursor/another window stays focused) — this looks exactly like "nothing happened" from the PO's side even though every click/evaluate succeeded. Raw `click`/`evaluate_script` also does **not** animate a visible mouse pointer (unlike `simulateDemoPointerClick` robo-cursor helpers) — expect no visible cursor motion even when the window is frontmost.
 
 **CI:** `check:felonies` asserts vite `port`/`strictPort` + catalog id `fixed-localhost-reuse-tab`.  
 **Docs:** [AGENTS.md](../../AGENTS.md) · [TEAM.md](./TEAM.md) · [COMMAND_DOCTRINE.md](./COMMAND_DOCTRINE.md) · [../shell/URL.md](../shell/URL.md) · [../shell/RECORDING.md](../shell/RECORDING.md)

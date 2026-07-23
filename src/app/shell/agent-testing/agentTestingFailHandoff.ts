@@ -98,7 +98,7 @@ export function beginFailHandoff(options: {
   m.reason = options.reason.trim() || "fail";
   m.atMs = Date.now();
   m.handshakeAtMs = null;
-  options.log("Caught error. Handing off to agent....", "fail");
+  options.log("Caught error. Ask agent with the prompt: uxml control", "fail");
   return peekFailHandoff();
 }
 

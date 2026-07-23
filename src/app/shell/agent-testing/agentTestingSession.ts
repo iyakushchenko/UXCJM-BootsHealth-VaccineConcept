@@ -120,23 +120,30 @@ export function wasEscalatedFromObserve(): boolean {
 export function titleForSessionKind(kind: AgentTestingSessionKind): string {
   switch (kind) {
     case "manual":
-      return "MANUAL TEST";
+      return "Manual QA";
     case "observe":
       return "OBSERVE";
     default:
-      return "AGENT TESTING";
+      return "Agent control";
   }
 }
 
 export function hintForSessionKind(kind: AgentTestingSessionKind): string {
   switch (kind) {
     case "manual":
-      return "MANUAL TEST — CAPTURE to start; Pause freezes the clock.";
+      return "No test selected — press CAPTURE to log your own clicks.";
     case "observe":
       return "OBSERVE — capturing clicks; Close × to dismiss.";
     default:
       return "AGENT TESTING — Pause freezes the clock; Alarm stops + investigates.";
   }
+}
+
+/** Contextual hint when a suite is selected in the dropdown. */
+export function hintForSuiteSelection(suiteId: string, description?: string): string {
+  if (!suiteId) return "No test selected — press CAPTURE to log your own clicks.";
+  if (description) return `${description}. Press Run to execute.`;
+  return "Select a test and press Run to execute.";
 }
 
 /**

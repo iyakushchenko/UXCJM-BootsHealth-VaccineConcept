@@ -1,17 +1,17 @@
 import {
   APPOINTMENTS,
   APPOINTMENT_COUNT,
-  getAppointmentRefundPilotQuery,
   getAppointmentStatusTone,
-  isTerminalAppointmentStatus,
-  setSelectedAppointmentId,
   type Appointment,
 } from "@/projects/boots-pharmacy/data/appointments";
 import {
   MA_NAV_LINKED_LABELS,
   MaNavigationPanel,
 } from "@/projects/boots-pharmacy/chrome/MaNavigationPanel";
-import { ButtonPrimary } from "@/uxds/components";
+import {
+  AppointmentCard,
+  type AppointmentCardRow,
+} from "@/projects/boots-pharmacy/screens/shared/AppointmentCard";
 import {
   APPOINTMENT_HISTORY_HELP_LINK,
   APPOINTMENT_HISTORY_HELP_PREFIX,
@@ -34,9 +34,7 @@ export type AppointmentHistoryScreenProps = {
   onSitePilotHome: (query: string) => void;
 };
 
-type InfoRow = { label: string; value: string; tone?: ReturnType<typeof getAppointmentStatusTone> };
-
-function appointmentRows(appt: Appointment): InfoRow[] {
+function appointmentRows(appt: Appointment): AppointmentCardRow[] {
   return [
     { label: "Appointment number", value: appt.id },
     {
@@ -53,34 +51,6 @@ function appointmentRows(appt: Appointment): InfoRow[] {
     { label: "Appointment date", value: appt.appointmentDate },
     { label: "Total", value: appt.total.toFixed(2) },
   ];
-}
-
-function EditIcon() {
-  return (
-    <span className="appointment-history__icon" data-name="icon=edit" aria-hidden>
-      <svg viewBox="0 0 16 16" fill="none">
-        <path
-          fill="#AFCCCA"
-          d="M11.3 1.7a1.5 1.5 0 012.1 2.1L5.2 12 2 13l1-3.2L11.3 1.7z"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function CancelIcon() {
-  return (
-    <span className="appointment-history__icon" data-name="icon=cancel" aria-hidden>
-      <svg viewBox="0 0 16 16" fill="none">
-        <path
-          stroke="#AFCCCA"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          d="M4 4l8 8M12 4l-8 8"
-        />
-      </svg>
-    </span>
-  );
 }
 
 function ChevronDownIcon() {
@@ -106,151 +76,6 @@ function PlusIcon() {
         <path fill="#AFCCCA" d="M7 1h2v6h6v2H9v6H7V9H1V7h6V1z" />
       </svg>
     </span>
-  );
-}
-
-function openDetails(appt: Appointment, onOpenDetails: () => void) {
-  setSelectedAppointmentId(appt.id);
-  onOpenDetails();
-}
-
-function AppointmentCard({
-  appt,
-  onOpenDetails,
-  onSitePilotHome,
-}: {
-  appt: Appointment;
-  onOpenDetails: () => void;
-  onSitePilotHome: (query: string) => void;
-}) {
-  const terminal = isTerminalAppointmentStatus(appt.status);
-  const rows = appointmentRows(appt);
-
-  return (
-    <article
-      className="appointment-history__card"
-      data-name="boots-pharmacy.component.ma.acc.overview.recent.order"
-      data-studio-appointment-id={appt.id}
-    >
-      <button
-        type="button"
-        className="appointment-history__card-title"
-        onClick={() => openDetails(appt, onOpenDetails)}
-        onKeyDown={(e) => {
-          if (e.key !== "Enter" && e.key !== " ") return;
-          e.preventDefault();
-          openDetails(appt, onOpenDetails);
-        }}
-      >
-        {`Appointment #${appt.id}`}
-      </button>
-
-      <div className="appointment-history__card-info">
-        <div className="appointment-history__rows">
-          {rows.map((row) =>
-            row.label === "Total" ? (
-              <div className="appointment-history__row" data-name="row" key={row.label}>
-                <span className="appointment-history__row-label">{row.label}</span>
-                <span
-                  className="appointment-history__price"
-                  data-name="component.product.price"
-                >
-                  <span>£</span>
-                  <span>{row.value}</span>
-                </span>
-              </div>
-            ) : (
-              <div className="appointment-history__row" data-name="row" key={row.label}>
-                <span className="appointment-history__row-label">{row.label}</span>
-                <span
-                  className={
-                    row.tone
-                      ? `appointment-history__row-value appointment-history__status--${row.tone}`
-                      : "appointment-history__row-value"
-                  }
-                >
-                  {row.value}
-                </span>
-              </div>
-            )
-          )}
-
-          {appt.refundPendingNote ? (
-            <div
-              className="appointment-history__row"
-              data-name="row"
-              data-studio-refund-pending-row="true"
-            >
-              <span className="appointment-history__row-label" aria-hidden>
-                {"\u00a0"}
-              </span>
-              <span className="appointment-history__row-value">
-                <span className="appointment-history__status--cancelled">
-                  {appt.refundPendingNote.prefix}
-                </span>
-                <button
-                  type="button"
-                  className="uxds-link appointment-history__refund-link"
-                  onClick={() =>
-                    onSitePilotHome(getAppointmentRefundPilotQuery(appt))
-                  }
-                >
-                  {appt.refundPendingNote.linkLabel}
-                </button>
-              </span>
-            </div>
-          ) : null}
-
-          {appt.cancellationReason ? (
-            <div
-              className="appointment-history__row"
-              data-name="row"
-              data-studio-cancellation-reason-row="true"
-            >
-              <span className="appointment-history__row-label">
-                Cancellation reason
-              </span>
-              <span className="appointment-history__row-value appointment-history__status--cancelled">
-                {appt.cancellationReason}
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="appointment-history__ctas" data-name="CTAs">
-        <ButtonPrimary
-          className="appointment-history__view-details uxds-btn-primary--commerce"
-          data-studio-action="history-view-details"
-          data-studio-appointment-view-details="true"
-          onClick={() => openDetails(appt, onOpenDetails)}
-        >
-          View Details
-        </ButtonPrimary>
-        {!terminal ? (
-          <>
-            <button
-              type="button"
-              className="appointment-history__icon-btn"
-              data-name="component.input.button"
-              data-studio-appointment-edit="true"
-            >
-              <EditIcon />
-              <span>Edit</span>
-            </button>
-            <button
-              type="button"
-              className="appointment-history__icon-btn appointment-history__icon-btn--cancel"
-              data-name="component.input.button"
-              data-studio-appointment-cancel="true"
-            >
-              <CancelIcon />
-              <span>Cancel</span>
-            </button>
-          </>
-        ) : null}
-      </div>
-    </article>
   );
 }
 
@@ -345,6 +170,8 @@ export function AppointmentHistoryScreen({
                   <AppointmentCard
                     key={appt.id}
                     appt={appt}
+                    rows={appointmentRows(appt)}
+                    variant="history"
                     onOpenDetails={onOpenDetails}
                     onSitePilotHome={onSitePilotHome}
                   />

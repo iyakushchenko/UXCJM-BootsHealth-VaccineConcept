@@ -1,10 +1,8 @@
 import {
   APPOINTMENTS,
   getAppointment,
-  getAppointmentRefundPilotQuery,
   getAppointmentStatusTone,
   getSelectedAppointmentId,
-  isTerminalAppointmentStatus,
   setSelectedAppointmentId,
   type Appointment,
 } from "@/projects/boots-pharmacy/data/appointments";
@@ -24,6 +22,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/uxds/interactions";
+import {
+  AppointmentCard,
+  type AppointmentCardRow,
+} from "@/projects/boots-pharmacy/screens/shared/AppointmentCard";
 import {
   APPOINTMENT_DETAILS_BILLING_LINES,
   APPOINTMENT_DETAILS_BILLING_NAME,
@@ -51,12 +53,6 @@ export type AppointmentDetailsScreenProps = {
   onSitePilotHome: (query: string) => void;
 };
 
-type InfoRow = {
-  label: string;
-  value: string;
-  tone?: ReturnType<typeof getAppointmentStatusTone>;
-};
-
 function resolveSelectedAppointment(): Appointment {
   const id = getSelectedAppointmentId();
   const appt = getAppointment(id) ?? APPOINTMENTS[0];
@@ -67,7 +63,7 @@ function resolveSelectedAppointment(): Appointment {
   return appt;
 }
 
-function appointmentRows(appt: Appointment): InfoRow[] {
+function appointmentRows(appt: Appointment): AppointmentCardRow[] {
   return [
     { label: "Appointment number", value: appt.id },
     {
@@ -84,34 +80,6 @@ function appointmentRows(appt: Appointment): InfoRow[] {
     { label: "Date and Time", value: appt.appointmentDate },
     { label: "Total", value: appt.total.toFixed(2) },
   ];
-}
-
-function EditIcon() {
-  return (
-    <span className="appointment-details__icon" data-name="icon=edit" aria-hidden>
-      <svg viewBox="0 0 16 16" fill="none">
-        <path
-          fill="#AFCCCA"
-          d="M11.3 1.7a1.5 1.5 0 012.1 2.1L5.2 12 2 13l1-3.2L11.3 1.7z"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function CancelIcon() {
-  return (
-    <span className="appointment-details__icon" data-name="icon=cancel" aria-hidden>
-      <svg viewBox="0 0 16 16" fill="none">
-        <path
-          stroke="#AFCCCA"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          d="M4 4l8 8M12 4l-8 8"
-        />
-      </svg>
-    </span>
-  );
 }
 
 function VisaMark() {
@@ -234,123 +202,6 @@ function BuyerInfoStatic() {
   );
 }
 
-function DetailCard({
-  appt,
-  onSitePilotHome,
-}: {
-  appt: Appointment;
-  onSitePilotHome: (query: string) => void;
-}) {
-  const terminal = isTerminalAppointmentStatus(appt.status);
-  const rows = appointmentRows(appt);
-
-  return (
-    <article
-      className="appointment-details__card"
-      data-name="boots-pharmacy.component.ma.acc.overview.recent.order"
-      data-studio-appointment-id={appt.id}
-    >
-      <h2 className="appointment-details__card-title">{`Appointment #${appt.id}`}</h2>
-
-      <div className="appointment-details__card-info">
-        <div className="appointment-details__rows">
-          {rows.map((row) =>
-            row.label === "Total" ? (
-              <div className="appointment-details__row" data-name="row" key={row.label}>
-                <span className="appointment-details__row-label">{row.label}</span>
-                <span
-                  className="appointment-details__price"
-                  data-name="component.product.price"
-                >
-                  <span>£</span>
-                  <span>{row.value}</span>
-                </span>
-              </div>
-            ) : (
-              <div className="appointment-details__row" data-name="row" key={row.label}>
-                <span className="appointment-details__row-label">{row.label}</span>
-                <span
-                  className={
-                    row.tone
-                      ? `appointment-details__row-value appointment-details__status--${row.tone}`
-                      : "appointment-details__row-value"
-                  }
-                >
-                  {row.value}
-                </span>
-              </div>
-            )
-          )}
-
-          {appt.refundPendingNote ? (
-            <div
-              className="appointment-details__row"
-              data-name="row"
-              data-studio-refund-pending-row="true"
-            >
-              <span className="appointment-details__row-label" aria-hidden>
-                {"\u00a0"}
-              </span>
-              <span className="appointment-details__row-value">
-                <span className="appointment-details__status--cancelled">
-                  {appt.refundPendingNote.prefix}
-                </span>
-                <button
-                  type="button"
-                  className="uxds-link appointment-details__refund-link"
-                  onClick={() =>
-                    onSitePilotHome(getAppointmentRefundPilotQuery(appt))
-                  }
-                >
-                  {appt.refundPendingNote.linkLabel}
-                </button>
-              </span>
-            </div>
-          ) : null}
-
-          {appt.cancellationReason ? (
-            <div
-              className="appointment-details__row"
-              data-name="row"
-              data-studio-cancellation-reason-row="true"
-            >
-              <span className="appointment-details__row-label">
-                Cancellation reason
-              </span>
-              <span className="appointment-details__row-value appointment-details__status--cancelled">
-                {appt.cancellationReason}
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {!terminal ? (
-        <div className="appointment-details__ctas" data-name="CTAs">
-          <button
-            type="button"
-            className="appointment-details__icon-btn"
-            data-name="component.input.button"
-            data-studio-appointment-edit="true"
-          >
-            <EditIcon />
-            <span>Edit</span>
-          </button>
-          <button
-            type="button"
-            className="appointment-details__icon-btn appointment-details__icon-btn--cancel"
-            data-name="component.input.button"
-            data-studio-appointment-cancel="true"
-          >
-            <CancelIcon />
-            <span>Cancel</span>
-          </button>
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
 export function AppointmentDetailsScreen({
   onGoHistory,
   onSitePilotHome,
@@ -418,7 +269,12 @@ export function AppointmentDetailsScreen({
                 {APPOINTMENT_DETAILS_TITLE}
               </h1>
 
-              <DetailCard appt={appt} onSitePilotHome={onSitePilotHome} />
+              <AppointmentCard
+                appt={appt}
+                rows={appointmentRows(appt)}
+                variant="details"
+                onSitePilotHome={onSitePilotHome}
+              />
 
               <Accordion
                 type="single"

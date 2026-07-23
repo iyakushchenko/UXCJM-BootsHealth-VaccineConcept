@@ -91,6 +91,16 @@
   outline-offset: 2px;
 }
 
+/* Radix auto-focuses a child (or itself) the instant a shell popup opens —
+   browsers often paint a visible ring for that programmatic focus even on
+   mouse/hover-triggered opens. Suppress every focus ring inside while this
+   is set; useSuppressDialogAutoFocusRing clears it on the first real
+   keydown so genuine keyboard Tab navigation still shows rings normally. */
+[data-studio-suppress-focus-ring="true"],
+[data-studio-suppress-focus-ring="true"] * {
+  outline: none !important;
+}
+
 .studio-nav-product-about__head {
   display: flex;
   align-items: center;

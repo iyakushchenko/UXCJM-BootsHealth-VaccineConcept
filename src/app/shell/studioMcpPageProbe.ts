@@ -24,6 +24,7 @@ import {
   DEFAULT_SETTLE_MS,
   ensureAgentTestingOverlayDomArmed,
   forceClearAgentTestingOverlay,
+  isAgentTestingOverlayActive,
   isAgentTestingOverlayDomVisible,
   logAgentTestingOverlay,
   logAgentTestingStep,
@@ -36,6 +37,7 @@ import {
   touchAgentTestingOverlay,
 } from "@/app/shell/agent-testing/agentTestingOverlay";
 import { logControlPanel } from "@/app/shell/controlPanelLog";
+import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
 import { isMakeParkedForScreen } from "@/projects/boots-pharmacy/screens/retireMakeUnderPage";
 /** Ensure Boots screen recipes are registered before probe resolve. */
 import "@/projects/boots-pharmacy/screens/registerMcpPageProbes";
@@ -1254,14 +1256,25 @@ export async function runMcpPageProbe(
     requestMcpTestAbort("superseded");
     endMcpTestSession(prior.id);
   }
+  // A PO-owned Manual/Observe QA session already open must not be silently
+  // hijacked into AGENT TESTING kind by this internal probe (2026-07-23
+  // self-test kind-hijack bug class — same root cause as mcp-sanity: running
+  // "Test current page" from a Manual/Observe QA popup force-stamped the
+  // panel to AGENT + "agent mcp" chrome). Only cold-start fresh AGENT kind
+  // when nothing owns the panel yet; otherwise nest into the owning session.
+  const ownedByOtherSession = isAgentTestingOverlayActive();
   const sessionId = beginMcpTestSession(`page-probe-${screenId}`);
   enableCursorQaEyes();
   // Pre-arm FIRST — BR panel visible before any click so PO can prepare.
   // Single start (not touch+start) — avoids nest>1 so stop() always enters sitrep.
-  startAgentTestingOverlay("AGENT TESTING — preparing…");
-  const overlayArmed = ensureAgentTestingOverlayDomArmed(
-    "AGENT TESTING — preparing…"
-  );
+  if (ownedByOtherSession) {
+    touchAgentTestingOverlay("AGENT TESTING — preparing…", { preserveLogger: true });
+  } else {
+    startAgentTestingOverlay("AGENT TESTING — preparing…");
+  }
+  const overlayArmed = ownedByOtherSession
+    ? isAgentTestingOverlayDomVisible()
+    : ensureAgentTestingOverlayDomArmed("AGENT TESTING — preparing…");
 
   try {
     if (!overlayArmed || !isAgentTestingOverlayDomVisible()) {
@@ -1289,9 +1302,15 @@ export async function runMcpPageProbe(
       title: "AGENT TESTING — preparing…",
     });
     // Re-title without nest bump so finally stop() still enters sitrep once.
-    touchAgentTestingOverlay(`AGENT TESTING — ${screenId} probe`);
+    // Owned PO session keeps its own title/kind — never kind-blind-stamp it.
+    touchAgentTestingOverlay(`AGENT TESTING — ${screenId} probe`, {
+      preserveLogger: true,
+    });
 
-    if (!ensureAgentTestingOverlayDomArmed(`AGENT TESTING — ${screenId} probe`)) {
+    const rearmed = ownedByOtherSession
+      ? isAgentTestingOverlayDomVisible()
+      : ensureAgentTestingOverlayDomArmed(`AGENT TESTING — ${screenId} probe`);
+    if (!rearmed) {
       const detail = "overlay vanished during pre-arm";
       logAgentTestingOverlay(`FAIL  overlay-arm — ${detail}`);
       checks.push({ id: "overlay-prearm", pass: false, detail });
@@ -1346,6 +1365,24 @@ export async function runMcpPageProbe(
       ) {
         break;
       }
+      // R15 universal gate — a live Alarm/diagnostic firing mid-probe (e.g. a
+      // real scroll-camera anomaly) means the page genuinely misbehaved; the
+      // probe must not report PASS while an unconsumed PO signal is sitting
+      // open (2026-07-23 "why title says PASS" bug — every other smoke in
+      // studioMcpHelpers.ts/playJourneySmoke.ts already polls this shared
+      // gate each step; this probe never did, so real regressions during a
+      // page-probe run were silently swallowed into a green RESULT).
+      const po = pollSmokePoSignal({
+        context: `page-probe:${screenId}:${step.id}`,
+      });
+      if (po.hit && po.abort) {
+        checks.push({
+          id: "po-signal",
+          pass: false,
+          detail: `${po.reason} — ${po.signal.note ?? po.signal.code}`,
+        });
+        break;
+      }
     }
 
     const urlScreen = parseStudioUrl().screenId;
@@ -1380,16 +1417,22 @@ export async function runMcpPageProbe(
     // 1) stop → sitrep (enterSettle already resets URL + closes popups)
     // 2) resetStudioAfterAgentTest again — strip `&modal=` + closeAllPopups event
     // 3) ensureClear → forceClear if overlay DOM still present after settle
-    try {
-      stopAgentTestingOverlay({
-        // Default false — agent testing must not reload-loop Chrome.
-        reload: options?.reload === true,
-        resetToHub: options?.resetToHub === true,
-        settleMs,
-        result: probePass ? "pass" : "fail",
-      });
-    } catch {
-      forceClearAgentTestingOverlay();
+    // Nested into a PO-owned session we did not start — never settle/Finale
+    // it just because this probe finished; the outer suite runner (or the
+    // PO) owns that session's lifecycle (2026-07-23 kind-hijack bug class).
+    if (!ownedByOtherSession) {
+      try {
+        stopAgentTestingOverlay({
+          // Default false — agent testing must not reload-loop Chrome.
+          reload: options?.reload === true,
+          resetToHub: options?.resetToHub === true,
+          settleMs,
+          result: probePass ? "pass" : "fail",
+        });
+      } catch {
+        forceClearAgentTestingOverlay();
+      }
+      scheduleAgentTestingOverlayEnsureClear(settleMs + 1000);
     }
     try {
       resetStudioAfterAgentTest({
@@ -1398,7 +1441,6 @@ export async function runMcpPageProbe(
     } catch {
       /* never leave modal sticky because reset threw */
     }
-    scheduleAgentTestingOverlayEnsureClear(settleMs + 1000);
     disableCursorQaEyes();
     endMcpTestSession(sessionId);
   }

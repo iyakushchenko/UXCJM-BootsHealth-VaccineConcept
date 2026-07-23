@@ -12,6 +12,7 @@ import {
   startQaSuiteById,
 } from "@/app/shell/qaAutonomousSuite";
 import { openAgentTestingLogger } from "@/app/shell/agent-testing/agentTestingOverlay";
+import { useSuppressDialogAutoFocusRing } from "@/app/shell/useSuppressDialogAutoFocusRing";
 
 function WarningIcon({ size = 13 }: { size?: number }) {
   return (
@@ -36,6 +37,7 @@ export function StudioNavCompatibilityDialog({
   projectLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const { panelRef } = useSuppressDialogAutoFocusRing<HTMLDivElement>();
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [suiteStatus, setSuiteStatus] = useState(getAutonomousQaSuiteStatus);
   const summary = useMemo(() => buildCjmCompatibilitySummary(metadataById), [metadataById]);
@@ -64,7 +66,7 @@ export function StudioNavCompatibilityDialog({
 
   const runTests = () => {
     if (running) return;
-    openAgentTestingLogger({ kind: "agent", title: "AGENT TESTING — all CJMs" });
+    openAgentTestingLogger({ kind: "manual" });
     const result = startQaSuiteById("all-cjms");
     if (result.accepted) setOpen(false);
   };
@@ -90,7 +92,11 @@ export function StudioNavCompatibilityDialog({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="studio-nav-product-about__overlay" />
-        <Dialog.Content className="studio-global-diagnostics" data-studio-modal="global-cjm-diagnostics">
+        <Dialog.Content
+          ref={panelRef}
+          className="studio-global-diagnostics"
+          data-studio-modal="global-cjm-diagnostics"
+        >
           <header className="studio-global-diagnostics__header">
             <span className="studio-global-diagnostics__header-icon"><WarningIcon size={16} /></span>
             <div>

@@ -304,6 +304,19 @@ if (back?.messagePendingWork) {
 
 ---
 
+## MCP glyph = in-app latch, not a literal "Cursor MCP attached" detector (HARD)
+
+**Header nav + QA panel MCP icon** (silver = disconnected, green = connected) reflects the **in-app AGENT TESTING presence latch** (`agentTestingPresence.ts`), never a real browser signal that Cursor's Chrome DevTools MCP is attached. There is **no** web API to detect a remote CDP client debugging an already-open tab (`navigator.webdriver` only fires for browsers *launched* under automation, not for `list_pages`/`select_page` reuse of a normal tab per R11). Hover text always disambiguates: `(In-app testing latch (not Cursor MCP))`.
+
+**Consequence:** a raw `click` / `evaluate_script` / `take_screenshot` via Chrome DevTools MCP does **not** by itself light the icon green — it stays honestly **disconnected** unless the latch was touched. Green requires one of:
+
+- `window.__studioAgentTestingOverlay.touch(source?)` — "safe to call on every helper / DevTools evaluate"; does not bump nest, does not steal PO MANUAL/OBSERVE.
+- Any of the existing arm/start helpers (`__studioArmRecCapture`, `startAgentTestingOverlay`, `__studioRunFullPlayProve`, etc.) which already call `touchQaAgentPresence` internally.
+
+**Habit going forward:** when doing live MCP verification work outside a formal REC/Play prove helper (e.g. ad-hoc `evaluate_script`/`click` probing), call `.touch('<short-source>')` once at the start of the session so the icon honestly reflects "an agent is actively working the page" for the duration (8s heartbeat TTL — re-touch or use a prove helper for longer sessions).
+
+---
+
 ## Autonomous QA suites (1–100 tests)
 
 Submit once; the in-product runner owns sequencing and stops on the first non-pass:

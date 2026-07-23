@@ -141,7 +141,7 @@ describe("agentTesting wipe hygiene (forceClear / softClose)", () => {
     expect(isAgentTestingOverlayActive()).toBe(true);
   });
 
-  it("bug toggle reclaims AGENT TESTING → MANUAL TEST", () => {
+  it("bug toggle reclaims AGENT TESTING → Manual QA", () => {
     openAgentTestingLogger({ kind: "agent" });
     expect(getSessionKind()).toBe("agent");
     toggleAgentTestingLogger();

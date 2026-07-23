@@ -250,7 +250,7 @@ export function runQaSelfTestPureChecks(): QaSelfTestSmokeResult["checks"] {
       "session-origin-active",
       host === "Localhost:5173" &&
         formatOriginSessionLine("active", host) ===
-          "Session: Localhost:5173 - Active",
+          "Localhost:5173 · Active",
       host
     )
   );

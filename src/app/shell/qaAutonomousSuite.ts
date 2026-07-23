@@ -22,7 +22,7 @@ export const QA_SUITE_COLLECTION: ReadonlyArray<{
   description: string;
   tests: readonly QaSuiteTest[];
 }> = [
-  { id: "tool-health", label: "QA tool health", description: "Non-destructive live logger and runner sanity", tests: [{ id: "mcp-sanity" }] },
+  { id: "tool-health", label: "QA tool health", description: "Verify the QA tool itself works: overlay renders, events capture, and agent connection responds", tests: [{ id: "mcp-sanity" }] },
   { id: "current-page", label: "Test current page", description: "Run the current project's registered page contract", tests: [{ id: "mcp-page-probe" }] },
   { id: "current-interactions", label: "Map current page interactions", description: "Inventory and grade every visible interactive candidate without activating it", tests: [{ id: "map-current-interactions" }] },
   { id: "all-interactions", label: "Map all project interactions", description: "Inventory Hub and every registered project page into one machine-readable report", tests: [{ id: "map-all-interactions" }] },
@@ -111,6 +111,19 @@ function publish(): void {
 
 export function getAutonomousQaSuiteStatus(): QaSuiteStatus {
   return structuredClone(status);
+}
+
+/**
+ * Wipe the last completed/failed suite run back to idle. A manual Session
+ * Reset must not leave stale pass/fail touchpoints (e.g. "QA tool health")
+ * behind for a Free Mode dropdown to keep rendering.
+ */
+export function resetAutonomousQaSuiteStatus(): void {
+  if (status.phase === "running") return;
+  activeTests = [];
+  status = emptyStatus();
+  runToken += 1;
+  publish();
 }
 
 export function startAutonomousQaSuite(

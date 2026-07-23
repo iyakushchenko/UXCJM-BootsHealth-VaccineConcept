@@ -76,7 +76,7 @@ export function formatOriginSessionLine(
       : status === "offline"
         ? "Offline"
         : "Checking…";
-  return `Session: ${hostLabel} - ${state}`;
+  return `${hostLabel} · ${state}`;
 }
 
 /** Probe page origin — HEAD then GET fallback. */

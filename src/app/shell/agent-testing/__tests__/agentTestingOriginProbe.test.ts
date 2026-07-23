@@ -33,12 +33,12 @@ describe("agentTestingOriginProbe", () => {
     ).toBe("Localhost:5173");
   });
 
-  it("builds Session: host - status line", () => {
+  it("builds host · status line", () => {
     expect(formatOriginSessionLine("active", "Localhost:5173")).toBe(
-      "Session: Localhost:5173 - Active"
+      "Localhost:5173 · Active"
     );
     expect(formatOriginSessionLine("offline", "Localhost:5173")).toBe(
-      "Session: Localhost:5173 - Offline"
+      "Localhost:5173 · Offline"
     );
   });
 
@@ -50,7 +50,7 @@ describe("agentTestingOriginProbe", () => {
     // happy-dom location
     expect(await probeStudioOrigin()).toBe("active");
     expect(peekOriginLiveStatus()).toBe("active");
-    expect(formatOriginSessionLine()).toMatch(/^Session: .+ - Active$/);
+    expect(formatOriginSessionLine()).toMatch(/^.+ · Active$/);
   });
 
   it("probe marks Offline when fetch fails", async () => {

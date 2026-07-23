@@ -116,10 +116,10 @@ describe("agentTestingOverlay", () => {
       resolveAgentTestingOverlayTitle(
         "AGENT TESTING — __studioEnsureCleanStudio"
       )
-    ).toBe("AGENT TESTING");
+    ).toBe("Agent control");
     expect(
       resolveAgentTestingOverlayTitle("__studioEnsureCleanStudio")
-    ).toBe("AGENT TESTING");
+    ).toBe("Agent control");
     expect(resolveAgentTestingOverlayTitle("AGENT TESTING — mcp-sanity")).toBe(
       "AGENT TESTING — mcp-sanity"
     );
@@ -359,9 +359,9 @@ describe("agentTestingOverlay", () => {
       "FAIL - Auto-closes in 9s (then reload)"
     );
     expect(formatSitrepHint(0, false)).toBe("Auto-closes in 0s");
-    expect(formatSitrepHeldHint()).toBe("Held open — Close when done");
+    expect(formatSitrepHeldHint()).toBe("");
     expect(formatSitrepHeldHint("fail")).toBe(
-      "FAIL - Held open — Close when done"
+      "FAIL"
     );
     expect(formatSitrepTitle("pass")).toBe("AGENT DONE - PASS");
     expect(formatSitrepTitle("fail")).toBe("AGENT DONE - FAIL");
@@ -379,7 +379,7 @@ describe("agentTestingOverlay", () => {
     expect(formatActivityStatus("settling", "complete-fail")).toBe(
       "Complete — FAIL"
     );
-    expect(formatActivityStatus("paused", undefined, "manual")).toBe("Paused");
+    expect(formatActivityStatus("paused", undefined, "manual")).toBe("Ready");
     expect(formatActivityStatus("running", "logger", "manual")).toBe(
       "Capturing"
     );

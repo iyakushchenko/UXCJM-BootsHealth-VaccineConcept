@@ -33,15 +33,15 @@ describe("qaPopupActionState — user agentic QA mode", () => {
       capturePaused: true,
       sessionHadProgress: false,
     });
-    expect(chrome.runTestUnavailable).toBe(true);
-    expect(chrome.suitePickerVisible).toBe(false);
-    expect(chrome.primary.kind).toBe("capture");
-    expect(chrome.primary.label).toBe("CAPTURE");
+    expect(chrome.runTestUnavailable).toBe(false);
+    expect(chrome.suitePickerVisible).toBe(true);
+    expect(chrome.primary.kind).toBe("run-test");
+    expect(chrome.primary.label).toBe("Run");
     expect(chrome.primary.hidden).toBe(false);
-    expect(canActivateRunTestFromPopup(chrome.state)).toBe(false);
+    expect(canActivateRunTestFromPopup(chrome.state)).toBe(true);
   });
 
-  it("observe agentic-user never exposes Run Test", () => {
+  it("observe agentic-user with suite selected shows Run", () => {
     const chrome = resolveQaPopupActionsChrome({
       active: true,
       settling: false,
@@ -52,15 +52,32 @@ describe("qaPopupActionState — user agentic QA mode", () => {
       sessionHadProgress: true,
     });
     expect(chrome.state).toBe("agentic-user");
+    expect(chrome.primary.kind).toBe("run-test");
+    expect(chrome.primary.label).toBe("Run");
+    expect(chrome.runTestUnavailable).toBe(false);
+    expect(chrome.suitePickerVisible).toBe(true);
+  });
+
+  it("observe agentic-user without suite shows Pause (free mode)", () => {
+    const chrome = resolveQaPopupActionsChrome({
+      active: true,
+      settling: false,
+      sessionKind: "observe",
+      selectedSuiteId: "",
+      suitePhase: "idle",
+      capturePaused: false,
+      sessionHadProgress: true,
+    });
+    expect(chrome.state).toBe("agentic-user");
     expect(chrome.primary.kind).toBe("capture");
     expect(chrome.primary.label).toBe("Pause");
     expect(chrome.runTestUnavailable).toBe(true);
-    expect(chrome.suitePickerVisible).toBe(false);
+    expect(chrome.suitePickerVisible).toBe(true);
   });
 });
 
 describe("qaPopupActionState — suite / control-room", () => {
-  it("suite-armed when agent + suite selected → Run Test available", () => {
+  it("suite-armed when agent + suite selected → Run Test hidden (agent-driven)", () => {
     const chrome = resolveQaPopupActionsChrome({
       active: true,
       settling: false,
@@ -74,15 +91,15 @@ describe("qaPopupActionState — suite / control-room", () => {
     expect(chrome.state).toBe("suite-armed");
     expect(chrome.primary.kind).toBe("run-test");
     expect(chrome.primary.label).toBe("Run Test");
-    expect(chrome.primary.hidden).toBe(false);
-    expect(chrome.primary.disabled).toBe(false);
-    expect(chrome.primary.ariaDisabled).toBe(false);
-    expect(chrome.runTestUnavailable).toBe(false);
+    expect(chrome.primary.hidden).toBe(true);
+    expect(chrome.primary.disabled).toBe(true);
+    expect(chrome.primary.ariaDisabled).toBe(true);
+    expect(chrome.runTestUnavailable).toBe(true);
     expect(chrome.suitePickerVisible).toBe(true);
     expect(canActivateRunTestFromPopup(chrome.state)).toBe(true);
   });
 
-  it("prove when agent without suite → capture CTA, no Run Test", () => {
+  it("prove when agent without suite → capture CTA disabled (agent-driven)", () => {
     const chrome = resolveQaPopupActionsChrome({
       active: true,
       settling: false,
@@ -95,6 +112,7 @@ describe("qaPopupActionState — suite / control-room", () => {
     expect(chrome.state).toBe("prove");
     expect(chrome.primary.kind).toBe("capture");
     expect(chrome.primary.label).toBe("CAPTURE");
+    expect(chrome.primary.disabled).toBe(true);
     expect(chrome.runTestUnavailable).toBe(true);
     expect(chrome.suitePickerVisible).toBe(true);
     expect(canActivateRunTestFromPopup(chrome.state)).toBe(false);

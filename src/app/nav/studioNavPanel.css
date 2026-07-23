@@ -1156,7 +1156,8 @@
    (data-connected, set by agentTestingMcpChrome.ts). Fades between the
    two on the shared ease-in-out curve (== MOTION_EASE_IN_OUT). */
 .studio-nav-version__mcp {
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: help;
   display: inline-flex;
   align-items: center;
   justify-content: center;

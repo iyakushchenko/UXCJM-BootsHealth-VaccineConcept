@@ -3,6 +3,19 @@ import {
   compressProbeDelayMs,
   runMcpPageProbe,
 } from "@/app/shell/studioMcpPageProbe";
+import {
+  ensureAgentTestingOverlayDomArmed,
+  isAgentTestingOverlayActive,
+  startAgentTestingOverlay,
+  stopAgentTestingOverlay,
+  touchAgentTestingOverlay,
+} from "@/app/shell/agent-testing/agentTestingOverlay";
+import { pollSmokePoSignal } from "@/app/shell/smokePoSignalPoll";
+import { registerMcpPageProbeSteps } from "@/app/shell/mcpPageProbeRegistry";
+
+vi.mock("@/app/shell/smokePoSignalPoll", () => ({
+  pollSmokePoSignal: vi.fn(() => ({ hit: false })),
+}));
 
 const simulateDemoPointerClick = vi.fn(async () => true);
 const simulateDemoPointerHover = vi.fn(async () => true);
@@ -29,6 +42,7 @@ vi.mock("@/app/shell/agent-testing/agentTestingOverlay", () => ({
   touchAgentTestingOverlay: vi.fn(),
   ensureAgentTestingOverlayDomArmed: vi.fn(() => true),
   isAgentTestingOverlayDomVisible: vi.fn(() => true),
+  isAgentTestingOverlayActive: vi.fn(() => false),
 }));
 
 vi.mock("@/app/scenario/playbackScroll", () => ({
@@ -90,6 +104,8 @@ describe("runMcpPageProbe", () => {
     isBlockingModalOpen.mockReturnValue(false);
     isElementBlockedByModal.mockReset();
     isElementBlockedByModal.mockReturnValue(false);
+    vi.mocked(pollSmokePoSignal).mockReset();
+    vi.mocked(pollSmokePoSignal).mockReturnValue({ hit: false });
   });
 
   async function runProbe(
@@ -190,6 +206,76 @@ describe("runMcpPageProbe", () => {
     expect(result.checks.some((c) => c.id === "probe-recipe" && !c.pass)).toBe(
       true
     );
+  });
+
+  // Bug (2026-07-23): "Test current page" ran through the same unconditional
+  // startAgentTestingOverlay/stopAgentTestingOverlay path as the fixed
+  // mcp-sanity check — silently wiping and re-stamping AGENT kind over a
+  // PO's already-open Manual/Observe QA session.
+  it("never force-starts/stops the overlay when a PO session already owns it", async () => {
+    vi.mocked(isAgentTestingOverlayActive).mockReturnValue(true);
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=hub",
+        search: "?project=boots-pharmacy&screen=hub",
+      },
+    });
+    vi.stubGlobal("document", {
+      querySelector: () => null,
+    });
+
+    await runProbe({ screenId: "hub", reload: false });
+
+    expect(startAgentTestingOverlay).not.toHaveBeenCalled();
+    expect(stopAgentTestingOverlay).not.toHaveBeenCalled();
+    expect(ensureAgentTestingOverlayDomArmed).not.toHaveBeenCalled();
+    expect(touchAgentTestingOverlay).toHaveBeenCalledWith(
+      expect.any(String),
+      { preserveLogger: true }
+    );
+  });
+
+  // Bug (2026-07-23): "why title says PASS" — a real scroll-camera Alarm
+  // fired mid-probe (control-room diagnostic), but the probe's own checks
+  // list never noticed and still reported RESULT · PASS. Every other smoke
+  // (studioMcpHelpers.ts / playJourneySmoke.ts) already polls this shared
+  // PO-signal gate each step; the page-probe never did.
+  it("fails the probe when a live Alarm/diagnostic PO signal fires mid-run (universal gate)", async () => {
+    registerMcpPageProbeSteps("po-signal-test-screen", () => [
+      { id: "step-1", selector: "body", action: "assert", assert: () => true },
+      { id: "step-2", selector: "body", action: "assert", assert: () => true },
+    ]);
+    vi.mocked(pollSmokePoSignal).mockReturnValueOnce({
+      hit: true,
+      abort: true,
+      reason: "po-alarm:ALARM_SEQUENCE_MISMATCH",
+      signal: {
+        type: "alarm",
+        code: "ALARM_SEQUENCE_MISMATCH",
+        note: "Scroll jumped 1494px outside eased animation",
+      } as never,
+    });
+    vi.stubGlobal("window", {
+      location: {
+        href: "http://localhost:5173/?project=boots-pharmacy&screen=po-signal-test-screen",
+        search: "?project=boots-pharmacy&screen=po-signal-test-screen",
+      },
+    });
+    vi.stubGlobal("document", {
+      querySelector: () => ({ tagName: "BODY" }),
+    });
+
+    const result = await runProbe({
+      screenId: "po-signal-test-screen",
+      reload: false,
+    });
+
+    expect(result.pass).toBe(false);
+    expect(result.checks.some((c) => c.id === "po-signal" && !c.pass)).toBe(
+      true
+    );
+    // Aborted after step-1's poll hit — step-2 must never have run.
+    expect(result.checks.some((c) => c.id === "step-2")).toBe(false);
   });
 
   it("passes PLP recipe when React hosts and CTAs resolve", async () => {

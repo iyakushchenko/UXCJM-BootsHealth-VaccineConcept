@@ -120,6 +120,12 @@ const PRESERVE_LOGGER_HELPER_SUFFIXES = new Set([
   "ResumeRecording",
   "SaveRecordingAsJourney",
   "ClearRecording",
+  // Autonomous QA-suite self-tests run from a PO-owned Manual/Observe popup
+  // (Run CTA) — they own their own kind-aware start/touch internally; the
+  // generic wrap must not force-connect Observe into agent lock underneath
+  // them (2026-07-23 self-test dead-end/kind-hijack bug).
+  "RunMcpSanityCheck",
+  "RunMcpPageProbe",
 ]);
 
 /**
