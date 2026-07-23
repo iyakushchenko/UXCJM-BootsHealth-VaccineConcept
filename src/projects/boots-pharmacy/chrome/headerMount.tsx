@@ -1,10 +1,18 @@
 /**
- * Mount the Boots Pharmacy header as a direct child of the scroll container
- * by cloning the first available native Figma header. Supports logged-in/out
- * state toggling via "Log in" / "Sarah" label, with hover flyout menu.
+ * Mounts the hand-authored Boots Pharmacy `Header` (see `Header.tsx` /
+ * `headerContent.ts`) as a direct child of the scroll container. Replaces
+ * the former `sourceHeader.cloneNode(true)` on live Figma Make DOM — the
+ * header no longer reads from `frame/index.tsx` at runtime (contrast the
+ * still-live Make body/footer inside that file, out of scope for this
+ * lane). Supports logged-in/out state toggling via "Log in" / "Sarah"
+ * label, with hover flyout menu — same behavior contract as before, now
+ * driven by React state + re-render instead of imperative DOM mutation.
  */
-
-import userAvatar from "@/assets/user-avatar.jpg";
+import { createRoot, type Root } from "react-dom/client";
+import { flushSync } from "react-dom";
+import Header, {
+  type HeaderNavHandlers,
+} from "@/projects/boots-pharmacy/chrome/Header";
 import {
   isStudioLoggedIn,
   setStudioLoggedIn,
@@ -18,6 +26,7 @@ import {
 } from "@/projects/boots-pharmacy/data/savedLocations";
 import { attachHealthServicesMegaMenu } from "@/projects/boots-pharmacy/chrome/healthServicesMegaMenuMount";
 import { attachFullScreenSearch } from "@/projects/boots-pharmacy/chrome/fullScreenSearchMount";
+import userAvatar from "@/assets/user-avatar.jpg";
 
 const HEADER_MOUNT_CLASS = "proto-header-mount";
 
@@ -134,66 +143,45 @@ export function toggleWishlist(id: string): boolean {
   return wishlistSet.has(id);
 }
 
+// ── Header React root + re-render-driven avatar/badge cues ─────────────────
+// (replaces the old cloneNode + direct DOM mutation of `.proto-avatar-dot`
+// display / `.proto-header-flyout-badge*` background)
+
+let headerReactRoot: Root | null = null;
+let avatarDotVisible = false;
+let wishlistBadgeHighlight = false;
+let locationsBadgeHighlight = false;
+let avatarDotHideTimer: ReturnType<typeof setTimeout> | null = null;
+
 function showAvatarDot(): void {
-  if (!headerClone) return;
-  const avatar = headerClone.querySelector(`.${AVATAR_CLASS}:not(.${AVATAR_CLASS}--guest)`) as HTMLElement | null;
-  if (!avatar) return;
-  const parent = avatar.parentElement;
-  if (!parent) return;
-  parent.style.position = "relative";
-  let dot = parent.querySelector(".proto-avatar-dot") as HTMLElement | null;
-  if (!dot) {
-    dot = document.createElement("span");
-    dot.className = "proto-avatar-dot";
-    parent.appendChild(dot);
-  }
-  dot.style.display = "block";
-  dot.style.animation = "none";
-  void dot.offsetHeight;
-  dot.style.animation = "";
+  avatarDotVisible = true;
+  renderHeader();
 }
 
 function hideAvatarDotNow(): void {
-  if (!headerClone) return;
-  const dot = headerClone.querySelector(".proto-avatar-dot") as HTMLElement | null;
-  if (dot) dot.style.display = "none";
+  avatarDotVisible = false;
+  renderHeader();
 }
 
+/** Same timing as before: dot + badge highlight fade ~2s after the user notices them (hover-open). */
 function hideAvatarDot(): void {
-  if (!headerClone) return;
-  const dot = headerClone.querySelector(".proto-avatar-dot") as HTMLElement | null;
-  if (!dot) return;
-  setTimeout(() => {
-    dot.style.display = "none";
-    const wishlistBadge = flyoutEl?.querySelector(
-      ".proto-header-flyout-badge--wishlist"
-    ) as HTMLElement | null;
-    const locationsBadge = flyoutEl?.querySelector(
-      ".proto-header-flyout-badge--locations"
-    ) as HTMLElement | null;
-    if (wishlistBadge) wishlistBadge.style.background = "";
-    if (locationsBadge) locationsBadge.style.background = "";
+  if (avatarDotHideTimer) clearTimeout(avatarDotHideTimer);
+  avatarDotHideTimer = setTimeout(() => {
+    avatarDotVisible = false;
+    wishlistBadgeHighlight = false;
+    locationsBadgeHighlight = false;
+    renderHeader();
   }, 2000);
 }
 
 function updateFlyoutBadge(highlight = false): void {
-  const badge = flyoutEl?.querySelector(
-    ".proto-header-flyout-badge--wishlist"
-  ) as HTMLElement | null;
-  if (badge) {
-    badge.textContent = String(wishlistSet.size);
-    badge.style.background = highlight ? "#c8247e" : "";
-  }
+  wishlistBadgeHighlight = highlight;
+  renderHeader();
 }
 
 function updateLocationsFlyoutBadge(highlight = false): void {
-  const badge = flyoutEl?.querySelector(
-    ".proto-header-flyout-badge--locations"
-  ) as HTMLElement | null;
-  if (badge) {
-    badge.textContent = String(getSavedLocationsCount());
-    badge.style.background = highlight ? "#c8247e" : "";
-  }
+  locationsBadgeHighlight = highlight;
+  renderHeader();
 }
 
 function onSavedLocationsChange(): void {
@@ -213,35 +201,45 @@ export function toggleSavedLocationWithNotify(id: string): boolean {
 loadWishlist();
 if (wishlistSet.size === 0) { wishlistSet.add("chickenpox"); saveWishlist(); }
 
-let headerClone: HTMLElement | null = null;
-let flyoutEl: HTMLElement | null = null;
-let loginCallbacks: { onLoginChange?: (isLoggedIn: boolean) => void; onLoginClick?: (tab?: "signin" | "create") => void; onSignOut?: () => void; onNavigate?: (screenIndex: number) => void; onNavigateToPlp?: () => void } = {};
+let loginCallbacks: HeaderNavHandlers & { onLoginChange?: (isLoggedIn: boolean) => void } = {};
+
+function renderHeader(): void {
+  if (!headerReactRoot) return;
+  headerReactRoot.render(
+    <Header
+      isLoggedIn={isStudioLoggedIn()}
+      wishlistCount={wishlistSet.size}
+      savedLocationsCount={getSavedLocationsCount()}
+      avatarDotVisible={avatarDotVisible}
+      wishlistBadgeHighlight={wishlistBadgeHighlight}
+      locationsBadgeHighlight={locationsBadgeHighlight}
+      onNavigate={loginCallbacks.onNavigate}
+      onNavigateToPlp={loginCallbacks.onNavigateToPlp}
+      onLoginClick={loginCallbacks.onLoginClick}
+      onSignOut={() => {
+        setLoggedIn(false);
+        loginCallbacks.onSignOut?.();
+      }}
+      onAvatarHover={hideAvatarDot}
+    />,
+  );
+}
 
 /** Keep header chrome + wire mirrors in sync with studio auth SSoT. */
 subscribeStudioLoggedIn((next) => {
-  updateLoginLabel();
+  renderHeader();
   loginCallbacks.onLoginChange?.(next);
 });
 
-function findLoginLabel(el: HTMLElement): HTMLElement | null {
-  const allP = el.querySelectorAll<HTMLElement>("p");
-  for (const p of allP) {
-    const text = p.textContent?.trim();
-    if (text === "Log in" || text === "Sarah") return p;
-  }
-  const auxItems = el.querySelectorAll('[data-name="component.header.aux.nav.item"]');
-  if (auxItems.length >= 2) {
-    const lastItem = auxItems[auxItems.length - 1];
-    const p = lastItem.querySelector("p");
-    if (p) return p as HTMLElement;
-  }
-  return null;
+let savedLocationsListenerBound = false;
+
+function setLoggedIn(state: boolean): void {
+  // UI + onLoginChange run via subscribeStudioLoggedIn
+  setStudioLoggedIn(state);
 }
 
-const AVATAR_CLASS = "proto-header-avatar";
 const MA_AVATAR_CLASS = "proto-ma-account-avatar";
 const MA_ACCOUNT_ICON = '[data-name="icon / accent / account"]';
-const USER_ICON_SVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="1.5"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 
 /** MA sidebar — same photo asset as header Sarah avatar (tabs 8–9). */
 export function syncMaAccountAvatars(root: ParentNode = document): void {
@@ -261,336 +259,53 @@ export function syncMaAccountAvatars(root: ParentNode = document): void {
     img.src = userAvatar;
   });
 }
-const SEARCH_ICON_SVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="display:block"><circle cx="11" cy="11" r="7" stroke="#fff" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-
-function updateLoginLabel(): void {
-  if (!headerClone) return;
-  const label = findLoginLabel(headerClone);
-  if (!label) return;
-
-  const loggedIn = isStudioLoggedIn();
-  label.textContent = loggedIn ? "Sarah" : "Log in";
-
-  const item = label.closest('[data-name="component.header.aux.nav.item"]') || label.parentElement;
-  if (!item) { updateFlyoutContent(); return; }
-
-  // Remove existing avatar/icon
-  item.querySelector(`.${AVATAR_CLASS}`)?.remove();
-
-  // Remove original Figma icon placeholder divs on the login item (keep label + flyout)
-  const labelEl = item.querySelector("p");
-  Array.from(item.children).forEach((child) => {
-    if (child === labelEl || child === flyoutEl) return;
-    if (child.classList?.contains(AVATAR_CLASS)) return;
-    if (child.tagName === "P") return;
-    (child as HTMLElement).remove();
-  });
-
-  if (loggedIn) {
-    const img = document.createElement("img");
-    img.className = AVATAR_CLASS;
-    img.src = userAvatar;
-    img.alt = "Sarah";
-    item.insertBefore(img, label);
-  } else {
-    const placeholder = document.createElement("span");
-    placeholder.className = `${AVATAR_CLASS} ${AVATAR_CLASS}--guest`;
-    placeholder.innerHTML = USER_ICON_SVG;
-    item.insertBefore(placeholder, label);
-  }
-
-  updateFlyoutContent();
-}
-
-function fixSearchIcon(): void {
-  if (!headerClone) return;
-  const auxItems = headerClone.querySelectorAll<HTMLElement>('[data-name="component.header.aux.nav.item"]');
-  for (const item of auxItems) {
-    const text = (item.textContent ?? "").trim();
-    if (text.includes("Search") && !item.querySelector(".proto-header-search-icon")) {
-      const labelP = item.querySelector("p");
-      // Remove all Figma placeholder children except the label
-      Array.from(item.children).forEach((child) => {
-        if (child !== labelP && child.tagName !== "P") {
-          (child as HTMLElement).remove();
-        }
-      });
-      // Insert search SVG
-      const icon = document.createElement("span");
-      icon.className = "proto-header-search-icon";
-      icon.innerHTML = SEARCH_ICON_SVG;
-      if (labelP) item.insertBefore(icon, labelP);
-      break;
-    }
-  }
-}
-
-function setLoggedIn(state: boolean): void {
-  // UI + onLoginChange run via subscribeStudioLoggedIn
-  setStudioLoggedIn(state);
-}
-
-function createFlyout(anchorItem: HTMLElement): HTMLElement {
-  const flyout = document.createElement("div");
-  flyout.className = "proto-header-flyout";
-  flyout.style.cssText = `
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 18px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-    padding: 8px 0;
-    min-width: 180px;
-    z-index: 999;
-    display: none;
-    font-family: 'Open Sans', sans-serif;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
-  `;
-
-  anchorItem.style.position = "relative";
-  anchorItem.appendChild(flyout);
-  return flyout;
-}
-
-function hideFlyout(): void {
-  if (!flyoutEl) return;
-  flyoutEl.style.opacity = "0";
-  flyoutEl.style.transform = "translateY(6px)";
-  setTimeout(() => { flyoutEl!.style.display = "none"; }, 180);
-}
-
-function updateFlyoutContent(): void {
-  if (!flyoutEl) return;
-
-  if (isStudioLoggedIn()) {
-    flyoutEl.innerHTML = `
-      <div style="padding: 12px 16px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: 600; color: #3a3a3a;">Hi Sarah</div>
-      <button class="proto-header-flyout-item" data-action="account">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#888" stroke-width="1.5"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
-        My Account
-      </button>
-      <button class="proto-header-flyout-item" data-action="appointments">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#888" stroke-width="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span>My Appointments</span> <span class="proto-header-flyout-badge">3</span>
-      </button>
-      <button type="button" class="proto-header-flyout-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.5 7-11a7 7 0 10-14 0c0 6.5 7 11 7 11z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#888" stroke-width="1.5"/></svg>
-        <span>My Locations</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--locations">${getSavedLocationsCount()}</span>
-      </button>
-      <button class="proto-header-flyout-item" data-action="wishlist">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>My List</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--wishlist">${wishlistSet.size}</span>
-      </button>
-      <button class="proto-header-flyout-item" data-action="signout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="#c00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Sign Out
-      </button>
-    `;
-  } else {
-    flyoutEl.innerHTML = `
-      <button class="proto-header-flyout-item" data-action="login">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Log In
-      </button>
-      <button class="proto-header-flyout-item" data-action="create">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="10" cy="8" r="4" stroke="#888" stroke-width="1.5"/><path d="M2 20c0-4 4-6 8-6s8 2 8 6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/><path d="M19 8v6M16 11h6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Create Account
-      </button>
-      <button type="button" class="proto-header-flyout-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.5 7-11a7 7 0 10-14 0c0 6.5 7 11 7 11z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#888" stroke-width="1.5"/></svg>
-        <span>My Locations</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--locations">${getSavedLocationsCount()}</span>
-      </button>
-      <button class="proto-header-flyout-item" data-action="wishlist">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>My List</span> <span class="proto-header-flyout-badge proto-header-flyout-badge--wishlist">${wishlistSet.size}</span>
-      </button>
-    `;
-  }
-
-  // Bind click handlers
-  flyoutEl.querySelectorAll<HTMLElement>("[data-action]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const action = btn.dataset.action;
-      if (action === "login" || action === "create") {
-        hideFlyout();
-        loginCallbacks.onLoginClick?.(action === "create" ? "create" : "signin");
-      } else if (action === "appointments") {
-        hideFlyout();
-        loginCallbacks.onNavigate?.(7);
-      } else if (action === "signout") {
-        setLoggedIn(false);
-        hideFlyout();
-        loginCallbacks.onSignOut?.();
-      }
-    });
-  });
-}
-
-function injectFlyoutStyles(): void {
-  if (document.getElementById("proto-header-flyout-styles")) return;
-  const style = document.createElement("style");
-  style.id = "proto-header-flyout-styles";
-  style.textContent = `
-    .proto-header-flyout,
-    .proto-header-flyout * {
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .proto-header-flyout-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 12px 16px;
-      border: none;
-      background: none;
-      font-family: 'Open Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 400;
-      color: #3a3a3a;
-      cursor: default;
-      text-align: left;
-    }
-    .proto-header-flyout-item:hover {
-      background: #f5f5f5;
-    }
-
-    .proto-header-flyout::before {
-      content: '';
-      position: absolute;
-      top: -6px;
-      right: 26px;
-      width: 12px;
-      height: 12px;
-      background: white;
-      transform: rotate(45deg);
-      box-shadow: -2px -2px 4px rgba(0,0,0,0.04);
-    }
-  `;
-  document.head.appendChild(style);
-}
 
 export function setupHeader(
   scrollEl: HTMLElement,
-  callbacks?: { onLoginChange?: (isLoggedIn: boolean) => void; onLoginClick?: (tab?: "signin" | "create") => void; onSignOut?: () => void; onNavigate?: (screenIndex: number) => void; onNavigateToPlp?: () => void },
+  callbacks?: HeaderNavHandlers & { onLoginChange?: (isLoggedIn: boolean) => void },
 ): void {
   loginCallbacks = callbacks || {};
-  injectFlyoutStyles();
 
-  const viewport = scrollEl.querySelector(".studio-viewport");
-  if (!viewport) return;
-
-  const nativeHeaders = viewport.querySelectorAll<HTMLElement>(
-    '[data-name="boots-pharmacy.module.header"]'
-  );
-  if (nativeHeaders.length === 0) return;
-
-  let headerMount = scrollEl.querySelector<HTMLElement>(`:scope > .${HEADER_MOUNT_CLASS}`);
-
-  if (!headerMount) {
-    let sourceHeader = nativeHeaders[0];
-    for (const h of nativeHeaders) {
-      const text = h.textContent || "";
-      if (text.includes("Sarah")) {
-        sourceHeader = h;
-        break;
-      }
-    }
-
-    headerMount = document.createElement("div");
-    headerMount.className = HEADER_MOUNT_CLASS;
-
-    headerClone = sourceHeader.cloneNode(true) as HTMLElement;
-    headerClone.classList.add("proto-header-sticky");
-    headerClone.style.cssText = "display: flex !important; width: 100%; min-width: 1200px;";
-    headerMount.appendChild(headerClone);
-
-    // Hover flyout on the "Health Services" mega menu item
-    attachHealthServicesMegaMenu(headerClone, {
-      onNavigateToPlp: loginCallbacks.onNavigateToPlp,
-    });
-
-    // Detect initial login state from cloned label text
-    const initLabel = findLoginLabel(headerClone);
-    if (initLabel && initLabel.textContent?.trim() === "Sarah") {
-      setStudioLoggedIn(true);
-    }
-
-    // Find the login aux nav item and attach flyout
-    const label = findLoginLabel(headerClone);
-    if (label) {
-      const item = (label.closest('[data-name="component.header.aux.nav.item"]') || label) as HTMLElement;
-      item.style.cursor = "default";
-
-      flyoutEl = createFlyout(item);
-      updateFlyoutContent();
-      updateLocationsFlyoutBadge(false);
-
-      document.addEventListener(SAVED_LOCATIONS_CHANGE_EVENT, onSavedLocationsChange);
-
-      // Insert avatar/icon for current state
-      updateLoginLabel();
-      // Fix search icon
-      fixSearchIcon();
-      // Click-to-open full-screen search takeover
-      attachFullScreenSearch(headerClone, {
-        onNavigateToPlp: loginCallbacks.onNavigateToPlp,
-      });
-
-      // Show/hide flyout on hover
-      let hideTimeout: ReturnType<typeof setTimeout> | null = null;
-      let showTimeout: ReturnType<typeof setTimeout> | null = null;
-      item.addEventListener("mouseenter", () => {
-        if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-        showTimeout = setTimeout(() => {
-          hideAvatarDot();
-          flyoutEl!.style.transform = "translateY(6px)";
-          flyoutEl!.style.opacity = "0";
-          flyoutEl!.style.display = "block";
-          void flyoutEl!.offsetHeight;
-          flyoutEl!.style.opacity = "1";
-          flyoutEl!.style.transform = "translateY(0)";
-        }, 100);
-      });
-      item.addEventListener("mouseleave", () => {
-        if (showTimeout) { clearTimeout(showTimeout); showTimeout = null; }
-        hideTimeout = setTimeout(() => {
-          flyoutEl!.style.opacity = "0";
-          flyoutEl!.style.transform = "translateY(6px)";
-          setTimeout(() => { flyoutEl!.style.display = "none"; }, 150);
-        }, 200);
-      });
-    }
-
-    scrollEl.insertBefore(headerMount, scrollEl.firstChild);
+  if (!savedLocationsListenerBound) {
+    savedLocationsListenerBound = true;
+    document.addEventListener(SAVED_LOCATIONS_CHANGE_EVENT, onSavedLocationsChange);
   }
 
-  const headerRoot = scrollEl.querySelector<HTMLElement>(`.${HEADER_MOUNT_CLASS}`);
-  headerRoot
-    ?.querySelectorAll<HTMLElement>('[data-name="component.mega.menu.item"]')
-    .forEach((item) => {
-      const label = (
-        item.querySelector("p")?.textContent ??
-        item.textContent ??
-        ""
-      ).trim();
-      if (!/^home$/i.test(label)) return;
-      item.style.cursor = "pointer";
-      item.setAttribute("role", "link");
-      item.tabIndex = 0;
-    });
+  const headerMount = scrollEl.querySelector<HTMLElement>(`:scope > .${HEADER_MOUNT_CLASS}`);
 
-  // Hide all native Figma headers inside pages
-  nativeHeaders.forEach((el) => {
-    if (!el.classList.contains("proto-header-sticky")) {
-      el.style.display = "none";
-    }
-  });
+  if (!headerMount && !headerReactRoot) {
+    const mountEl = document.createElement("div");
+    mountEl.className = HEADER_MOUNT_CLASS;
+
+    headerReactRoot = createRoot(mountEl);
+
+    // This `setupHeader()` call runs from inside a `useEffect` in the host
+    // view, i.e. while React is still flushing that commit's passive
+    // effects — `flushSync` is illegal there ("flushSync was called from
+    // inside a lifecycle method"). Deferring to a microtask steps outside
+    // that call stack, so the synchronous-commit guarantee below (needed
+    // so `mountEl.firstElementChild` is populated before the mega-menu /
+    // search kits attach) is safe again, and still lands before paint.
+    queueMicrotask(() => {
+      flushSync(() => renderHeader());
+
+      const headerRootEl = mountEl.firstElementChild as HTMLElement | null;
+      if (headerRootEl) {
+        // Hover flyout on the "Health Services" mega menu item (unchanged
+        // kit, now attached to the React-rendered header instead of a
+        // Make clone).
+        attachHealthServicesMegaMenu(headerRootEl, {
+          onNavigateToPlp: loginCallbacks.onNavigateToPlp,
+        });
+        // Click-to-open full-screen search takeover (unchanged kit).
+        attachFullScreenSearch(headerRootEl, {
+          onNavigateToPlp: loginCallbacks.onNavigateToPlp,
+        });
+      }
+
+      scrollEl.insertBefore(mountEl, scrollEl.firstChild);
+    });
+  }
 
   loginCallbacks.onLoginChange?.(isHeaderLoggedIn());
 }

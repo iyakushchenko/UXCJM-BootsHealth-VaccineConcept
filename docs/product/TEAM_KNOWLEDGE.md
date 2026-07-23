@@ -194,6 +194,15 @@ Use after every ship (in **`team report`** / close-out, and as a bullet in relea
 Append-only evidence follows. Search by stream, surface, error code, or callsign; use the
 retrieval table and LESSONS topic index before scanning by date.
 
+**Knowledge improved** (2026-07-23 · stream: erase-Make Phase D — Header re-author · local, uncommitted):
+- Arch (Director): Header lane matched Footer precedent exactly (content extraction + hand component + colocated CSS split); no `sourceHeader.cloneNode` remains anywhere in the header path — applied: NEXT_STEPS 7c → partial/gate-green, PAGE FINAL PASS stamp deferred to next agent with MCP.
+- Bea (BA): Inventoried every nav item (Home/Health Services/Acne & Skin/More), aux items (Search, Login/Sarah), and both account-menu variants (5 logged-in + 4 guest actions incl. badges) from the prior hand-rolled `innerHTML` strings — 100% represented in `headerContent.ts`, none invented — applied: headerContent.ts.
+- Finn (FE): `headerMount.tsx` now `createRoot` + `flushSync` renders `<Header>` once, then hands the resulting DOM to the unchanged `attachHealthServicesMegaMenu`/`attachFullScreenSearch` kits — same `data-name` contract, zero rewrite of those kits; header CSS split to colocated `chrome/header.css` (hygiene ceiling) — applied: headerMount.tsx, Header.tsx, headerContent.ts, header.css.
+- Uma (UI/UX): Diffed every hand-rolled flyout/avatar/badge CSS rule 1:1 against the old JS-injected `<style>` string — colors (#012169, #c8247e), spacing, hover backgrounds all preserved verbatim; PASS pending live MCP re-render check (no browser transport in this sandbox).
+- Quinn (QA): `npm test` 162/162 files · 1008/1008 tests green; `npm run build` green. No MCP/browser transport available — full interaction-matrix + visual prove is an owed residual (see report).
+- Ben (BE): No push this turn (tree left uncommitted per task instruction); no CI touched.
+- Pain/Worked/Keep: Pain — hoisting `document.addEventListener` from function-scope to module-scope silently breaks any non-DOM (Node) test importing the module transitively (`ReferenceError: document is not defined`), only caught by the full `vitest run`, not by `vite build` (esbuild doesn't type/runtime-check). Worked — same footer-pattern content/component split applies cleanly to a second, more complex header; existing interaction kits (`MegaMenuFlyout`/`FullScreenSearch`) needed zero changes, only a different DOM source. Keep — any headerMount/footerMount-style singleton-module `document.*` side effect must stay guarded behind the mount function (lazy, once-only flag), never at import top-level — new LESSONS_LEARNED entry added below.
+
 **Knowledge improved** (2026-07-22 · stream: AGENT_STUCK_ROUTER token budget · local):
 - Pain: Agents smashed unknown/repetitive FAILs burning tokens instead of reading dig SSoT.
 - Worked: Lean stuck router (symptom → one file) wired AGENTS §0 + director + TEAM_KNOWLEDGE retrieve + PROOF_ROUTER handoff.

@@ -1449,9 +1449,16 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
   useEffect(() => {
     const scrollEl = prototypeScrollElRef.current;
     if (!scrollEl) return;
-    const headerMount = scrollEl.querySelector(".proto-header-mount") as HTMLElement | null;
-    const h = headerMount ? headerMount.getBoundingClientRect().height : 64;
-    document.documentElement.style.setProperty("--sticky-top", `${h}px`);
+
+    // Header content lands a microtask after mount (headerMount.tsx defers its
+    // flushSync render — see there for why); rAF/timeout retries below (already
+    // needed for avatar sync) pick up the real height once it has rendered.
+    const measureStickyTop = () => {
+      const headerMount = scrollEl.querySelector(".proto-header-mount") as HTMLElement | null;
+      const h = headerMount?.firstElementChild ? headerMount.getBoundingClientRect().height : 64;
+      document.documentElement.style.setProperty("--sticky-top", `${h}px`);
+    };
+    measureStickyTop();
 
     // Sync login state: account pages force logged-in (browse stays as user left it)
     syncHeaderLogin(SCREENS[current]?.childIndex ?? 11);
@@ -1461,7 +1468,7 @@ export function BootsPharmacyProjectView({ bridge, apiRef }: BootsPharmacyProjec
       syncAgenticHomeHeading(headerLoggedIn);
     }
 
-    const runMaAvatars = () => syncMaAccountAvatars(scrollEl);
+    const runMaAvatars = () => { measureStickyTop(); syncMaAccountAvatars(scrollEl); };
     runMaAvatars();
     const raf = requestAnimationFrame(runMaAvatars);
     const t = window.setTimeout(runMaAvatars, 0);
